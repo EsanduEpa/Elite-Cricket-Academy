@@ -1,4 +1,9 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 class Core {
     // URL format -> /controller/method/params
     protected $currentController = 'Pages';
@@ -22,6 +27,22 @@ class Core {
 
         // Instantiate the controller
         $this->currentController = new $this->currentController;
+
+        if(isset($url[1])) {
+            // Check if the method exists in the controller
+            if(method_exists($this->currentController, $url[1])) {
+                $this->currentMethod = $url[1];
+                unset($url[1]);
+            }
+
+
+        }   
+
+        // get the parameters
+        $this->param = $url ? array_values($url) : [];
+
+        // call method and pass parameters 
+        call_user_func_array([$this->currentController, $this->currentMethod], $this->param);
     }
 
     public function getURL() {
