@@ -1,19 +1,26 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+class Pages extends Controller {
+    private $pagesModel;
 
-class Pages {
     public function __construct() {
-        //echo "This is the pages constructor method in the Pages controller.";
+        $this->pagesModel = $this->model('M_Pages'); // Your model class
     }
 
     public function index() {
-        
+        // You can redirect or load default content here
     }
-    public function about($name) {
-        echo "Hi, I am " . $name;
+
+    public function about() {
+        // Fetch users from the database using the model
+        $users = $this->pagesModel->getUsers();
+
+        $data = [
+            'users' => $users
+        ];
+
+        // Pass data to the view
+        $this->view('v_about', $data);
     }
 }
 ?>
