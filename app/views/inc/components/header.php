@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie-edge">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <title><?php echo SITENAME; ?></title>  
-</head>
-<body>
+<header class="header">
+    <nav class="nav-container">
+        <div class="logo">Elite Cricket Academy</div>
+        <ul class="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#programs">Programs</a></li>
+            <li><a href="#coaches">Coaches</a></li>
+            <li><a href="#facilities">Facilities</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <button class="enroll-btn">Enroll Now</button>
+    </nav>
+</header>

@@ -1,3 +1,17 @@
-body{
-    background-color: rebeccapurple;
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #ffffff;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* Remove any purple backgrounds */
+html, body {
+    background: #ffffff !important;
 }

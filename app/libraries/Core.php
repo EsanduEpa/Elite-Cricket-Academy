@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 class Core {
     // URL format -> /controller/method/params
-    protected $currentController = 'Pages';
+    protected $currentController = 'Home';
     protected $currentMethod = 'index';
     protected $param = [];
 
@@ -15,7 +15,8 @@ class Core {
 
         $url = $this->getURL();
 
-        if(file_exists('../app/controllers/' . ucwords($url[0]) . '.php')) {
+        // Check if URL exists and has a controller
+        if($url && file_exists('../app/controllers/' . ucwords($url[0]) . '.php')) {
             // If the controller exists, then load it
             $this->currentController = ucwords($url[0]);
             // Unset the controller in the URL
