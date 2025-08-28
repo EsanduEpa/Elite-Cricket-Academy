@@ -55,12 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Adding click listener to enroll button');
         enrollBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Enroll button clicked!');
-            alert('Enroll button clicked! Redirecting to register page...');
+           // console.log('Enroll button clicked!');
             window.location.href = '/Elite/register';
         });
     } else {
-        console.error('Enroll button not found!');
+       console.error('Enroll button not found!');
     }
 
     if (loginBtn) {
