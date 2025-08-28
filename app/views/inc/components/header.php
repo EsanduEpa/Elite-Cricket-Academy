@@ -9,6 +9,9 @@
             <li><a href="#testimonials">Testimonials</a></li>
             <li><a href="#contact">Contact</a></li>
         </ul>
-        <button class="enroll-btn">Enroll Now</button>
+        <div class="nav-buttons">
+            <a href="<?php echo URLROOT; ?>/register" class="enroll-btn">Enroll Now</a>
+            <a href="<?php echo URLROOT; ?>/login" class="enroll-btn">Login</a>
+        </div>
     </nav>
 </header>

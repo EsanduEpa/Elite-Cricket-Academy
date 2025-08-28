@@ -71,12 +71,5 @@ class Login extends Controller {
         $_SESSION['username'] = $user->username;
         redirect('dashboard');
     }
-
-    public function logout() {
-        unset($_SESSION['user_id']);
-        unset($_SESSION['username']);
-        session_destroy();
-        redirect('login');
-    }
 }
 ?>

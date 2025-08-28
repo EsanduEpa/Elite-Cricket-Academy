@@ -57,7 +57,7 @@
         <div class="coaches-grid">
             <div class="coach-card">
                 <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Coach Alex Turner" class="coach-photo">
-                <h3>Alex Turner</h3>
+                <h3>Kumara Darmasena</h3>
                 <p>Former National Team Player</p>
             </div>
             <div class="coach-card">
@@ -67,7 +67,7 @@
             </div>
             <div class="coach-card">
                 <img src="<?php echo URLROOT; ?>/img/coach3.webp" alt="Coach Chris Evans" class="coach-photo">
-                <h3>Chris Evans</h3>
+                <h3>Kumara Sangakkara</h3>
                 <p>Specialist Batting Coach</p>
             </div>
         </div>
@@ -125,7 +125,7 @@
                     <div class="testimonial-header">
                         <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Ethan Harper" class="testimonial-photo">
                         <div class="testimonial-info">
-                            <h4>Ethan Harper</h4>
+                            <h4>Kapila Hewage</h4>
                             <div class="testimonial-date">2025-06-15</div>
                         </div>
                     </div>
@@ -134,9 +134,9 @@
                 </div>
                 <div class="testimonial-card">
                     <div class="testimonial-header">
-                        <img src="<?php echo URLROOT; ?>/img/coach2.jpg" alt="Sophia Bennett" class="testimonial-photo">
+                        <img src="<?php echo URLROOT; ?>/img/coach2.jpg" alt="Kaveesha Kawindya" class="testimonial-photo">
                         <div class="testimonial-info">
-                            <h4>Sophia Bennett</h4>
+                            <h4>Kaveesha Kawindya</h4>
                             <div class="testimonial-date">2025-07-02</div>
                         </div>
                     </div>
@@ -145,9 +145,9 @@
                 </div>
                 <div class="testimonial-card">
                     <div class="testimonial-header">
-                        <img src="<?php echo URLROOT; ?>/img/coach3.webp" alt="Liam Foster" class="testimonial-photo">
+                        <img src="<?php echo URLROOT; ?>/img/coach3.webp" alt="Kumara Dissanayala" class="testimonial-photo">
                         <div class="testimonial-info">
-                            <h4>Liam Foster</h4>
+                            <h4>Kumara Dissanayala</h4>
                             <div class="testimonial-date">2025-06-10</div>
                         </div>
                     </div>

@@ -26,17 +26,16 @@ class Login extends Controller {
                 'password_err' => ''
             ];
 
-            // Validate username
+            // Validate
             if(empty($data['username'])) {
                 $data['username_err'] = 'Please enter your username';
             }
 
-            // Validate password
             if(empty($data['password'])) {
                 $data['password_err'] = 'Please enter your password';
             }
 
-            // Check for errors
+            // Check for user
             if(empty($data['username_err']) && empty($data['password_err'])) {
                 // Check and set logged in user
                 $loggedInUser = $this->userModel->login($data['username'], $data['password']);
@@ -70,13 +69,6 @@ class Login extends Controller {
         $_SESSION['user_id'] = $user->id;
         $_SESSION['username'] = $user->username;
         redirect('dashboard');
-    }
-
-    public function logout() {
-        unset($_SESSION['user_id']);
-        unset($_SESSION['username']);
-        session_destroy();
-        redirect('login');
     }
 }
 ?>

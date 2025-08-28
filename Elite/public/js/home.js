@@ -38,7 +38,7 @@ class Login extends Controller {
 
             // Check for errors
             if(empty($data['username_err']) && empty($data['password_err'])) {
-                // Check and set logged in user
+                // Check and authenticate user
                 $loggedInUser = $this->userModel->login($data['username'], $data['password']);
 
                 if($loggedInUser) {
@@ -70,13 +70,6 @@ class Login extends Controller {
         $_SESSION['user_id'] = $user->id;
         $_SESSION['username'] = $user->username;
         redirect('dashboard');
-    }
-
-    public function logout() {
-        unset($_SESSION['user_id']);
-        unset($_SESSION['username']);
-        session_destroy();
-        redirect('login');
     }
 }
 ?>

@@ -38,7 +38,7 @@ class Login extends Controller {
 
             // Check for errors
             if(empty($data['username_err']) && empty($data['password_err'])) {
-                // Check and set logged in user
+                // Check and log in user
                 $loggedInUser = $this->userModel->login($data['username'], $data['password']);
 
                 if($loggedInUser) {
