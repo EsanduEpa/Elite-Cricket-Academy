@@ -64,19 +64,26 @@ function initializeSidebar() {
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
+            const href = this.getAttribute('href');
             
-            // Remove active class from all items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Add active class to clicked item
-            this.closest('.nav-item').classList.add('active');
-            
-            // Show relevant content based on navigation
-            const target = this.getAttribute('href').substring(1);
-            showDashboardSection(target);
+            // Only prevent default for hash links (placeholder sections)
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.closest('.nav-item').classList.add('active');
+                
+                // Show relevant content based on navigation
+                const target = href.substring(1);
+                showDashboardSection(target);
+            }
+            // For actual routes (like /admin/events), let the browser navigate normally
+            // Do not prevent default - allows normal navigation
         });
     });
 

@@ -181,6 +181,98 @@ class Admin extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
     }
+
+    // Events and Tournaments Management
+    public function events() {
+        $eventModel = $this->model('Event');
+        
+        $data = [
+            'title' => 'Events & Tournaments - Elite Cricket Academy',
+            'upcomingEvents' => $eventModel->getUpcomingEvents(10),
+            'pastEvents' => $eventModel->getPastEvents(10),
+            'recentEvents' => $eventModel->getRecentEvents(5),
+            'eventStats' => [
+                'totalEvents' => 45,
+                'upcomingCount' => 8,
+                'pastCount' => 37,
+                'tournaments' => 12,
+                'trainingSessions' => 25,
+                'matches' => 8
+            ]
+        ];
+        
+        $this->view('admin/events', $data);
+    }
+
+    public function create_event() {
+        if ($_POST) {
+            // Handle event creation
+            $eventModel = $this->model('Event');
+            $result = $eventModel->createEvent($_POST);
+            
+            if ($result) {
+                flash('event_message', 'Event created successfully');
+                redirect('admin/events');
+            } else {
+                flash('event_message', 'Something went wrong', 'alert alert-danger');
+                redirect('admin/events');
+            }
+        } else {
+            $data = [
+                'title' => 'Create New Event - Elite Cricket Academy'
+            ];
+            $this->view('admin/create_event', $data);
+        }
+    }
+
+    public function edit_event($id) {
+        $eventModel = $this->model('Event');
+        
+        if ($_POST) {
+            // Handle event update
+            $result = $eventModel->updateEvent($id, $_POST);
+            
+            if ($result) {
+                flash('event_message', 'Event updated successfully');
+                redirect('admin/events');
+            } else {
+                flash('event_message', 'Something went wrong', 'alert alert-danger');
+                redirect('admin/events');
+            }
+        } else {
+            $data = [
+                'title' => 'Edit Event - Elite Cricket Academy',
+                'event' => $eventModel->getEventById($id)
+            ];
+            $this->view('admin/edit_event', $data);
+        }
+    }
+
+    public function delete_event($id) {
+        $eventModel = $this->model('Event');
+        $result = $eventModel->deleteEvent($id);
+        
+        if ($result) {
+            flash('event_message', 'Event deleted successfully');
+        } else {
+            flash('event_message', 'Something went wrong', 'alert alert-danger');
+        }
+        
+        redirect('admin/events');
+    }
+
+    public function get_calendar_events() {
+        header('Content-Type: application/json');
+        $eventModel = $this->model('Event');
+        $events = $eventModel->getCalendarEvents();
+        echo json_encode($events);
+    }
+
+    public function get_event($id) {
+        header('Content-Type: application/json');
+        $eventModel = $this->model('Event');
+        $event = $eventModel->getEventById($id);
+        echo json_encode($event);
+    }
 }
-?>
 ?>

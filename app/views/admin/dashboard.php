@@ -31,7 +31,7 @@
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
                     <li class="nav-item active">
-                        <a href="#dashboard" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Dashboard Overview</span>
                         </a>
@@ -52,7 +52,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#events-tournaments" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Events & Tournaments</span>
                         </a>
@@ -84,11 +84,11 @@
                     <span class="admin-name">Admin User</span>
                     <span class="admin-role">Super Administrator</span>
                 </div>
-                <div class="logout-btn">
-                    <a href="<?php echo URLROOT; ?>/logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                </div>
+                            <div class="logout-btn">
+                <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
             </div>
         </div>
         
