@@ -1,4 +1,3 @@
-
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/login.css">
@@ -21,7 +20,7 @@
                     <h1 class="academy-title">Elite Cricket Academy</h1>
                     
                     <div class="login-box">
-                        <h2>LOGIN23</h2>
+                        <h2>LOGIN</h2>
                         
                         <form id="loginForm" class="login-form">
                             <div class="form-group">
