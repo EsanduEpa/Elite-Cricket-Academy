@@ -501,7 +501,7 @@ body {
 }
 
 .summary-card:hover .card-icon {
-    transform: rotate(360deg) scale(1.1);
+    transform: scale(1.1);
 }
 
 .staff-card .card-icon { 
@@ -1108,15 +1108,9 @@ body {
     border: 3px solid rgba(74, 144, 226, 0.1);
     border-top: 3px solid #4A90E2;
     border-radius: 50%;
-    animation: modernSpin 1s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
     transform: translate(-50%, -50%);
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.8);
-}
-
-@keyframes modernSpin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Custom Scrollbar - Modern Design */
@@ -2027,18 +2021,3 @@ body {
     background-size: 20px 20px;
     opacity: 0.3;
 }
-
-/* Floating Animation for Icons */
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.stat-icon {
-    animation: float 3s ease-in-out infinite;
-}
-
-.stat-icon.tournament { animation-delay: 0s; }
-.stat-icon.upcoming { animation-delay: 0.5s; }
-.stat-icon.training { animation-delay: 1s; }
-.stat-icon.matches { animation-delay: 1.5s; }
