@@ -18,20 +18,65 @@ const months = [
     "July", "August", "September", "October", "November", "December"
 ];
 
-const sampleEvents = {
-    '2024-12-15': [
-        { title: 'Net Practice', type: 'training', time: '9:00 AM' }
-    ],
-    '2024-12-18': [
-        { title: 'Championship Match', type: 'match', time: '2:00 PM' }
-    ],
-    '2024-12-22': [
-        { title: 'Team Meeting', type: 'meeting', time: '4:00 PM' }
-    ],
-    '2024-12-25': [
-        { title: 'Holiday Training', type: 'training', time: '10:00 AM' }
-    ]
-};
+// Get current date and generate events for the next 30 days
+const today = new Date();
+
+// Function to format date as YYYY-MM-DD
+function formatDate(date) {
+    return date.getFullYear() + '-' + 
+           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(date.getDate()).padStart(2, '0');
+}
+
+// Generate sample events for upcoming days
+const sampleEvents = {};
+
+// Today's events
+const todayKey = formatDate(today);
+sampleEvents[todayKey] = [
+    { title: 'Morning Practice', type: 'training', time: '7:00 AM' },
+    { title: 'Fitness Session', type: 'fitness', time: '4:00 PM' }
+];
+
+// Tomorrow's events
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+const tomorrowKey = formatDate(tomorrow);
+sampleEvents[tomorrowKey] = [
+    { title: 'Team Meeting', type: 'meeting', time: '10:00 AM' }
+];
+
+// Day after tomorrow
+const dayAfterTomorrow = new Date(today);
+dayAfterTomorrow.setDate(today.getDate() + 2);
+const dayAfterTomorrowKey = formatDate(dayAfterTomorrow);
+sampleEvents[dayAfterTomorrowKey] = [
+    { title: 'Net Practice', type: 'training', time: '9:00 AM' },
+    { title: 'Strategy Review', type: 'meeting', time: '2:00 PM' }
+];
+
+// Add more events for the next few weeks
+const events = [
+    { days: 3, events: [{ title: 'Match vs Central CC', type: 'match', time: '2:00 PM' }] },
+    { days: 5, events: [{ title: 'Bowling Practice', type: 'training', time: '8:00 AM' }] },
+    { days: 7, events: [{ title: 'Weekend Tournament', type: 'match', time: '10:00 AM' }] },
+    { days: 10, events: [{ title: 'Skills Assessment', type: 'assessment', time: '3:00 PM' }] },
+    { days: 12, events: [{ title: 'Inter-Club Match', type: 'match', time: '1:00 PM' }] },
+    { days: 14, events: [{ title: 'Batting Clinic', type: 'training', time: '9:00 AM' }] },
+    { days: 16, events: [{ title: 'Physical Fitness Test', type: 'fitness', time: '6:00 AM' }] },
+    { days: 18, events: [{ title: 'Team Selection', type: 'selection', time: '11:00 AM' }] },
+    { days: 21, events: [{ title: 'Championship Quarter Final', type: 'match', time: '2:30 PM' }] },
+    { days: 25, events: [{ title: 'Rest Day Recovery', type: 'recovery', time: '10:00 AM' }] },
+    { days: 28, events: [{ title: 'Monthly Review', type: 'meeting', time: '4:00 PM' }] }
+];
+
+// Generate events for upcoming days
+events.forEach(eventGroup => {
+    const eventDate = new Date(today);
+    eventDate.setDate(today.getDate() + eventGroup.days);
+    const eventKey = formatDate(eventDate);
+    sampleEvents[eventKey] = eventGroup.events;
+});
 
 function initializeCalendar() {
     generateCalendar(currentMonth, currentYear);
@@ -173,6 +218,99 @@ function initializeDashboard() {
     
     // Initialize tooltips if needed
     initializeTooltips();
+    
+    // Color code activity cards
+    colorCodeActivityCards();
+    
+    // Add activity type badges to schedule table
+    addActivityTypeBadges();
+}
+
+function colorCodeActivityCards() {
+    const infoCards = document.querySelectorAll('.info-card');
+    
+    infoCards.forEach(card => {
+        const activityText = card.textContent.toLowerCase();
+        let color = '#4A90E2'; // default blue
+        
+        if (activityText.includes('practice') || activityText.includes('training')) {
+            color = '#27ae60'; // green
+        } else if (activityText.includes('match') || activityText.includes('tournament')) {
+            color = '#e74c3c'; // red
+        } else if (activityText.includes('fitness') || activityText.includes('gym')) {
+            color = '#9b59b6'; // purple
+        } else if (activityText.includes('meeting') || activityText.includes('review')) {
+            color = '#f39c12'; // orange
+        } else if (activityText.includes('assessment') || activityText.includes('test')) {
+            color = '#34495e'; // dark gray
+        } else if (activityText.includes('selection')) {
+            color = '#f1c40f'; // yellow
+        }
+        
+        // Apply the color to the left border and icon
+        card.style.borderLeftColor = color;
+        const icon = card.querySelector('h3 i');
+        if (icon) {
+            icon.style.color = color;
+        }
+    });
+}
+
+function addActivityTypeBadges() {
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+    
+    tableRows.forEach(row => {
+        const activityCell = row.querySelector('td:nth-child(3)'); // Activity column
+        if (activityCell) {
+            const activityText = activityCell.textContent.toLowerCase();
+            let badgeClass = 'activity-badge';
+            let badgeText = 'Event';
+            let badgeColor = '#4A90E2';
+            
+            if (activityText.includes('practice') || activityText.includes('training')) {
+                badgeClass += ' practice';
+                badgeText = 'Training';
+                badgeColor = '#27ae60';
+            } else if (activityText.includes('match') || activityText.includes('tournament')) {
+                badgeClass += ' match';
+                badgeText = 'Match';
+                badgeColor = '#e74c3c';
+            } else if (activityText.includes('fitness') || activityText.includes('gym')) {
+                badgeClass += ' fitness';
+                badgeText = 'Fitness';
+                badgeColor = '#9b59b6';
+            } else if (activityText.includes('meeting') || activityText.includes('review')) {
+                badgeClass += ' meeting';
+                badgeText = 'Meeting';
+                badgeColor = '#f39c12';
+            } else if (activityText.includes('assessment') || activityText.includes('test')) {
+                badgeClass += ' assessment';
+                badgeText = 'Assessment';
+                badgeColor = '#34495e';
+            } else if (activityText.includes('selection')) {
+                badgeClass += ' selection';
+                badgeText = 'Selection';
+                badgeColor = '#f1c40f';
+            }
+            
+            // Add badge after activity text
+            const badge = document.createElement('span');
+            badge.className = badgeClass;
+            badge.textContent = badgeText;
+            badge.style.cssText = `
+                background: ${badgeColor};
+                color: white;
+                padding: 0.2rem 0.5rem;
+                border-radius: 12px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-left: 0.5rem;
+                display: inline-block;
+            `;
+            
+            activityCell.appendChild(badge);
+        }
+    });
 }
 
 function updateCurrentTime() {
@@ -548,6 +686,150 @@ document.addEventListener('visibilitychange', function() {
         }
     }
 });
+
+// Quick Actions functionality
+document.addEventListener('DOMContentLoaded', function() {
+    initializeQuickActions();
+    animateEventCards();
+});
+
+function initializeQuickActions() {
+    // Book Training Session
+    const bookSessionBtns = document.querySelectorAll('.quick-action-card.book-session .action-btn');
+    bookSessionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            showNotification('Redirecting to training booking...', 'info');
+            setTimeout(() => {
+                window.location.href = '/Elite/player/training';
+            }, 1000);
+        });
+    });
+
+    // View Stats
+    const viewStatsBtns = document.querySelectorAll('.quick-action-card.view-stats .action-btn');
+    viewStatsBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            showNotification('Loading detailed performance stats...', 'info');
+            setTimeout(() => {
+                window.location.href = '/Elite/player/performance';
+            }, 1000);
+        });
+    });
+
+    // Medical Records
+    const medicalBtns = document.querySelectorAll('.quick-action-card.medical-record .action-btn');
+    medicalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            showNotification('Opening medical records...', 'info');
+            setTimeout(() => {
+                window.location.href = '/Elite/player/medical';
+            }, 1000);
+        });
+    });
+
+    // Payment
+    const paymentBtns = document.querySelectorAll('.quick-action-card.payment .action-btn');
+    paymentBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            showNotification('Redirecting to payment portal...', 'success');
+            setTimeout(() => {
+                window.location.href = '/Elite/player/payments';
+            }, 1000);
+        });
+    });
+}
+
+function animateEventCards() {
+    const eventItems = document.querySelectorAll('.event-item');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    });
+
+    eventItems.forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'all 0.6s ease';
+        observer.observe(item);
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    // Styles for notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${getNotificationColor(type)};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
+
+function getNotificationColor(type) {
+    switch(type) {
+        case 'success': return 'linear-gradient(45deg, #28a745, #20c997)';
+        case 'error': return 'linear-gradient(45deg, #dc3545, #c82333)';
+        case 'warning': return 'linear-gradient(45deg, #ffc107, #fd7e14)';
+        default: return 'linear-gradient(45deg, #4A90E2, #357ABD)';
+    }
+}
 
 // Performance monitoring
 if (window.performance) {

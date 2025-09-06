@@ -180,6 +180,114 @@
                 </div>
             </div>
 
+            <!-- Quick Actions & Upcoming Events -->
+            <div class="dashboard-content-grid">
+                <div class="quick-actions-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                    </div>
+                    <div class="quick-actions-grid">
+                        <div class="quick-action-card book-session">
+                            <i class="fas fa-calendar-plus"></i>
+                            <h3>Book Training</h3>
+                            <p>Schedule a training session</p>
+                            <button class="action-btn">Book Now</button>
+                        </div>
+                        <div class="quick-action-card view-stats">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>View Stats</h3>
+                            <p>Check detailed performance</p>
+                            <button class="action-btn">View Details</button>
+                        </div>
+                        <div class="quick-action-card medical-record">
+                            <i class="fas fa-heartbeat"></i>
+                            <h3>Medical Check</h3>
+                            <p>Update health records</p>
+                            <button class="action-btn">Update</button>
+                        </div>
+                        <div class="quick-action-card payment">
+                            <i class="fas fa-credit-card"></i>
+                            <h3>Make Payment</h3>
+                            <p>Pay fees or dues</p>
+                            <button class="action-btn">Pay Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upcoming-events-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-calendar-check"></i> Upcoming Events</h2>
+                        <span class="event-count">5 events this week</span>
+                    </div>
+                    <div class="events-list">
+                        <div class="event-item priority-high">
+                            <div class="event-date">
+                                <span class="day">07</span>
+                                <span class="month">SEP</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Match vs Central Cricket Club</h4>
+                                <p><i class="fas fa-clock"></i> 2:00 PM - 6:00 PM</p>
+                                <p><i class="fas fa-map-marker-alt"></i> Main Ground</p>
+                            </div>
+                            <div class="event-status match-event">Match</div>
+                        </div>
+
+                        <div class="event-item priority-medium">
+                            <div class="event-date">
+                                <span class="day">08</span>
+                                <span class="month">SEP</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Batting Practice Session</h4>
+                                <p><i class="fas fa-clock"></i> 10:00 AM - 12:00 PM</p>
+                                <p><i class="fas fa-map-marker-alt"></i> Indoor Nets</p>
+                            </div>
+                            <div class="event-status training-event">Training</div>
+                        </div>
+
+                        <div class="event-item priority-medium">
+                            <div class="event-date">
+                                <span class="day">09</span>
+                                <span class="month">SEP</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Fitness Assessment</h4>
+                                <p><i class="fas fa-clock"></i> 9:00 AM - 11:00 AM</p>
+                                <p><i class="fas fa-map-marker-alt"></i> Gym Facility</p>
+                            </div>
+                            <div class="event-status assessment-event">Assessment</div>
+                        </div>
+
+                        <div class="event-item priority-low">
+                            <div class="event-date">
+                                <span class="day">10</span>
+                                <span class="month">SEP</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Team Strategy Meeting</h4>
+                                <p><i class="fas fa-clock"></i> 4:00 PM - 5:30 PM</p>
+                                <p><i class="fas fa-map-marker-alt"></i> Conference Room</p>
+                            </div>
+                            <div class="event-status meeting-event">Meeting</div>
+                        </div>
+
+                        <div class="event-item priority-medium">
+                            <div class="event-date">
+                                <span class="day">11</span>
+                                <span class="month">SEP</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Equipment Check & Maintenance</h4>
+                                <p><i class="fas fa-clock"></i> 3:00 PM - 4:00 PM</p>
+                                <p><i class="fas fa-map-marker-alt"></i> Equipment Room</p>
+                            </div>
+                            <div class="event-status maintenance-event">Maintenance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Calendar Section -->
             <div class="calendar-section">
                 <div class="calendar-header">

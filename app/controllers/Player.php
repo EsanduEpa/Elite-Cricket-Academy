@@ -180,19 +180,70 @@ class Player extends Controller {
     }
     
     private function getTodaySchedule() {
-        return [
-            ['time' => '09:00 AM', 'activity' => 'Batting Practice', 'location' => 'Net 1', 'coach' => 'Coach Wilson'],
-            ['time' => '11:00 AM', 'activity' => 'Fitness Training', 'location' => 'Gym', 'coach' => 'Trainer Mike'],
-            ['time' => '02:00 PM', 'activity' => 'Bowling Practice', 'location' => 'Net 3', 'coach' => 'Coach Sarah']
+        // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
+        $today = date('w');
+        $todayName = date('l');
+        
+        // Create dynamic schedule based on current day
+        $schedules = [
+            0 => [], // Sunday - Rest day
+            1 => [  // Monday
+                ['time' => '07:00 AM', 'activity' => 'Morning Practice', 'location' => 'Main Ground', 'coach' => 'Coach Wilson'],
+                ['time' => '04:00 PM', 'activity' => 'Fitness Session', 'location' => 'Gym', 'coach' => 'Trainer Mike']
+            ],
+            2 => [  // Tuesday
+                ['time' => '10:00 AM', 'activity' => 'Team Meeting', 'location' => 'Conference Room', 'coach' => 'Head Coach'],
+                ['time' => '02:00 PM', 'activity' => 'Bowling Practice', 'location' => 'Net 2', 'coach' => 'Coach Sarah']
+            ],
+            3 => [  // Wednesday
+                ['time' => '09:00 AM', 'activity' => 'Net Practice', 'location' => 'Net 1', 'coach' => 'Coach Wilson'],
+                ['time' => '02:00 PM', 'activity' => 'Strategy Review', 'location' => 'Video Room', 'coach' => 'Analyst John']
+            ],
+            4 => [  // Thursday
+                ['time' => '02:00 PM', 'activity' => 'Match vs Central CC', 'location' => 'Away Ground', 'coach' => 'Team Manager']
+            ],
+            5 => [  // Friday
+                ['time' => '08:00 AM', 'activity' => 'Bowling Practice', 'location' => 'Net 3', 'coach' => 'Coach Sarah'],
+                ['time' => '03:00 PM', 'activity' => 'Skills Assessment', 'location' => 'Main Ground', 'coach' => 'Head Coach']
+            ],
+            6 => [  // Saturday
+                ['time' => '10:00 AM', 'activity' => 'Weekend Tournament', 'location' => 'Tournament Ground', 'coach' => 'Team Manager'],
+                ['time' => '02:30 PM', 'activity' => 'Team Selection', 'location' => 'Clubhouse', 'coach' => 'Selection Committee']
+            ]
         ];
+        
+        return $schedules[$today] ?? [];
     }
     
     private function getUpcomingSchedule() {
-        return [
-            ['date' => '2025-09-07', 'time' => '10:00 AM', 'activity' => 'Match vs Thunder Hawks', 'location' => 'Main Ground'],
-            ['date' => '2025-09-09', 'time' => '02:00 PM', 'activity' => 'Team Practice', 'location' => 'Practice Ground'],
-            ['date' => '2025-09-12', 'time' => '09:00 AM', 'activity' => 'Fitness Assessment', 'location' => 'Gym']
+        // Generate upcoming schedule for next 7 days
+        $schedule = [];
+        $events = [
+            'Match vs Thunder Hawks' => ['location' => 'Away Ground', 'time' => '10:00 AM'],
+            'Team Practice' => ['location' => 'Practice Ground', 'time' => '02:00 PM'],
+            'Fitness Assessment' => ['location' => 'Gym', 'time' => '09:00 AM'],
+            'Inter-Club Match' => ['location' => 'Main Ground', 'time' => '01:00 PM'],
+            'Batting Clinic' => ['location' => 'Net 1', 'time' => '09:00 AM'],
+            'Physical Fitness Test' => ['location' => 'Gym', 'time' => '06:00 AM'],
+            'Championship Quarter Final' => ['location' => 'Stadium', 'time' => '02:30 PM']
         ];
+        
+        $eventKeys = array_keys($events);
+        for($i = 1; $i <= 7; $i++) {
+            $date = date('Y-m-d', strtotime("+$i days"));
+            $eventIndex = ($i - 1) % count($eventKeys);
+            $eventName = $eventKeys[$eventIndex];
+            $eventDetails = $events[$eventName];
+            
+            $schedule[] = [
+                'date' => $date,
+                'time' => $eventDetails['time'],
+                'activity' => $eventName,
+                'location' => $eventDetails['location']
+            ];
+        }
+        
+        return $schedule;
     }
     
     private function getUpcomingBookings() {
