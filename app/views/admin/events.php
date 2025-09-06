@@ -6,7 +6,8 @@
     <title>Events & Tournaments - Elite Cricket Academy</title>
     <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
     <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin-dashboard.css">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/create-event-wizard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
@@ -260,56 +261,423 @@
     </main>
 </div>
 
-<!-- Event Modals -->
-<div id="eventModal" class="modal">
-    <div class="modal-content">
+<!-- Event Creation Wizard Modal -->
+<div id="createEventModal" class="create-event-modal">
+    <div class="wizard-container">
+        <!-- Modal Header -->
         <div class="modal-header">
-            <h3 id="modalTitle">Create New Event</h3>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2 class="modal-title">
+                <i class="fas fa-calendar-plus"></i>
+                Create New Event
+            </h2>
+            <button class="modal-close" onclick="closeCreateEventModal()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <form id="eventForm" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventTitle">Event Title</label>
-                        <input type="text" id="eventTitle" name="title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="eventType">Event Type</label>
-                        <select id="eventType" name="event_type" required>
-                            <option value="">Select Type</option>
-                            <option value="tournament">Tournament</option>
-                            <option value="training">Training Session</option>
-                            <option value="match">Match</option>
-                            <option value="workshop">Workshop</option>
-                        </select>
-                    </div>
+
+        <div class="modal-body">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-line" id="progressLine"></div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventDate">Event Date</label>
-                        <input type="date" id="eventDate" name="event_date" required>
+                <div class="steps-indicator">
+                    <div class="step-indicator">
+                        <div class="step-circle active" data-step="1">1</div>
+                        <div class="step-label active">Basic Info</div>
                     </div>
-                    <div class="form-group">
-                        <label for="eventLocation">Location</label>
-                        <input type="text" id="eventLocation" name="location" required>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="2">2</div>
+                        <div class="step-label">Schedule</div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="eventDescription">Description</label>
-                    <textarea id="eventDescription" name="description" rows="4" required></textarea>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="3">3</div>
+                        <div class="step-label">Management</div>
+                    </div>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="4">4</div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Event</button>
-            </div>
-        </form>
+
+            <!-- Form Content -->
+            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+                <div class="wizard-content">
+                    <!-- Step 1: Basic Details -->
+                    <div class="step-content active" data-step="1">
+                        <h2 class="step-title">
+                            <i class="fas fa-info-circle step-icon"></i>
+                            Event Basic Information
+                        </h2>
+                        <p class="step-description">Let's start with the fundamental details of your cricket event</p>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="eventName">Event Name <span class="required">*</span></label>
+                                <input type="text" id="eventName" name="event_name" class="form-control" 
+                                       placeholder="e.g., Annual Cricket Championship" required>
+                                <div class="error-message" id="eventNameError">Please enter an event name</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="eventType">Event Type <span class="required">*</span></label>
+                                <select id="eventType" name="event_type" class="form-control" required>
+                                    <option value="">Select Event Type</option>
+                                    <option value="tournament">Tournament</option>
+                                    <option value="training_camp">Training Camp</option>
+                                    <option value="match">Match/Game</option>
+                                    <option value="workshop">Workshop/Clinic</option>
+                                    <option value="trial">Trial/Selection</option>
+                                    <option value="meeting">Team Meeting</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <div class="error-message" id="eventTypeError">Please select an event type</div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="eventCategory">Category <span class="required">*</span></label>
+                                <select id="eventCategory" name="event_category" class="form-control" required>
+                                    <option value="">Select Category</option>
+                                    <option value="junior">Junior (Under 18)</option>
+                                    <option value="senior">Senior (18+)</option>
+                                    <option value="youth">Youth Development</option>
+                                    <option value="professional">Professional</option>
+                                    <option value="recreational">Recreational</option>
+                                    <option value="academy">Academy Training</option>
+                                </select>
+                                <div class="error-message" id="eventCategoryError">Please select a category</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="eventVenue">Venue <span class="required">*</span></label>
+                                <input type="text" id="eventVenue" name="event_venue" class="form-control" 
+                                       placeholder="Enter venue location" required>
+                                <div class="error-message" id="eventVenueError">Please enter the venue</div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="maxParticipants">Max Participants</label>
+                                <input type="number" id="maxParticipants" name="max_participants" class="form-control" 
+                                       placeholder="Leave empty for unlimited" min="1">
+                                <div class="error-message" id="maxParticipantsError">Please enter a valid number</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="registrationFee">Registration Fee (LKR)</label>
+                                <input type="number" id="registrationFee" name="registration_fee" class="form-control" 
+                                       placeholder="0 for free events" min="0" step="0.01">
+                                <div class="error-message" id="registrationFeeError">Please enter a valid amount</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="eventDescription">Event Description</label>
+                            <textarea id="eventDescription" name="event_description" class="form-control" 
+                                    placeholder="Provide a detailed description of the event, including objectives, activities, and any special information..." 
+                                    rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Date & Time -->
+                    <div class="step-content" data-step="2">
+                        <h2 class="step-title">
+                            <i class="fas fa-calendar-alt step-icon"></i>
+                            Event Scheduling
+                        </h2>
+                        <p class="step-description">Set the date, time, and duration for your cricket event</p>
+
+                        <div class="datetime-grid">
+                            <div class="date-time-group">
+                                <h3><i class="fas fa-play-circle"></i> Event Start</h3>
+                                <div class="form-group">
+                                    <label for="startDate">Start Date <span class="required">*</span></label>
+                                    <input type="date" id="startDate" name="start_date" class="form-control" required>
+                                    <div class="error-message" id="startDateError">Please select a start date</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="startTime">Start Time <span class="required">*</span></label>
+                                    <input type="time" id="startTime" name="start_time" class="form-control" required>
+                                    <div class="error-message" id="startTimeError">Please select a start time</div>
+                                </div>
+                            </div>
+
+                            <div class="date-time-group">
+                                <h3><i class="fas fa-stop-circle"></i> Event End</h3>
+                                <div class="form-group">
+                                    <label for="endDate">End Date <span class="required">*</span></label>
+                                    <input type="date" id="endDate" name="end_date" class="form-control" required>
+                                    <div class="error-message" id="endDateError">Please select an end date</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endTime">End Time <span class="required">*</span></label>
+                                    <input type="time" id="endTime" name="end_time" class="form-control" required>
+                                    <div class="error-message" id="endTimeError">Please select an end time</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="registrationStart">Registration Opens</label>
+                                <input type="datetime-local" id="registrationStart" name="registration_start" class="form-control">
+                                <div class="error-message" id="registrationStartError">Please select a valid date and time</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="registrationEnd">Registration Closes</label>
+                                <input type="datetime-local" id="registrationEnd" name="registration_end" class="form-control">
+                                <div class="error-message" id="registrationEndError">Please select a valid date and time</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="eventStatus">Event Status</label>
+                            <select id="eventStatus" name="event_status" class="form-control">
+                                <option value="upcoming">Upcoming</option>
+                                <option value="registration_open">Registration Open</option>
+                                <option value="registration_closed">Registration Closed</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: In-Charge Details -->
+                    <div class="step-content" data-step="3">
+                        <h2 class="step-title">
+                            <i class="fas fa-users-cog step-icon"></i>
+                            Event Management Team
+                        </h2>
+                        <p class="step-description">Assign responsible persons and contact information for the event</p>
+
+                        <div class="form-group">
+                            <label for="primaryContact">Primary Contact Person <span class="required">*</span></label>
+                            <input type="text" id="primaryContact" name="primary_contact" class="form-control" 
+                                   placeholder="Full name of the main organizer" required>
+                            <div class="error-message" id="primaryContactError">Please enter the primary contact person</div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="contactEmail">Contact Email <span class="required">*</span></label>
+                                <input type="email" id="contactEmail" name="contact_email" class="form-control" 
+                                       placeholder="organizer@elitecricket.com" required>
+                                <div class="error-message" id="contactEmailError">Please enter a valid email address</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactPhone">Contact Phone <span class="required">*</span></label>
+                                <input type="tel" id="contactPhone" name="contact_phone" class="form-control" 
+                                       placeholder="+94 77 123 4567" required>
+                                <div class="error-message" id="contactPhoneError">Please enter a valid phone number</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="secondaryContact">Secondary Contact Person</label>
+                            <input type="text" id="secondaryContact" name="secondary_contact" class="form-control" 
+                                   placeholder="Backup organizer (optional)">
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="secondaryEmail">Secondary Email</label>
+                                <input type="email" id="secondaryEmail" name="secondary_email" class="form-control" 
+                                       placeholder="backup@elitecricket.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secondaryPhone">Secondary Phone</label>
+                                <input type="tel" id="secondaryPhone" name="secondary_phone" class="form-control" 
+                                       placeholder="+94 71 987 6543">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="eventCoordinator">Event Coordinator</label>
+                            <select id="eventCoordinator" name="event_coordinator" class="form-control">
+                                <option value="">Select Coordinator</option>
+                                <option value="john_doe">John Doe (Head Coach)</option>
+                                <option value="jane_smith">Jane Smith (Academy Manager)</option>
+                                <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
+                                <option value="sarah_johnson">Sarah Johnson (Assistant Manager)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="specialRequirements">Special Requirements / Notes</label>
+                            <textarea id="specialRequirements" name="special_requirements" class="form-control" 
+                                    placeholder="Any special arrangements, equipment needs, dietary requirements, accessibility considerations, etc." 
+                                    rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Confirmation -->
+                    <div class="step-content" data-step="4">
+                        <h2 class="step-title">
+                            <i class="fas fa-check-circle step-icon"></i>
+                            Review & Confirm
+                        </h2>
+                        <p class="step-description">Please review all the details before creating the event</p>
+
+                        <div class="confirmation-summary">
+                            <!-- Basic Details Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-info-circle"></i>
+                                    Basic Information
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Event Name</div>
+                                        <div class="summary-value" id="summaryEventName">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Event Type</div>
+                                        <div class="summary-value" id="summaryEventType">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Category</div>
+                                        <div class="summary-value" id="summaryEventCategory">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Venue</div>
+                                        <div class="summary-value" id="summaryEventVenue">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Max Participants</div>
+                                        <div class="summary-value" id="summaryMaxParticipants">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Registration Fee</div>
+                                        <div class="summary-value" id="summaryRegistrationFee">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date & Time Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Schedule
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Start Date & Time</div>
+                                        <div class="summary-value" id="summaryStartDateTime">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">End Date & Time</div>
+                                        <div class="summary-value" id="summaryEndDateTime">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Registration Opens</div>
+                                        <div class="summary-value" id="summaryRegistrationStart">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Registration Closes</div>
+                                        <div class="summary-value" id="summaryRegistrationEnd">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Event Status</div>
+                                        <div class="summary-value" id="summaryEventStatus">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-users-cog"></i>
+                                    Management Team
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Primary Contact</div>
+                                        <div class="summary-value" id="summaryPrimaryContact">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Contact Email</div>
+                                        <div class="summary-value" id="summaryContactEmail">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Contact Phone</div>
+                                        <div class="summary-value" id="summaryContactPhone">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Event Coordinator</div>
+                                        <div class="summary-value" id="summaryEventCoordinator">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-file-alt"></i>
+                                    Description
+                                </div>
+                                <div class="summary-item" style="grid-column: 1 / -1;">
+                                    <div class="summary-value" id="summaryEventDescription">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="wizard-navigation">
+                    <button type="button" class="nav-btn btn-prev" id="prevBtn" style="display: none;">
+                        <i class="fas fa-arrow-left"></i>
+                        Previous
+                    </button>
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <button type="button" class="nav-btn btn-cancel" onclick="closeCreateEventModal()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        
+                        <button type="button" class="nav-btn btn-next" id="nextBtn">
+                            Next
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        
+                        <button type="submit" class="nav-btn btn-submit" id="submitBtn" style="display: none;">
+                            <i class="fas fa-check"></i>
+                            Create Event
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== EVENTS PAGE DEBUG ===');
+    console.log('URLROOT:', '<?php echo URLROOT; ?>');
+    console.log('CSS file path:', '<?php echo URLROOT; ?>/css/admin/create-event-wizard.css');
+    console.log('JS file path:', '<?php echo URLROOT; ?>/js/admin/create-event-wizard.js');
+    
+    // Check if modal exists
+    const modal = document.getElementById('createEventModal');
+    console.log('Modal element found:', !!modal);
+    
+    // Check if button exists
+    const button = document.getElementById('createEventBtn');
+    console.log('Button element found:', !!button);
+    
+    // Check if openCreateEventModal function exists
+    console.log('openCreateEventModal function exists:', typeof openCreateEventModal);
+    
     // Initialize calendar
     const calendarEl = document.getElementById('eventCalendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -324,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
             viewEventDetails(info.event);
         },
         dateClick: function(info) {
-            openCreateModal(info.dateStr);
+            openCreateEventModal();
         },
         eventClassNames: function(arg) {
             return ['event-' + arg.event.extendedProps.type];
@@ -332,52 +700,119 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Event handlers
-    document.getElementById('createEventBtn').addEventListener('click', () => openCreateModal());
-    document.getElementById('createTournamentBtn').addEventListener('click', () => openCreateModal('tournament'));
-    document.getElementById('viewAllUpcomingBtn').addEventListener('click', () => viewAllEvents('upcoming'));
-    document.getElementById('viewAllPastBtn').addEventListener('click', () => viewAllEvents('past'));
+    // Updated event handlers for new wizard modal
+    const createEventBtn = document.getElementById('createEventBtn');
+    const createTournamentBtn = document.getElementById('createTournamentBtn');
+    
+    if (createEventBtn) {
+        createEventBtn.addEventListener('click', () => {
+            console.log('Create Event button clicked!');
+            openCreateEventModal();
+        });
+    } else {
+        console.error('Create Event button not found!');
+    }
+    
+    if (createTournamentBtn) {
+        createTournamentBtn.addEventListener('click', () => {
+            openCreateEventModal();
+            // Pre-select tournament in the wizard
+            setTimeout(() => {
+                const eventTypeSelect = document.getElementById('eventType');
+                if (eventTypeSelect) {
+                    eventTypeSelect.value = 'tournament';
+                }
+            }, 100);
+        });
+    }
+
+    // Other existing event handlers
+    const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
+    const viewAllPastBtn = document.getElementById('viewAllPastBtn');
+    
+    if (viewAllUpcomingBtn) {
+        viewAllUpcomingBtn.addEventListener('click', () => viewAllEvents('upcoming'));
+    }
+    
+    if (viewAllPastBtn) {
+        viewAllPastBtn.addEventListener('click', () => viewAllEvents('past'));
+    }
+    
+    // Debug function
+    window.debugWizard = function() {
+        console.log('=== WIZARD DEBUG INFO ===');
+        const modal = document.getElementById('createEventModal');
+        const steps = document.querySelectorAll('.step-content');
+        const activeSteps = document.querySelectorAll('.step-content.active');
+        
+        console.log('Modal element:', modal);
+        console.log('Modal classes:', modal ? modal.className : 'Not found');
+        console.log('Total steps found:', steps.length);
+        console.log('Active steps found:', activeSteps.length);
+        
+        steps.forEach((step, index) => {
+            const stepNum = step.getAttribute('data-step');
+            const isActive = step.classList.contains('active');
+            const display = window.getComputedStyle(step).display;
+            const opacity = window.getComputedStyle(step).opacity;
+            
+            console.log(`Step ${stepNum}: active=${isActive}, display=${display}, opacity=${opacity}`);
+        });
+        
+        if (window.eventWizard) {
+            console.log('Current wizard step:', window.eventWizard.currentStep);
+        } else {
+            console.log('EventWizard not initialized');
+        }
+        console.log('========================');
+    };
+    
+    // Simple modal test function
+    window.testModal = function() {
+        const modal = document.getElementById('createEventModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            console.log('Modal test: Showing modal manually');
+        } else {
+            console.error('Modal test: Modal not found');
+        }
+    };
+    
+    // Test button click manually
+    window.testButton = function() {
+        const btn = document.getElementById('createEventBtn');
+        if (btn) {
+            btn.click();
+            console.log('Button test: Clicked button manually');
+        } else {
+            console.error('Button test: Button not found');
+        }
+    };
 });
 
-function openCreateModal(type = '', date = '') {
-    const modal = document.getElementById('eventModal');
-    const form = document.getElementById('eventForm');
-    const title = document.getElementById('modalTitle');
-    
-    title.textContent = 'Create New Event';
-    form.action = '<?php echo URLROOT; ?>/admin/create_event';
-    form.reset();
-    
-    if (type === 'tournament') {
-        document.getElementById('eventType').value = 'tournament';
-    }
-    
-    if (date) {
-        document.getElementById('eventDate').value = date;
-    }
-    
-    modal.style.display = 'block';
+// Legacy function for viewing all events
+function viewAllEvents(type) {
+    window.location.href = `<?php echo URLROOT; ?>/admin/events?filter=${type}`;
 }
 
+function viewEventDetails(event) {
+    alert(`Event: ${event.title}\nDate: ${event.start}\nType: ${event.extendedProps.type}\nLocation: ${event.extendedProps.location}\nDescription: ${event.extendedProps.description}`);
+}
+
+// Function to refresh events after creation
+function refreshEvents() {
+    location.reload(); // Simple refresh - can be improved with AJAX
+}
+
+// Legacy functions for existing events (can be updated later)
 function editEvent(eventId) {
     // Fetch event details and populate form
     fetch(`<?php echo URLROOT; ?>/admin/get_event/${eventId}`)
         .then(response => response.json())
         .then(event => {
-            const modal = document.getElementById('eventModal');
-            const form = document.getElementById('eventForm');
-            const title = document.getElementById('modalTitle');
-            
-            title.textContent = 'Edit Event';
-            form.action = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
-            
-            document.getElementById('eventTitle').value = event.title;
-            document.getElementById('eventType').value = event.event_type;
-            document.getElementById('eventDate').value = event.event_date;
-            document.getElementById('eventLocation').value = event.location;
-            document.getElementById('eventDescription').value = event.description;
-            
-            modal.style.display = 'block';
+            alert('Edit functionality will be updated to use the new wizard format');
         });
 }
 
@@ -390,32 +825,14 @@ function deleteEvent(eventId) {
 function viewEvent(eventId) {
     window.location.href = `<?php echo URLROOT; ?>/admin/event_details/${eventId}`;
 }
-
-function closeModal() {
-    document.getElementById('eventModal').style.display = 'none';
-}
-
-function viewAllEvents(type) {
-    window.location.href = `<?php echo URLROOT; ?>/admin/events?filter=${type}`;
-}
-
-function viewEventDetails(event) {
-    alert(`Event: ${event.title}\nDate: ${event.start}\nType: ${event.extendedProps.type}\nLocation: ${event.extendedProps.location}\nDescription: ${event.extendedProps.description}`);
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('eventModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-}
 </script>
 
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <!-- Admin Events JS -->
 <script src="<?php echo URLROOT; ?>/js/admin/events.js"></script>
+<!-- Create Event Wizard JS -->
+<script src="<?php echo URLROOT; ?>/js/admin/create-event-wizard.js"></script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 
