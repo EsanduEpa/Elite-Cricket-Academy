@@ -10,6 +10,11 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    /* Mobile optimizations */
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Layout Structure */
@@ -187,6 +192,68 @@ body {
     100% { transform: scale(1); }
 }
 
+/* Navigation Divider */
+.nav-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.3), transparent);
+    margin: 1rem 0.5rem;
+}
+
+/* Collapsible Navigation */
+.nav-expandable {
+    position: relative;
+}
+
+.nav-expandable .nav-arrow {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.nav-expandable.expanded .nav-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.nav-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: rgba(248, 249, 250, 0.5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-submenu.show {
+    max-height: 200px;
+}
+
+.nav-sublink {
+    padding: 0.75rem 1rem 0.75rem 3rem !important;
+    font-size: 0.9rem;
+    background: none !important;
+    color: #777 !important;
+    border-left: 2px solid transparent;
+}
+
+.nav-sublink:hover {
+    background: rgba(74, 144, 226, 0.05) !important;
+    color: #4A90E2 !important;
+    border-left-color: #4A90E2;
+    padding-left: 3.2rem !important;
+    transform: none !important;
+}
+
+.nav-sublink i {
+    font-size: 0.9rem;
+    color: #999;
+    margin-right: 0.5rem;
+}
+
 /* Player Profile Section in Sidebar */
 .player-profile {
     padding: 1.5rem;
@@ -258,6 +325,7 @@ body {
     flex: 1;
     margin-left: 320px;
     padding: 2rem;
+    padding-bottom: 4rem; /* Extra space for footer */
     min-height: calc(100vh - 80px);
     background-color: #f8f9fa;
 }
@@ -1085,6 +1153,7 @@ body {
 @media (max-width: 480px) {
     .player-sidebar {
         width: 100%;
+        z-index: 9999;
     }
     
     .quick-actions {
@@ -1093,11 +1162,110 @@ body {
     
     .stat-card {
         padding: 1rem;
+        min-height: 44px; /* Minimum touch target size */
     }
     
     .content-section {
         padding: 1rem;
     }
+    
+    /* Enhanced touch targets for mobile */
+    .nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+    }
+    
+    .btn, .quick-action-btn {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Calendar improvements for mobile */
+    .calendar-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .calendar-day {
+        min-width: 40px;
+        min-height: 40px;
+        touch-action: manipulation; /* Faster tap response */
+    }
+    
+    .calendar-week {
+        min-height: 44px;
+    }
+    
+    /* Form inputs mobile optimization */
+    input, select, textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 4px;
+    }
+    
+    /* Improve modal behavior on mobile */
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        margin: 0;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* Better mobile sidebar */
+    .sidebar-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 10000;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 50%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+    }
+    
+    .main-content {
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+}
+
+/* Touch-specific improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* This targets touch devices */
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+    
+    .quick-action-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Touch feedback class */
+.touch-active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
 }
 
 /* Loading States */

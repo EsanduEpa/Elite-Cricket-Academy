@@ -1,8 +1,11 @@
 <?php
 class Player extends Controller {
     
+    private $userModel;
+    
     public function __construct() {
-        $this->userModel = $this->model('M_Users');
+        // Database disabled for UI testing
+        // $this->userModel = $this->model('M_Users');
     }
     
     private function requireLogin() {
@@ -39,6 +42,7 @@ class Player extends Controller {
     
     // Test method without login requirement
     public function test() {
+        // Direct UI test without any auth or database
         $playerData = $this->getPlayerData();
         
         $data = [
