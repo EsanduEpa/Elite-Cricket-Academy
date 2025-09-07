@@ -1,9 +1,22 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Dashboard - Elite Cricket Academy</title>
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Mobile-specific meta tags -->
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+</head>
 
 <body>
+    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
     <!-- Player Dashboard Layout -->
     <div class="player-layout">
         <!-- Left Sidebar Panel -->
@@ -20,6 +33,7 @@
 
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
+                    <!-- PRIMARY FEATURES - High Priority -->
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player" class="nav-link active">
                             <i class="fas fa-tachometer-alt"></i>
@@ -35,26 +49,12 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Shopping & Rental</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
                             <i class="fas fa-calendar-check"></i>
                             <span>My Bookings</span>
                             <?php if(!empty($data['upcomingBookings'])): ?>
                                 <span class="badge"><?php echo count($data['upcomingBookings']); ?></span>
                             <?php endif; ?>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Medical Records</span>
                         </a>
                     </li>
 
@@ -66,20 +66,45 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link">
-                            <i class="fas fa-trophy"></i>
-                            <span>Achievements</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/payments" class="nav-link">
                             <i class="fas fa-credit-card"></i>
-                            <span>Payment History</span>
+                            <span>Payments</span>
                             <?php if(!empty($data['paymentsDue'])): ?>
                                 <span class="badge"><?php echo count($data['paymentsDue']); ?></span>
                             <?php endif; ?>
                         </a>
+                    </li>
+
+                    <!-- DIVIDER -->
+                    <li class="nav-divider"></li>
+
+                    <!-- SECONDARY FEATURES - Collapsible -->
+                    <li class="nav-item nav-expandable">
+                        <a href="#" class="nav-link" onclick="toggleMoreOptions(event)">
+                            <i class="fas fa-ellipsis-h"></i>
+                            <span>More</span>
+                            <i class="fas fa-chevron-down nav-arrow"></i>
+                        </a>
+                        <ul class="nav-submenu" id="moreOptions">
+                            <li class="nav-item">
+                                <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link nav-sublink">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>Shopping & Rental</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link nav-sublink">
+                                    <i class="fas fa-heartbeat"></i>
+                                    <span>Medical Records</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link nav-sublink">
+                                    <i class="fas fa-trophy"></i>
+                                    <span>Achievements</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </nav>
@@ -562,6 +587,8 @@
 
     <!-- JavaScript for Dashboard -->
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
+    
+    <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 
 </html>

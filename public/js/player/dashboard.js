@@ -7,9 +7,61 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCurrentTime();
     animateCounters();
     initializeSidebar();
+    initializeMobileFeatures();
     highlightActiveNavLink();
     initializeCalendar();
 });
+
+// Mobile-specific initialization
+function initializeMobileFeatures() {
+    // Prevent zoom on double tap for iOS
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+    
+    // Improve scrolling on mobile
+    if ('ontouchstart' in window) {
+        document.body.style.webkitOverflowScrolling = 'touch';
+    }
+    
+    // Handle mobile sidebar behavior
+    const sidebar = document.getElementById('playerSidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (window.innerWidth <= 1024 && sidebar && mainContent) {
+        // Close sidebar when clicking outside on mobile
+        mainContent.addEventListener('touchstart', function(e) {
+            if (sidebar.classList.contains('sidebar-open')) {
+                sidebar.classList.remove('sidebar-open');
+            }
+        });
+        
+        // Prevent body scroll when sidebar is open
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                document.body.style.overflow = sidebar.classList.contains('sidebar-open') ? '' : 'hidden';
+            });
+        }
+    }
+    
+    // Add touch feedback to interactive elements
+    const touchElements = document.querySelectorAll('.nav-link, .stat-card, .quick-action-btn, .btn');
+    touchElements.forEach(element => {
+        element.addEventListener('touchstart', function() {
+            this.classList.add('touch-active');
+        });
+        
+        element.addEventListener('touchend', function() {
+            setTimeout(() => this.classList.remove('touch-active'), 150);
+        });
+    });
+}
 
 // Calendar functionality - initialize with PHP data if available
 let currentDate = new Date();
@@ -891,3 +943,23 @@ if (window.performance) {
         }, 0);
     });
 }
+
+// Navigation toggle function for collapsible menu
+function toggleMoreOptions(event) {
+    event.preventDefault();
+    
+    const expandableItem = event.target.closest('.nav-expandable');
+    const submenu = document.getElementById('moreOptions');
+    const arrow = expandableItem.querySelector('.nav-arrow');
+    
+    // Toggle expanded state
+    expandableItem.classList.toggle('expanded');
+    submenu.classList.toggle('show');
+    
+    // Update aria attributes for accessibility
+    const isExpanded = expandableItem.classList.contains('expanded');
+    event.target.setAttribute('aria-expanded', isExpanded);
+}
+
+// Make toggle function globally available
+window.toggleMoreOptions = toggleMoreOptions;
