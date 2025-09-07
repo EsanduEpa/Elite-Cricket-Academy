@@ -270,9 +270,6 @@
                 <i class="fas fa-calendar-plus"></i>
                 Create New Event
             </h2>
-            <button class="modal-close" onclick="closeCreateEventModal()">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
 
         <div class="modal-body">
@@ -660,6 +657,473 @@
     </div>
 </div>
 
+<!-- Tournament Creation Wizard Modal -->
+<div id="createTournamentModal" class="create-event-modal">
+    <div class="wizard-container">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-trophy"></i>
+                Create Cricket Tournament
+            </h2>
+        </div>
+
+        <div class="modal-body">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-line" id="tournamentProgressLine"></div>
+                </div>
+                <div class="steps-indicator">
+                    <div class="step-indicator">
+                        <div class="step-circle active" data-step="1">1</div>
+                        <div class="step-label active">Basic Info</div>
+                    </div>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="2">2</div>
+                        <div class="step-label">Schedule & Venue</div>
+                    </div>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="3">3</div>
+                        <div class="step-label">Rules & Supervisors</div>
+                    </div>
+                    <div class="step-indicator">
+                        <div class="step-circle" data-step="4">4</div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Content -->
+            <form id="tournamentWizardForm" action="<?php echo URLROOT; ?>/admin/createTournament" method="POST">
+                <div class="wizard-content">
+                    <!-- Step 1: Basic Information -->
+                    <div class="tournament-step-content active" data-step="1">
+                        <h2 class="step-title">
+                            <i class="fas fa-info-circle step-icon"></i>
+                            Tournament Basic Information
+                        </h2>
+                        <p class="step-description">Let's start with the fundamental details of your cricket tournament</p>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="tournamentName">Tournament Name <span class="required">*</span></label>
+                                <input type="text" id="tournamentName" name="tournament_name" class="form-control" 
+                                       placeholder="e.g., Elite Cricket Championship 2025" required>
+                                <div class="error-message" id="tournamentNameError">Please enter a tournament name</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tournamentType">Tournament Format <span class="required">*</span></label>
+                                <select id="tournamentType" name="tournament_type" class="form-control" required>
+                                    <option value="">Select Format</option>
+                                    <option value="knockout">Knockout/Elimination</option>
+                                    <option value="round_robin">Round Robin</option>
+                                    <option value="league">League Format</option>
+                                    <option value="t20">T20 Tournament</option>
+                                    <option value="odi">ODI Tournament</option>
+                                    <option value="test">Test Match Series</option>
+                                    <option value="mixed">Mixed Format</option>
+                                </select>
+                                <div class="error-message" id="tournamentTypeError">Please select a tournament format</div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="numberOfTeams">Number of Teams <span class="required">*</span></label>
+                                <select id="numberOfTeams" name="number_of_teams" class="form-control" required>
+                                    <option value="">Select Number</option>
+                                    <option value="4">4 Teams</option>
+                                    <option value="6">6 Teams</option>
+                                    <option value="8">8 Teams</option>
+                                    <option value="10">10 Teams</option>
+                                    <option value="12">12 Teams</option>
+                                    <option value="16">16 Teams</option>
+                                    <option value="20">20 Teams</option>
+                                    <option value="custom">Custom Number</option>
+                                </select>
+                                <div class="error-message" id="numberOfTeamsError">Please select number of teams</div>
+                            </div>
+
+                            <div class="form-group" id="customTeamsGroup" style="display: none;">
+                                <label for="customTeamsNumber">Custom Number of Teams</label>
+                                <input type="number" id="customTeamsNumber" name="custom_teams_number" class="form-control" 
+                                       placeholder="Enter number" min="2" max="50">
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="registrationFee">Team Registration Fee (LKR)</label>
+                                <input type="number" id="registrationFee" name="registration_fee" class="form-control" 
+                                       placeholder="0 for free tournaments" min="0" step="0.01">
+                                <div class="error-message" id="registrationFeeError">Please enter a valid amount</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="entryDeadline">Team Registration Deadline</label>
+                                <input type="datetime-local" id="entryDeadline" name="entry_deadline" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h3><i class="fas fa-money-bill-wave"></i> Prize Structure</h3>
+                            <div class="prize-grid">
+                                <div class="form-group">
+                                    <label for="firstPrize">1st Place Prize (LKR)</label>
+                                    <input type="number" id="firstPrize" name="first_prize" class="form-control" 
+                                           placeholder="50000" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="secondPrize">2nd Place Prize (LKR)</label>
+                                    <input type="number" id="secondPrize" name="second_prize" class="form-control" 
+                                           placeholder="25000" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="thirdPrize">3rd Place Prize (LKR)</label>
+                                    <input type="number" id="thirdPrize" name="third_prize" class="form-control" 
+                                           placeholder="10000" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tournamentDescription">Tournament Description</label>
+                            <textarea id="tournamentDescription" name="tournament_description" class="form-control" 
+                                    placeholder="Provide details about the tournament, rules overview, objectives, and any special information..." 
+                                    rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Schedule & Venue -->
+                    <div class="tournament-step-content" data-step="2">
+                        <h2 class="step-title">
+                            <i class="fas fa-calendar-alt step-icon"></i>
+                            Tournament Schedule & Venues
+                        </h2>
+                        <p class="step-description">Set the dates, match schedule, and venue details for the tournament</p>
+
+                        <div class="datetime-grid">
+                            <div class="date-time-group">
+                                <h3><i class="fas fa-play-circle"></i> Tournament Period</h3>
+                                <div class="form-group">
+                                    <label for="tournamentStartDate">Tournament Start Date <span class="required">*</span></label>
+                                    <input type="date" id="tournamentStartDate" name="start_date" class="form-control" required>
+                                    <div class="error-message" id="tournamentStartDateError">Please select a start date</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tournamentEndDate">Tournament End Date <span class="required">*</span></label>
+                                    <input type="date" id="tournamentEndDate" name="end_date" class="form-control" required>
+                                    <div class="error-message" id="tournamentEndDateError">Please select an end date</div>
+                                </div>
+                            </div>
+
+                            <div class="date-time-group">
+                                <h3><i class="fas fa-clock"></i> Match Timing</h3>
+                                <div class="form-group">
+                                    <label for="matchStartTime">Daily Match Start Time</label>
+                                    <input type="time" id="matchStartTime" name="match_start_time" class="form-control" value="09:00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="matchEndTime">Daily Match End Time</label>
+                                    <input type="time" id="matchEndTime" name="match_end_time" class="form-control" value="17:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h3><i class="fas fa-map-marker-alt"></i> Venue Information</h3>
+                            <div class="venue-grid">
+                                <div class="form-group">
+                                    <label for="primaryVenue">Primary Venue <span class="required">*</span></label>
+                                    <input type="text" id="primaryVenue" name="primary_venue" class="form-control" 
+                                           placeholder="Elite Cricket Academy Ground" required>
+                                    <div class="error-message" id="primaryVenueError">Please enter the primary venue</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="secondaryVenue">Secondary Venue (if any)</label>
+                                    <input type="text" id="secondaryVenue" name="secondary_venue" class="form-control" 
+                                           placeholder="Additional ground for multiple matches">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="venueAddress">Venue Address</label>
+                            <textarea id="venueAddress" name="venue_address" class="form-control" 
+                                    placeholder="Complete address with landmarks for teams and spectators..." rows="3"></textarea>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="matchesPerDay">Matches Per Day</label>
+                                <select id="matchesPerDay" name="matches_per_day" class="form-control">
+                                    <option value="1">1 Match</option>
+                                    <option value="2" selected>2 Matches</option>
+                                    <option value="3">3 Matches</option>
+                                    <option value="4">4 Matches</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="restDays">Rest Days Between Rounds</label>
+                                <select id="restDays" name="rest_days" class="form-control">
+                                    <option value="0">No Rest Days</option>
+                                    <option value="1" selected>1 Day</option>
+                                    <option value="2">2 Days</option>
+                                    <option value="3">3 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Rules & Supervisors -->
+                    <div class="tournament-step-content" data-step="3">
+                        <h2 class="step-title">
+                            <i class="fas fa-gavel step-icon"></i>
+                            Rules & Supervisors
+                        </h2>
+                        <p class="step-description">Define tournament rules, regulations, and assign supervisory staff</p>
+
+                        <div class="form-group">
+                            <h3><i class="fas fa-book"></i> Tournament Rules & Regulations</h3>
+                            <textarea id="tournamentRules" name="tournament_rules" class="form-control" 
+                                    placeholder="Enter detailed rules and regulations for the tournament:
+- Match format (overs, innings, etc.)
+- Team composition rules
+- Player eligibility criteria
+- Equipment regulations
+- Conduct and disciplinary rules
+- Weather and pitch conditions protocols
+- Scoring and result determination
+- Appeals and dispute resolution
+- Any special tournament-specific rules..." 
+                                    rows="8"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <h3><i class="fas fa-users-cog"></i> Tournament Management</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="tournamentDirector">Tournament Director <span class="required">*</span></label>
+                                    <select id="tournamentDirector" name="tournament_director" class="form-control" required>
+                                        <option value="">Select Director</option>
+                                        <option value="john_doe">John Doe (Head Coach)</option>
+                                        <option value="jane_smith">Jane Smith (Academy Manager)</option>
+                                        <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
+                                        <option value="sarah_johnson">Sarah Johnson (Sports Manager)</option>
+                                    </select>
+                                    <div class="error-message" id="tournamentDirectorError">Please select a tournament director</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="headUmpire">Head Umpire</label>
+                                    <select id="headUmpire" name="head_umpire" class="form-control">
+                                        <option value="">Select Head Umpire</option>
+                                        <option value="umpire_1">David Thompson (Level 3 Umpire)</option>
+                                        <option value="umpire_2">Robert Kumar (Level 2 Umpire)</option>
+                                        <option value="umpire_3">Michael Silva (Level 3 Umpire)</option>
+                                        <option value="external">External Umpire (TBD)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h3><i class="fas fa-clipboard-list"></i> Match Officials</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="scorers">Official Scorers</label>
+                                    <textarea id="scorers" name="scorers" class="form-control" 
+                                            placeholder="List designated scorers:
+- Primary Scorer: Name
+- Secondary Scorer: Name
+- Backup Scorers: Names..." rows="4"></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="groundStaff">Ground Staff Coordinator</label>
+                                    <select id="groundStaff" name="ground_staff" class="form-control">
+                                        <option value="">Select Coordinator</option>
+                                        <option value="staff_1">Alex Fernando (Ground Manager)</option>
+                                        <option value="staff_2">Priya Patel (Facilities Manager)</option>
+                                        <option value="staff_3">James Wilson (Maintenance Head)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="emergencyContact">Emergency Contact Information</label>
+                            <textarea id="emergencyContact" name="emergency_contact" class="form-control" 
+                                    placeholder="Emergency contacts during tournament:
+- Medical Emergency: Dr. Name - Phone
+- Security: Contact Name - Phone
+- Tournament Organizer: Name - Phone
+- Venue Emergency: Contact - Phone..." rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="specialInstructions">Special Instructions & Notes</label>
+                            <textarea id="specialInstructions" name="special_instructions" class="form-control" 
+                                    placeholder="Any additional instructions:
+- Spectator guidelines
+- Media coverage arrangements
+- Catering arrangements
+- Transportation details
+- Equipment requirements
+- Weather contingency plans..." rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Confirmation -->
+                    <div class="tournament-step-content" data-step="4">
+                        <h2 class="step-title">
+                            <i class="fas fa-check-circle step-icon"></i>
+                            Review & Confirm Tournament
+                        </h2>
+                        <p class="step-description">Please review all tournament details before creating</p>
+
+                        <div class="confirmation-summary">
+                            <!-- Basic Details Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Tournament Information
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Tournament Name</div>
+                                        <div class="summary-value" id="summaryTournamentName">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Format</div>
+                                        <div class="summary-value" id="summaryTournamentType">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Number of Teams</div>
+                                        <div class="summary-value" id="summaryNumberOfTeams">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Registration Fee</div>
+                                        <div class="summary-value" id="summaryTournamentRegistrationFee">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">First Prize</div>
+                                        <div class="summary-value" id="summaryFirstPrize">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Registration Deadline</div>
+                                        <div class="summary-value" id="summaryEntryDeadline">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Schedule Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Schedule & Venue
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Tournament Period</div>
+                                        <div class="summary-value" id="summaryTournamentPeriod">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Match Timing</div>
+                                        <div class="summary-value" id="summaryMatchTiming">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Primary Venue</div>
+                                        <div class="summary-value" id="summaryPrimaryVenue">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Secondary Venue</div>
+                                        <div class="summary-value" id="summarySecondaryVenue">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Matches Per Day</div>
+                                        <div class="summary-value" id="summaryMatchesPerDay">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Rest Days</div>
+                                        <div class="summary-value" id="summaryRestDays">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Management Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-users-cog"></i>
+                                    Tournament Management
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Tournament Director</div>
+                                        <div class="summary-value" id="summaryTournamentDirector">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Head Umpire</div>
+                                        <div class="summary-value" id="summaryHeadUmpire">-</div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Ground Staff Coordinator</div>
+                                        <div class="summary-value" id="summaryGroundStaff">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rules Summary -->
+                            <div class="summary-section">
+                                <div class="summary-title">
+                                    <i class="fas fa-gavel"></i>
+                                    Rules & Description
+                                </div>
+                                <div class="summary-item" style="grid-column: 1 / -1;">
+                                    <div class="summary-label">Tournament Description</div>
+                                    <div class="summary-value" id="summaryTournamentDescription">-</div>
+                                </div>
+                                <div class="summary-item" style="grid-column: 1 / -1;">
+                                    <div class="summary-label">Rules & Regulations</div>
+                                    <div class="summary-value" id="summaryTournamentRules">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="wizard-navigation">
+                    <button type="button" class="nav-btn btn-prev" id="tournamentPrevBtn" style="display: none;">
+                        <i class="fas fa-arrow-left"></i>
+                        Previous
+                    </button>
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <button type="button" class="nav-btn btn-cancel" onclick="closeTournamentModal()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        
+                        <button type="button" class="nav-btn btn-next" id="tournamentNextBtn">
+                            Next
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        
+                        <button type="submit" class="nav-btn btn-submit" id="tournamentSubmitBtn" style="display: none;">
+                            <i class="fas fa-trophy"></i>
+                            Create Tournament
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== EVENTS PAGE DEBUG ===');
@@ -715,15 +1179,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (createTournamentBtn) {
         createTournamentBtn.addEventListener('click', () => {
-            openCreateEventModal();
-            // Pre-select tournament in the wizard
-            setTimeout(() => {
-                const eventTypeSelect = document.getElementById('eventType');
-                if (eventTypeSelect) {
-                    eventTypeSelect.value = 'tournament';
-                }
-            }, 100);
+            console.log('Create Tournament button clicked!');
+            openTournamentModal();
         });
+    } else {
+        console.error('Create Tournament button not found!');
     }
 
     // Other existing event handlers
@@ -790,6 +1250,19 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Button test: Button not found');
         }
     };
+    
+    // Tournament modal test function
+    window.testTournamentModal = function() {
+        const modal = document.getElementById('createTournamentModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            console.log('Tournament modal test: Showing modal manually');
+        } else {
+            console.error('Tournament modal test: Modal not found');
+        }
+    };
 });
 
 // Legacy function for viewing all events
@@ -833,6 +1306,8 @@ function viewEvent(eventId) {
 <script src="<?php echo URLROOT; ?>/js/admin/events.js"></script>
 <!-- Create Event Wizard JS -->
 <script src="<?php echo URLROOT; ?>/js/admin/create-event-wizard.js"></script>
+<!-- Create Tournament Wizard JS -->
+<script src="<?php echo URLROOT; ?>/js/admin/create-tournament-wizard.js"></script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 

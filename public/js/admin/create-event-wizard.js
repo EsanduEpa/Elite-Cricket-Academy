@@ -69,30 +69,31 @@ class EventWizard {
     }
 
     showStep(step) {
-        console.log('Showing step:', step);
+        console.log('Event: Showing step:', step);
         
-        // Hide all steps
-        document.querySelectorAll('.step-content').forEach(content => {
+        // Hide all steps explicitly
+        document.querySelectorAll('.step-content').forEach((content, index) => {
             content.classList.remove('active');
-            console.log('Removing active from step:', content.getAttribute('data-step'));
+            content.style.display = 'none';
+            console.log(`Event: Hidden step ${index + 1}`);
         });
         
-        // Show current step
+        // Show current step explicitly
         const currentStepElement = document.querySelector(`.step-content[data-step="${step}"]`);
-        console.log('Current step element:', currentStepElement);
         
         if (currentStepElement) {
             currentStepElement.classList.add('active');
-            console.log('Added active to step:', step);
+            currentStepElement.style.display = 'block';
+            console.log(`Event: Shown step ${step}`);
             
-            // Force display check
+            // Force visibility check
             setTimeout(() => {
                 const computedStyle = window.getComputedStyle(currentStepElement);
-                console.log('Step display:', computedStyle.display);
-                console.log('Step opacity:', computedStyle.opacity);
+                console.log(`Event step ${step} display:`, computedStyle.display);
+                console.log(`Event step ${step} opacity:`, computedStyle.opacity);
             }, 50);
         } else {
-            console.error('Step element not found for step:', step);
+            console.error('Event step element not found for step:', step);
         }
         
         // Update navigation buttons
@@ -446,6 +447,49 @@ function closeCreateEventModal() {
     }
 }
 
+// Check for unsaved data
+function checkForUnsavedData() {
+    const form = document.getElementById('eventWizardForm');
+    if (!form) return false;
+    
+    const formData = new FormData(form);
+    let hasData = false;
+    
+    for (const [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+            hasData = true;
+            break;
+        }
+    }
+    
+    return hasData;
+}
+
+// Enhanced modal functionality
+function setupModalCloseHandlers() {
+    const eventModal = document.getElementById('createEventModal');
+    
+    if (eventModal) {
+        // Close on outside click
+        eventModal.addEventListener('click', function(e) {
+            if (e.target === eventModal) {
+                closeCreateEventModal();
+            }
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && eventModal.classList.contains('show')) {
+                closeCreateEventModal();
+            }
+        });
+    }
+}
+
+// Make functions globally available for onclick handlers
+window.closeCreateEventModal = closeCreateEventModal;
+window.openCreateEventModal = openCreateEventModal;
+
 // Notification function
 function showNotification(message, type = 'info') {
     // Create notification element
@@ -504,6 +548,9 @@ function showNotification(message, type = 'info') {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Setup enhanced modal close handlers
+    setupModalCloseHandlers();
+    
     // Bind create event button
     const createEventBtn = document.getElementById('createEventBtn');
     if (createEventBtn) {
