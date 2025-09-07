@@ -96,7 +96,19 @@ function initializeCalendar() {
             viewEventDetails(info.event);
         },
         dateClick: function(info) {
-            openCreateModal('', info.dateStr);
+            // Use new wizard system instead of old modal
+            if (typeof openCreateEventModal === 'function') {
+                openCreateEventModal();
+                // Pre-fill date if needed
+                setTimeout(() => {
+                    const startDateInput = document.getElementById('startDate');
+                    if (startDateInput && info.dateStr) {
+                        startDateInput.value = info.dateStr;
+                    }
+                }, 200);
+            } else {
+                console.warn('openCreateEventModal function not available');
+            }
         },
         eventDidMount: function(info) {
             // Add custom styling based on event type
@@ -112,17 +124,8 @@ function initializeCalendar() {
 }
 
 function initializeEventHandlers() {
-    // Create event buttons
-    const createEventBtn = document.getElementById('createEventBtn');
-    const createTournamentBtn = document.getElementById('createTournamentBtn');
-    
-    if (createEventBtn) {
-        createEventBtn.addEventListener('click', () => openCreateModal());
-    }
-    
-    if (createTournamentBtn) {
-        createTournamentBtn.addEventListener('click', () => openCreateModal('tournament'));
-    }
+    // Note: Create event buttons are now handled by events.php and create-event-wizard.js
+    // Removed conflicting event handlers for createEventBtn and createTournamentBtn
     
     // View all buttons
     const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
@@ -198,40 +201,30 @@ function initializeSearchFilters() {
 }
 
 function openCreateModal(type = '', date = '') {
-    const modal = document.getElementById('eventModal');
-    const form = document.getElementById('eventForm');
-    const title = document.getElementById('modalTitle');
+    // Legacy function - redirecting to new wizard system
+    console.log('Legacy openCreateModal called, redirecting to new wizard...');
     
-    if (!modal || !form || !title) {
-        console.error('Modal elements not found');
-        return;
-    }
-    
-    title.textContent = 'Create New Event';
-    form.action = `${window.location.origin}/Elite/admin/create_event`;
-    form.reset();
-    
-    // Set default values
-    if (type === 'tournament') {
-        const eventTypeSelect = document.getElementById('eventType');
-        if (eventTypeSelect) {
-            eventTypeSelect.value = 'tournament';
-        }
-    }
-    
-    if (date) {
-        const eventDateInput = document.getElementById('eventDate');
-        if (eventDateInput) {
-            eventDateInput.value = date;
-        }
-    }
-    
-    modal.style.display = 'block';
-    
-    // Focus on first input
-    const firstInput = form.querySelector('input[type="text"]');
-    if (firstInput) {
-        setTimeout(() => firstInput.focus(), 100);
+    if (typeof openCreateEventModal === 'function') {
+        openCreateEventModal();
+        
+        // Pre-fill form data if provided
+        setTimeout(() => {
+            if (type === 'tournament') {
+                const eventTypeSelect = document.getElementById('eventType');
+                if (eventTypeSelect) {
+                    eventTypeSelect.value = 'tournament';
+                }
+            }
+            
+            if (date) {
+                const startDateInput = document.getElementById('startDate');
+                if (startDateInput) {
+                    startDateInput.value = date;
+                }
+            }
+        }, 200);
+    } else {
+        console.error('New wizard system not available, openCreateEventModal function not found');
     }
 }
 
