@@ -1,5 +1,8 @@
 // Player Dashboard JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Generate events from PHP data now that DOM is loaded
+    sampleEvents = generateEventsFromPHPData();
+    
     initializeDashboard();
     updateCurrentTime();
     animateCounters();
@@ -8,17 +11,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
 });
 
-// Calendar functionality
+// Calendar functionality - initialize with PHP data if available
 let currentDate = new Date();
-let currentMonth = currentDate.getMonth();
-let currentYear = currentDate.getFullYear();
+let currentMonth = (typeof window.dashboardData !== 'undefined' && window.dashboardData.currentMonth !== undefined) 
+    ? window.dashboardData.currentMonth 
+    : currentDate.getMonth();
+let currentYear = (typeof window.dashboardData !== 'undefined' && window.dashboardData.currentYear !== undefined) 
+    ? window.dashboardData.currentYear 
+    : currentDate.getFullYear();
 
 const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
 ];
 
-// Get current date and generate events for the next 30 days
+// Get current date and generate events from PHP data
 const today = new Date();
 
 // Function to format date as YYYY-MM-DD
@@ -28,55 +35,99 @@ function formatDate(date) {
            String(date.getDate()).padStart(2, '0');
 }
 
-// Generate sample events for upcoming days
-const sampleEvents = {};
+// Function to get event type from activity name
+function getEventType(activity) {
+    const activityLower = activity.toLowerCase();
+    if (activityLower.includes('practice') || activityLower.includes('training')) return 'training';
+    if (activityLower.includes('match') || activityLower.includes('tournament')) return 'match';
+    if (activityLower.includes('meeting') || activityLower.includes('review')) return 'meeting';
+    if (activityLower.includes('fitness') || activityLower.includes('gym')) return 'fitness';
+    if (activityLower.includes('assessment') || activityLower.includes('test')) return 'assessment';
+    if (activityLower.includes('selection')) return 'selection';
+    return 'event';
+}
 
-// Today's events
-const todayKey = formatDate(today);
-sampleEvents[todayKey] = [
-    { title: 'Morning Practice', type: 'training', time: '7:00 AM' },
-    { title: 'Fitness Session', type: 'fitness', time: '4:00 PM' }
-];
+// Generate events from PHP data
+function generateEventsFromPHPData() {
+    const sampleEvents = {};
+    
+    // Check if dashboard data is available
+    if (typeof window.dashboardData !== 'undefined') {
+        console.log('Loading events from PHP data:', window.dashboardData);
+        
+        // Add today's schedule
+        if (window.dashboardData.todaySchedule && window.dashboardData.todaySchedule.length > 0) {
+            const todayKey = window.dashboardData.currentDate;
+            sampleEvents[todayKey] = window.dashboardData.todaySchedule.map(activity => ({
+                title: activity.activity,
+                type: getEventType(activity.activity),
+                time: activity.time
+            }));
+            console.log(`Added ${sampleEvents[todayKey].length} events for today (${todayKey})`);
+        }
+        
+        // Add upcoming schedule
+        if (window.dashboardData.upcomingSchedule && window.dashboardData.upcomingSchedule.length > 0) {
+            window.dashboardData.upcomingSchedule.forEach(schedule => {
+                if (!sampleEvents[schedule.date]) {
+                    sampleEvents[schedule.date] = [];
+                }
+                sampleEvents[schedule.date].push({
+                    title: schedule.activity,
+                    type: getEventType(schedule.activity),
+                    time: schedule.time
+                });
+            });
+            console.log(`Added ${window.dashboardData.upcomingSchedule.length} upcoming schedule events`);
+        }
+        
+        // Add upcoming bookings
+        if (window.dashboardData.upcomingBookings && window.dashboardData.upcomingBookings.length > 0) {
+            window.dashboardData.upcomingBookings.forEach(booking => {
+                if (!sampleEvents[booking.date]) {
+                    sampleEvents[booking.date] = [];
+                }
+                sampleEvents[booking.date].push({
+                    title: booking.type,
+                    type: 'booking',
+                    time: booking.time
+                });
+            });
+            console.log(`Added ${window.dashboardData.upcomingBookings.length} booking events`);
+        }
+    } else {
+        // Fallback to sample data if PHP data not available
+        const todayKey = formatDate(today);
+        sampleEvents[todayKey] = [
+            { title: 'Morning Practice', type: 'training', time: '7:00 AM' },
+            { title: 'Fitness Session', type: 'fitness', time: '4:00 PM' }
+        ];
+        
+        // Add some sample upcoming events
+        for (let i = 1; i <= 7; i++) {
+            const eventDate = new Date(today);
+            eventDate.setDate(today.getDate() + i);
+            const eventKey = formatDate(eventDate);
+            
+            const sampleActivities = [
+                { title: 'Team Meeting', type: 'meeting', time: '10:00 AM' },
+                { title: 'Net Practice', type: 'training', time: '9:00 AM' },
+                { title: 'Match vs Central CC', type: 'match', time: '2:00 PM' },
+                { title: 'Bowling Practice', type: 'training', time: '8:00 AM' },
+                { title: 'Fitness Assessment', type: 'assessment', time: '3:00 PM' },
+                { title: 'Team Selection', type: 'selection', time: '11:00 AM' },
+                { title: 'Strategy Review', type: 'meeting', time: '4:00 PM' }
+            ];
+            
+            sampleEvents[eventKey] = [sampleActivities[i - 1]];
+        }
+    }
+    
+    return sampleEvents;
+}
 
-// Tomorrow's events
-const tomorrow = new Date(today);
-tomorrow.setDate(today.getDate() + 1);
-const tomorrowKey = formatDate(tomorrow);
-sampleEvents[tomorrowKey] = [
-    { title: 'Team Meeting', type: 'meeting', time: '10:00 AM' }
-];
-
-// Day after tomorrow
-const dayAfterTomorrow = new Date(today);
-dayAfterTomorrow.setDate(today.getDate() + 2);
-const dayAfterTomorrowKey = formatDate(dayAfterTomorrow);
-sampleEvents[dayAfterTomorrowKey] = [
-    { title: 'Net Practice', type: 'training', time: '9:00 AM' },
-    { title: 'Strategy Review', type: 'meeting', time: '2:00 PM' }
-];
-
-// Add more events for the next few weeks
-const events = [
-    { days: 3, events: [{ title: 'Match vs Central CC', type: 'match', time: '2:00 PM' }] },
-    { days: 5, events: [{ title: 'Bowling Practice', type: 'training', time: '8:00 AM' }] },
-    { days: 7, events: [{ title: 'Weekend Tournament', type: 'match', time: '10:00 AM' }] },
-    { days: 10, events: [{ title: 'Skills Assessment', type: 'assessment', time: '3:00 PM' }] },
-    { days: 12, events: [{ title: 'Inter-Club Match', type: 'match', time: '1:00 PM' }] },
-    { days: 14, events: [{ title: 'Batting Clinic', type: 'training', time: '9:00 AM' }] },
-    { days: 16, events: [{ title: 'Physical Fitness Test', type: 'fitness', time: '6:00 AM' }] },
-    { days: 18, events: [{ title: 'Team Selection', type: 'selection', time: '11:00 AM' }] },
-    { days: 21, events: [{ title: 'Championship Quarter Final', type: 'match', time: '2:30 PM' }] },
-    { days: 25, events: [{ title: 'Rest Day Recovery', type: 'recovery', time: '10:00 AM' }] },
-    { days: 28, events: [{ title: 'Monthly Review', type: 'meeting', time: '4:00 PM' }] }
-];
-
-// Generate events for upcoming days
-events.forEach(eventGroup => {
-    const eventDate = new Date(today);
-    eventDate.setDate(today.getDate() + eventGroup.days);
-    const eventKey = formatDate(eventDate);
-    sampleEvents[eventKey] = eventGroup.events;
-});
+// Generate events using PHP data
+let sampleEvents = {};
 
 function initializeCalendar() {
     generateCalendar(currentMonth, currentYear);

@@ -547,6 +547,19 @@
     <!-- Include Footer -->
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
+    <!-- Pass Schedule Data to JavaScript -->
+    <script>
+        // Pass PHP data to JavaScript
+        window.dashboardData = {
+            todaySchedule: <?php echo json_encode($data['todaySchedule'] ?? []); ?>,
+            upcomingSchedule: <?php echo json_encode($data['upcomingSchedule'] ?? []); ?>,
+            upcomingBookings: <?php echo json_encode($data['upcomingBookings'] ?? []); ?>,
+            currentDate: '<?php echo date('Y-m-d'); ?>',
+            currentMonth: <?php echo date('n') - 1; ?>, // JavaScript months are 0-indexed
+            currentYear: <?php echo date('Y'); ?>
+        };
+    </script>
+
     <!-- JavaScript for Dashboard -->
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
 </body>

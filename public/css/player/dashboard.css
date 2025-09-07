@@ -1416,6 +1416,10 @@ body {
     background: linear-gradient(90deg, #1abc9c, #16a085);
 }
 
+.calendar-event.booking {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
 /* Upcoming Events List */
 .upcoming-events {
     background: white;

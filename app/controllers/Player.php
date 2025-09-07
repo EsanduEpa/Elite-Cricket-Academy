@@ -255,15 +255,15 @@ class Player extends Controller {
     
     private function getRentalsDue() {
         return [
-            ['item' => 'Cricket Bat (Premium)', 'due_date' => '2025-09-08', 'fee' => '$25'],
-            ['item' => 'Protective Gear Set', 'due_date' => '2025-09-15', 'fee' => '$15']
+            ['item' => 'Cricket Bat (Premium)', 'due_date' => '2025-09-08', 'fee' => 'LKR 1000.00'],
+            ['item' => 'Protective Gear Set', 'due_date' => '2025-09-15', 'fee' => 'LKR 2000.00']
         ];
     }
     
     private function getPaymentsDue() {
         return [
-            ['type' => 'Monthly Membership', 'amount' => '$150', 'due_date' => '2025-09-30'],
-            ['type' => 'Tournament Fee', 'amount' => '$75', 'due_date' => '2025-09-20']
+            ['type' => 'Monthly Membership', 'amount' => 'LKR 4500.00', 'due_date' => '2025-09-30'],
+            ['type' => 'Tournament Fee', 'amount' => 'LKR 1000.00', 'due_date' => '2025-09-20']
         ];
     }
     
@@ -277,17 +277,17 @@ class Player extends Controller {
     
     private function getAvailableProducts() {
         return [
-            ['name' => 'Cricket Bat Pro', 'price' => '$199', 'category' => 'Equipment'],
-            ['name' => 'Protective Gear Set', 'price' => '$149', 'category' => 'Safety'],
-            ['name' => 'Training Jersey', 'price' => '$45', 'category' => 'Apparel']
+            ['name' => 'Cricket Bat Pro', 'price' => 'LKR 15,000.00', 'category' => 'Equipment'],
+            ['name' => 'Protective Gear Set', 'price' => 'LKR 10,000.00', 'category' => 'Safety'],
+            ['name' => 'Training Jersey', 'price' => 'LKR 2,000.00', 'category' => 'Apparel']
         ];
     }
     
     private function getRentalEquipment() {
         return [
-            ['name' => 'Premium Cricket Bat', 'daily_rate' => '$25', 'available' => true],
-            ['name' => 'Bowling Machine Access', 'hourly_rate' => '$15', 'available' => true],
-            ['name' => 'Video Analysis Equipment', 'session_rate' => '$35', 'available' => false]
+            ['name' => 'Premium Cricket Bat', 'daily_rate' => 'LKR 25,000.00', 'available' => true],
+            ['name' => 'Bowling Machine Access', 'hourly_rate' => 'LKR 1,500.00', 'available' => true],
+            ['name' => 'Video Analysis Equipment', 'session_rate' => 'LKR 1000.00', 'available' => false]
         ];
     }
     
@@ -396,25 +396,25 @@ class Player extends Controller {
     
     private function getMonthlyFees() {
         return [
-            ['month' => 'August 2025', 'amount' => '$150', 'paid_date' => '2025-08-01', 'status' => 'Paid'],
-            ['month' => 'July 2025', 'amount' => '$150', 'paid_date' => '2025-07-01', 'status' => 'Paid'],
-            ['month' => 'June 2025', 'amount' => '$150', 'paid_date' => '2025-06-01', 'status' => 'Paid']
+            ['month' => 'August 2025', 'amount' => 'LKR 4,500.00', 'paid_date' => '2025-08-01', 'status' => 'Paid'],
+            ['month' => 'July 2025', 'amount' => 'LKR 4,500.00', 'paid_date' => '2025-07-01', 'status' => 'Paid'],
+            ['month' => 'June 2025', 'amount' => 'LKR 4,500.00', 'paid_date' => '2025-06-01', 'status' => 'Paid']
         ];
     }
     
     private function getEventFees() {
         return [
-            ['event' => 'Elite Cup 2025', 'amount' => '$75', 'paid_date' => '2025-08-15', 'status' => 'Paid'],
-            ['event' => 'Summer Championship 2025', 'amount' => '$50', 'paid_date' => '2025-07-10', 'status' => 'Paid'],
-            ['event' => 'Autumn Tournament 2025', 'amount' => '$75', 'due_date' => '2025-09-20', 'status' => 'Due']
+            ['event' => 'Elite Cup 2025', 'amount' => 'LKR 1,000.00', 'paid_date' => '2025-08-15', 'status' => 'Paid'],
+            ['event' => 'Summer Championship 2025', 'amount' => 'LKR 1,000.00', 'paid_date' => '2025-07-10', 'status' => 'Paid'],
+            ['event' => 'Autumn Tournament 2025', 'amount' => 'LKR 1,000.00', 'due_date' => '2025-09-20', 'status' => 'Due']
         ];
     }
     
     private function getUpcomingPayments() {
         return [
-            ['type' => 'Monthly Membership', 'amount' => '$150', 'due_date' => '2025-09-30'],
-            ['type' => 'Autumn Tournament Fee', 'amount' => '$75', 'due_date' => '2025-09-20'],
-            ['type' => 'Equipment Rental', 'amount' => '$40', 'due_date' => '2025-09-15']
+            ['type' => 'Monthly Membership', 'amount' => 'LKR 4,500.00', 'due_date' => '2025-09-30'],
+            ['type' => 'Autumn Tournament Fee', 'amount' => 'LKR 1,000.00', 'due_date' => '2025-09-20'],
+            ['type' => 'Equipment Rental', 'amount' => 'LKR 3,000.00', 'due_date' => '2025-09-15']
         ];
     }
 }
