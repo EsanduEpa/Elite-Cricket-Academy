@@ -7,14 +7,17 @@
             Inspiring the next generation of cricket stars. Excellence, teamwork, and passion for the game.
         </p>
         <nav aria-label="Footer Navigation" style="margin-bottom:2rem;">
-            <a href="#home" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Home</a>
-            <a href="#programs" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Programs</a>
-            <a href="#coaches" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Coaches</a>
-            <a href="#facilities" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Facilities</a>
-            <a href="#contact" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Contact</a>
+            <a href="<?php echo URLROOT; ?>" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Home</a>
+            <a href="<?php echo URLROOT; ?>/#programs" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Programs</a>
+            <a href="<?php echo URLROOT; ?>/#coaches" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Coaches</a>
+            <a href="<?php echo URLROOT; ?>/#facilities" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Facilities</a>
+            <a href="<?php echo URLROOT; ?>/#contact" style="margin:0 1.2rem; color:#4A90E2; text-decoration:none; font-weight:500;">Contact</a>
         </nav>
         <div class="footer-bottom" style="color:#999; font-size:0.95rem;">
             &copy; <?php echo date('Y'); ?> Elite Cricket Academy. All rights reserved.
         </div>
     </div>
 </footer>
+
+</body>
+</html>
