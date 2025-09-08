@@ -1,5 +1,4 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 
     <!-- Hero Section -->
     <section class="hero" id="home">
