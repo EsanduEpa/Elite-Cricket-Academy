@@ -1,5 +1,4 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 
     <!-- Hero Section -->
     <section class="hero" id="home">
@@ -12,7 +11,7 @@
     <!-- About Section -->
     <section class="about">
         <h2>About Elite Cricket Academy</h2>
-        <p>Elite Cricket Academy is dedicated to nurturing the next generation of cricket stars. Our comprehensive training programs, led by experienced coaches, focus on skill development, tactical understanding, and physical conditioning. We provide state-of-the-art facilities and a supportive environment to help players reach their full potential.</p>
+        <p>Elite Cricket Academy is dedicated to nurture the next generation of cricket stars. Our comprehensive training programs, led by experienced coaches, focus on skill development, tactical understanding, and physical conditioning. We provide state-of-the-art facilities and a supportive environment to help players reach their full potential.</p>
         
         <p>Founded with a vision to create world-class cricketers, our academy combines traditional cricket values with modern training methodologies. We believe in developing not just skilled players, but also individuals with strong character, leadership qualities, and sportsmanship.</p>
         
