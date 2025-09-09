@@ -52,13 +52,13 @@
                 <li class="nav-item">
                     <a href="#workout" class="nav-link" data-section="workout">
                         <i class="fas fa-dumbbell"></i>
-                        <span>Workout Recommendations</span>
+                        <span>Health & Fitness</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#medical" class="nav-link" data-section="medical">
                         <i class="fas fa-heartbeat"></i>
-                        <span>Medical Records</span>
+                        <span>Player Medical Records</span>
                     </a>
                 </li>
             </ul>
@@ -302,23 +302,23 @@
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <h3>Quick Actions</h3>
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                 <div class="action-buttons">
-                    <button class="action-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>Add Session</span>
+                    <button class="action-btn blue">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Schedule Session</span>
                     </button>
-                    <button class="action-btn">
-                        <i class="fas fa-user-plus"></i>
-                        <span>New Player</span>
+                    <button class="action-btn gray">
+                        <i class="fas fa-users"></i>
+                        <span>View Players</span>
                     </button>
-                    <button class="action-btn">
-                        <i class="fas fa-file-medical"></i>
-                        <span>Medical Report</span>
+                    <button class="action-btn green">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Add Recommendation</span>
                     </button>
-                    <button class="action-btn">
-                        <i class="fas fa-dumbbell"></i>
-                        <span>Workout Plan</span>
+                    <button class="action-btn orange">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Medical Check</span>
                     </button>
                 </div>
             </div>
@@ -331,8 +331,490 @@
         </section>
 
         <section id="bookings-section" class="content-section">
-            <h1>Bookings Management</h1>
-            <p>Booking management features coming soon...</p>
+            <div class="bookings-header">
+                <h1><i class="fas fa-calendar-check"></i> Bookings Management</h1>
+                <p>Manage player appointments and sessions</p>
+                <div class="bookings-controls">
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" data-view="list">
+                            <i class="fas fa-list"></i> List View
+                        </button>
+                        <button class="toggle-btn" data-view="calendar">
+                            <i class="fas fa-calendar"></i> Calendar View
+                        </button>
+                    </div>
+                    <button class="add-slot-btn" onclick="openAddSlotModal()">
+                        <i class="fas fa-plus"></i> Add Time Slot
+                    </button>
+                </div>
+            </div>
+
+            <!-- Booking Filters -->
+            <div class="booking-filters">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All Bookings</button>
+                    <button class="filter-btn" data-filter="pending">Pending Approval</button>
+                    <button class="filter-btn" data-filter="confirmed">Confirmed</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="cancelled">Cancelled</button>
+                </div>
+                <div class="date-filter">
+                    <input type="date" id="filterDate" class="date-input">
+                    <select id="filterPractitioner" class="filter-select">
+                        <option value="">All Practitioners</option>
+                        <option value="dr-sarah">Dr. Sarah Wilson</option>
+                        <option value="coach-mike">Coach Mike Johnson</option>
+                        <option value="trainer-alex">Trainer Alex Thompson</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Booking Views -->
+            <div class="booking-views">
+                <!-- List View -->
+                <div class="booking-list-view active" id="bookingListView">
+                    <!-- Today's Bookings -->
+                    <div class="booking-section">
+                        <h2><i class="fas fa-calendar-day"></i> Today's Appointments</h2>
+                        <div class="booking-grid" id="todayBookings">
+                            <!-- Sample Today's Booking -->
+                            <div class="booking-card pending" data-booking-id="1">
+                                <div class="booking-header">
+                                    <div class="booking-time">
+                                        <i class="fas fa-clock"></i>
+                                        <span>2:00 PM - 3:00 PM</span>
+                                    </div>
+                                    <div class="booking-status pending">
+                                        <i class="fas fa-hourglass-half"></i> Pending Approval
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="player-info">
+                                        <div class="player-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="player-details">
+                                            <h3>John Smith</h3>
+                                            <p>Senior Team • 22 years old</p>
+                                            <p><i class="fas fa-phone"></i> +94 77 123 4567</p>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-heartbeat"></i>
+                                            <span>Physio Session</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-stethoscope"></i>
+                                            <span>Injury Recovery Assessment</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span class="urgency normal">Normal Priority</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="booking-notes">
+                                    <strong>Patient Notes:</strong> Shoulder pain after bowling session. Pain scale 6/10, especially during overhead movements.
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="action-btn approve" onclick="approveBooking(1)">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="action-btn reject" onclick="rejectBooking(1)">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    <button class="action-btn reschedule" onclick="rescheduleBooking(1)">
+                                        <i class="fas fa-calendar-alt"></i> Reschedule
+                                    </button>
+                                    <button class="action-btn details" onclick="viewBookingDetails(1)">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sample Confirmed Booking -->
+                            <div class="booking-card confirmed" data-booking-id="2">
+                                <div class="booking-header">
+                                    <div class="booking-time">
+                                        <i class="fas fa-clock"></i>
+                                        <span>4:00 PM - 5:30 PM</span>
+                                    </div>
+                                    <div class="booking-status confirmed">
+                                        <i class="fas fa-check-circle"></i> Confirmed
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="player-info">
+                                        <div class="player-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="player-details">
+                                            <h3>Emily Johnson</h3>
+                                            <p>Junior Team • 18 years old</p>
+                                            <p><i class="fas fa-phone"></i> +94 71 987 6543</p>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-dumbbell"></i>
+                                            <span>Fitness Assessment</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-chart-line"></i>
+                                            <span>Monthly Fitness Evaluation</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-flag"></i>
+                                            <span class="urgency normal">Normal Priority</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="booking-notes">
+                                    <strong>Notes:</strong> Standard monthly fitness assessment. Focus on cardiovascular endurance and strength improvements.
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="action-btn start" onclick="startSession(2)">
+                                        <i class="fas fa-play"></i> Start Session
+                                    </button>
+                                    <button class="action-btn notes" onclick="addSessionNotes(2)">
+                                        <i class="fas fa-note-medical"></i> Add Notes
+                                    </button>
+                                    <button class="action-btn complete" onclick="completeSession(2)">
+                                        <i class="fas fa-check-double"></i> Mark Complete
+                                    </button>
+                                    <button class="action-btn details" onclick="viewBookingDetails(2)">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Bookings -->
+                    <div class="booking-section">
+                        <h2><i class="fas fa-calendar-week"></i> Upcoming Appointments</h2>
+                        <div class="booking-grid" id="upcomingBookings">
+                            <!-- Sample Upcoming Booking -->
+                            <div class="booking-card confirmed" data-booking-id="3">
+                                <div class="booking-header">
+                                    <div class="booking-time">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Tomorrow, 10:00 AM - 11:00 AM</span>
+                                    </div>
+                                    <div class="booking-status confirmed">
+                                        <i class="fas fa-check-circle"></i> Confirmed
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="player-info">
+                                        <div class="player-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="player-details">
+                                            <h3>Michael Brown</h3>
+                                            <p>Senior Team • 24 years old</p>
+                                            <p><i class="fas fa-phone"></i> +94 76 555 1234</p>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-heartbeat"></i>
+                                            <span>Physio Session</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-bone"></i>
+                                            <span>Knee Injury Follow-up</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-exclamation"></i>
+                                            <span class="urgency urgent">Urgent</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="booking-notes">
+                                    <strong>Follow-up Notes:</strong> Previous ACL injury, week 4 of recovery. Check mobility and pain levels.
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="action-btn reschedule" onclick="rescheduleBooking(3)">
+                                        <i class="fas fa-calendar-alt"></i> Reschedule
+                                    </button>
+                                    <button class="action-btn cancel" onclick="cancelBooking(3)">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button class="action-btn details" onclick="viewBookingDetails(3)">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Sessions -->
+                    <div class="booking-section">
+                        <h2><i class="fas fa-history"></i> Recent Completed Sessions</h2>
+                        <div class="booking-grid" id="completedBookings">
+                            <!-- Sample Completed Booking -->
+                            <div class="booking-card completed" data-booking-id="4">
+                                <div class="booking-header">
+                                    <div class="booking-time">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Yesterday, 3:00 PM - 4:00 PM</span>
+                                    </div>
+                                    <div class="booking-status completed">
+                                        <i class="fas fa-check"></i> Completed
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="player-info">
+                                        <div class="player-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="player-details">
+                                            <h3>Sarah Wilson</h3>
+                                            <p>Junior Team • 19 years old</p>
+                                            <p><i class="fas fa-phone"></i> +94 75 444 9876</p>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-user-md"></i>
+                                            <span>General Consultation</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-clipboard-check"></i>
+                                            <span>Pre-tournament Health Check</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-star"></i>
+                                            <span class="rating">Excellent Session</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="session-summary">
+                                    <strong>Session Summary:</strong> Complete health assessment completed. Player cleared for upcoming tournament. No issues found.
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="action-btn view-notes" onclick="viewSessionNotes(4)">
+                                        <i class="fas fa-notes-medical"></i> View Notes
+                                    </button>
+                                    <button class="action-btn followup" onclick="scheduleFollowup(4)">
+                                        <i class="fas fa-calendar-plus"></i> Schedule Follow-up
+                                    </button>
+                                    <button class="action-btn details" onclick="viewBookingDetails(4)">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="booking-calendar-view" id="bookingCalendarView">
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="calendar-navigation">
+                                <button class="nav-btn" id="prevBookingMonth">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <h3 id="currentBookingMonth">December 2024</h3>
+                                <button class="nav-btn" id="nextBookingMonth">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color pending"></div>
+                                    <span>Pending</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color confirmed"></div>
+                                    <span>Confirmed</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color completed"></div>
+                                    <span>Completed</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color cancelled"></div>
+                                    <span>Cancelled</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="booking-calendar-grid" id="bookingCalendarGrid">
+                            <!-- Calendar will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Management Modals -->
+            <!-- Add Time Slot Modal -->
+            <div class="modal-overlay" id="addSlotModal">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-plus"></i> Add Available Time Slot</h2>
+                        <button class="close-btn" onclick="closeAddSlotModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-content">
+                        <form id="addSlotForm" class="add-slot-form">
+                            <div class="form-row">
+                                <div class="field-group">
+                                    <label for="slotDate">Date:</label>
+                                    <input type="date" id="slotDate" name="date" required>
+                                </div>
+                                <div class="field-group">
+                                    <label for="slotType">Session Type:</label>
+                                    <select id="slotType" name="type" required>
+                                        <option value="">Select session type...</option>
+                                        <option value="physio">Physio Session (60 min)</option>
+                                        <option value="fitness">Fitness Assessment (90 min)</option>
+                                        <option value="consultation">General Consultation (30 min)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field-group">
+                                    <label for="startTime">Start Time:</label>
+                                    <input type="time" id="startTime" name="startTime" required>
+                                </div>
+                                <div class="field-group">
+                                    <label for="endTime">End Time:</label>
+                                    <input type="time" id="endTime" name="endTime" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field-group">
+                                    <label for="practitioner">Assign to Practitioner:</label>
+                                    <select id="practitioner" name="practitioner" required>
+                                        <option value="">Select practitioner...</option>
+                                        <option value="dr-sarah">Dr. Sarah Wilson (Physio)</option>
+                                        <option value="coach-mike">Coach Mike Johnson (Fitness)</option>
+                                        <option value="trainer-alex">Trainer Alex Thompson (General)</option>
+                                    </select>
+                                </div>
+                                <div class="field-group">
+                                    <label for="location">Location:</label>
+                                    <select id="location" name="location" required>
+                                        <option value="">Select location...</option>
+                                        <option value="physio-room">Physiotherapy Room</option>
+                                        <option value="fitness-center">Fitness Center</option>
+                                        <option value="consultation-room">Consultation Room</option>
+                                        <option value="medical-office">Medical Office</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label for="slotNotes">Notes (Optional):</label>
+                                <textarea id="slotNotes" name="notes" rows="3" 
+                                    placeholder="Any special notes about this time slot..."></textarea>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="recurring" name="recurring">
+                                    <span class="checkmark"></span>
+                                    Make this a recurring slot (weekly)
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn" onclick="closeAddSlotModal()">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-plus"></i> Add Time Slot
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Details Modal -->
+            <div class="modal-overlay" id="bookingDetailsModal">
+                <div class="modal-container large">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-info-circle"></i> Booking Details</h2>
+                        <button class="close-btn" onclick="closeBookingDetailsModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-content">
+                        <div id="bookingDetailsContent">
+                            <!-- Details will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Notes Modal -->
+            <div class="modal-overlay" id="sessionNotesModal">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-notes-medical"></i> Session Notes</h2>
+                        <button class="close-btn" onclick="closeSessionNotesModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-content">
+                        <form id="sessionNotesForm" class="session-notes-form">
+                            <div class="field-group">
+                                <label for="sessionSummary">Session Summary:</label>
+                                <textarea id="sessionSummary" name="summary" rows="4" 
+                                    placeholder="Brief summary of the session..." required></textarea>
+                            </div>
+                            <div class="field-group">
+                                <label for="findings">Key Findings:</label>
+                                <textarea id="findings" name="findings" rows="3" 
+                                    placeholder="Important findings or observations..."></textarea>
+                            </div>
+                            <div class="field-group">
+                                <label for="recommendations">Recommendations:</label>
+                                <textarea id="recommendations" name="recommendations" rows="3" 
+                                    placeholder="Treatment recommendations or next steps..."></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="field-group">
+                                    <label for="followupRequired">Follow-up Required:</label>
+                                    <select id="followupRequired" name="followup">
+                                        <option value="none">No follow-up needed</option>
+                                        <option value="1week">1 week</option>
+                                        <option value="2weeks">2 weeks</option>
+                                        <option value="1month">1 month</option>
+                                        <option value="custom">Custom timeline</option>
+                                    </select>
+                                </div>
+                                <div class="field-group">
+                                    <label for="sessionRating">Session Rating:</label>
+                                    <select id="sessionRating" name="rating">
+                                        <option value="excellent">Excellent Progress</option>
+                                        <option value="good">Good Progress</option>
+                                        <option value="fair">Fair Progress</option>
+                                        <option value="poor">Needs Attention</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifyPlayer" name="notifyPlayer" checked>
+                                    <span class="checkmark"></span>
+                                    Send session summary to player
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn" onclick="closeSessionNotesModal()">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-save"></i> Save Notes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="tournaments-section" class="content-section">
@@ -721,13 +1203,627 @@
         </section>
 
         <section id="workout-section" class="content-section">
-            <h1>Workout Recommendations</h1>
-            <p>Workout recommendation features coming soon...</p>
+            <div class="exercises-header">
+                <h1><i class="fas fa-dumbbell"></i> Health & Fitness</h1>
+                <p>Manage player health, fitness routines, and medical-based workout assignments for optimal physical condition</p>
+            </div>
+
+            <!-- Exercise & Workout Navigation Tabs -->
+            <div class="exercise-tabs">
+                <button class="tab-btn active" data-tab="exercise-library">
+                    <i class="fas fa-video"></i> Exercise Library
+                </button>
+                <button class="tab-btn" data-tab="workout-plans">
+                    <i class="fas fa-clipboard-list"></i> Workout Plans
+                </button>
+            </div>
+
+            <!-- Exercise Library Tab -->
+            <div id="exercise-library" class="tab-content active">
+                <div class="section-header">
+                    <div class="header-left">
+                        <h2>Health & Fitness Exercise Library</h2>
+                        <div class="filter-tabs">
+                            <button class="filter-btn active" data-filter="all">All Exercises</button>
+                            <button class="filter-btn" data-filter="warmup">Warm-up</button>
+                            <button class="filter-btn" data-filter="strength">Strength Training</button>
+                            <button class="filter-btn" data-filter="endurance">Endurance</button>
+                            <button class="filter-btn" data-filter="recovery">Recovery</button>
+                        </div>
+                    </div>
+                    <button class="add-btn" onclick="openExerciseModal()">
+                        <i class="fas fa-plus"></i> Add Exercise Video
+                    </button>
+                </div>
+
+                <div class="exercises-grid">
+                    <!-- Warm-up Exercise Cards -->
+                    <div class="exercise-card" data-type="warmup">
+                        <div class="exercise-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="exercise-duration">15 min</div>
+                        </div>
+                        <div class="exercise-info">
+                            <h3>Dynamic Warm-up Routine</h3>
+                            <p>General warm-up exercises to prepare muscles and joints for training</p>
+                            <div class="exercise-meta">
+                                <span class="target-area">Full Body</span>
+                                <span class="difficulty easy">Beginner</span>
+                                <span class="exercise-type general">General Use</span>
+                            </div>
+                            <div class="exercise-actions">
+                                <button class="btn-edit" onclick="editExercise(1)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-assign" onclick="assignExercise(1)">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="btn-delete" onclick="deleteExercise(1)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-type="strength">
+                        <div class="exercise-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="exercise-duration">25 min</div>
+                        </div>
+                        <div class="exercise-info">
+                            <h3>Core Strength Training</h3>
+                            <p>Fundamental core strengthening exercises for injury prevention</p>
+                            <div class="exercise-meta">
+                                <span class="target-area">Core</span>
+                                <span class="difficulty medium">Intermediate</span>
+                                <span class="exercise-type general">General Use</span>
+                            </div>
+                            <div class="exercise-actions">
+                                <button class="btn-edit" onclick="editExercise(2)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-assign" onclick="assignExercise(2)">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="btn-delete" onclick="deleteExercise(2)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-type="endurance">
+                        <div class="exercise-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="exercise-duration">30 min</div>
+                        </div>
+                        <div class="exercise-info">
+                            <h3>Cardio Endurance Training</h3>
+                            <p>Cardiovascular exercises to improve stamina and heart health</p>
+                            <div class="exercise-meta">
+                                <span class="target-area">Cardiovascular</span>
+                                <span class="difficulty medium">Intermediate</span>
+                                <span class="exercise-type general">General Use</span>
+                            </div>
+                            <div class="exercise-actions">
+                                <button class="btn-edit" onclick="editExercise(3)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-assign" onclick="assignExercise(3)">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="btn-delete" onclick="deleteExercise(3)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-type="recovery">
+                        <div class="exercise-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="exercise-duration">20 min</div>
+                        </div>
+                        <div class="exercise-info">
+                            <h3>Stretching & Recovery</h3>
+                            <p>Cool-down and flexibility exercises for muscle recovery</p>
+                            <div class="exercise-meta">
+                                <span class="target-area">Full Body</span>
+                                <span class="difficulty easy">Beginner</span>
+                                <span class="exercise-type general">General Use</span>
+                            </div>
+                            <div class="exercise-actions">
+                                <button class="btn-edit" onclick="editExercise(4)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-assign" onclick="assignExercise(4)">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                                <button class="btn-delete" onclick="deleteExercise(4)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workout Plans Tab -->
+            <div id="workout-plans" class="tab-content">
+                <div class="section-header">
+                    <div class="header-left">
+                        <h2>Personalized Workout Plans</h2>
+                        <div class="filter-tabs">
+                            <button class="filter-btn active" data-filter="all">All Plans</button>
+                            <button class="filter-btn" data-filter="injury-recovery">Injury Recovery</button>
+                            <button class="filter-btn" data-filter="tournament">Tournament Prep</button>
+                            <button class="filter-btn" data-filter="team-requirement">Team Requirements</button>
+                            <button class="filter-btn" data-filter="individual">Individual Plans</button>
+                        </div>
+                    </div>
+                    <button class="add-btn" onclick="openPersonalizedPlanModal()">
+                        <i class="fas fa-plus"></i> Create Personalized Plan
+                    </button>
+                </div>
+
+                <div class="workout-plans-grid">
+                    <!-- Personalized Workout Plan Cards -->
+                    <div class="workout-plan-card" data-type="injury-recovery">
+                        <div class="plan-header">
+                            <h3>Shoulder Injury Recovery Plan</h3>
+                            <span class="plan-duration">8 weeks</span>
+                        </div>
+                        <p class="plan-description">Specialized rehabilitation program for shoulder injuries with gradual progression</p>
+                        
+                        <!-- Plan Details -->
+                        <div class="plan-details">
+                            <div class="plan-meta">
+                                <span class="plan-type injury-recovery">Injury Recovery</span>
+                                <span class="plan-intensity low">Low Intensity</span>
+                            </div>
+                            
+                            <!-- Assigned To -->
+                            <div class="assigned-to">
+                                <h4><i class="fas fa-user"></i> Assigned To:</h4>
+                                <p>Shanali Perera</p>
+                            </div>
+                            
+                            <!-- Included Exercises -->
+                            <div class="included-exercises">
+                                <h4><i class="fas fa-list"></i> Included Exercises:</h4>
+                                <ul class="exercise-list">
+                                    <li>Dynamic Warm-up Routine (15 min)</li>
+                                    <li>Shoulder Mobility Exercises (20 min)</li>
+                                    <li>Gentle Strength Training (25 min)</li>
+                                    <li>Stretching & Recovery (20 min)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-actions">
+                            <button class="btn-view" onclick="viewWorkoutPlan(1)">
+                                <i class="fas fa-eye"></i> View Full Plan
+                            </button>
+                            <button class="btn-edit" onclick="editWorkoutPlan(1)">
+                                <i class="fas fa-edit"></i> Edit Plan
+                            </button>
+                            <button class="btn-assign" onclick="reassignWorkoutPlan(1)">
+                                <i class="fas fa-user-plus"></i> Reassign
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="workout-plan-card" data-type="tournament">
+                        <div class="plan-header">
+                            <h3>Inter-School Championship Prep</h3>
+                            <span class="plan-duration">6 weeks</span>
+                        </div>
+                        <p class="plan-description">Intensive fitness preparation for upcoming Inter-School Championship tournament</p>
+                        
+                        <div class="plan-details">
+                            <div class="plan-meta">
+                                <span class="plan-type tournament">Tournament Prep</span>
+                                <span class="plan-intensity high">High Intensity</span>
+                            </div>
+                            
+                            <div class="assigned-to">
+                                <h4><i class="fas fa-users"></i> Assigned To:</h4>
+                                <p>U-19 Senior Team</p>
+                            </div>
+                            
+                            <div class="included-exercises">
+                                <h4><i class="fas fa-list"></i> Included Exercises:</h4>
+                                <ul class="exercise-list">
+                                    <li>Dynamic Warm-up Routine (15 min)</li>
+                                    <li>Core Strength Training (25 min)</li>
+                                    <li>Cardio Endurance Training (30 min)</li>
+                                    <li>Power Training Exercises (20 min)</li>
+                                    <li>Cool-down & Recovery (15 min)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-actions">
+                            <button class="btn-view" onclick="viewWorkoutPlan(2)">
+                                <i class="fas fa-eye"></i> View Full Plan
+                            </button>
+                            <button class="btn-edit" onclick="editWorkoutPlan(2)">
+                                <i class="fas fa-edit"></i> Edit Plan
+                            </button>
+                            <button class="btn-assign" onclick="reassignWorkoutPlan(2)">
+                                <i class="fas fa-user-plus"></i> Reassign
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="workout-plan-card" data-type="team-requirement">
+                        <div class="plan-header">
+                            <h3>Bowling Team Strength Program</h3>
+                            <span class="plan-duration">4 weeks</span>
+                        </div>
+                        <p class="plan-description">Specialized strength training program requested by bowling coaching staff</p>
+                        
+                        <div class="plan-details">
+                            <div class="plan-meta">
+                                <span class="plan-type team-requirement">Team Requirements</span>
+                                <span class="plan-intensity medium">Medium Intensity</span>
+                            </div>
+                            
+                            <div class="assigned-to">
+                                <h4><i class="fas fa-layer-group"></i> Assigned To:</h4>
+                                <p>Group A - Fast Bowlers</p>
+                            </div>
+                            
+                            <div class="included-exercises">
+                                <h4><i class="fas fa-list"></i> Included Exercises:</h4>
+                                <ul class="exercise-list">
+                                    <li>Dynamic Warm-up Routine (15 min)</li>
+                                    <li>Core Strength Training (25 min)</li>
+                                    <li>Lower Body Power Exercises (30 min)</li>
+                                    <li>Shoulder Stability Work (20 min)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-actions">
+                            <button class="btn-view" onclick="viewWorkoutPlan(3)">
+                                <i class="fas fa-eye"></i> View Full Plan
+                            </button>
+                            <button class="btn-edit" onclick="editWorkoutPlan(3)">
+                                <i class="fas fa-edit"></i> Edit Plan
+                            </button>
+                            <button class="btn-assign" onclick="reassignWorkoutPlan(3)">
+                                <i class="fas fa-user-plus"></i> Reassign
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="workout-plan-card" data-type="individual">
+                        <div class="plan-header">
+                            <h3>Personal Fitness Enhancement</h3>
+                            <span class="plan-duration">5 weeks</span>
+                        </div>
+                        <p class="plan-description">Individual fitness improvement plan focusing on overall conditioning and stamina</p>
+                        
+                        <div class="plan-details">
+                            <div class="plan-meta">
+                                <span class="plan-type individual">Individual Plans</span>
+                                <span class="plan-intensity medium">Medium Intensity</span>
+                            </div>
+                            
+                            <div class="assigned-to">
+                                <h4><i class="fas fa-user"></i> Assigned To:</h4>
+                                <p>Kasun Rajapaksa</p>
+                            </div>
+                            
+                            <div class="included-exercises">
+                                <h4><i class="fas fa-list"></i> Included Exercises:</h4>
+                                <ul class="exercise-list">
+                                    <li>Dynamic Warm-up Routine (15 min)</li>
+                                    <li>Cardio Endurance Training (30 min)</li>
+                                    <li>Functional Strength Training (25 min)</li>
+                                    <li>Flexibility & Mobility (20 min)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-actions">
+                            <button class="btn-view" onclick="viewWorkoutPlan(4)">
+                                <i class="fas fa-eye"></i> View Full Plan
+                            </button>
+                            <button class="btn-edit" onclick="editWorkoutPlan(4)">
+                                <i class="fas fa-edit"></i> Edit Plan
+                            </button>
+                            <button class="btn-assign" onclick="reassignWorkoutPlan(4)">
+                                <i class="fas fa-user-plus"></i> Reassign
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="medical-section" class="content-section">
-            <h1>Medical Records</h1>
-            <p>Medical records management features coming soon...</p>
+            <div class="medical-header">
+                <h1><i class="fas fa-heartbeat"></i> Player Medical Records</h1>
+                <p class="access-notice"><i class="fas fa-eye"></i> Read-Only Access - Physical Trainer View</p>
+            </div>
+
+            <!-- Search and Filter Controls -->
+            <div class="medical-controls">
+                <div class="search-filters">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="playerSearch" placeholder="Search by player name..." class="search-input">
+                    </div>
+                    <div class="filter-group">
+                        <select id="injuryTypeFilter" class="filter-select">
+                            <option value="all">All Injury Types</option>
+                            <option value="shoulder">Shoulder</option>
+                            <option value="knee">Knee</option>
+                            <option value="back">Back</option>
+                            <option value="ankle">Ankle</option>
+                            <option value="hamstring">Hamstring</option>
+                            <option value="stress-fracture">Stress Fracture</option>
+                        </select>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="in-recovery">In Recovery</option>
+                            <option value="cleared">Cleared to Play</option>
+                            <option value="restricted">Restricted Activity</option>
+                            <option value="monitoring">Under Monitoring</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabbed Interface -->
+            <div class="medical-tabs">
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="current">Current Injuries</button>
+                    <button class="tab-btn" data-tab="history">Medical History</button>
+                    <button class="tab-btn" data-tab="treatments">Treatments</button>
+                    <button class="tab-btn" data-tab="files">Medical Files</button>
+                </div>
+
+                <!-- Current Injuries Tab -->
+                <div class="tab-content active" id="current-tab">
+                    <div class="medical-grid">
+                        <!-- Current Injury Card 1 -->
+                        <div class="medical-card current-injury">
+                            <div class="medical-card-header">
+                                <div class="player-info">
+                                    <div class="player-avatar">KS</div>
+                                    <div class="player-details">
+                                        <h3>Kamal Silva</h3>
+                                        <p>Right-hand Batsman | Age: 24</p>
+                                        <span class="team-badge">Senior Team</span>
+                                    </div>
+                                </div>
+                                <div class="status-badge in-recovery">In Recovery</div>
+                            </div>
+                            <div class="medical-card-body">
+                                <div class="injury-info">
+                                    <h4><i class="fas fa-exclamation-triangle"></i> Hamstring Strain - Grade 2</h4>
+                                    <p class="injury-date">Injury Date: August 15, 2025</p>
+                                    <p class="injury-description">Acute hamstring strain during sprint training. MRI confirms Grade 2 strain.</p>
+                                </div>
+                                <div class="treatment-plan">
+                                    <h5>Current Treatment:</h5>
+                                    <ul>
+                                        <li>Rest for 3 weeks (Week 3/3)</li>
+                                        <li>Physio sessions: Tuesday & Thursday</li>
+                                        <li>Ice therapy: 3x daily</li>
+                                        <li>Anti-inflammatory medication</li>
+                                    </ul>
+                                </div>
+                                <div class="restrictions">
+                                    <h5>Training Restrictions:</h5>
+                                    <p><i class="fas fa-ban"></i> No running or sprinting for 1 more week</p>
+                                    <p><i class="fas fa-ban"></i> No batting practice until cleared</p>
+                                    <p><i class="fas fa-check"></i> Light stretching and upper body exercises allowed</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Injury Card 2 -->
+                        <div class="medical-card current-injury">
+                            <div class="medical-card-header">
+                                <div class="player-info">
+                                    <div class="player-avatar">AP</div>
+                                    <div class="player-details">
+                                        <h3>Anjali Perera</h3>
+                                        <p>Right-arm Fast Bowler | Age: 22</p>
+                                        <span class="team-badge">Women's Team</span>
+                                    </div>
+                                </div>
+                                <div class="status-badge restricted">Restricted Activity</div>
+                            </div>
+                            <div class="medical-card-body">
+                                <div class="injury-info">
+                                    <h4><i class="fas fa-exclamation-triangle"></i> Shoulder Impingement</h4>
+                                    <p class="injury-date">Injury Date: September 1, 2025</p>
+                                    <p class="injury-description">Mild shoulder impingement from repetitive bowling action. Early intervention.</p>
+                                </div>
+                                <div class="treatment-plan">
+                                    <h5>Current Treatment:</h5>
+                                    <ul>
+                                        <li>Modified training regime</li>
+                                        <li>Shoulder strengthening exercises</li>
+                                        <li>Biomechanics assessment scheduled</li>
+                                        <li>Weekly physio check-ups</li>
+                                    </ul>
+                                </div>
+                                <div class="restrictions">
+                                    <h5>Training Restrictions:</h5>
+                                    <p><i class="fas fa-ban"></i> No bowling for 2 weeks</p>
+                                    <p><i class="fas fa-check"></i> Batting practice allowed</p>
+                                    <p><i class="fas fa-check"></i> Fielding practice (no throwing)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cleared Player Card -->
+                        <div class="medical-card current-injury">
+                            <div class="medical-card-header">
+                                <div class="player-info">
+                                    <div class="player-avatar">DF</div>
+                                    <div class="player-details">
+                                        <h3>Dasun Fernando</h3>
+                                        <p>Wicket Keeper | Age: 26</p>
+                                        <span class="team-badge">Senior Team</span>
+                                    </div>
+                                </div>
+                                <div class="status-badge cleared">Cleared to Play</div>
+                            </div>
+                            <div class="medical-card-body">
+                                <div class="injury-info">
+                                    <h4><i class="fas fa-check-circle"></i> Recent Knee Injury - Fully Recovered</h4>
+                                    <p class="injury-date">Cleared Date: September 5, 2025</p>
+                                    <p class="injury-description">Minor knee strain fully recovered. Cleared for all activities.</p>
+                                </div>
+                                <div class="treatment-plan">
+                                    <h5>Maintenance Plan:</h5>
+                                    <ul>
+                                        <li>Continue knee strengthening exercises</li>
+                                        <li>Monitor for any discomfort</li>
+                                        <li>Warm-up properly before training</li>
+                                    </ul>
+                                </div>
+                                <div class="restrictions">
+                                    <h5>Current Status:</h5>
+                                    <p><i class="fas fa-check"></i> Full training participation</p>
+                                    <p><i class="fas fa-check"></i> Match available</p>
+                                    <p><i class="fas fa-info-circle"></i> Continue monitoring exercises</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical History Tab -->
+                <div class="tab-content" id="history-tab">
+                    <div class="history-timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">2024</div>
+                            <div class="timeline-content">
+                                <h4>Kamal Silva - Previous Injuries</h4>
+                                <ul>
+                                    <li>Ankle sprain (March 2024) - Fully recovered</li>
+                                    <li>Lower back strain (June 2024) - Resolved with physio</li>
+                                </ul>
+                                <p><strong>Allergies:</strong> None reported</p>
+                                <p><strong>Chronic Issues:</strong> Mild asthma (well controlled)</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2023</div>
+                            <div class="timeline-content">
+                                <h4>Anjali Perera - Previous Injuries</h4>
+                                <ul>
+                                    <li>Finger fracture (August 2023) - Healed completely</li>
+                                    <li>Mild concussion (October 2023) - Full recovery</li>
+                                </ul>
+                                <p><strong>Allergies:</strong> Penicillin allergy</p>
+                                <p><strong>Chronic Issues:</strong> None</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatments Tab -->
+                <div class="tab-content" id="treatments-tab">
+                    <div class="treatment-schedule">
+                        <h3>Ongoing Treatment Schedule</h3>
+                        <div class="schedule-grid">
+                            <div class="schedule-card">
+                                <div class="schedule-header">
+                                    <h4>Kamal Silva - Hamstring Recovery</h4>
+                                    <span class="priority high">High Priority</span>
+                                </div>
+                                <div class="schedule-details">
+                                    <p><strong>Next Session:</strong> September 10, 2025 - 2:00 PM</p>
+                                    <p><strong>Therapist:</strong> Dr. Sarah Johnson</p>
+                                    <p><strong>Treatment Type:</strong> Deep tissue massage + exercises</p>
+                                    <p><strong>Duration:</strong> 45 minutes</p>
+                                </div>
+                            </div>
+                            <div class="schedule-card">
+                                <div class="schedule-header">
+                                    <h4>Anjali Perera - Shoulder Therapy</h4>
+                                    <span class="priority medium">Medium Priority</span>
+                                </div>
+                                <div class="schedule-details">
+                                    <p><strong>Next Session:</strong> September 12, 2025 - 10:00 AM</p>
+                                    <p><strong>Therapist:</strong> Dr. Mike Chen</p>
+                                    <p><strong>Treatment Type:</strong> Shoulder strengthening</p>
+                                    <p><strong>Duration:</strong> 30 minutes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Files Tab -->
+                <div class="tab-content" id="files-tab">
+                    <div class="files-grid">
+                        <div class="file-card">
+                            <div class="file-icon">
+                                <i class="fas fa-file-medical"></i>
+                            </div>
+                            <div class="file-info">
+                                <h4>Kamal Silva - MRI Report</h4>
+                                <p>Hamstring strain assessment</p>
+                                <span class="file-date">August 16, 2025</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn-view" onclick="viewMedicalFile('kamal-mri-001')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="file-card">
+                            <div class="file-icon">
+                                <i class="fas fa-x-ray"></i>
+                            </div>
+                            <div class="file-info">
+                                <h4>Anjali Perera - X-Ray</h4>
+                                <p>Shoulder joint assessment</p>
+                                <span class="file-date">September 2, 2025</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn-view" onclick="viewMedicalFile('anjali-xray-001')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="file-card">
+                            <div class="file-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="file-info">
+                                <h4>Dasun Fernando - Physio Report</h4>
+                                <p>Knee recovery assessment</p>
+                                <span class="file-date">September 5, 2025</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn-view" onclick="viewMedicalFile('dasun-physio-001')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Records Message (Hidden by default) -->
+            <div class="no-records-message" style="display: none;">
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No medical records available</h3>
+                    <p>No medical records found for the selected criteria.</p>
+                </div>
+            </div>
         </section>
     </main>
 </div>
