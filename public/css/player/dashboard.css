@@ -85,9 +85,9 @@ body {
 
 /* Override home.css nav-menu styles for sidebar */
 .player-sidebar .nav-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 0 !important;
@@ -97,6 +97,16 @@ body {
     margin: 0.25rem 0;
     display: block;
     width: 100%;
+    list-style: none !important;
+}
+
+/* Ensure no bullets on any list items in sidebar */
+.player-sidebar ul,
+.player-sidebar li {
+    list-style: none !important;
+    list-style-type: none !important;
+    margin: 0;
+    padding: 0;
 }
 
 .player-sidebar .nav-link {
@@ -190,68 +200,6 @@ body {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
-}
-
-/* Navigation Divider */
-.nav-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.3), transparent);
-    margin: 1rem 0.5rem;
-}
-
-/* Collapsible Navigation */
-.nav-expandable {
-    position: relative;
-}
-
-.nav-expandable .nav-arrow {
-    position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    transition: transform 0.3s ease;
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.nav-expandable.expanded .nav-arrow {
-    transform: translateY(-50%) rotate(180deg);
-}
-
-.nav-submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    background: rgba(248, 249, 250, 0.5);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.nav-submenu.show {
-    max-height: 200px;
-}
-
-.nav-sublink {
-    padding: 0.75rem 1rem 0.75rem 3rem !important;
-    font-size: 0.9rem;
-    background: none !important;
-    color: #777 !important;
-    border-left: 2px solid transparent;
-}
-
-.nav-sublink:hover {
-    background: rgba(74, 144, 226, 0.05) !important;
-    color: #4A90E2 !important;
-    border-left-color: #4A90E2;
-    padding-left: 3.2rem !important;
-    transform: none !important;
-}
-
-.nav-sublink i {
-    font-size: 0.9rem;
-    color: #999;
-    margin-right: 0.5rem;
 }
 
 /* Player Profile Section in Sidebar */

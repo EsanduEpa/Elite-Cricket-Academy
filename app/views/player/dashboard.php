@@ -75,36 +75,25 @@
                         </a>
                     </li>
 
-                    <!-- DIVIDER -->
-                    <li class="nav-divider"></li>
-
-                    <!-- SECONDARY FEATURES - Collapsible -->
-                    <li class="nav-item nav-expandable">
-                        <a href="#" class="nav-link" onclick="toggleMoreOptions(event)">
-                            <i class="fas fa-ellipsis-h"></i>
-                            <span>More</span>
-                            <i class="fas fa-chevron-down nav-arrow"></i>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Shopping & Rental</span>
                         </a>
-                        <ul class="nav-submenu" id="moreOptions">
-                            <li class="nav-item">
-                                <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link nav-sublink">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    <span>Shopping & Rental</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link nav-sublink">
-                                    <i class="fas fa-heartbeat"></i>
-                                    <span>Medical Records</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link nav-sublink">
-                                    <i class="fas fa-trophy"></i>
-                                    <span>Achievements</span>
-                                </a>
-                            </li>
-                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Medical Records</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link">
+                            <i class="fas fa-trophy"></i>
+                            <span>Achievements</span>
+                        </a>
                     </li>
                 </ul>
             </nav>

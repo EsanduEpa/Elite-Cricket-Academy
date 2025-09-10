@@ -943,23 +943,3 @@ if (window.performance) {
         }, 0);
     });
 }
-
-// Navigation toggle function for collapsible menu
-function toggleMoreOptions(event) {
-    event.preventDefault();
-    
-    const expandableItem = event.target.closest('.nav-expandable');
-    const submenu = document.getElementById('moreOptions');
-    const arrow = expandableItem.querySelector('.nav-arrow');
-    
-    // Toggle expanded state
-    expandableItem.classList.toggle('expanded');
-    submenu.classList.toggle('show');
-    
-    // Update aria attributes for accessibility
-    const isExpanded = expandableItem.classList.contains('expanded');
-    event.target.setAttribute('aria-expanded', isExpanded);
-}
-
-// Make toggle function globally available
-window.toggleMoreOptions = toggleMoreOptions;
