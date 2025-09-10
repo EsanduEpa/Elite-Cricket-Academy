@@ -1,25 +1,36 @@
-// Modern Trainer Dashboard JavaScript with Enhanced UX
+// Modern Trainer Dashboard JavaScript - Optimized
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dashboard with modern animations
-    initializeDashboard();
-    generateCalendar();
-    setupEventListeners();
-    initializeAnimations();
+    console.log('DOM loaded, initializing dashboard...');
+    
+    // Initialize with small delay to ensure all elements are ready
+    setTimeout(() => {
+        try {
+            initializeDashboard();
+            setupEventListeners();
+            initializeAnimations();
+            console.log('All dashboard components initialized successfully');
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+        }
+    }, 100);
 });
 
-// Enhanced dashboard initialization
+// Enhanced dashboard initialization - Simplified
 function initializeDashboard() {
+    console.log('Initializing dashboard...');
+    
     // Show dashboard section by default
     showSection('dashboard');
     
     // Load sample data
     loadSampleEvents();
     
-    // Initialize progress indicators
-    animateStatsCards();
+    // Initialize progress indicators with delay to ensure DOM is ready
+    setTimeout(() => {
+        animateStatsCards();
+    }, 200);
     
-    // Add loading states
-    addLoadingStates();
+    console.log('Dashboard initialized successfully');
 }
 
 // Modern navigation with smooth transitions
@@ -30,20 +41,10 @@ function setupEventListeners() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const sectionName = this.getAttribute('data-section');
+            console.log('Nav link clicked:', sectionName);
+            
             showSectionWithTransition(sectionName);
             updateActiveNav(this);
-            
-            // Add ripple effect
-            createRippleEffect(this, e);
-        });
-        
-        // Add hover sound effect (optional)
-        link.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateX(8px) scale(1.02)';
-        });
-        
-        link.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateX(0) scale(1)';
         });
     });
 
@@ -114,33 +115,49 @@ function setupEventListeners() {
     });
 }
 
-// Modern section transitions
+// Modern section transitions - Simplified for better performance
 function showSectionWithTransition(sectionName) {
+    console.log('Switching to section:', sectionName);
+    
     const activeSection = document.querySelector('.content-section.active');
     const targetSection = document.getElementById(`${sectionName}-section`);
     
-    if (activeSection && targetSection && activeSection !== targetSection) {
-        // Fade out current section
-        activeSection.style.opacity = '0';
-        activeSection.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            activeSection.classList.remove('active');
-            targetSection.classList.add('active');
-            
-            // Fade in new section
-            targetSection.style.opacity = '0';
-            targetSection.style.transform = 'translateY(20px)';
-            
-            requestAnimationFrame(() => {
-                targetSection.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                targetSection.style.opacity = '1';
-                targetSection.style.transform = 'translateY(0)';
-            });
-        }, 200);
-    } else if (targetSection) {
-        targetSection.classList.add('active');
+    if (!targetSection) {
+        console.error('Target section not found:', `${sectionName}-section`);
+        return;
     }
+    
+    // Close any open modals when switching sections
+    closeAllModals();
+    
+    // Hide all sections immediately
+    const allSections = document.querySelectorAll('.content-section');
+    allSections.forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
+    
+    // Show target section immediately
+    targetSection.classList.add('active');
+    targetSection.style.display = 'block';
+    targetSection.style.opacity = '1';
+    targetSection.style.transform = 'translateY(0)';
+    
+    // Initialize specific functionality if needed
+    if (sectionName === 'bookings') {
+        console.log('Initializing bookings section...');
+        if (typeof initializeBookingsSection === 'function') {
+            initializeBookingsSection();
+        }
+    } else if (sectionName === 'schedules') {
+        setTimeout(() => {
+            if (typeof initializeScheduleCalendar === 'function') {
+                initializeScheduleCalendar();
+            }
+        }, 100);
+    }
+    
+    console.log('Section switched successfully to:', sectionName);
 }
 
 // Enhanced ripple effect for modern UI
@@ -519,16 +536,27 @@ document.head.appendChild(fadeOutStyle);
 
 // Show specific section (keeping original functionality)
 function showSection(sectionName) {
+    console.log('Showing section (simple):', sectionName);
+    
     // Hide all sections
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => {
         section.classList.remove('active');
+        section.style.display = 'none';
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
     });
     
     // Show selected section
     const targetSection = document.getElementById(`${sectionName}-section`);
     if (targetSection) {
         targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+        targetSection.style.opacity = '1';
+        targetSection.style.transform = 'translateY(0)';
+        console.log('Section shown successfully:', sectionName);
+    } else {
+        console.error('Target section not found:', `${sectionName}-section`);
     }
 }
 
@@ -1499,3 +1527,1140 @@ nutritionModalStyles.textContent = `
     }
 `;
 document.head.appendChild(nutritionModalStyles);
+
+// Medical Records Section JavaScript
+function initializeMedicalRecords() {
+    console.log('Initializing medical records functionality...');
+    
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchMedicalTab(tabName);
+        });
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('playerSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterMedicalRecords(this.value);
+        });
+    }
+    
+    // Filter functionality
+    const injuryTypeFilter = document.getElementById('injuryTypeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    if (injuryTypeFilter) {
+        injuryTypeFilter.addEventListener('change', function() {
+            applyMedicalFilters();
+        });
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            applyMedicalFilters();
+        });
+    }
+    
+    console.log('Medical records functionality initialized');
+}
+
+function switchMedicalTab(tabName) {
+    console.log('Switching to medical tab:', tabName);
+    
+    // Remove active class from all buttons and contents
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected button and content
+    const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+    const activeContent = document.getElementById(`${tabName}-tab`);
+    
+    if (activeButton && activeContent) {
+        activeButton.classList.add('active');
+        activeContent.classList.add('active');
+    }
+}
+
+function filterMedicalRecords(searchTerm) {
+    const medicalCards = document.querySelectorAll('.medical-card');
+    const noRecordsMessage = document.querySelector('.no-records-message');
+    let visibleCards = 0;
+    
+    medicalCards.forEach(card => {
+        const playerName = card.querySelector('.player-details h3')?.textContent.toLowerCase() || '';
+        const injuryInfo = card.querySelector('.injury-info h4')?.textContent.toLowerCase() || '';
+        
+        const matchesSearch = searchTerm === '' || 
+                             playerName.includes(searchTerm.toLowerCase()) || 
+                             injuryInfo.includes(searchTerm.toLowerCase());
+        
+        if (matchesSearch) {
+            card.style.display = 'block';
+            visibleCards++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Show/hide no records message
+    if (noRecordsMessage) {
+        noRecordsMessage.style.display = visibleCards === 0 ? 'block' : 'none';
+    }
+}
+
+function applyMedicalFilters() {
+    const injuryTypeFilter = document.getElementById('injuryTypeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const searchInput = document.getElementById('playerSearch');
+    
+    const selectedInjuryType = injuryTypeFilter?.value || 'all';
+    const selectedStatus = statusFilter?.value || 'all';
+    const searchTerm = searchInput?.value || '';
+    
+    const medicalCards = document.querySelectorAll('.medical-card');
+    const noRecordsMessage = document.querySelector('.no-records-message');
+    let visibleCards = 0;
+    
+    medicalCards.forEach(card => {
+        const playerName = card.querySelector('.player-details h3')?.textContent.toLowerCase() || '';
+        const injuryInfo = card.querySelector('.injury-info h4')?.textContent.toLowerCase() || '';
+        const statusBadge = card.querySelector('.status-badge');
+        const cardStatus = statusBadge?.className.includes('in-recovery') ? 'in-recovery' :
+                          statusBadge?.className.includes('cleared') ? 'cleared' :
+                          statusBadge?.className.includes('restricted') ? 'restricted' :
+                          statusBadge?.className.includes('monitoring') ? 'monitoring' : '';
+        
+        // Check search term
+        const matchesSearch = searchTerm === '' || 
+                             playerName.includes(searchTerm.toLowerCase()) || 
+                             injuryInfo.includes(searchTerm.toLowerCase());
+        
+        // Check injury type filter
+        const matchesInjuryType = selectedInjuryType === 'all' || 
+                                 injuryInfo.includes(selectedInjuryType.replace('-', ' '));
+        
+        // Check status filter
+        const matchesStatus = selectedStatus === 'all' || cardStatus === selectedStatus;
+        
+        if (matchesSearch && matchesInjuryType && matchesStatus) {
+            card.style.display = 'block';
+            visibleCards++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Show/hide no records message
+    if (noRecordsMessage) {
+        noRecordsMessage.style.display = visibleCards === 0 ? 'block' : 'none';
+    }
+}
+
+function viewMedicalFile(fileId) {
+    console.log('Viewing medical file:', fileId);
+    
+    // Create modal for file viewing (read-only)
+    const modal = document.createElement('div');
+    modal.className = 'medical-file-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="closeMedicalFileModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-medical"></i> Medical File Viewer</h3>
+                <button class="modal-close" onclick="closeMedicalFileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="file-viewer">
+                    <div class="read-only-notice">
+                        <i class="fas fa-eye"></i>
+                        <span>Read-Only Access - Physical Trainer View</span>
+                    </div>
+                    <div class="file-content">
+                        <h4>Medical Report - ${fileId}</h4>
+                        <p><strong>Patient:</strong> ${getPatientNameFromFileId(fileId)}</p>
+                        <p><strong>Report Type:</strong> ${getReportTypeFromFileId(fileId)}</p>
+                        <p><strong>Date:</strong> ${getReportDateFromFileId(fileId)}</p>
+                        <hr>
+                        <div class="report-details">
+                            <h5>Summary:</h5>
+                            <p>${getReportSummaryFromFileId(fileId)}</p>
+                            <h5>Recommendations:</h5>
+                            <ul>
+                                ${getReportRecommendationsFromFileId(fileId)}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeMedicalFileModal()">Close</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add modal styles
+    const modalStyles = document.createElement('style');
+    modalStyles.textContent = `
+        .medical-file-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: relative;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80%;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .read-only-notice {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .file-content h4 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .file-content p {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-content hr {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: 1.5rem 0;
+        }
+        
+        .report-details h5 {
+            color: var(--primary-color);
+            margin: 1rem 0 0.5rem 0;
+            font-weight: 700;
+        }
+        
+        .report-details ul {
+            margin: 0;
+            padding-left: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            text-align: right;
+        }
+        
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--text-secondary);
+            color: white;
+        }
+    `;
+    document.head.appendChild(modalStyles);
+}
+
+function closeMedicalFileModal() {
+    const modal = document.querySelector('.medical-file-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function getPatientNameFromFileId(fileId) {
+    if (fileId.includes('kamal')) return 'Kamal Silva';
+    if (fileId.includes('anjali')) return 'Anjali Perera';
+    if (fileId.includes('dasun')) return 'Dasun Fernando';
+    return 'Unknown Patient';
+}
+
+function getReportTypeFromFileId(fileId) {
+    if (fileId.includes('mri')) return 'MRI Scan Report';
+    if (fileId.includes('xray')) return 'X-Ray Report';
+    if (fileId.includes('physio')) return 'Physiotherapy Assessment';
+    return 'Medical Report';
+}
+
+function getReportDateFromFileId(fileId) {
+    if (fileId.includes('kamal')) return 'August 16, 2025';
+    if (fileId.includes('anjali')) return 'September 2, 2025';
+    if (fileId.includes('dasun')) return 'September 5, 2025';
+    return 'Date not available';
+}
+
+function getReportSummaryFromFileId(fileId) {
+    if (fileId.includes('kamal-mri')) {
+        return 'MRI scan confirms Grade 2 hamstring strain in the right leg. Mild edema present. No complete muscle tear detected. Estimated recovery time: 3-4 weeks with proper rehabilitation.';
+    }
+    if (fileId.includes('anjali-xray')) {
+        return 'X-ray shows mild shoulder impingement with no bone abnormalities. Soft tissue inflammation detected. Recommend modified activity and physiotherapy intervention.';
+    }
+    if (fileId.includes('dasun-physio')) {
+        return 'Patient shows excellent recovery from previous knee strain. Full range of motion restored. Strength tests within normal parameters. Cleared for all activities with maintenance exercises.';
+    }
+    return 'Report summary not available.';
+}
+
+function getReportRecommendationsFromFileId(fileId) {
+    if (fileId.includes('kamal-mri')) {
+        return `
+            <li>Continue rest for 1 more week</li>
+            <li>Gradual return to light jogging in week 4</li>
+            <li>Maintain physiotherapy sessions</li>
+            <li>Ice therapy 3 times daily</li>
+            <li>Follow-up MRI in 4 weeks</li>
+        `;
+    }
+    if (fileId.includes('anjali-xray')) {
+        return `
+            <li>Avoid overhead activities for 2 weeks</li>
+            <li>Shoulder strengthening exercises daily</li>
+            <li>Anti-inflammatory medication as prescribed</li>
+            <li>Biomechanics assessment recommended</li>
+            <li>Return to bowling gradual and supervised</li>
+        `;
+    }
+    if (fileId.includes('dasun-physio')) {
+        return `
+            <li>Continue knee strengthening exercises</li>
+            <li>Proper warm-up before all activities</li>
+            <li>Monitor for any discomfort</li>
+            <li>Monthly check-ups for 3 months</li>
+            <li>Full participation in training and matches</li>
+        `;
+    }
+    return '<li>No specific recommendations available</li>';
+}
+
+// Update the main initialization to include medical records and exercises
+const originalShowSection = showSection;
+showSection = function(sectionName) {
+    originalShowSection(sectionName);
+    
+    // Initialize medical records when medical section is shown
+    if (sectionName === 'medical') {
+        setTimeout(() => {
+            initializeMedicalRecords();
+        }, 100);
+    }
+    
+    // Initialize exercises when workout section is shown
+    if (sectionName === 'workout') {
+        setTimeout(() => {
+            initializeExerciseSection();
+        }, 100);
+    }
+};
+
+// Exercise & Workout Management System
+function initializeExerciseSection() {
+    console.log('Initializing Exercise & Workout section...');
+    
+    // Initialize tab navigation
+    setupExerciseTabs();
+    
+    // Initialize filter functionality
+    setupExerciseFilters();
+    
+    // Setup exercise card interactions
+    setupExerciseCardInteractions();
+    
+    // Initialize assignment functionality
+    setupAssignmentFunctionality();
+    
+    console.log('Exercise & Workout section initialized');
+}
+
+// Tab Navigation for Exercise Section
+function setupExerciseTabs() {
+    const tabBtns = document.querySelectorAll('.exercise-tabs .tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and contents
+            tabBtns.forEach(tab => tab.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            this.classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
+        });
+    });
+}
+
+// Filter functionality for exercises and workout plans
+function setupExerciseFilters() {
+    // Exercise Library Filters
+    const exerciseFilterBtns = document.querySelectorAll('#exercise-library .filter-btn');
+    exerciseFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filterType = this.getAttribute('data-filter');
+            
+            // Update active filter button
+            exerciseFilterBtns.forEach(filterBtn => filterBtn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter exercise cards
+            filterExerciseCards(filterType);
+        });
+    });
+    
+    // Workout Plans Filters
+    const planFilterBtns = document.querySelectorAll('#workout-plans .filter-btn');
+    planFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filterType = this.getAttribute('data-filter');
+            
+            // Update active filter button
+            planFilterBtns.forEach(filterBtn => filterBtn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter workout plan cards
+            filterWorkoutPlanCards(filterType);
+        });
+    });
+}
+
+// Filter exercise cards based on type (updated for health focus)
+function filterExerciseCards(filterType) {
+    const exerciseCards = document.querySelectorAll('.exercise-card');
+    
+    exerciseCards.forEach(card => {
+        const cardType = card.getAttribute('data-type');
+        
+        if (filterType === 'all' || cardType === filterType) {
+            card.style.display = 'block';
+            card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Filter workout plan cards based on medical type
+function filterWorkoutPlanCards(filterType) {
+    const planCards = document.querySelectorAll('.workout-plan-card');
+    
+    planCards.forEach(card => {
+        const cardType = card.getAttribute('data-type');
+        
+        if (filterType === 'all' || cardType === filterType) {
+            card.style.display = 'block';
+            card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Setup exercise card interactions
+function setupExerciseCardInteractions() {
+    // Add hover effects and animations
+    const exerciseCards = document.querySelectorAll('.exercise-card, .workout-plan-card');
+    
+    exerciseCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+}
+
+// Assignment functionality
+function setupAssignmentFunctionality() {
+    // Assignment filter dropdown
+    const assignmentFilter = document.querySelector('#assignments .filter-select');
+    if (assignmentFilter) {
+        assignmentFilter.addEventListener('change', function() {
+            const filterValue = this.value;
+            filterAssignments(filterValue);
+        });
+    }
+}
+
+// Filter assignments table
+function filterAssignments(filterType) {
+    const assignmentRows = document.querySelectorAll('.assignments-table tbody tr');
+    
+    assignmentRows.forEach(row => {
+        const assignmentTypeElement = row.querySelector('.assignment-type');
+        if (assignmentTypeElement) {
+            const rowType = assignmentTypeElement.textContent.toLowerCase().trim();
+            
+            if (filterType === 'all' || rowType === filterType) {
+                row.style.display = '';
+                row.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Exercise Modal Functions
+function openExerciseModal() {
+    showNotification('Opening Add Exercise modal...', 'info');
+    // TODO: Implement modal functionality
+}
+
+function editExercise(exerciseId) {
+    showNotification(`Editing Exercise ID: ${exerciseId}`, 'info');
+    // TODO: Implement edit functionality
+}
+
+function assignExercise(exerciseId) {
+    showNotification(`Assigning Exercise ID: ${exerciseId}`, 'info');
+    // TODO: Implement assignment functionality
+}
+
+function deleteExercise(exerciseId) {
+    if (confirm('Are you sure you want to delete this exercise?')) {
+        showNotification(`Deleting Exercise ID: ${exerciseId}`, 'success');
+        // TODO: Implement delete functionality
+    }
+}
+
+// Workout Plan Modal Functions (Updated for Personalized Plans)
+function openPersonalizedPlanModal() {
+    showNotification('Opening Personalized Workout Plan Creator...', 'info');
+    // TODO: Implement personalized plan modal functionality
+}
+
+function openWorkoutPlanModal() {
+    showNotification('Opening Create Workout Plan modal...', 'info');
+    // TODO: Implement modal functionality
+}
+
+function viewWorkoutPlan(planId) {
+    showNotification(`Viewing Detailed Workout Plan ID: ${planId}`, 'info');
+    // TODO: Implement view functionality with exercise details
+}
+
+function editWorkoutPlan(planId) {
+    showNotification(`Editing Workout Plan ID: ${planId}`, 'info');
+    // TODO: Implement edit functionality
+}
+
+function assignWorkoutPlan(planId) {
+    showNotification(`Assigning Workout Plan ID: ${planId}`, 'info');
+    // TODO: Implement assignment functionality
+}
+
+function reassignWorkoutPlan(planId) {
+    showNotification(`Reassigning Workout Plan ID: ${planId} to new player/group...`, 'info');
+    // TODO: Implement reassignment functionality
+}
+
+// Assignment Modal Functions (Updated for Medical Focus)
+function openMedicalAssignmentModal() {
+    showNotification('Opening Medical Assignment modal - Review player medical history...', 'info');
+    // TODO: Implement medical assignment modal with medical history integration
+}
+
+function viewMedicalAssignment(assignmentId) {
+    showNotification(`Viewing Medical History and Assignment Details for ID: ${assignmentId}`, 'info');
+    // TODO: Implement medical history view functionality
+}
+
+function openAssignmentModal() {
+    showNotification('Opening New Assignment modal...', 'info');
+    // TODO: Implement modal functionality
+}
+
+function viewAssignment(assignmentId) {
+    showNotification(`Viewing Assignment ID: ${assignmentId}`, 'info');
+    // TODO: Implement view functionality
+}
+
+function editAssignment(assignmentId) {
+    showNotification(`Editing Assignment ID: ${assignmentId}`, 'info');
+    // TODO: Implement edit functionality
+}
+
+function deleteAssignment(assignmentId) {
+    if (confirm('Are you sure you want to delete this medical assignment?')) {
+        showNotification(`Deleting Assignment ID: ${assignmentId}`, 'success');
+        // TODO: Implement delete functionality
+    }
+}
+
+// Utility function for notifications
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        animation: slideInFromRight 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOutToRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations for notifications
+const notificationStyles = document.createElement('style');
+notificationStyles.textContent = `
+    @keyframes slideInFromRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutToRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(notificationStyles);
+
+// Booking Management Functions
+let bookingsData = [
+    {
+        id: 1,
+        playerName: 'John Smith',
+        playerTeam: 'Senior Team',
+        playerAge: 22,
+        playerPhone: '+94 77 123 4567',
+        date: '2024-12-15',
+        time: '2:00 PM - 3:00 PM',
+        serviceType: 'Physio Session',
+        reason: 'Injury Recovery Assessment',
+        notes: 'Shoulder pain after bowling session. Pain scale 6/10, especially during overhead movements.',
+        status: 'pending',
+        urgency: 'normal',
+        practitioner: 'dr-sarah'
+    },
+    {
+        id: 2,
+        playerName: 'Emily Johnson',
+        playerTeam: 'Junior Team',
+        playerAge: 18,
+        playerPhone: '+94 71 987 6543',
+        date: '2024-12-15',
+        time: '4:00 PM - 5:30 PM',
+        serviceType: 'Fitness Assessment',
+        reason: 'Monthly Fitness Evaluation',
+        notes: 'Standard monthly fitness assessment. Focus on cardiovascular endurance and strength improvements.',
+        status: 'confirmed',
+        urgency: 'normal',
+        practitioner: 'coach-mike'
+    },
+    {
+        id: 3,
+        playerName: 'Michael Brown',
+        playerTeam: 'Senior Team',
+        playerAge: 24,
+        playerPhone: '+94 76 555 1234',
+        date: '2024-12-16',
+        time: '10:00 AM - 11:00 AM',
+        serviceType: 'Physio Session',
+        reason: 'Knee Injury Follow-up',
+        notes: 'Previous ACL injury, week 4 of recovery. Check mobility and pain levels.',
+        status: 'confirmed',
+        urgency: 'urgent',
+        practitioner: 'dr-sarah'
+    },
+    {
+        id: 4,
+        playerName: 'Sarah Wilson',
+        playerTeam: 'Junior Team',
+        playerAge: 19,
+        playerPhone: '+94 75 444 9876',
+        date: '2024-12-14',
+        time: '3:00 PM - 4:00 PM',
+        serviceType: 'General Consultation',
+        reason: 'Pre-tournament Health Check',
+        notes: 'Standard pre-tournament health assessment.',
+        status: 'completed',
+        urgency: 'normal',
+        practitioner: 'trainer-alex',
+        sessionSummary: 'Complete health assessment completed. Player cleared for upcoming tournament. No issues found.',
+        sessionRating: 'excellent'
+    }
+];
+
+function initializeBookingsSection() {
+    console.log('Initializing bookings section...');
+    setupBookingFilters();
+    setupBookingViewToggle();
+    renderBookings();
+    initializeBookingCalendar();
+}
+
+function setupBookingFilters() {
+    const filterBtns = document.querySelectorAll('#bookings-section .filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Filter bookings
+            const filter = this.dataset.filter;
+            filterBookings(filter);
+        });
+    });
+
+    // Date filter
+    const dateFilter = document.getElementById('filterDate');
+    if (dateFilter) {
+        dateFilter.addEventListener('change', function() {
+            filterByDate(this.value);
+        });
+    }
+
+    // Practitioner filter
+    const practitionerFilter = document.getElementById('filterPractitioner');
+    if (practitionerFilter) {
+        practitionerFilter.addEventListener('change', function() {
+            filterByPractitioner(this.value);
+        });
+    }
+}
+
+function setupBookingViewToggle() {
+    const toggleBtns = document.querySelectorAll('#bookings-section .toggle-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            toggleBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Switch view
+            const view = this.dataset.view;
+            switchBookingView(view);
+        });
+    });
+}
+
+function switchBookingView(view) {
+    const listView = document.getElementById('bookingListView');
+    const calendarView = document.getElementById('bookingCalendarView');
+    
+    if (view === 'list') {
+        listView.classList.add('active');
+        calendarView.classList.remove('active');
+    } else if (view === 'calendar') {
+        listView.classList.remove('active');
+        calendarView.classList.add('active');
+        renderBookingCalendar();
+    }
+}
+
+function filterBookings(filter) {
+    const bookingCards = document.querySelectorAll('#bookings-section .booking-card');
+    
+    bookingCards.forEach(card => {
+        if (filter === 'all' || card.classList.contains(filter)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByDate(selectedDate) {
+    console.log('Filtering by date:', selectedDate);
+}
+
+function filterByPractitioner(practitioner) {
+    console.log('Filtering by practitioner:', practitioner);
+}
+
+function initializeBookingCalendar() {
+    const calendarGrid = document.getElementById('bookingCalendarGrid');
+    if (!calendarGrid) return;
+    
+    renderBookingCalendar();
+}
+
+function renderBookingCalendar() {
+    const calendarGrid = document.getElementById('bookingCalendarGrid');
+    if (!calendarGrid) return;
+    
+    calendarGrid.innerHTML = '';
+    
+    // Add day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.textContent = day;
+        dayHeader.style.cssText = 'background: var(--glass-bg-primary); font-weight: 600; padding: 10px; text-align: center; color: var(--text-primary);';
+        calendarGrid.appendChild(dayHeader);
+    });
+    
+    // Generate calendar days
+    const today = new Date();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+    
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.style.cssText = 'opacity: 0.3; background: var(--background-color); padding: 10px;';
+        calendarGrid.appendChild(emptyDay);
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayBookings = bookingsData.filter(booking => booking.date === dateString);
+        
+        dayElement.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 5px;">${day}</div>
+            <div>
+                ${dayBookings.map(booking => 
+                    `<div style="width: 100%; height: 4px; background: ${getStatusColor(booking.status)}; margin: 1px 0; border-radius: 2px;" title="${booking.serviceType} - ${booking.playerName}"></div>`
+                ).join('')}
+            </div>
+        `;
+        
+        dayElement.style.cssText = 'background: var(--background-color); padding: 10px 8px; min-height: 80px; cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent;';
+        
+        if (day === today.getDate()) {
+            dayElement.style.border = '2px solid var(--primary-color)';
+        }
+        
+        calendarGrid.appendChild(dayElement);
+    }
+}
+
+function getStatusColor(status) {
+    const colors = {
+        pending: 'var(--warning-color)',
+        confirmed: 'var(--info-color)',
+        completed: 'var(--success-color)',
+        cancelled: 'var(--error-color)'
+    };
+    return colors[status] || 'var(--text-secondary)';
+}
+
+// Booking Action Functions
+function approveBooking(bookingId) {
+    console.log('Approving booking:', bookingId);
+    showBookingMessage('Booking approved successfully!', 'success');
+}
+
+function rejectBooking(bookingId) {
+    if (confirm('Are you sure you want to reject this booking?')) {
+        console.log('Rejecting booking:', bookingId);
+        showBookingMessage('Booking rejected.', 'error');
+    }
+}
+
+function rescheduleBooking(bookingId) {
+    console.log('Reschedule booking:', bookingId);
+    alert('Reschedule functionality would open here');
+}
+
+function startSession(bookingId) {
+    console.log('Starting session:', bookingId);
+    showBookingMessage('Session started successfully!', 'success');
+}
+
+function completeSession(bookingId) {
+    if (confirm('Mark this session as completed?')) {
+        console.log('Completing session:', bookingId);
+        showBookingMessage('Session marked as completed!', 'success');
+    }
+}
+
+function addSessionNotes(bookingId) {
+    // Check if we're in the bookings section
+    const bookingsSection = document.getElementById('bookings-section');
+    const currentSection = document.querySelector('.content-section.active');
+    
+    if (!bookingsSection || !currentSection || currentSection.id !== 'bookings-section') {
+        console.log('Session notes only available in bookings section');
+        return;
+    }
+    
+    const modal = document.getElementById('sessionNotesModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.dataset.bookingId = bookingId;
+    }
+}
+
+function viewSessionNotes(bookingId) {
+    viewBookingDetails(bookingId);
+}
+
+function scheduleFollowup(bookingId) {
+    console.log('Schedule follow-up for booking:', bookingId);
+    alert('Follow-up scheduling would open here');
+}
+
+function cancelBooking(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        console.log('Cancelling booking:', bookingId);
+        showBookingMessage('Booking cancelled.', 'error');
+    }
+}
+
+function viewBookingDetails(bookingId) {
+    // Check if we're in the bookings section
+    const bookingsSection = document.getElementById('bookings-section');
+    const currentSection = document.querySelector('.content-section.active');
+    
+    if (!bookingsSection || !currentSection || currentSection.id !== 'bookings-section') {
+        console.log('Booking details only available in bookings section');
+        return;
+    }
+    
+    const booking = bookingsData.find(b => b.id === bookingId);
+    if (!booking) return;
+    
+    const detailsContent = document.getElementById('bookingDetailsContent');
+    if (!detailsContent) return;
+    
+    detailsContent.innerHTML = `
+        <div style="display: grid; gap: 25px;">
+            <div style="background: var(--glass-bg); padding: 20px; border-radius: 15px;">
+                <h3 style="color: var(--text-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user"></i> Player Information
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div><strong>Name:</strong> ${booking.playerName}</div>
+                    <div><strong>Team:</strong> ${booking.playerTeam}</div>
+                    <div><strong>Age:</strong> ${booking.playerAge} years</div>
+                    <div><strong>Phone:</strong> ${booking.playerPhone}</div>
+                </div>
+            </div>
+            <div style="background: var(--glass-bg); padding: 20px; border-radius: 15px;">
+                <h3 style="color: var(--text-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-calendar-check"></i> Appointment Details
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div><strong>Date & Time:</strong> ${booking.date} at ${booking.time}</div>
+                    <div><strong>Service:</strong> ${booking.serviceType}</div>
+                    <div><strong>Reason:</strong> ${booking.reason}</div>
+                    <div><strong>Status:</strong> <span style="text-transform: capitalize; color: ${getStatusColor(booking.status)};">${booking.status}</span></div>
+                </div>
+                ${booking.notes ? `<div style="margin-top: 15px;"><strong>Notes:</strong><p style="margin-top: 8px; line-height: 1.5;">${booking.notes}</p></div>` : ''}
+                ${booking.sessionSummary ? `<div style="margin-top: 15px;"><strong>Session Summary:</strong><p style="margin-top: 8px; line-height: 1.5;">${booking.sessionSummary}</p></div>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('bookingDetailsModal').classList.add('active');
+}
+
+// Modal Functions - Only work in bookings section
+function openAddSlotModal() {
+    // Check if we're in the bookings section
+    const bookingsSection = document.getElementById('bookings-section');
+    const currentSection = document.querySelector('.content-section.active');
+    
+    if (!bookingsSection || !currentSection || currentSection.id !== 'bookings-section') {
+        console.log('Modal only available in bookings section');
+        return;
+    }
+    
+    const modal = document.getElementById('addSlotModal');
+    if (modal) {
+        modal.classList.add('active');
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('slotDate');
+        if (dateInput) dateInput.value = today;
+    }
+}
+
+function closeAddSlotModal() {
+    const modal = document.getElementById('addSlotModal');
+    if (modal) {
+        modal.classList.remove('active');
+        const form = document.getElementById('addSlotForm');
+        if (form) form.reset();
+    }
+}
+
+// Close all booking modals
+function closeAllModals() {
+    const modals = ['addSlotModal', 'bookingDetailsModal', 'sessionNotesModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            // Reset forms if they exist
+            const form = modal.querySelector('form');
+            if (form) form.reset();
+        }
+    });
+}
+
+function closeBookingDetailsModal() {
+    const modal = document.getElementById('bookingDetailsModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function closeSessionNotesModal() {
+    const modal = document.getElementById('sessionNotesModal');
+    if (modal) {
+        modal.classList.remove('active');
+        const form = document.getElementById('sessionNotesForm');
+        if (form) form.reset();
+    }
+}
+
+function showBookingMessage(message, type = 'success') {
+    const messageEl = document.createElement('div');
+    messageEl.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(6, 214, 160, 0.1)' : 'rgba(239, 71, 111, 0.1)'};
+        color: ${type === 'success' ? 'var(--success-color)' : 'var(--error-color)'};
+        border: 1px solid ${type === 'success' ? 'rgba(6, 214, 160, 0.2)' : 'rgba(239, 71, 111, 0.2)'};
+        padding: 15px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+    `;
+    messageEl.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'times'}-circle"></i> ${message}`;
+    
+    document.body.appendChild(messageEl);
+    setTimeout(() => messageEl.remove(), 3000);
+}
+
+// Make functions globally available
+window.openAddSlotModal = openAddSlotModal;
+window.closeAddSlotModal = closeAddSlotModal;
+window.closeBookingDetailsModal = closeBookingDetailsModal;
+window.closeSessionNotesModal = closeSessionNotesModal;
+window.approveBooking = approveBooking;
+window.rejectBooking = rejectBooking;
+window.rescheduleBooking = rescheduleBooking;
+window.startSession = startSession;
+window.completeSession = completeSession;
+window.addSessionNotes = addSessionNotes;
+window.viewSessionNotes = viewSessionNotes;
+window.scheduleFollowup = scheduleFollowup;
+window.cancelBooking = cancelBooking;
+window.viewBookingDetails = viewBookingDetails;
