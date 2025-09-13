@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     animateCounters();
     initializeSidebar();
     initializeMobileFeatures();
+    initializeScheduleFilter();
     highlightActiveNavLink();
     initializeCalendar();
 });
@@ -942,4 +943,142 @@ if (window.performance) {
             console.log(`Player Dashboard loaded in ${loadTime}ms`);
         }, 0);
     });
+}
+
+// Schedule Filter Functionality
+function initializeScheduleFilter() {
+    const filterDropdown = document.getElementById('scheduleFilter');
+    const scheduleContent = document.getElementById('scheduleContent');
+    
+    if (!filterDropdown || !scheduleContent) return;
+    
+    filterDropdown.addEventListener('change', function() {
+        const filterValue = this.value;
+        updateScheduleView(filterValue);
+    });
+}
+
+function updateScheduleView(filter) {
+    const scheduleContent = document.getElementById('scheduleContent');
+    if (!scheduleContent) return;
+    
+    // Get schedule data from window object
+    const todaySchedule = window.dashboardData?.todaySchedule || [];
+    const upcomingSchedule = window.dashboardData?.upcomingSchedule || [];
+    
+    let filteredData = [];
+    let title = 'Next Activity';
+    
+    switch(filter) {
+        case 'today':
+            filteredData = todaySchedule;
+            title = "Today's Activities";
+            break;
+        case 'week':
+            // Filter for next 7 days
+            const weekFromNow = new Date();
+            weekFromNow.setDate(weekFromNow.getDate() + 7);
+            filteredData = upcomingSchedule.filter(schedule => {
+                const scheduleDate = new Date(schedule.date);
+                return scheduleDate <= weekFromNow;
+            });
+            title = 'This Week';
+            break;
+        case 'month':
+            // Filter for next 30 days
+            const monthFromNow = new Date();
+            monthFromNow.setDate(monthFromNow.getDate() + 30);
+            filteredData = upcomingSchedule.filter(schedule => {
+                const scheduleDate = new Date(schedule.date);
+                return scheduleDate <= monthFromNow;
+            });
+            title = 'This Month';
+            break;
+        default: // 'next'
+            filteredData = upcomingSchedule.slice(0, 1);
+            title = 'Next Activity';
+    }
+    
+    renderScheduleContent(filteredData, title, filter);
+}
+
+function renderScheduleContent(scheduleData, title, filter) {
+    const scheduleContent = document.getElementById('scheduleContent');
+    
+    if (scheduleData.length === 0) {
+        scheduleContent.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-check"></i>
+                <h3>No ${title.toLowerCase()}</h3>
+                <p>Your schedule is clear for this period.</p>
+                <button class="btn btn-primary">Schedule Training</button>
+            </div>
+        `;
+        return;
+    }
+    
+    if (filter === 'next' || (filter === 'today' && scheduleData.length === 1)) {
+        // Single activity view
+        const activity = scheduleData[0];
+        const activityDate = new Date(activity.date);
+        
+        scheduleContent.innerHTML = `
+            <div class="next-activity-card">
+                <div class="activity-time">
+                    <div class="date-display">
+                        <span class="day">${activityDate.getDate()}</span>
+                        <span class="month">${activityDate.toLocaleDateString('en', {month: 'short'})}</span>
+                    </div>
+                    <div class="time-info">
+                        <h3>${activity.activity}</h3>
+                        <p class="time">${activity.time}</p>
+                        <p class="location"><i class="fas fa-map-marker-alt"></i> ${activity.location}</p>
+                    </div>
+                </div>
+                <div class="activity-actions">
+                    <span class="status-badge status-confirmed">Confirmed</span>
+                    <button class="btn btn-primary btn-sm">View Details</button>
+                </div>
+            </div>
+            <div class="schedule-stats">
+                <div class="stat-item">
+                    <span class="count">${window.dashboardData?.todaySchedule?.length || 0}</span>
+                    <span class="label">Today</span>
+                </div>
+                <div class="stat-item">
+                    <span class="count">${Math.min(window.dashboardData?.upcomingSchedule?.length || 0, 7)}</span>
+                    <span class="label">This Week</span>
+                </div>
+                <div class="stat-item">
+                    <span class="count">${window.dashboardData?.upcomingSchedule?.length || 0}</span>
+                    <span class="label">Total</span>
+                </div>
+            </div>
+        `;
+    } else {
+        // Multiple activities list view
+        const activitiesList = scheduleData.map(activity => {
+            const activityDate = new Date(activity.date);
+            return `
+                <div class="activity-list-item">
+                    <div class="activity-date">
+                        <span class="day">${activityDate.getDate()}</span>
+                        <span class="month">${activityDate.toLocaleDateString('en', {month: 'short'})}</span>
+                    </div>
+                    <div class="activity-details">
+                        <h4>${activity.activity}</h4>
+                        <p class="time">${activity.time}</p>
+                        <p class="location"><i class="fas fa-map-marker-alt"></i> ${activity.location}</p>
+                    </div>
+                    <span class="status-badge status-confirmed">Confirmed</span>
+                </div>
+            `;
+        }).join('');
+        
+        scheduleContent.innerHTML = `
+            <div class="activities-list">
+                ${activitiesList}
+            </div>
+        `;
+    }
 }

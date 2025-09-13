@@ -52,23 +52,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (enrollBtn) {
-        console.log('Adding click listener to enroll button');
-        enrollBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-           // console.log('Enroll button clicked!');
-            window.location.href = '/Elite/register';
-        });
+        console.log('Enroll button found - using default link behavior');
+        // Remove preventDefault to allow natural link behavior
+        // The href attribute in HTML will handle navigation
     } else {
        console.error('Enroll button not found!');
     }
 
     if (loginBtn) {
-        console.log('Adding click listener to login button');
-        loginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Login button clicked!');
-            window.location.href = '/Elite/login';
-        });
+        console.log('Login button found - using default link behavior');
+        // Remove preventDefault to allow natural link behavior
+        // The href attribute in HTML will handle navigation
     } else {
         console.error('Login button not found!');
     }

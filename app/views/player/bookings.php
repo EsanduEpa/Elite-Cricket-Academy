@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/bookings.css">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css?v=2.0">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=2.0">
+    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/bookings.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 
 <body>
     <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
     
-    <!-- Player Dashboard Layout -->
     <div class="player-layout">
         <!-- Left Sidebar Panel -->
         <div class="player-sidebar" id="playerSidebar">
@@ -46,9 +44,6 @@
                         <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link active">
                             <i class="fas fa-calendar-check"></i>
                             <span>My Bookings</span>
-                            <?php if(!empty($data['upcomingBookings'])): ?>
-                                <span class="badge"><?php echo count($data['upcomingBookings']); ?></span>
-                            <?php endif; ?>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -63,429 +58,400 @@
                             <span>Payments</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Shopping & Rental</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Medical Records</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link">
+                            <i class="fas fa-trophy"></i>
+                            <span>Achievements</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
+                            <i class="fas fa-medal"></i>
+                            <span>Tournaments</span>
+                        </a>
+                    </li>
                 </ul>
-            </nav>
-
-            <!-- Player Profile -->
-            <div class="player-profile">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-info">
-                    <div class="player-name"><?php echo $data['player']['name'] ?? 'Player Name'; ?></div>
-                    <div class="player-role"><?php echo $data['player']['membership_level'] ?? 'Member'; ?> Member</div>
-                </div>
-                <div class="logout-btn">
-                    <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                
+                <!-- Profile Section at Bottom -->
+                <div class="sidebar-profile">
+                    <a href="<?php echo URLROOT; ?>/player/profile" class="profile-link">
+                        <div class="profile-avatar">
+                            <img src="<?php echo URLROOT; ?>/img/default-avatar.jpg" alt="Profile" id="profileAvatar">
+                        </div>
+                        <div class="profile-info">
+                            <span class="profile-name">John Doe</span>
+                            <span class="profile-role">Player</span>
+                        </div>
+                        <i class="fas fa-cog profile-settings"></i>
                     </a>
                 </div>
-            </div>
+            </nav>
         </div>
 
         <!-- Main Content Area -->
-        <div class="main-content" id="mainContent">
-            <!-- Booking Header -->
-            <div class="booking-header">
-                <div class="header-content">
+        <div class="main-content">
+            <div class="content-header">
+                <div class="header-title">
                     <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
-                    <p>Book appointments with our professional physio and trainers</p>
+                    <p>Manage your trainer and coach appointments</p>
                 </div>
                 <div class="header-actions">
-                    <button class="new-booking-btn" onclick="openBookingModal()">
+                    <button class="btn btn-primary" id="newBookingBtn">
                         <i class="fas fa-plus"></i> New Booking
                     </button>
-                    <div class="view-toggle">
-                        <button class="toggle-btn active" data-view="list">
-                            <i class="fas fa-list"></i>
-                        </button>
-                        <button class="toggle-btn" data-view="calendar">
-                            <i class="fas fa-calendar"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Booking Filters -->
-            <div class="booking-filters">
-                <div class="filter-group">
-                    <button class="filter-btn active" data-filter="all">All Bookings</button>
-                    <button class="filter-btn" data-filter="upcoming">Upcoming</button>
-                    <button class="filter-btn" data-filter="completed">Completed</button>
-                    <button class="filter-btn" data-filter="cancelled">Cancelled</button>
-                </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search bookings..." id="searchBookings">
+            <!-- Booking Categories -->
+            <div class="booking-categories">
+                <div class="category-tabs">
+                    <button class="tab-btn active" data-category="upcoming">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Upcoming</span>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="tab-btn" data-category="past">
+                        <i class="fas fa-history"></i>
+                        <span>Past Bookings</span>
+                        <span class="badge">12</span>
+                    </button>
+                    <button class="tab-btn" data-category="cancelled">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Cancelled</span>
+                        <span class="badge">2</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Booking Views -->
-            <div class="booking-views">
-                <!-- List View -->
-                <div class="booking-list-view active" id="listView">
-                    <div class="bookings-grid" id="bookingsGrid">
-                        <!-- Upcoming Bookings -->
-                        <div class="booking-section">
-                            <h2><i class="fas fa-clock"></i> Upcoming Bookings</h2>
-                            <div class="booking-cards" id="upcomingBookings">
-                                <!-- Sample Upcoming Booking -->
-                                <div class="booking-card upcoming" data-status="upcoming">
-                                    <div class="booking-header">
-                                        <div class="booking-type">
-                                            <i class="fas fa-heartbeat"></i>
-                                            <span>Physio Session</span>
-                                        </div>
-                                        <div class="booking-status upcoming">
-                                            <i class="fas fa-clock"></i> Upcoming
-                                        </div>
-                                    </div>
-                                    <div class="booking-details">
-                                        <div class="booking-info">
-                                            <div class="info-item">
-                                                <i class="fas fa-calendar"></i>
-                                                <span>December 15, 2024</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-clock"></i>
-                                                <span>2:00 PM - 3:00 PM</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-user-md"></i>
-                                                <span>Dr. Sarah Wilson</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-stethoscope"></i>
-                                                <span>Injury Recovery Assessment</span>
-                                            </div>
-                                        </div>
-                                        <div class="booking-notes">
-                                            <strong>Notes:</strong> Shoulder pain after bowling session
-                                        </div>
-                                    </div>
-                                    <div class="booking-actions">
-                                        <button class="action-btn reschedule" onclick="rescheduleBooking(1)">
-                                            <i class="fas fa-calendar-alt"></i> Reschedule
-                                        </button>
-                                        <button class="action-btn cancel" onclick="cancelBooking(1)">
-                                            <i class="fas fa-times"></i> Cancel
-                                        </button>
-                                        <button class="action-btn details" onclick="viewBookingDetails(1)">
-                                            <i class="fas fa-eye"></i> Details
-                                        </button>
-                                    </div>
+            <!-- Booking Content -->
+            <div class="booking-content">
+                <!-- Upcoming Bookings -->
+                <div class="booking-section active" id="upcoming">
+                    <div class="bookings-grid">
+                        <!-- Upcoming Coach Appointment -->
+                        <div class="booking-card coach-booking upcoming">
+                            <div class="booking-header">
+                                <div class="booking-type">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Coach Appointment</span>
                                 </div>
-
-                                <!-- Another Sample Booking -->
-                                <div class="booking-card upcoming" data-status="upcoming">
-                                    <div class="booking-header">
-                                        <div class="booking-type">
-                                            <i class="fas fa-dumbbell"></i>
-                                            <span>Fitness Assessment</span>
-                                        </div>
-                                        <div class="booking-status upcoming">
-                                            <i class="fas fa-clock"></i> Upcoming
-                                        </div>
-                                    </div>
-                                    <div class="booking-details">
-                                        <div class="booking-info">
-                                            <div class="info-item">
-                                                <i class="fas fa-calendar"></i>
-                                                <span>December 18, 2024</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-clock"></i>
-                                                <span>10:00 AM - 11:30 AM</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-user-md"></i>
-                                                <span>Coach Mike Johnson</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-chart-line"></i>
-                                                <span>Monthly Fitness Test</span>
-                                            </div>
-                                        </div>
-                                        <div class="booking-notes">
-                                            <strong>Notes:</strong> Standard monthly fitness evaluation
-                                        </div>
-                                    </div>
-                                    <div class="booking-actions">
-                                        <button class="action-btn reschedule" onclick="rescheduleBooking(2)">
-                                            <i class="fas fa-calendar-alt"></i> Reschedule
-                                        </button>
-                                        <button class="action-btn cancel" onclick="cancelBooking(2)">
-                                            <i class="fas fa-times"></i> Cancel
-                                        </button>
-                                        <button class="action-btn details" onclick="viewBookingDetails(2)">
-                                            <i class="fas fa-eye"></i> Details
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Past Bookings -->
-                        <div class="booking-section">
-                            <h2><i class="fas fa-history"></i> Past Bookings</h2>
-                            <div class="booking-cards" id="pastBookings">
-                                <!-- Sample Past Booking -->
-                                <div class="booking-card completed" data-status="completed">
-                                    <div class="booking-header">
-                                        <div class="booking-type">
-                                            <i class="fas fa-heartbeat"></i>
-                                            <span>Physio Session</span>
-                                        </div>
-                                        <div class="booking-status completed">
-                                            <i class="fas fa-check"></i> Completed
-                                        </div>
-                                    </div>
-                                    <div class="booking-details">
-                                        <div class="booking-info">
-                                            <div class="info-item">
-                                                <i class="fas fa-calendar"></i>
-                                                <span>December 8, 2024</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-clock"></i>
-                                                <span>3:00 PM - 4:00 PM</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-user-md"></i>
-                                                <span>Dr. Sarah Wilson</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <i class="fas fa-stethoscope"></i>
-                                                <span>Knee Injury Check</span>
-                                            </div>
-                                        </div>
-                                        <div class="session-feedback">
-                                            <strong>Session Notes:</strong> Knee showing good recovery progress. Continue with recommended exercises.
-                                        </div>
-                                    </div>
-                                    <div class="booking-actions">
-                                        <button class="action-btn rebook" onclick="rebookSession(3)">
-                                            <i class="fas fa-redo"></i> Book Again
-                                        </button>
-                                        <button class="action-btn details" onclick="viewBookingDetails(3)">
-                                            <i class="fas fa-eye"></i> Details
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Calendar View -->
-                <div class="booking-calendar-view" id="calendarView">
-                    <div class="calendar-container">
-                        <div class="calendar-header">
-                            <div class="calendar-navigation">
-                                <button class="nav-btn" id="prevMonth">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <h3 id="currentMonth">December 2024</h3>
-                                <button class="nav-btn" id="nextMonth">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                            <div class="calendar-legend">
-                                <div class="legend-item">
-                                    <div class="legend-color upcoming"></div>
+                                <div class="booking-status upcoming">
+                                    <i class="fas fa-clock"></i>
                                     <span>Upcoming</span>
                                 </div>
-                                <div class="legend-item">
-                                    <div class="legend-color completed"></div>
+                            </div>
+                            
+                            <div class="booking-details">
+                                <div class="instructor-info">
+                                    <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Coach" class="instructor-avatar">
+                                    <div class="instructor-details">
+                                        <h3>Coach Anderson</h3>
+                                        <p>Senior Cricket Coach</p>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <span>4.9</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="session-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>September 15, 2025</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>10:00 AM - 11:00 AM</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Ground A</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Batting Technique Review</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-footer">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-edit"></i> Reschedule
+                                </button>
+                                <button class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-video"></i> Join Session
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Trainer Appointment -->
+                        <div class="booking-card trainer-booking upcoming">
+                            <div class="booking-header">
+                                <div class="booking-type">
+                                    <i class="fas fa-dumbbell"></i>
+                                    <span>Trainer Appointment</span>
+                                </div>
+                                <div class="booking-status upcoming">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Tomorrow</span>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-details">
+                                <div class="instructor-info">
+                                    <img src="<?php echo URLROOT; ?>/img/default-avatar.jpg" alt="Trainer" class="instructor-avatar">
+                                    <div class="instructor-details">
+                                        <h3>Mike Johnson</h3>
+                                        <p>Fitness Trainer</p>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <span>4.7</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="session-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>September 14, 2025</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>6:00 AM - 7:00 AM</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Fitness Center</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Strength Training</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-footer">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-edit"></i> Reschedule
+                                </button>
+                                <button class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-play"></i> Start Session
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Group Session -->
+                        <div class="booking-card group-booking upcoming">
+                            <div class="booking-header">
+                                <div class="booking-type">
+                                    <i class="fas fa-users"></i>
+                                    <span>Group Session</span>
+                                </div>
+                                <div class="booking-status upcoming">
+                                    <i class="fas fa-clock"></i>
+                                    <span>This Week</span>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-details">
+                                <div class="instructor-info">
+                                    <img src="<?php echo URLROOT; ?>/img/coach2.jpg" alt="Coach" class="instructor-avatar">
+                                    <div class="instructor-details">
+                                        <h3>Coach Wilson</h3>
+                                        <p>Bowling Specialist</p>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <span>5.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="session-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>September 18, 2025</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>4:00 PM - 6:00 PM</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Practice Ground</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Bowling Masterclass</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-footer">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-info-circle"></i> View Details
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-check"></i> Confirmed
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Bookings -->
+                <div class="booking-section" id="past">
+                    <div class="bookings-grid">
+                        <div class="booking-card coach-booking completed">
+                            <div class="booking-header">
+                                <div class="booking-type">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Coach Appointment</span>
+                                </div>
+                                <div class="booking-status completed">
+                                    <i class="fas fa-check-circle"></i>
                                     <span>Completed</span>
                                 </div>
-                                <div class="legend-item">
-                                    <div class="legend-color cancelled"></div>
+                            </div>
+                            
+                            <div class="booking-details">
+                                <div class="instructor-info">
+                                    <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Coach" class="instructor-avatar">
+                                    <div class="instructor-details">
+                                        <h3>Coach Anderson</h3>
+                                        <p>Senior Cricket Coach</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="session-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>September 10, 2025</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>2:00 PM - 3:00 PM</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Performance Review</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-footer">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-star"></i> Rate Session
+                                </button>
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-redo"></i> Book Again
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-file-alt"></i> View Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cancelled Bookings -->
+                <div class="booking-section" id="cancelled">
+                    <div class="bookings-grid">
+                        <div class="booking-card trainer-booking cancelled">
+                            <div class="booking-header">
+                                <div class="booking-type">
+                                    <i class="fas fa-dumbbell"></i>
+                                    <span>Trainer Appointment</span>
+                                </div>
+                                <div class="booking-status cancelled">
+                                    <i class="fas fa-times-circle"></i>
                                     <span>Cancelled</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="calendar-grid" id="calendarGrid">
-                            <!-- Calendar will be generated by JavaScript -->
+                            
+                            <div class="booking-details">
+                                <div class="instructor-info">
+                                    <img src="<?php echo URLROOT; ?>/img/default-avatar.jpg" alt="Trainer" class="instructor-avatar">
+                                    <div class="instructor-details">
+                                        <h3>Sarah Thompson</h3>
+                                        <p>Fitness Trainer</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="session-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>September 8, 2025</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>7:00 AM - 8:00 AM</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Cancelled by trainer</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-footer">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-redo"></i> Rebook
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-receipt"></i> Refund Status
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- New Booking Modal -->
-    <div class="modal-overlay" id="bookingModal">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2><i class="fas fa-plus"></i> Book New Appointment</h2>
-                <button class="close-btn" onclick="closeBookingModal()">
-                    <i class="fas fa-times"></i>
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No bookings found</h3>
+                <p>You haven't made any bookings in this category yet.</p>
+                <button class="btn btn-primary" id="createFirstBooking">
+                    <i class="fas fa-plus"></i> Make Your First Booking
                 </button>
             </div>
-            <div class="modal-content">
-                <form id="bookingForm" class="booking-form">
-                    <!-- Step 1: Service Selection -->
-                    <div class="form-step active" id="step1">
-                        <h3>Select Service Type</h3>
-                        <div class="service-options">
-                            <div class="service-card" data-service="physio">
-                                <div class="service-icon">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                                <div class="service-info">
-                                    <h4>Physio Session</h4>
-                                    <p>Injury assessment, recovery planning, and treatment</p>
-                                    <span class="duration">60 minutes</span>
-                                </div>
-                            </div>
-                            <div class="service-card" data-service="fitness">
-                                <div class="service-icon">
-                                    <i class="fas fa-dumbbell"></i>
-                                </div>
-                                <div class="service-info">
-                                    <h4>Fitness Assessment</h4>
-                                    <p>Comprehensive fitness evaluation and planning</p>
-                                    <span class="duration">90 minutes</span>
-                                </div>
-                            </div>
-                            <div class="service-card" data-service="consultation">
-                                <div class="service-icon">
-                                    <i class="fas fa-user-md"></i>
-                                </div>
-                                <div class="service-info">
-                                    <h4>General Consultation</h4>
-                                    <p>Health consultation and advice</p>
-                                    <span class="duration">30 minutes</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Date & Time Selection -->
-                    <div class="form-step" id="step2">
-                        <h3>Select Date & Time</h3>
-                        <div class="datetime-selection">
-                            <div class="date-picker-container">
-                                <label>Select Date:</label>
-                                <input type="text" id="bookingDate" class="date-input" placeholder="Choose date..." readonly>
-                            </div>
-                            <div class="time-slots-container">
-                                <label>Available Time Slots:</label>
-                                <div class="time-slots" id="timeSlots">
-                                    <!-- Time slots will be populated based on selected date -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Details & Notes -->
-                    <div class="form-step" id="step3">
-                        <h3>Appointment Details</h3>
-                        <div class="form-fields">
-                            <div class="field-group">
-                                <label for="appointmentReason">Reason for Appointment:</label>
-                                <select id="appointmentReason" name="reason" required>
-                                    <option value="">Select reason...</option>
-                                    <option value="injury_assessment">Injury Assessment</option>
-                                    <option value="recovery_session">Recovery Session</option>
-                                    <option value="fitness_test">Fitness Test</option>
-                                    <option value="routine_checkup">Routine Checkup</option>
-                                    <option value="pain_management">Pain Management</option>
-                                    <option value="performance_optimization">Performance Optimization</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="field-group">
-                                <label for="appointmentNotes">Additional Notes (Optional):</label>
-                                <textarea id="appointmentNotes" name="notes" rows="4" 
-                                    placeholder="Please provide any additional details about your condition, specific areas of concern, or any relevant information for the appointment..."></textarea>
-                            </div>
-                            <div class="field-group">
-                                <label for="urgencyLevel">Urgency Level:</label>
-                                <select id="urgencyLevel" name="urgency">
-                                    <option value="normal">Normal</option>
-                                    <option value="urgent">Urgent</option>
-                                    <option value="emergency">Emergency</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Confirmation -->
-                    <div class="form-step" id="step4">
-                        <h3>Confirm Your Booking</h3>
-                        <div class="booking-summary">
-                            <div class="summary-item">
-                                <strong>Service:</strong>
-                                <span id="summaryService">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <strong>Date:</strong>
-                                <span id="summaryDate">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <strong>Time:</strong>
-                                <span id="summaryTime">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <strong>Duration:</strong>
-                                <span id="summaryDuration">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <strong>Practitioner:</strong>
-                                <span id="summaryPractitioner">Will be assigned</span>
-                            </div>
-                            <div class="summary-item">
-                                <strong>Reason:</strong>
-                                <span id="summaryReason">-</span>
-                            </div>
-                        </div>
-                        <div class="booking-terms">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="agreeTerms" required>
-                                <span class="checkmark"></span>
-                                I agree to the <a href="#" onclick="showTerms()">booking terms and conditions</a>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Form Navigation -->
-                    <div class="form-navigation">
-                        <button type="button" class="nav-btn prev" id="prevStep" onclick="previousStep()" style="display: none;">
-                            <i class="fas fa-arrow-left"></i> Previous
-                        </button>
-                        <button type="button" class="nav-btn next" id="nextStep" onclick="nextStep()">
-                            Next <i class="fas fa-arrow-right"></i>
-                        </button>
-                        <button type="submit" class="submit-btn" id="submitBooking" style="display: none;">
-                            <i class="fas fa-check"></i> Confirm Booking
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
+        <!-- End Main Content -->
     </div>
+    <!-- End Player Layout -->
 
-    <!-- Booking Details Modal -->
-    <div class="modal-overlay" id="detailsModal">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2><i class="fas fa-info-circle"></i> Booking Details</h2>
-                <button class="close-btn" onclick="closeDetailsModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <div id="bookingDetailsContent">
-                    <!-- Details will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-    </div>
+  
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/bookings.js"></script>
 </body>
