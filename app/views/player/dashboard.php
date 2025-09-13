@@ -95,6 +95,13 @@
                             <span>Achievements</span>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
+                            <i class="fas fa-medal"></i>
+                            <span>Tournaments</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 

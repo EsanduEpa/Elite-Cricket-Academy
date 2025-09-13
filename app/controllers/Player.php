@@ -153,6 +153,20 @@ class Player extends Controller {
         $this->view('player/payments', $data);
     }
     
+    // Tournaments
+    public function tournaments() {
+        $this->requireLogin();
+        $data = [
+            'title' => 'Tournaments',
+            'player' => $this->getPlayerData(),
+            'upcomingTournaments' => $this->getUpcomingTournaments(),
+            'enrolledTournaments' => $this->getEnrolledTournaments(),
+            'completedTournaments' => $this->getCompletedTournaments(),
+            'tournamentStats' => $this->getTournamentStats()
+        ];
+        $this->view('player/tournaments', $data);
+    }
+    
     // Helper methods with demo data
     private function getPlayerData() {
         // In real implementation, get from database using session user ID
@@ -419,6 +433,97 @@ class Player extends Controller {
             ['type' => 'Monthly Membership', 'amount' => 'LKR 4,500.00', 'due_date' => '2025-09-30'],
             ['type' => 'Autumn Tournament Fee', 'amount' => 'LKR 1,000.00', 'due_date' => '2025-09-20'],
             ['type' => 'Equipment Rental', 'amount' => 'LKR 3,000.00', 'due_date' => '2025-09-15']
+        ];
+    }
+    
+    // Tournament helper methods
+    private function getUpcomingTournaments() {
+        return [
+            [
+                'id' => 1,
+                'name' => 'Elite Premier League 2025',
+                'type' => 'Championship',
+                'start_date' => '2025-10-15',
+                'end_date' => '2025-11-15',
+                'location' => 'Elite Cricket Academy',
+                'prize_pool' => 'LKR 500,000',
+                'teams' => 16,
+                'entry_fee' => 'LKR 2,500',
+                'registration_deadline' => '2025-10-01',
+                'status' => 'open'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Autumn Cup 2025',
+                'type' => 'Tournament',
+                'start_date' => '2025-09-20',
+                'end_date' => '2025-09-25',
+                'location' => 'Central Ground',
+                'prize_pool' => 'LKR 150,000',
+                'teams' => 8,
+                'entry_fee' => 'LKR 1,500',
+                'registration_deadline' => '2025-09-15',
+                'status' => 'open'
+            ]
+        ];
+    }
+    
+    private function getEnrolledTournaments() {
+        return [
+            [
+                'id' => 3,
+                'name' => 'Youth Championship 2025',
+                'type' => 'Championship',
+                'start_date' => '2025-09-30',
+                'end_date' => '2025-10-10',
+                'location' => 'Youth Cricket Complex',
+                'team' => 'Elite Warriors',
+                'status' => 'enrolled',
+                'matches_played' => 2,
+                'matches_won' => 1,
+                'next_match' => '2025-09-18 at 2:00 PM'
+            ]
+        ];
+    }
+    
+    private function getCompletedTournaments() {
+        return [
+            [
+                'id' => 4,
+                'name' => 'Summer Championship 2025',
+                'type' => 'Championship',
+                'completed_date' => '2025-08-15',
+                'location' => 'Elite Cricket Academy',
+                'team' => 'Elite Warriors',
+                'position' => '2nd Place',
+                'matches_played' => 8,
+                'matches_won' => 6,
+                'prize_amount' => 'LKR 75,000'
+            ],
+            [
+                'id' => 5,
+                'name' => 'Spring Tournament 2025',
+                'type' => 'Tournament',
+                'completed_date' => '2025-05-20',
+                'location' => 'Central Ground',
+                'team' => 'Elite Warriors',
+                'position' => '1st Place',
+                'matches_played' => 6,
+                'matches_won' => 6,
+                'prize_amount' => 'LKR 100,000'
+            ]
+        ];
+    }
+    
+    private function getTournamentStats() {
+        return [
+            'total_tournaments' => 8,
+            'tournaments_won' => 3,
+            'tournaments_runner_up' => 2,
+            'total_matches' => 45,
+            'matches_won' => 32,
+            'win_percentage' => 71.1,
+            'total_prize_money' => 'LKR 275,000'
         ];
     }
 }

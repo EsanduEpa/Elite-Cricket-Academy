@@ -113,6 +113,7 @@ body {
     display: block;
     width: 100%;
     list-style: none !important;
+    position: relative;
 }
 
 /* Ensure no bullets on any list items in sidebar */
@@ -138,6 +139,7 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid transparent;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .player-sidebar .nav-link::before {
@@ -161,7 +163,7 @@ body {
     color: #4A90E2;
     transform: translateX(4px);
     border-color: rgba(74, 144, 226, 0.3);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 20px rgba(74, 144, 226, 0.15);
 }
 
@@ -173,7 +175,7 @@ body {
     box-shadow: 0 4px 20px rgba(74, 144, 226, 0.2);
 }
 
-.player-sidebar .nav-link.active::before {
+.player-sidebar .nav-link.active::after {
     content: '';
     position: absolute;
     left: 0;
@@ -188,12 +190,13 @@ body {
 .player-sidebar .nav-link i {
     width: 20px;
     height: 20px;
-    font-size: 18px;
+    font-size: 16px;
     margin-right: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .player-sidebar .nav-link:hover i {
@@ -214,6 +217,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
 }
 
 .player-sidebar .nav-link.active:hover {
@@ -221,68 +225,28 @@ body {
 }
 
 /* Badge Styles */
-.badge {
+.player-sidebar .nav-link .badge {
     background: linear-gradient(135deg, #ff4757, #ff3838);
     color: white;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 12px;
-    margin-left: auto;
-    min-width: 20px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    min-width: 18px;
+    height: 18px;
     text-align: center;
     animation: pulse 2s infinite;
     box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
-}
-
-.player-sidebar .nav-link i {
-    width: 20px;
-    margin-right: 0.75rem;
-    text-align: center;
-    font-size: 1.1rem;
-    transition: transform 0.3s ease;
-}
-
-.player-sidebar .nav-link:hover i {
-    transform: scale(1.2);
-}
-
-.player-sidebar .nav-link.active i {
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-.player-sidebar .nav-link span {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-right: 2rem; /* Space for the badge */
-}
-
-.badge {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    padding: 0.1rem 0.25rem;
-    border-radius: 8px;
-    font-size: 0.6rem;
-    font-weight: 600;
-    min-width: 14px;
-    height: 14px;
-    text-align: center;
-    box-shadow: 0 1px 3px rgba(231, 76, 60, 0.3);
-    animation: pulse 2s infinite;
-    position: absolute;
-    right: 1.2rem;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
 
@@ -356,8 +320,7 @@ body {
 .main-content {
     flex: 1;
     margin-left: 280px;
-        margin-right: 280px;
-
+    margin-right: 20px !important;
     padding: 40px;
     padding-bottom: 4rem; /* Extra space for footer */
     min-height: calc(100vh - 80px);
@@ -466,19 +429,23 @@ body {
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 30px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(248, 250, 252, 0.25) 100%);
+    backdrop-filter: blur(25px);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 24px;
+    padding: 35px;
     display: flex;
     align-items: center;
-    gap: 20px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    gap: 25px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 
+        0 20px 50px rgba(31, 38, 135, 0.2),
+        0 4px 15px rgba(74, 144, 226, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     position: relative;
     overflow: hidden;
-    min-height: 140px;
+    min-height: 150px;
+    transform: translateY(0);
 }
 
 .stat-card::before {
@@ -487,10 +454,10 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #4A90E2, #357ABD);
+    height: 5px;
+    background: linear-gradient(90deg, #4A90E2, #8A2BE2, #357ABD);
     transform: scaleX(0);
-    transition: transform 0.3s ease;
+    transition: transform 0.4s ease;
 }
 
 .stat-card:hover::before {
@@ -498,9 +465,11 @@ body {
 }
 
 .stat-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(31, 38, 135, 0.3);
-    border-color: rgba(74, 144, 226, 0.5);
+    transform: translateY(-12px) scale(1.03);
+    box-shadow: 
+        0 35px 70px rgba(31, 38, 135, 0.25),
+        0 8px 25px rgba(74, 144, 226, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 /* Stat Card Icon */
@@ -3416,4 +3385,85 @@ body {
     .main-content {
         margin-left: 0;
     }
+}
+
+/* Universal Container Enhancements for All Pages */
+.player-layout .section-card,
+.player-layout .info-card,
+.player-layout .data-container,
+.player-layout .content-section {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.1),
+        0 3px 10px rgba(74, 144, 226, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.player-layout .section-card:hover,
+.player-layout .info-card:hover,
+.player-layout .data-container:hover,
+.player-layout .content-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.15),
+        0 5px 15px rgba(74, 144, 226, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Enhanced button styling for all pages */
+.player-layout .btn,
+.player-layout button:not(.sidebar-toggle):not(.tab-btn) {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 8px 20px rgba(74, 144, 226, 0.2),
+        0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.player-layout .btn::before,
+.player-layout button:not(.sidebar-toggle):not(.tab-btn)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 100%);
+    transition: left 0.5s ease;
+}
+
+.player-layout .btn:hover::before,
+.player-layout button:not(.sidebar-toggle):not(.tab-btn):hover::before {
+    left: 100%;
+}
+
+.player-layout .btn:hover,
+.player-layout button:not(.sidebar-toggle):not(.tab-btn):hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 12px 30px rgba(74, 144, 226, 0.3),
+        0 4px 10px rgba(0, 0, 0, 0.15);
 }
