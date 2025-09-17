@@ -274,5 +274,160 @@ class Admin extends Controller {
         $event = $eventModel->getEventById($id);
         echo json_encode($event);
     }
+
+    public function finance() {
+        // Sample finance data for interface demonstration
+        $data = [
+            'title' => 'Finance Management - Elite Cricket Academy',
+            'totalRevenue' => 2450000, // LKR
+            'monthlyRevenue' => 350000, // LKR
+            'yearlyRevenue' => 2450000, // LKR
+            'revenueCategories' => [
+                'shop_sales' => [
+                    'amount' => 650000,
+                    'percentage' => 26.5,
+                    'monthly' => 85000,
+                    'growth' => 12.5
+                ],
+                'equipment_rental' => [
+                    'amount' => 420000,
+                    'percentage' => 17.1,
+                    'monthly' => 55000,
+                    'growth' => 8.3
+                ],
+                'facility_rental' => [
+                    'amount' => 580000,
+                    'percentage' => 23.7,
+                    'monthly' => 75000,
+                    'growth' => 15.2
+                ],
+                'membership_fees' => [
+                    'amount' => 800000,
+                    'percentage' => 32.7,
+                    'monthly' => 135000,
+                    'growth' => 10.8
+                ]
+            ],
+            'recentPayments' => [
+                [
+                    'id' => 'PAY001',
+                    'type' => 'Membership Fee',
+                    'customer' => 'John Doe',
+                    'amount' => 25000,
+                    'date' => '2025-09-16',
+                    'status' => 'completed',
+                    'method' => 'Card'
+                ],
+                [
+                    'id' => 'PAY002',
+                    'type' => 'Equipment Purchase',
+                    'customer' => 'Sarah Wilson',
+                    'amount' => 15750,
+                    'date' => '2025-09-16',
+                    'status' => 'completed',
+                    'method' => 'Cash'
+                ],
+                [
+                    'id' => 'PAY003',
+                    'type' => 'Ground Rental',
+                    'customer' => 'City Sports Club',
+                    'amount' => 45000,
+                    'date' => '2025-09-15',
+                    'status' => 'completed',
+                    'method' => 'Bank Transfer'
+                ],
+                [
+                    'id' => 'PAY004',
+                    'type' => 'Equipment Rental',
+                    'customer' => 'Mike Johnson',
+                    'amount' => 8500,
+                    'date' => '2025-09-15',
+                    'status' => 'pending',
+                    'method' => 'Card'
+                ],
+                [
+                    'id' => 'PAY005',
+                    'type' => 'Membership Fee',
+                    'customer' => 'Emily Rodriguez',
+                    'amount' => 30000,
+                    'date' => '2025-09-14',
+                    'status' => 'completed',
+                    'method' => 'Online'
+                ],
+                [
+                    'id' => 'PAY006',
+                    'type' => 'Bowling Machine Rental',
+                    'customer' => 'Elite Academy Branch',
+                    'amount' => 12000,
+                    'date' => '2025-09-14',
+                    'status' => 'completed',
+                    'method' => 'Cash'
+                ],
+                [
+                    'id' => 'PAY007',
+                    'type' => 'Cricket Bat Purchase',
+                    'customer' => 'David Silva',
+                    'amount' => 22500,
+                    'date' => '2025-09-13',
+                    'status' => 'completed',
+                    'method' => 'Card'
+                ],
+                [
+                    'id' => 'PAY008',
+                    'type' => 'Net Practice Rental',
+                    'customer' => 'Youth Cricket Team',
+                    'amount' => 6000,
+                    'date' => '2025-09-13',
+                    'status' => 'completed',
+                    'method' => 'Cash'
+                ]
+            ],
+            'monthlyData' => [
+                'January' => 185000,
+                'February' => 220000,
+                'March' => 195000,
+                'April' => 240000,
+                'May' => 285000,
+                'June' => 310000,
+                'July' => 295000,
+                'August' => 265000,
+                'September' => 350000
+            ],
+            'topSellingItems' => [
+                [
+                    'item' => 'Cricket Bats',
+                    'quantity' => 45,
+                    'revenue' => 180000,
+                    'category' => 'shop_sales'
+                ],
+                [
+                    'item' => 'Ground Rental',
+                    'quantity' => 28,
+                    'revenue' => 420000,
+                    'category' => 'facility_rental'
+                ],
+                [
+                    'item' => 'Annual Membership',
+                    'quantity' => 35,
+                    'revenue' => 525000,
+                    'category' => 'membership_fees'
+                ],
+                [
+                    'item' => 'Equipment Rental',
+                    'quantity' => 120,
+                    'revenue' => 240000,
+                    'category' => 'equipment_rental'
+                ],
+                [
+                    'item' => 'Protective Gear',
+                    'quantity' => 38,
+                    'revenue' => 152000,
+                    'category' => 'shop_sales'
+                ]
+            ]
+        ];
+        
+        $this->view('admin/finance', $data);
+    }
 }
 ?>

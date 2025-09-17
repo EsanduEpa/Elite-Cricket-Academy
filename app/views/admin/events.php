@@ -68,7 +68,7 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#finance-management" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Finance Management</span>
                     </a>
