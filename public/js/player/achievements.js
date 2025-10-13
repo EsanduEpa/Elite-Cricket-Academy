@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeBadgeProgress();
         updateAchievementStats();
         initializeFilterSystem();
+        handleInitialFilter();
+    }
+
+    // Handle initial filter based on URL hash
+    function handleInitialFilter() {
+        const hash = window.location.hash.substring(1);
+        const validCategories = ['all', 'trophies', 'records', 'certificates', 'badges'];
+        
+        if (hash && validCategories.includes(hash)) {
+            // Find and activate the corresponding tab
+            const targetTab = document.querySelector(`[data-category="${hash}"]`);
+            if (targetTab) {
+                document.querySelectorAll('.achievement-tab').forEach(tab => tab.classList.remove('active'));
+                targetTab.classList.add('active');
+                filterAchievements(hash);
+            }
+        } else {
+            // Default to showing all achievements
+            filterAchievements('all');
+        }
     }
 
     // Initialize progress rings for personal records
@@ -214,11 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize filter system
     function initializeFilterSystem() {
         // Achievement type filters
-        const filterBtns = document.querySelectorAll('.achievement-filter');
+        const filterBtns = document.querySelectorAll('.achievement-tab');
         
         filterBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                const filterType = this.getAttribute('data-filter');
+                const filterType = this.getAttribute('data-category');
                 
                 // Update active button
                 filterBtns.forEach(b => b.classList.remove('active'));
@@ -249,27 +269,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'badges': ['.skill-badges']
         };
         
-        // Hide all sections
-        Object.values(sections).flat().forEach(selector => {
-            const section = document.querySelector(selector);
-            if (section) {
-                section.style.display = 'none';
-            }
+        // Hide all sections first
+        const allSections = document.querySelectorAll('.trophy-gallery, .personal-records, .certificates, .skill-badges');
+        allSections.forEach(section => {
+            section.style.display = 'none';
+            section.style.opacity = '0';
         });
         
-        // Show selected sections
+        // Show selected sections with animation
         if (sections[filterType]) {
             sections[filterType].forEach(selector => {
                 const section = document.querySelector(selector);
                 if (section) {
                     section.style.display = 'block';
-                    section.style.opacity = '0';
+                    
+                    // Trigger reflow
+                    section.offsetHeight;
+                    
+                    // Animate in
                     setTimeout(() => {
-                        section.style.transition = 'opacity 0.3s ease';
+                        section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
                         section.style.opacity = '1';
-                    }, 100);
+                        section.style.transform = 'translateY(0)';
+                    }, 50);
                 }
             });
+        }
+        
+        // Update URL hash for bookmarking
+        if (filterType !== 'all') {
+            window.location.hash = filterType;
+        } else {
+            history.replaceState(null, null, ' ');
         }
     }
 
@@ -575,4 +606,146 @@ document.addEventListener('DOMContentLoaded', function() {
         // Implementation for comparing achievements with other players
         showNotification('Comparison feature coming soon!', 'info');
     }
+
+    // Enhanced Purple Shimmer Effects
+    function initializePurpleShimmers() {
+        const achievementTitle = document.querySelector('.content-header h1');
+        if (achievementTitle) {
+            achievementTitle.classList.add('achievement-title');
+        }
+
+        // Add shimmer to trophy cards on hover
+        document.querySelectorAll('.trophy-card.gold').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.classList.add('purple-shimmer');
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.classList.remove('purple-shimmer');
+            });
+        });
+
+        // Add shimmer to achievement score displays
+        document.querySelectorAll('.stat-number').forEach(statNumber => {
+            setInterval(() => {
+                statNumber.classList.add('purple-shimmer');
+                setTimeout(() => {
+                    statNumber.classList.remove('purple-shimmer');
+                }, 2000);
+            }, 8000);
+        });
+    }
+
+    // Enhanced Particle System
+    function createFloatingParticles() {
+        const particles = ['✨', '🏆', '⭐', '💫', '🌟'];
+        
+        setInterval(() => {
+            const particle = document.createElement('div');
+            particle.className = 'floating-particle';
+            particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+            particle.style.cssText = `
+                position: fixed;
+                font-size: ${Math.random() * 20 + 15}px;
+                left: ${Math.random() * window.innerWidth}px;
+                top: ${window.innerHeight + 50}px;
+                pointer-events: none;
+                z-index: 1000;
+                opacity: 0.7;
+                animation: floatUp 6s linear forwards;
+            `;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                if (document.body.contains(particle)) {
+                    document.body.removeChild(particle);
+                }
+            }, 6000);
+        }, 3000);
+    }
+
+    // Add CSS for floating particles
+    const particleStyle = document.createElement('style');
+    particleStyle.textContent = `
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-${window.innerHeight + 100}px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .floating-particle {
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.6));
+        }
+    `;
+    document.head.appendChild(particleStyle);
+
+    // Enhanced Trophy Hover Effects
+    function enhanceTrophyInteractions() {
+        document.querySelectorAll('.trophy-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const trophyIcon = this.querySelector('.trophy-icon');
+                if (trophyIcon && trophyIcon.classList.contains('gold')) {
+                    // Create purple trail effect
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const spark = document.createElement('div');
+                            spark.className = 'purple-spark';
+                            spark.style.cssText = `
+                                position: absolute;
+                                width: 4px;
+                                height: 4px;
+                                background: #6366f1;
+                                border-radius: 50%;
+                                top: ${Math.random() * 100}%;
+                                left: ${Math.random() * 100}%;
+                                pointer-events: none;
+                                animation: sparkFade 1s ease-out forwards;
+                                box-shadow: 0 0 6px #6366f1;
+                            `;
+                            this.appendChild(spark);
+                            
+                            setTimeout(() => {
+                                if (this.contains(spark)) {
+                                    this.removeChild(spark);
+                                }
+                            }, 1000);
+                        }, i * 100);
+                    }
+                }
+            });
+        });
+    }
+
+    // Add CSS for spark effects
+    const sparkStyle = document.createElement('style');
+    sparkStyle.textContent = `
+        @keyframes sparkFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-20px);
+            }
+        }
+    `;
+    document.head.appendChild(sparkStyle);
+
+    // Initialize all new effects
+    initializePurpleShimmers();
+    createFloatingParticles();
+    enhanceTrophyInteractions();
 });

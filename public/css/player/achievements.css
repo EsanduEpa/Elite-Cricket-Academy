@@ -15,29 +15,27 @@
     max-width: 100%;
 }
 
-/* Enhanced Content Header with Trophy Appeal */
+/* Enhanced Content Header */
 .content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 3rem;
-    padding: 3rem;
+    margin-bottom: 2.5rem;
+    padding: 2.5rem;
     background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.98) 0%, 
-        rgba(254, 252, 232, 0.95) 50%,
-        rgba(252, 248, 227, 0.9) 100%);
-    backdrop-filter: blur(30px);
-    border-radius: 32px;
-    border: 3px solid rgba(255, 215, 0, 0.3);
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 250, 252, 0.9) 50%,
+        rgba(240, 245, 251, 0.85) 100%);
+    backdrop-filter: blur(25px);
+    border-radius: 28px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
     box-shadow: 
-        0 30px 80px rgba(0, 0, 0, 0.18),
-        0 12px 30px rgba(255, 215, 0, 0.25),
-        inset 0 2px 0 rgba(255, 255, 255, 0.9),
-        0 0 0 1px rgba(255, 215, 0, 0.15);
+        0 25px 60px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(74, 144, 226, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(0);
 }
 
 .content-header::before {
@@ -46,72 +44,76 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 6px;
+    height: 5px;
     background: linear-gradient(90deg, 
-        #ffd700 0%, 
-        #ffb000 25%, 
-        #ff8c00 50%, 
-        #ffd700 75%, 
-        #ffb000 100%);
-    border-radius: 32px 32px 0 0;
-    opacity: 0.9;
-    animation: goldShimmer 3s ease-in-out infinite;
-}
-
-@keyframes goldShimmer {
-    0%, 100% { opacity: 0.9; }
-    50% { opacity: 1; }
+        #4A90E2 0%, 
+        #22c55e 25%, 
+        #f59e0b 50%, 
+        #ef4444 75%, 
+        #8b5cf6 100%);
+    border-radius: 28px 28px 0 0;
 }
 
 .content-header::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -120%;
-    width: 120%;
+    left: -100%;
+    width: 100%;
     height: 100%;
     background: linear-gradient(90deg, 
         transparent 0%, 
-        rgba(255, 215, 0, 0.15) 50%, 
+        rgba(74, 144, 226, 0.08) 50%, 
         transparent 100%);
-    transition: left 1s ease;
-}
-
-.content-header:hover {
-    transform: translateY(-5px);
-    box-shadow: 
-        0 40px 100px rgba(0, 0, 0, 0.22),
-        0 16px 40px rgba(255, 215, 0, 0.3),
-        inset 0 2px 0 rgba(255, 255, 255, 0.95),
-        0 0 0 1px rgba(255, 215, 0, 0.2);
+    transition: left 0.8s ease;
 }
 
 .content-header:hover::after {
-    left: 120%;
+    left: 100%;
+}
+
+.content-header:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.2),
+        0 12px 30px rgba(74, 144, 226, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .header-title h1 {
-    font-size: 3rem;
-    font-weight: 800;
+    font-size: 2.5rem;
+    font-weight: 700;
     color: #2c3e50;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
-    gap: 1.2rem;
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+    gap: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: relative;
     z-index: 2;
 }
 
 .header-title h1 i {
-    background: linear-gradient(135deg, #ffd700, #ffb000);
+    background: linear-gradient(135deg, #4A90E2, #2563eb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    font-size: 2.8rem;
-    filter: drop-shadow(0 3px 6px rgba(255, 215, 0, 0.6));
-    animation: trophyFloat 3s ease-in-out infinite;
+    font-size: 2.2rem;
+    filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3));
 }
+
+.header-title p {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #151515;
+   background: linear-gradient(135deg, #4A90E2, #357ABD);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    opacity: 0.9;
+}
+
 
 @keyframes trophyFloat {
     0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -123,7 +125,7 @@
 .header-title p {
     color: #64748b;
     font-size: 1.2rem;
-    font-weight: 600;
+    font-weight: 500;
     position: relative;
     z-index: 2;
     opacity: 0.9;
@@ -134,52 +136,62 @@
     z-index: 2;
 }
 
+/* Achievement Score Display */
 .achievement-score {
-    background: linear-gradient(135deg, #ffd700, #ffb000);
-    color: #2c3e50;
-    padding: 2rem;
-    border-radius: 24px;
     text-align: center;
+    background: linear-gradient(135deg, 
+        rgba(99, 102, 241, 0.1) 0%, 
+        rgba(139, 92, 246, 0.05) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 2px solid rgba(99, 102, 241, 0.2);
     box-shadow: 
-        0 12px 30px rgba(255, 215, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
+        0 12px 30px rgba(99, 102, 241, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
     min-width: 180px;
+    transition: all 0.3s ease;
 }
 
 .achievement-score:hover {
-    transform: translateY(-3px) scale(1.05);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: 
-        0 16px 40px rgba(255, 215, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        0 16px 40px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .score-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
     margin-bottom: 0.5rem;
-    opacity: 0.8;
 }
 
 .score-value {
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 0.3rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4A90E2, #2563eb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+    line-height: 1;
 }
 
 .score-rank {
     font-size: 0.9rem;
-    font-weight: 700;
-    padding: 0.3rem 0.8rem;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    display: inline-block;
+    font-weight: 600;
+    color: #4A90E2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Achievement Summary Section */
 .achievement-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 2rem;
     margin-bottom: 3rem;
 }
@@ -192,12 +204,12 @@
     backdrop-filter: blur(30px);
     border-radius: 28px;
     padding: 2.5rem;
-    border: 3px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(99, 102, 241, 0.2);
     box-shadow: 
         0 25px 60px rgba(0, 0, 0, 0.15),
-        0 8px 20px rgba(255, 215, 0, 0.12),
+        0 8px 20px rgba(99, 102, 241, 0.12),
         inset 0 2px 0 rgba(255, 255, 255, 0.9),
-        0 0 0 1px rgba(255, 215, 0, 0.08);
+        0 0 0 1px rgba(99, 102, 241, 0.08);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -213,8 +225,8 @@
     right: 0;
     height: 5px;
     background: linear-gradient(90deg, 
-        var(--card-gradient, #ffd700) 0%, 
-        var(--card-gradient-end, #ffb000) 100%);
+        var(--card-gradient, #4384d9) 0%, 
+        var(--card-gradient-end, #4a79e7) 100%);
     border-radius: 28px 28px 0 0;
     opacity: 0.8;
 }
@@ -237,9 +249,9 @@
     transform: translateY(-8px) scale(1.03);
     box-shadow: 
         0 35px 80px rgba(0, 0, 0, 0.2),
-        0 12px 30px rgba(255, 215, 0, 0.18),
+        0 12px 30px rgba(99, 102, 241, 0.18),
         inset 0 2px 0 rgba(255, 255, 255, 0.95),
-        0 0 0 1px rgba(255, 215, 0, 0.12);
+        0 0 0 1px rgba(99, 102, 241, 0.12);
 }
 
 .summary-card:hover::after {
@@ -247,23 +259,23 @@
 }
 
 .summary-card:nth-child(1) .summary-icon {
-    --card-gradient: #ffd700;
-    --card-gradient-end: #ffb000;
+    --card-gradient: #78acdf;
+    --card-gradient-end: #5590f7;
 }
 
 .summary-card:nth-child(2) .summary-icon {
-    --card-gradient: #4A90E2;
-    --card-gradient-end: #5B9BD5;
+    --card-gradient: #3b82f6;
+    --card-gradient-end: #60a5fa;
 }
 
 .summary-card:nth-child(3) .summary-icon {
-    --card-gradient: #22c55e;
-    --card-gradient-end: #16a34a;
+   --card-gradient: #78acdf;
+    --card-gradient-end: #5590f7;
 }
 
 .summary-card:nth-child(4) .summary-icon {
-    --card-gradient: #8A2BE2;
-    --card-gradient-end: #9333ea;
+    --card-gradient: #78acdf;
+    --card-gradient-end: #5590f7;
 }
 
 .summary-icon {
@@ -271,8 +283,8 @@
     height: 80px;
     margin: 0 auto 1.5rem;
     background: linear-gradient(135deg, 
-        var(--card-gradient, #ffd700), 
-        var(--card-gradient-end, #ffb000));
+        var(--card-gradient, #6366f1), 
+        var(--card-gradient-end, #8b5cf6));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -280,7 +292,7 @@
     color: white;
     font-size: 2.5rem;
     box-shadow: 
-        0 12px 30px rgba(255, 215, 0, 0.4),
+        0 12px 30px rgba(99, 102, 241, 0.4),
         inset 0 2px 0 rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
     position: relative;
@@ -290,7 +302,7 @@
 .summary-card:hover .summary-icon {
     transform: scale(1.1) rotate(5deg);
     box-shadow: 
-        0 16px 40px rgba(255, 215, 0, 0.5),
+        0 16px 40px rgba(99, 102, 241, 0.5),
         inset 0 2px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -304,7 +316,7 @@
     font-weight: 800;
     color: #2c3e50;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #2c3e50, #34495e);
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -318,18 +330,88 @@
     letter-spacing: 0.5px;
 }
 
+/* Achievement Navigation Tabs */
+.achievement-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    padding: 0.5rem;
+    border-radius: 20px;
+    border: 2px solid rgba(99, 102, 241, 0.1);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
+    flex-wrap: wrap;
+}
+
+.achievement-tab {
+    background: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 80%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.achievement-tab:hover::before {
+    left: 100%;
+}
+
+.achievement-tab:hover {
+    color: #f8f8fb;
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
+}
+
+.achievement-tab.active {
+    background: linear-gradient(135deg, #4A90E2, #2563eb);
+    color: white;
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+    transform: translateY(-2px);
+}
+
+.achievement-tab.active:hover {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    transform: translateY(-3px);
+}
+
+.achievement-tab i {
+    font-size: 1rem;
+}
+
 .content-header:hover {
     transform: translateY(-3px);
     box-shadow: 
         0 30px 80px rgba(0, 0, 0, 0.2),
-        0 12px 30px rgba(255, 215, 0, 0.18),
+        0 12px 30px rgba(99, 102, 241, 0.18),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .header-title h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #0a0a0a;
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
@@ -339,17 +421,8 @@
     z-index: 2;
 }
 
-.header-title h1 i {
-    background: linear-gradient(135deg, #ffd700, #ffb000);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 2.2rem;
-    filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
-}
-
 .header-title p {
-    color: #64748b;
+    color: #131314;
     font-size: 1.1rem;
     font-weight: 500;
     position: relative;
@@ -359,19 +432,6 @@
 .header-actions {
     position: relative;
     z-index: 2;
-}
-
-.achievement-summary {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #ffd700, #ffb000);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
-    text-align: center;
 }
 
 .total-achievements {
@@ -433,7 +493,7 @@
 }
 
 .stat-icon.trophies {
-    background: linear-gradient(135deg, #ffd700, #ffb000);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
 .stat-icon.medals {
@@ -505,7 +565,7 @@
 }
 
 .section-header h2 i {
-    color: #ffd700;
+    color: #4A90E2;
 }
 
 .section-header p {
@@ -515,65 +575,118 @@
 
 .trophy-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2.5rem;
+    margin-top: 2rem;
 }
 
 .trophy-card {
     background: linear-gradient(135deg, 
         rgba(255, 255, 255, 0.95) 0%, 
-        rgba(248, 250, 252, 0.9) 100%);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 24px;
-    padding: 2rem;
+        rgba(248, 250, 252, 0.9) 50%,
+        rgba(240, 245, 251, 0.85) 100%);
+    backdrop-filter: blur(25px);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 1.5rem;
     text-align: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.1),
-        0 4px 12px rgba(74, 144, 226, 0.08),
+        0 15px 35px rgba(0, 0, 0, 0.1),
+        0 5px 15px rgba(74, 144, 226, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
     position: relative;
     overflow: hidden;
+    transform: translateY(0);
+}
+
+.trophy-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 20px 20px 0 0;
+}
+
+.trophy-card.gold::before {
+    background: linear-gradient(90deg, #ffd700 0%, #ffb000 50%, #ffd700 100%);
+}
+
+.trophy-card.silver::before {
+    background: linear-gradient(90deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
+}
+
+.trophy-card.bronze::before {
+    background: linear-gradient(90deg, #cd7f32 0%, #d4a574 50%, #cd7f32 100%);
 }
 
 .trophy-card:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-5px);
     box-shadow: 
-        0 25px 60px rgba(0, 0, 0, 0.15),
-        0 8px 20px rgba(255, 215, 0, 0.15),
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(74, 144, 226, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .trophy-icon {
-    font-size: 3rem;
+    font-size: 4rem;
     margin-bottom: 1rem;
     position: relative;
     z-index: 2;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.trophy-card:hover .trophy-icon {
+    transform: scale(1.1);
 }
 
 .trophy-icon.gold {
     color: #ffd700;
-    filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
+    text-shadow: 
+        0 1px 2px rgba(255, 215, 0, 0.4),
+        0 2px 4px rgba(255, 180, 0, 0.3);
 }
 
 .trophy-icon.silver {
     color: #c0c0c0;
-    filter: drop-shadow(0 4px 8px rgba(192, 192, 192, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(192, 192, 192, 0.3));
+    text-shadow: 
+        0 1px 2px rgba(192, 192, 192, 0.4),
+        0 2px 4px rgba(169, 169, 169, 0.3);
 }
 
 .trophy-icon.bronze {
     color: #cd7f32;
-    filter: drop-shadow(0 4px 8px rgba(205, 127, 50, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(205, 127, 50, 0.3));
+    text-shadow: 
+        0 1px 2px rgba(205, 127, 50, 0.4),
+        0 2px 4px rgba(184, 115, 51, 0.3);
 }
 
 .trophy-name {
-    color: #2c3e50;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    color: #1a365d;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
     position: relative;
     z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.3;
+    transition: all 0.3s ease;
+}
+
+.trophy-card:hover .trophy-name {
+    transform: translateY(-2px);
+    letter-spacing: 1.5px;
 }
 
 .trophy-tournament {
@@ -611,40 +724,94 @@
 
 .record-card {
     background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.95) 0%, 
-        rgba(248, 250, 252, 0.9) 100%);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 24px;
-    padding: 2rem;
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(240, 248, 255, 0.95) 30%,
+        rgba(230, 240, 255, 0.92) 70%,
+        rgba(255, 255, 255, 0.98) 100%);
+    backdrop-filter: blur(30px);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: 32px;
+    padding: 2.5rem;
     text-align: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.1),
-        0 4px 12px rgba(74, 144, 226, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        0 20px 50px rgba(0, 0, 0, 0.12),
+        0 8px 20px rgba(116, 90, 255, 0.15),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9),
+        0 0 0 1px rgba(116, 90, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.record-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(116, 90, 255, 0.03) 0%, 
+        rgba(139, 92, 246, 0.02) 50%, 
+        rgba(116, 90, 255, 0.03) 100%);
+    border-radius: 32px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.record-card:hover::before {
+    opacity: 1;
 }
 
 .record-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-15px) scale(1.03);
     box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.15),
-        0 8px 20px rgba(74, 144, 226, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        0 35px 80px rgba(0, 0, 0, 0.18),
+        0 15px 30px rgba(116, 90, 255, 0.25),
+        inset 0 3px 0 rgba(255, 255, 255, 0.95),
+        0 0 0 2px rgba(116, 90, 255, 0.15);
+    border-color: rgba(116, 90, 255, 0.3);
 }
 
 .record-icon {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4A90E2, #8A2BE2);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: white;
-    margin: 0 auto 1rem;
-    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+    margin: 0 auto 1.5rem;
+    box-shadow: 
+        0 12px 30px rgba(99, 102, 241, 0.4),
+        0 4px 8px rgba(139, 92, 246, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.record-card:hover .record-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 
+        0 16px 40px rgba(99, 102, 241, 0.5),
+        0 8px 16px rgba(139, 92, 246, 0.4),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4);
+    animation: recordIconGlow 2s ease-in-out infinite;
+}
+
+@keyframes recordIconGlow {
+    0%, 100% { 
+        filter: brightness(1);
+    }
+    50% { 
+        filter: brightness(1.2);
+    }
 }
 
 .record-title {
@@ -673,13 +840,22 @@
 }
 
 .progress-ring .bg {
-    stroke: rgba(74, 144, 226, 0.1);
+    stroke: rgba(99, 102, 241, 0.15);
+    stroke-width: 12;
 }
 
 .progress-ring .progress {
-    stroke: #4A90E2;
+    stroke: url(#purpleGradient);
     stroke-linecap: round;
-    transition: stroke-dasharray 0.5s ease;
+    stroke-width: 12;
+    transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+}
+
+/* Add SVG gradient definition for purple progress rings */
+.progress-ring svg defs linearGradient {
+    --purple-start: #6366f1;
+    --purple-end: #8b5cf6;
 }
 
 .progress-value {
@@ -876,45 +1052,92 @@
 
 .badge-card {
     background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.95) 0%, 
-        rgba(248, 250, 252, 0.9) 100%);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 1.5rem;
+        rgba(255, 255, 255, 0.98) 0%, 
+        rgba(240, 248, 255, 0.95) 30%,
+        rgba(230, 240, 255, 0.92) 70%,
+        rgba(255, 255, 255, 0.98) 100%);
+    backdrop-filter: blur(30px);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: 28px;
+    padding: 2rem;
     text-align: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.1),
-        0 4px 12px rgba(74, 144, 226, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        0 15px 40px rgba(0, 0, 0, 0.12),
+        0 6px 16px rgba(116, 90, 255, 0.15),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9),
+        0 0 0 1px rgba(116, 90, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.badge-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(116, 90, 255, 0.02) 0%, 
+        rgba(139, 92, 246, 0.01) 50%, 
+        rgba(116, 90, 255, 0.02) 100%);
+    border-radius: 28px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.badge-card:hover::before {
+    opacity: 1;
 }
 
 .badge-card:hover {
-    transform: translateY(-5px) scale(1.02);
+    transform: translateY(-12px) scale(1.05);
     box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.15),
-        0 8px 20px rgba(74, 144, 226, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        0 25px 60px rgba(0, 0, 0, 0.18),
+        0 12px 24px rgba(116, 90, 255, 0.25),
+        inset 0 3px 0 rgba(255, 255, 255, 0.95),
+        0 0 0 2px rgba(116, 90, 255, 0.12);
+    border-color: rgba(116, 90, 255, 0.2);
 }
 
 .badge-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
     display: inline-block;
+    transition: all 0.4s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.badge-card:hover .badge-icon {
+    transform: scale(1.15) rotate(5deg);
 }
 
 .badge-icon.earned {
-    background: linear-gradient(135deg, #27ae60, #16a085);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 30%, #6366f1 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 4px rgba(39, 174, 96, 0.3));
+    filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.4));
+    animation: badgeShine 3s ease-in-out infinite;
+}
+
+@keyframes badgeShine {
+    0%, 100% { 
+        filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.4));
+    }
+    50% { 
+        filter: drop-shadow(0 6px 12px rgba(99, 102, 241, 0.6)) brightness(1.2);
+    }
 }
 
 .badge-icon.locked {
     color: #bdc3c7;
-    filter: grayscale(100%);
+    filter: grayscale(100%) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    opacity: 0.6;
 }
 
 .badge-name {
@@ -997,4 +1220,75 @@
         flex-direction: column;
         gap: 0.5rem;
     }
+}
+
+/* Purple Shimmer Animation */
+@keyframes purpleShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.purple-shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(99, 102, 241, 0.4),
+        transparent
+    );
+    background-size: 200% 100%;
+    animation: purpleShimmer 3s ease-in-out infinite;
+}
+
+/* Pride enhancement for achievement titles */
+.achievement-title {
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-title::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(99, 102, 241, 0.3),
+        transparent
+    );
+    animation: titleShimmer 4s ease-in-out infinite;
+}
+
+@keyframes titleShimmer {
+    0% { left: -100%; }
+    50% { left: 0%; }
+    100% { left: 100%; }
+}
+
+/* Floating particles effect for trophy cards */
+.trophy-card::after {
+    content: '✨';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    animation: floatParticle 3s ease-in-out infinite;
+}
+
+.trophy-card:hover::after {
+    opacity: 1;
+}
+
+@keyframes floatParticle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33% { transform: translateY(-10px) rotate(120deg); }
+    66% { transform: translateY(-5px) rotate(240deg); }
 }

@@ -47,13 +47,7 @@
                     <h1><i class="fas fa-trophy"></i> Achievements & Awards</h1>
                     <p>Celebrate your cricket milestones, records, and accomplishments</p>
                 </div>
-                <div class="header-actions">
-                    <div class="achievement-score">
-                        <div class="score-label">Achievement Score</div>
-                        <div class="score-value">2,847</div>
-                        <div class="score-rank">Elite Player</div>
-                    </div>
-                </div>
+             
             </div>
 
             <!-- Achievement Summary -->
@@ -121,7 +115,7 @@
             </div>
 
             <!-- Trophy Gallery -->
-            <div class="achievement-section active" id="trophies">
+            <div class="achievement-section active" id="trophies" data-category="trophies">
                 <div class="section-header">
                     <h2>Trophy Gallery</h2>
                     <div class="section-filters">
@@ -231,7 +225,7 @@
             </div>
 
             <!-- Personal Records -->
-            <div class="achievement-section" id="records">
+            <div class="achievement-section" id="records" data-category="records">
                 <div class="section-header">
                     <h2>Personal Records & Milestones</h2>
                 </div>
@@ -340,7 +334,7 @@
             </div>
 
             <!-- Certificates Section -->
-            <div class="achievement-section" id="certificates">
+            <div class="achievement-section" id="certificates" data-category="certificates">
                 <div class="section-header">
                     <h2>Certificates & Qualifications</h2>
                 </div>
@@ -421,100 +415,75 @@
             </div>
 
             <!-- Skill Badges Section -->
-            <div class="achievement-section" id="badges">
+            <div class="achievement-section" id="badges" data-category="badges">
                 <div class="section-header">
-                    <h2>Skill Badges & Milestones</h2>
+                    <h2>Skill Badges & Recognition</h2>
                 </div>
 
                 <div class="badges-grid">
-                    <div class="badge-category">
-                        <h3>Batting Badges</h3>
-                        <div class="badges-row">
-                            <div class="skill-badge earned">
-                                <i class="fas fa-baseball-bat"></i>
-                                <span class="badge-name">Century Maker</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-fire"></i>
-                                <span class="badge-name">Power Hitter</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-target"></i>
-                                <span class="badge-name">Consistent Scorer</span>
-                            </div>
-                            <div class="skill-badge locked">
-                                <i class="fas fa-crown"></i>
-                                <span class="badge-name">Double Century</span>
-                            </div>
+                    <div class="badge-card earned">
+                        <div class="badge-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="badge-content">
+                            <h3>Rising Star</h3>
+                            <p class="badge-description">Achieved exceptional performance in junior tournaments</p>
+                            <div class="badge-date">Earned: March 2024</div>
+                            <div class="badge-level earned">Level 3</div>
                         </div>
                     </div>
 
-                    <div class="badge-category">
-                        <h3>Bowling Badges</h3>
-                        <div class="badges-row">
-                            <div class="skill-badge earned">
-                                <i class="fas fa-bullseye"></i>
-                                <span class="badge-name">Strike Master</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-wind"></i>
-                                <span class="badge-name">Pace Demon</span>
-                            </div>
-                            <div class="skill-badge locked">
-                                <i class="fas fa-magic"></i>
-                                <span class="badge-name">Hat-trick Hero</span>
-                            </div>
-                            <div class="skill-badge locked">
-                                <i class="fas fa-gem"></i>
-                                <span class="badge-name">Perfect Figures</span>
-                            </div>
+                    <div class="badge-card earned">
+                        <div class="badge-icon">
+                            <i class="fas fa-cricket-bat"></i>
+                        </div>
+                        <div class="badge-content">
+                            <h3>Batting Expert</h3>
+                            <p class="badge-description">Mastered advanced batting techniques</p>
+                            <div class="badge-date">Earned: February 2024</div>
+                            <div class="badge-level earned">Level 2</div>
                         </div>
                     </div>
 
-                    <div class="badge-category">
-                        <h3>Fielding Badges</h3>
-                        <div class="badges-row">
-                            <div class="skill-badge earned">
-                                <i class="fas fa-hand-paper"></i>
-                                <span class="badge-name">Safe Hands</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-bolt"></i>
-                                <span class="badge-name">Lightning Reflexes</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-eye"></i>
-                                <span class="badge-name">Eagle Eye</span>
-                            </div>
-                            <div class="skill-badge locked">
-                                <i class="fas fa-shield"></i>
-                                <span class="badge-name">Fielding General</span>
-                            </div>
+                    <div class="badge-card earned">
+                        <div class="badge-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="badge-content">
+                            <h3>Precision Player</h3>
+                            <p class="badge-description">Consistently accurate shot placement</p>
+                            <div class="badge-date">Earned: January 2024</div>
+                            <div class="badge-level earned">Level 1</div>
                         </div>
                     </div>
 
-                    <div class="badge-category">
-                        <h3>Team Spirit Badges</h3>
-                        <div class="badges-row">
-                            <div class="skill-badge earned">
-                                <i class="fas fa-users"></i>
-                                <span class="badge-name">Team Player</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-heart"></i>
-                                <span class="badge-name">Mentor</span>
-                            </div>
-                            <div class="skill-badge earned">
-                                <i class="fas fa-star"></i>
-                                <span class="badge-name">MVP</span>
-                            </div>
-                            <div class="skill-badge locked">
-                                <i class="fas fa-crown"></i>
-                                <span class="badge-name">Captain</span>
-                            </div>
+                    <div class="badge-card locked">
+                        <div class="badge-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="badge-content">
+                            <h3>Century Maker</h3>
+                            <p class="badge-description">Score a century in competitive match</p>
+                            <div class="badge-progress">Progress: 87/100 runs</div>
+                            <div class="badge-level locked">Level 4</div>
+                        </div>
+                    </div>
+
+                    <div class="badge-card locked">
+                        <div class="badge-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="badge-content">
+                            <h3>Champion</h3>
+                            <p class="badge-description">Win a major tournament championship</p>
+                            <div class="badge-progress">Not yet achieved</div>
+                            <div class="badge-level locked">Level 5</div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            
             </div>
         </div>
     </div>
