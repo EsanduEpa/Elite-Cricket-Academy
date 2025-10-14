@@ -373,7 +373,7 @@
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-                        
+                         </div>
                         <div class="header-accent"></div>
                     </div>
                     <div class="card-content">
@@ -421,7 +421,7 @@
                                 </div>
                                 <a href="<?php echo URLROOT; ?>/player/shopping" class="action-btn">Shop</a>
                             </div>
-                        </div>
+                        
                     </div>
                 </div></div>
 
@@ -524,3 +524,4 @@
 </body>
 
 </html>
+
