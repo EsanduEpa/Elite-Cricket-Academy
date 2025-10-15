@@ -2,6 +2,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing dashboard...');
     
+    // Initialize time display
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    
     // Initialize with small delay to ensure all elements are ready
     setTimeout(() => {
         try {
@@ -15,9 +19,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-// Enhanced dashboard initialization - Simplified
+// Update date and time display
+function updateDateTime() {
+    const now = new Date();
+    const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    
+    const dateTimeElement = document.getElementById('currentDateTime');
+    if (dateTimeElement) {
+        dateTimeElement.textContent = now.toLocaleDateString('en-US', options);
+    }
+}
+
+// Close welcome notification
+function closeWelcomeNotification() {
+    const welcomeMessage = document.querySelector('.welcome-message');
+    if (welcomeMessage) {
+        welcomeMessage.style.transform = 'translateY(-20px)';
+        welcomeMessage.style.opacity = '0';
+        setTimeout(() => {
+            welcomeMessage.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Enhanced dashboard initialization with active navigation
 function initializeDashboard() {
     console.log('Initializing dashboard...');
+    
+    // Initialize active navigation state first
+    initializeActiveNavigation();
     
     // Show dashboard section by default
     showSection('dashboard');
@@ -33,9 +70,47 @@ function initializeDashboard() {
     console.log('Dashboard initialized successfully');
 }
 
-// Modern navigation with smooth transitions
+// Initialize active navigation state
+function initializeActiveNavigation() {
+    // Get current hash or default to dashboard
+    const currentHash = window.location.hash.substring(1) || 'dashboard';
+    
+    // Find and activate the corresponding nav item
+    const navLinks = document.querySelectorAll('.nav-link');
+    let foundActive = false;
+    
+    navLinks.forEach(link => {
+        const section = link.getAttribute('data-section');
+        const navItem = link.parentElement;
+        
+        // Remove active from all first
+        navItem.classList.remove('active');
+        
+        if (section === currentHash && !foundActive) {
+            // Add active to current
+            navItem.classList.add('active');
+            foundActive = true;
+            
+            // Ensure proper styling is applied
+            setTimeout(() => {
+                link.style.transform = '';
+                link.style.opacity = '';
+            }, 100);
+        }
+    });
+    
+    // If no matching section found, activate dashboard
+    if (!foundActive) {
+        const dashboardLink = document.querySelector('.nav-link[data-section="dashboard"]');
+        if (dashboardLink) {
+            dashboardLink.parentElement.classList.add('active');
+        }
+    }
+}
+
+// Enhanced navigation with smooth transitions and better feedback
 function setupEventListeners() {
-    // Sidebar navigation with enhanced feedback
+    // Sidebar navigation with enhanced feedback and smooth transitions
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -43,8 +118,27 @@ function setupEventListeners() {
             const sectionName = this.getAttribute('data-section');
             console.log('Nav link clicked:', sectionName);
             
+            // Add immediate visual feedback
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+            
             showSectionWithTransition(sectionName);
-            updateActiveNav(this);
+            updateActiveNavWithTransition(this);
+        });
+        
+        // Add hover effects
+        link.addEventListener('mouseenter', function() {
+            if (!this.parentElement.classList.contains('active')) {
+                this.style.transform = 'translateY(-2px)';
+            }
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            if (!this.parentElement.classList.contains('active')) {
+                this.style.transform = '';
+            }
         });
     });
 
@@ -144,15 +238,21 @@ function showSectionWithTransition(sectionName) {
     targetSection.style.transform = 'translateY(0)';
     
     // Initialize specific functionality if needed
-    if (sectionName === 'bookings') {
+    if (sectionName === 'schedules') {
+        console.log('Initializing schedules section...');
+        setTimeout(() => {
+            initializeScheduleCalendar();
+        }, 100);
+    } else if (sectionName === 'bookings') {
         console.log('Initializing bookings section...');
         if (typeof initializeBookingsSection === 'function') {
             initializeBookingsSection();
         }
     } else if (sectionName === 'schedules') {
+        console.log('Initializing schedules section...');
         setTimeout(() => {
-            if (typeof initializeScheduleCalendar === 'function') {
-                initializeScheduleCalendar();
+            if (typeof initializeSchedulesSection === 'function') {
+                initializeSchedulesSection();
             }
         }, 100);
     }
@@ -555,21 +655,64 @@ function showSection(sectionName) {
         targetSection.style.opacity = '1';
         targetSection.style.transform = 'translateY(0)';
         console.log('Section shown successfully:', sectionName);
+        
+        // Initialize section-specific components
+        if (sectionName === 'schedules') {
+            setTimeout(() => {
+                console.log('Initializing schedule calendar...');
+                initializeScheduleCalendar();
+            }, 100);
+        } else if (sectionName === 'bookings') {
+            setTimeout(() => {
+                console.log('Initializing bookings...');
+                initializeBookings();
+            }, 100);
+        }
     } else {
         console.error('Target section not found:', `${sectionName}-section`);
     }
 }
 
-// Update active navigation
-function updateActiveNav(activeLink) {
-    // Remove active class from all nav items
+// Enhanced active navigation with smooth transitions
+function updateActiveNavWithTransition(activeLink) {
+    // Remove active class from all nav items with transition
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        item.classList.remove('active');
+        const link = item.querySelector('.nav-link');
+        if (item.classList.contains('active')) {
+            // Animate out the current active item
+            link.style.transform = 'translateY(-2px) scale(0.98)';
+            link.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                item.classList.remove('active');
+                link.style.transform = '';
+                link.style.opacity = '';
+            }, 150);
+        } else {
+            item.classList.remove('active');
+        }
     });
     
-    // Add active class to parent of clicked link
-    activeLink.parentElement.classList.add('active');
+    // Add active class to new item with transition
+    setTimeout(() => {
+        const newActiveItem = activeLink.parentElement;
+        newActiveItem.classList.add('active');
+        
+        // Animate in the new active item
+        activeLink.style.transform = 'translateY(-4px) scale(1.02)';
+        activeLink.style.opacity = '1';
+        
+        // Reset transform after animation
+        setTimeout(() => {
+            activeLink.style.transform = '';
+        }, 300);
+    }, 150);
+}
+
+// Fallback function for backward compatibility
+function updateActiveNav(activeLink) {
+    updateActiveNavWithTransition(activeLink);
 }
 
 // Calendar functionality
@@ -2649,6 +2792,505 @@ function showBookingMessage(message, type = 'success') {
     setTimeout(() => messageEl.remove(), 3000);
 }
 
+// Schedule Calendar Functions
+function initializeScheduleCalendar() {
+    const currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    
+    renderCalendar(currentMonth, currentYear);
+    
+    // Calendar navigation
+    document.getElementById('prevMonth')?.addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+    
+    document.getElementById('nextMonth')?.addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+}
+
+function renderCalendar(month, year) {
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const daysInWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    const currentMonthElement = document.getElementById('currentMonth');
+    if (currentMonthElement) {
+        currentMonthElement.textContent = `${monthNames[month]} ${year}`;
+    }
+    
+    const calendarGrid = document.getElementById('scheduleCalendar');
+    if (!calendarGrid) return;
+    
+    let calendarHTML = '';
+    
+    // Add day headers
+    daysInWeek.forEach(day => {
+        calendarHTML += `<div class="calendar-header-day">${day}</div>`;
+    });
+    
+    // Add previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        calendarHTML += `<div class="calendar-day other-month">
+            <span class="day-number">${day}</span>
+        </div>`;
+    }
+    
+    // Add current month's days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year);
+        const events = getEventsForDay(day, month, year);
+        
+        calendarHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" data-date="${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}">
+            <span class="day-number">${day}</span>
+            <div class="day-events">
+                ${events.map(event => `<div class="event-dot ${event.type}" title="${event.title}"></div>`).join('')}
+            </div>
+        </div>`;
+    }
+    
+    // Add next month's leading days
+    const totalCells = calendarHTML.split('calendar-day').length - 1;
+    const remainingCells = 42 - totalCells; // 6 rows * 7 days
+    for (let day = 1; day <= remainingCells && totalCells < 35; day++) {
+        calendarHTML += `<div class="calendar-day other-month">
+            <span class="day-number">${day}</span>
+        </div>`;
+    }
+    
+    calendarGrid.innerHTML = calendarHTML;
+    
+    // Add click events to calendar days with enhanced interactions
+    calendarGrid.querySelectorAll('.calendar-day:not(.other-month)').forEach(day => {
+        day.addEventListener('click', function() {
+            // Remove previous selection
+            calendarGrid.querySelectorAll('.calendar-day.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selection with animation
+            this.classList.add('selected');
+            
+            // Trigger selection animation
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+            
+            const date = this.dataset.date;
+            showScheduleForDate(date);
+            updateSidebarForDate(date);
+        });
+        
+        // Add hover effects
+        day.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('selected')) {
+                this.style.transform = 'translateY(-2px)';
+            }
+        });
+        
+        day.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('selected')) {
+                this.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    // Add animation to calendar render
+    calendarGrid.style.opacity = '0';
+    calendarGrid.style.transform = 'translateY(10px)';
+    setTimeout(() => {
+        calendarGrid.style.transition = 'all 0.3s ease';
+        calendarGrid.style.opacity = '1';
+        calendarGrid.style.transform = 'translateY(0)';
+    }, 50);
+}
+
+// Enhanced sidebar update for selected date
+function updateSidebarForDate(date) {
+    console.log('Updating sidebar for date:', date);
+    
+    // Update upcoming bookings for selected date
+    const upcomingBookingsContainer = document.querySelector('.upcoming-bookings');
+    if (upcomingBookingsContainer) {
+        const selectedDate = new Date(date);
+        const formattedDate = selectedDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Generate sample bookings for the selected date
+        const sampleBookings = generateSampleBookingsForDate(selectedDate);
+        
+        upcomingBookingsContainer.innerHTML = `
+            <h4 style="color: var(--primary-color); margin-bottom: 15px; font-size: 1rem;">
+                <i class="fas fa-calendar-day"></i> 
+                Bookings for ${formattedDate}
+            </h4>
+            ${sampleBookings.map(booking => `
+                <div class="upcoming-booking">
+                    <div class="booking-time">
+                        <i class="fas fa-clock"></i>
+                        ${booking.time}
+                    </div>
+                    <div class="booking-player">${booking.player}</div>
+                    <div class="booking-type">${booking.type}</div>
+                </div>
+            `).join('')}
+        `;
+        
+        // Add animation to new content
+        setTimeout(() => {
+            const bookings = upcomingBookingsContainer.querySelectorAll('.upcoming-booking');
+            bookings.forEach((booking, index) => {
+                booking.style.opacity = '0';
+                booking.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    booking.style.transition = 'all 0.3s ease';
+                    booking.style.opacity = '1';
+                    booking.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+        }, 50);
+    }
+}
+
+// Generate sample bookings for a specific date
+function generateSampleBookingsForDate(date) {
+    const players = ['Alex Johnson', 'Sarah Williams', 'Mike Chen', 'Emma Davis', 'James Wilson'];
+    const types = ['Health Assessment', 'Fitness Evaluation', 'Injury Recovery', 'Medical Consultation', 'Physical Therapy'];
+    const times = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '04:00 PM', '06:00 PM'];
+    
+    const numBookings = Math.floor(Math.random() * 4) + 1; // 1-4 bookings
+    const bookings = [];
+    
+    for (let i = 0; i < numBookings; i++) {
+        bookings.push({
+            player: players[Math.floor(Math.random() * players.length)],
+            type: types[Math.floor(Math.random() * types.length)],
+            time: times[Math.floor(Math.random() * times.length)]
+        });
+    }
+    
+    // Sort by time
+    bookings.sort((a, b) => {
+        const timeA = new Date(`1970/01/01 ${a.time}`);
+        const timeB = new Date(`1970/01/01 ${b.time}`);
+        return timeA - timeB;
+    });
+    
+    return bookings;
+}
+
+// Enhanced animation for stats cards
+function animateStatsCards() {
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            
+            // Animate the numbers
+            const numberElement = card.querySelector('.stat-number');
+            if (numberElement) {
+                animateNumber(numberElement);
+            }
+        }, index * 150);
+    });
+}
+
+// Animate number counting effect
+function animateNumber(element) {
+    const finalNumber = parseInt(element.textContent);
+    const duration = 1000;
+    const increment = finalNumber / (duration / 16); // 60fps
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= finalNumber) {
+            current = finalNumber;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current);
+    }, 16);
+}
+
+function getEventsForDay(day, month, year) {
+    // Sample events - in real app, this would come from API
+    const sampleEvents = [
+        { day: 9, type: 'training', title: 'Health Assessment' },
+        { day: 9, type: 'physio', title: 'Physio Session' },
+        { day: 10, type: 'meeting', title: 'Medical Review' },
+        { day: 11, type: 'training', title: 'Fitness Evaluation' },
+        { day: 12, type: 'physio', title: 'Injury Assessment' },
+        { day: 15, type: 'meeting', title: 'Health Consultation' },
+        { day: 16, type: 'training', title: 'Physical Screening' }
+    ];
+    
+    return sampleEvents.filter(event => event.day === day);
+}
+
+function showScheduleForDate(date) {
+    console.log('Showing schedule for date:', date);
+    // Implementation would show detailed schedule for selected date
+}
+
+// Schedule View Toggle
+function initializeScheduleViewToggle() {
+    const toggleBtns = document.querySelectorAll('#schedules-section .toggle-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active button
+            toggleBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide views
+            const calendarView = document.getElementById('scheduleCalendarView');
+            const listView = document.getElementById('scheduleListView');
+            
+            if (view === 'calendar') {
+                calendarView?.classList.add('active');
+                listView?.classList.remove('active');
+            } else {
+                calendarView?.classList.remove('active');
+                listView?.classList.add('active');
+            }
+        });
+    });
+}
+
+    initializeScheduleViewToggle();
+
+// Enhanced Calendar functionality for schedules
+function initializeScheduleCalendar() {
+    const calendarGrid = document.getElementById('scheduleCalendar');
+    if (!calendarGrid) return;
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Create calendar header for days of week
+    const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    
+    // Clear existing content
+    calendarGrid.innerHTML = '';
+    
+    // Add day headers
+    daysOfWeek.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'calendar-day-header';
+        dayHeader.textContent = day;
+        calendarGrid.appendChild(dayHeader);
+    });
+
+    // Get first day of month and number of days
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+    // Sample health inspection events
+    const healthEvents = {
+        5: [
+            { type: 'training', title: 'Team Fitness Assessment' },
+            { type: 'physio', title: 'Recovery Session' }
+        ],
+        10: [
+            { type: 'meeting', title: 'Medical Review' }
+        ],
+        12: [
+            { type: 'training', title: 'Individual Health Check' }
+        ],
+        15: [
+            { type: 'physio', title: 'Physio Session' },
+            { type: 'training', title: 'Fitness Evaluation' }
+        ],
+        18: [
+            { type: 'meeting', title: 'Health Consultation' }
+        ],
+        22: [
+            { type: 'training', title: 'Team Health Review' }
+        ],
+        25: [
+            { type: 'physio', title: 'Injury Assessment' }
+        ],
+        28: [
+            { type: 'meeting', title: 'Medical Conference' },
+            { type: 'training', title: 'Fitness Test' }
+        ]
+    };
+
+    // Add previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day other-month';
+        dayElement.innerHTML = `<div class="calendar-day-number">${daysInPrevMonth - i}</div>`;
+        calendarGrid.appendChild(dayElement);
+    }
+
+    // Add current month's days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        
+        // Check if it's today
+        if (day === currentDate.getDate() && 
+            currentMonth === new Date().getMonth() && 
+            currentYear === new Date().getFullYear()) {
+            dayElement.classList.add('today');
+        }
+
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'calendar-day-number';
+        dayNumber.textContent = day;
+        dayElement.appendChild(dayNumber);
+
+        // Add events for this day
+        if (healthEvents[day]) {
+            const eventsContainer = document.createElement('div');
+            eventsContainer.className = 'events-container';
+            
+            healthEvents[day].forEach(event => {
+                const eventElement = document.createElement('div');
+                eventElement.className = `calendar-event ${event.type}`;
+                eventElement.textContent = event.title;
+                eventElement.title = event.title;
+                eventsContainer.appendChild(eventElement);
+            });
+            
+            dayElement.appendChild(eventsContainer);
+        }
+
+        // Add click handler
+        dayElement.addEventListener('click', () => {
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            dayElement.classList.add('selected');
+            // Handle day selection
+        });
+
+        calendarGrid.appendChild(dayElement);
+    }
+
+    // Add next month's leading days
+    const totalCells = calendarGrid.children.length - 7; // Subtract header row
+    const remainingCells = 42 - totalCells; // 6 rows × 7 days = 42 cells
+    
+    for (let day = 1; day <= remainingCells; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day other-month';
+        dayElement.innerHTML = `<div class="calendar-day-number">${day}</div>`;
+        calendarGrid.appendChild(dayElement);
+    }
+
+    // Update month display
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentMonthElement = document.getElementById('currentMonth');
+    if (currentMonthElement) {
+        currentMonthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    }
+}
+
+// View toggle functionality
+function initializeViewToggle() {
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    const calendarView = document.getElementById('scheduleCalendarView');
+    const listView = document.getElementById('scheduleListView');
+
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const viewType = btn.dataset.view;
+            
+            // Update button states
+            toggleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Show/hide views
+            if (viewType === 'calendar') {
+                calendarView?.classList.add('active');
+                listView?.classList.remove('active');
+            } else {
+                calendarView?.classList.remove('active');
+                listView?.classList.add('active');
+            }
+        });
+    });
+}
+
+// Calendar navigation
+function initializeCalendarNavigation() {
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            // Navigate to previous month
+            console.log('Previous month');
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            // Navigate to next month
+            console.log('Next month');
+        });
+    }
+}
+
+// Modal functions for adding sessions and notes
+function openAddSessionModal() {
+    console.log('Opening add session modal');
+    // Add modal functionality here
+}
+
+function openAddNoteModal() {
+    console.log('Opening add note modal');
+    // Add modal functionality here
+}
+function openAddSessionModal() {
+    console.log('Opening add session modal');
+    // Implementation for add session modal
+}
+
+function openAddNoteModal() {
+    console.log('Opening add note modal');
+    // Implementation for add note modal
+}
+
+// Initialize schedule features when schedules section is active
+function initializeSchedulesSection() {
+    initializeScheduleCalendar();
+    initializeScheduleViewToggle();
+}
+
 // Make functions globally available
 window.openAddSlotModal = openAddSlotModal;
 window.closeAddSlotModal = closeAddSlotModal;
@@ -2664,3 +3306,5 @@ window.viewSessionNotes = viewSessionNotes;
 window.scheduleFollowup = scheduleFollowup;
 window.cancelBooking = cancelBooking;
 window.viewBookingDetails = viewBookingDetails;
+window.openAddSessionModal = openAddSessionModal;
+window.openAddNoteModal = openAddNoteModal;
