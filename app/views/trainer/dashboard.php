@@ -2,7 +2,9 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css">
 
 <div class="dashboard-container">
-    <!-- Sidebar -->
+    <!-- Dashboard Main Content -->
+    <div class="dashboard-main-content">
+        <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>Trainer Dashboard</h3>
@@ -11,7 +13,7 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="trainer-details">
-                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Trainer'; ?></h4>
+                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Smith'; ?></h4>
                     <p>Physical Trainer</p>
                 </div>
             </div>
@@ -74,49 +76,79 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Integrated Header -->
+        <div class="integrated-header">
+            <div class="header-top">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="admin-info">
+                        <i class="fas fa-user-md"></i>
+                        <span>Physical Trainer Dashboard</span>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="refresh-btn" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <div class="current-time">
+                        <span id="currentDateTime">Wed, Sep 10, 2025, 09:39 AM</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-main">
+                <div class="welcome-section">
+                    <div class="academy-title">
+                        <h1><i class="fas fa-heartbeat"></i> Welcome back, <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Smith'; ?>!</h1>
+                        <p>Ready to help athletes achieve their health and fitness goals today</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Dashboard Overview -->
         <section id="dashboard-section" class="content-section active">
-            <div class="dashboard-header">
-                <h1>Welcome back, John!</h1>
-                <p>Here's what's happening with your training schedule today.</p>
-            </div>
 
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-calendar-day"></i>
+                        <i class="fa-solid fa-user-doctor"></i>
                     </div>
                     <div class="stat-info">
                         <h3>8</h3>
-                        <p>Today's Sessions</p>
+                        <p>Health Assessments</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-users"></i>
+                        <i class="fa-solid fa-heart-pulse"></i>
                     </div>
                     <div class="stat-info">
                         <h3>24</h3>
-                        <p>Active Players</p>
+                        <p>Fitness Reports</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fa-solid fa-clock"></i>
                     </div>
                     <div class="stat-info">
                         <h3>3</h3>
-                        <p>Private Sessions</p>
+                        <p>Pending Reviews</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-trophy"></i>
+                        <i class="fa-solid fa-chart-column"></i>
                     </div>
                     <div class="stat-info">
                         <h3>2</h3>
-                        <p>Upcoming Tournaments</p>
+                        <p>Progress Reports</p>
                     </div>
                 </div>
             </div>
@@ -325,9 +357,233 @@
         </section>
 
         <!-- Other sections will be added for schedules, bookings, etc. -->
+        <!-- Schedules Section with Calendar -->
         <section id="schedules-section" class="content-section">
-            <h1>Schedules Management</h1>
-            <p>Schedule management features coming soon...</p>
+            <div class="schedules-header">
+                <div class="header-content">
+                    <div class="title-section">
+                        <h1><i class="fas fa-user-md"></i> Health & Fitness Schedules</h1>
+                        <p>Manage health assessments, fitness evaluations and physiotherapy sessions</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">6</span>
+                            <span class="stat-label">Today's Assessments</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">18</span>
+                            <span class="stat-label">This Week</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">3</span>
+                            <span class="stat-label">Health Reports Due</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="schedules-controls">
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" data-view="calendar">
+                            <i class="fas fa-calendar"></i> Calendar View
+                        </button>
+                        <button class="toggle-btn" data-view="list">
+                            <i class="fas fa-list"></i> List View
+                        </button>
+                    </div>
+                    <button class="add-session-btn" onclick="openAddSessionModal()">
+                        <i class="fas fa-plus"></i> Add Assessment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Schedule Calendar -->
+            <div class="schedule-container">
+                <div class="schedule-main">
+                    <!-- Calendar View -->
+                    <div class="schedule-calendar-view active" id="scheduleCalendarView">
+                        <div class="calendar-header">
+                            <div class="calendar-nav">
+                                <button class="nav-btn" id="prevMonth">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <h3 id="currentMonth">September 2025</h3>
+                                <button class="nav-btn" id="nextMonth">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color training"></span>
+                                    <span>Health Assessments</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color physio"></span>
+                                    <span>Physio Sessions</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color meeting"></span>
+                                    <span>Medical Reviews</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="calendar-grid" id="scheduleCalendar">
+                            <!-- Calendar will be generated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- List View -->
+                    <div class="schedule-list-view" id="scheduleListView">
+                        <!-- Today's Schedule -->
+                        <div class="schedule-section">
+                            <h2><i class="fas fa-calendar-day"></i> Today's Health Schedule</h2>
+                            <div class="schedule-grid" id="todaySchedule">
+                                <!-- Sample Schedule Items -->
+                                <div class="schedule-card">
+                                    <div class="schedule-header">
+                                        <h4>Player Fitness Assessment</h4>
+                                        <span class="priority normal">Routine</span>
+                                    </div>
+                                    <div class="schedule-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>09:00 AM - 11:00 AM</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Medical Center</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-users"></i>
+                                            <span>8 Players</span>
+                                        </div>
+                                    </div>
+                                    <div class="schedule-actions">
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="action-btn notes">
+                                            <i class="fas fa-file-medical"></i> Medical Notes
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="schedule-card">
+                                    <div class="schedule-header">
+                                        <h4>Individual Health Check - Mike Johnson</h4>
+                                        <span class="priority high">Urgent</span>
+                                    </div>
+                                    <div class="schedule-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>02:00 PM - 03:00 PM</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Private Consultation Room</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-user"></i>
+                                            <span>Private Session</span>
+                                        </div>
+                                    </div>
+                                    <div class="schedule-actions">
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="action-btn notes">
+                                            <i class="fas fa-file-medical"></i> Medical Notes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar with upcoming bookings and notes -->
+                <div class="schedule-sidebar">
+                    <!-- Upcoming Health Assessments -->
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-user-md"></i> Upcoming Health Assessments</h3>
+                        <div class="upcoming-bookings">
+                            <div class="booking-item">
+                                <div class="booking-time">
+                                    <span class="time">3:00 PM</span>
+                                    <span class="date">Today</span>
+                                </div>
+                                <div class="booking-info">
+                                    <h4>Mike Johnson</h4>
+                                    <p>Physio Session</p>
+                                </div>
+                                <div class="booking-status pending">
+                                    <i class="fas fa-hourglass-half"></i>
+                                </div>
+                            </div>
+
+                            <div class="booking-item">
+                                <div class="booking-time">
+                                    <span class="time">10:00 AM</span>
+                                    <span class="date">Tomorrow</span>
+                                </div>
+                                <div class="booking-info">
+                                    <h4>Sarah Williams</h4>
+                                    <p>Fitness Assessment</p>
+                                </div>
+                                <div class="booking-status confirmed">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+
+                            <div class="booking-item">
+                                <div class="booking-time">
+                                    <span class="time">2:30 PM</span>
+                                    <span class="date">Sep 11</span>
+                                </div>
+                                <div class="booking-info">
+                                    <h4>Team Health Review</h4>
+                                    <p>Medical Consultation</p>
+                                </div>
+                                <div class="booking-status confirmed">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Notes -->
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-file-medical"></i> Medical Notes</h3>
+                        <div class="trainer-notes">
+                            <div class="note-item">
+                                <div class="note-header">
+                                    <span class="note-date">Sep 10, 2025</span>
+                                    <button class="note-edit"><i class="fas fa-edit"></i></button>
+                                </div>
+                                <p>Player fitness assessment results show improvement in cardiovascular endurance across the team.</p>
+                            </div>
+
+                            <div class="note-item">
+                                <div class="note-header">
+                                    <span class="note-date">Sep 9, 2025</span>
+                                    <button class="note-edit"><i class="fas fa-edit"></i></button>
+                                </div>
+                                <p>Injury update: John Smith's shoulder recovery progressing well. Cleared for light training activities.</p>
+                            </div>
+
+                            <div class="note-item">
+                                <div class="note-header">
+                                    <span class="note-date">Sep 8, 2025</span>
+                                    <button class="note-edit"><i class="fas fa-edit"></i></button>
+                                </div>
+                                <p>Recommended nutrition plan adjustments for 3 players based on recent health screenings.</p>
+                            </div>
+                        </div>
+
+                        <button class="add-note-btn" onclick="openAddNoteModal()">
+                            <i class="fas fa-plus"></i> Add Medical Note
+                        </button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="bookings-section" class="content-section">
@@ -818,8 +1074,239 @@
         </section>
 
         <section id="tournaments-section" class="content-section">
-            <h1>Tournaments</h1>
-            <p>Tournament management features coming soon...</p>
+            <div class="tournaments-header">
+                <h1><i class="fas fa-trophy"></i> Upcoming Tournaments</h1>
+                <p>View tournaments posted by admin for all players, coaches, and trainers</p>
+            </div>
+
+            <!-- Tournament Cards Grid -->
+            <div class="tournaments-grid" id="tournamentsGrid">
+                
+                <!-- Tournament Card 1 -->
+                <div class="tournament-card high-priority" data-filter="upcoming this-month requires-attention">
+                    <div class="tournament-header">
+                        <div class="tournament-type">
+                            <span class="badge badge-championship">Championship</span>
+                            <span class="priority-badge urgent">High Priority</span>
+                        </div>
+                        <div class="tournament-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Sept 25, 2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-content">
+                        <h3>National Youth Cricket Championship</h3>
+                        <p class="tournament-venue"><i class="fas fa-map-marker-alt"></i> R. Premadasa Stadium, Colombo</p>
+                        <p class="tournament-description">Major national tournament requiring intensive physical preparation and health monitoring.</p>
+                        
+                        <div class="tournament-requirements">
+                            <h4>Health Requirements:</h4>
+                            <ul>
+                                <li>Complete fitness assessment</li>
+                                <li>Injury screening and clearance</li>
+                                <li>Nutritional planning for 3-day event</li>
+                                <li>Hydration and recovery protocols</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="players-status">
+                            <h4>Players Status:</h4>
+                            <div class="player-chips">
+                                <span class="player-chip needs-assessment">John Smith <i class="fas fa-exclamation"></i></span>
+                                <span class="player-chip cleared">Mike Johnson <i class="fas fa-check"></i></span>
+                                <span class="player-chip needs-assessment">Sarah Williams <i class="fas fa-exclamation"></i></span>
+                                <span class="player-chip cleared">David Brown <i class="fas fa-check"></i></span>
+                                <span class="player-chip more">+6 more</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-actions">
+                        <button class="btn-secondary" onclick="viewTournamentDetails('tournament-1')">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        <button class="btn-primary" onclick="manageTournamentHealth('tournament-1')">
+                            <i class="fas fa-heartbeat"></i> Manage Health Plans
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tournament Card 2 -->
+                <div class="tournament-card medium-priority" data-filter="upcoming this-month">
+                    <div class="tournament-header">
+                        <div class="tournament-type">
+                            <span class="badge badge-league">League Match</span>
+                            <span class="priority-badge medium">Medium Priority</span>
+                        </div>
+                        <div class="tournament-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Oct 2, 2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-content">
+                        <h3>Inter-School Cricket League</h3>
+                        <p class="tournament-venue"><i class="fas fa-map-marker-alt"></i> Sinhalese Sports Club Ground</p>
+                        <p class="tournament-description">Regular league match with standard health protocols.</p>
+                        
+                        <div class="tournament-requirements">
+                            <h4>Health Requirements:</h4>
+                            <ul>
+                                <li>Basic fitness check</li>
+                                <li>Injury status review</li>
+                                <li>Match day nutrition plan</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="players-status">
+                            <h4>Players Status:</h4>
+                            <div class="player-chips">
+                                <span class="player-chip cleared">Alex Thompson <i class="fas fa-check"></i></span>
+                                <span class="player-chip cleared">Emma Davis <i class="fas fa-check"></i></span>
+                                <span class="player-chip needs-assessment">Chris Wilson <i class="fas fa-exclamation"></i></span>
+                                <span class="player-chip more">+4 more</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-actions">
+                        <button class="btn-secondary" onclick="viewTournamentDetails('tournament-2')">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        <button class="btn-primary" onclick="manageTournamentHealth('tournament-2')">
+                            <i class="fas fa-heartbeat"></i> Manage Health Plans
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tournament Card 3 -->
+                <div class="tournament-card low-priority" data-filter="upcoming">
+                    <div class="tournament-header">
+                        <div class="tournament-type">
+                            <span class="badge badge-friendly">Friendly Match</span>
+                            <span class="priority-badge low">Low Priority</span>
+                        </div>
+                        <div class="tournament-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Oct 15, 2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-content">
+                        <h3>Practice Match vs Royal College</h3>
+                        <p class="tournament-venue"><i class="fas fa-map-marker-alt"></i> Academy Ground</p>
+                        <p class="tournament-description">Friendly practice match for skill development.</p>
+                        
+                        <div class="tournament-requirements">
+                            <h4>Health Requirements:</h4>
+                            <ul>
+                                <li>General fitness verification</li>
+                                <li>Basic hydration guidelines</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="players-status">
+                            <h4>Players Status:</h4>
+                            <div class="player-chips">
+                                <span class="player-chip cleared">Tom Anderson <i class="fas fa-check"></i></span>
+                                <span class="player-chip cleared">Lisa Martinez <i class="fas fa-check"></i></span>
+                                <span class="player-chip more">+8 more</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-actions">
+                        <button class="btn-secondary" onclick="viewTournamentDetails('tournament-3')">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        <button class="btn-primary" onclick="manageTournamentHealth('tournament-3')">
+                            <i class="fas fa-heartbeat"></i> Manage Health Plans
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tournament Card 4 -->
+                <div class="tournament-card high-priority" data-filter="upcoming requires-attention">
+                    <div class="tournament-header">
+                        <div class="tournament-type">
+                            <span class="badge badge-championship">Regional Cup</span>
+                            <span class="priority-badge urgent">High Priority</span>
+                        </div>
+                        <div class="tournament-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Nov 5, 2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-content">
+                        <h3>Southern Province Cricket Cup</h3>
+                        <p class="tournament-venue"><i class="fas fa-map-marker-alt"></i> Galle International Stadium</p>
+                        <p class="tournament-description">Regional championship requiring comprehensive health preparation.</p>
+                        
+                        <div class="tournament-requirements">
+                            <h4>Health Requirements:</h4>
+                            <ul>
+                                <li>Comprehensive medical examination</li>
+                                <li>Performance fitness testing</li>
+                                <li>Travel health protocols</li>
+                                <li>Extended tournament nutrition plan</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="players-status">
+                            <h4>Players Status:</h4>
+                            <div class="player-chips">
+                                <span class="player-chip pending">Assessments Pending</span>
+                                <span class="player-chip more">15 players total</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-actions">
+                        <button class="btn-secondary" onclick="viewTournamentDetails('tournament-4')">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        <button class="btn-primary" onclick="manageTournamentHealth('tournament-4')">
+                            <i class="fas fa-heartbeat"></i> Manage Health Plans
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Guidelines Section -->
+            <div class="health-guidelines">
+                <h2><i class="fas fa-clipboard-list"></i> Tournament Health Guidelines</h2>
+                <div class="guidelines-grid">
+                    <div class="guideline-card">
+                        <h3><i class="fas fa-heart"></i> Pre-Tournament Assessment</h3>
+                        <ul>
+                            <li>Complete physical examination</li>
+                            <li>Cardiovascular fitness evaluation</li>
+                            <li>Injury risk assessment</li>
+                            <li>Nutrition and hydration planning</li>
+                        </ul>
+                    </div>
+                    <div class="guideline-card">
+                        <h3><i class="fas fa-running"></i> During Tournament</h3>
+                        <ul>
+                            <li>Regular hydration monitoring</li>
+                            <li>Fatigue level assessment</li>
+                            <li>Immediate injury evaluation</li>
+                            <li>Performance nutrition support</li>
+                        </ul>
+                    </div>
+                    <div class="guideline-card">
+                        <h3><i class="fas fa-bed"></i> Post-Tournament Recovery</h3>
+                        <ul>
+                            <li>Recovery assessment</li>
+                            <li>Injury evaluation and treatment</li>
+                            <li>Nutrition for recovery</li>
+                            <li>Rest and rehabilitation planning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="nutrition-section" class="content-section">
@@ -1826,6 +2313,7 @@
             </div>
         </section>
     </main>
+    </div> <!-- End dashboard-main-content -->
 </div>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
