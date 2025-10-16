@@ -253,13 +253,111 @@ function createDayElement(day, isOtherMonth, year, month) {
             eventElement.className = `calendar-event ${event.type}`;
             eventElement.textContent = event.title;
             eventElement.title = `${event.title} - ${event.time}`;
+            
+            // Add click event to show event details
+            eventElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showEventDetails(event, dateKey);
+            });
+            
             eventsContainer.appendChild(eventElement);
         });
         
         dayElement.appendChild(eventsContainer);
     }
     
+    // Add click event for the day
+    dayElement.addEventListener('click', function() {
+        showDayDetails(day, month, year, dateKey);
+    });
+    
     return dayElement;
+}
+
+// Function to show event details in a modal or tooltip
+function showEventDetails(event, date) {
+    const modal = createEventModal(event, date);
+    document.body.appendChild(modal);
+    
+    // Auto-remove modal after 3 seconds or on click
+    setTimeout(() => {
+        if (modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+        }
+    }, 3000);
+    
+    modal.addEventListener('click', () => {
+        modal.parentNode.removeChild(modal);
+    });
+}
+
+// Function to show day details
+function showDayDetails(day, month, year, dateKey) {
+    const events = sampleEvents[dateKey];
+    const dateStr = new Date(year, month, day).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    if (events && events.length > 0) {
+        const eventsList = events.map(event => 
+            `<div class="modal-event ${event.type}">
+                <strong>${event.title}</strong>
+                <span>${event.time}</span>
+            </div>`
+        ).join('');
+        
+        const modal = createDayModal(dateStr, eventsList);
+        document.body.appendChild(modal);
+        
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 5000);
+        
+        modal.addEventListener('click', () => {
+            modal.parentNode.removeChild(modal);
+        });
+    }
+}
+
+// Create event detail modal
+function createEventModal(event, date) {
+    const modal = document.createElement('div');
+    modal.className = 'event-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header ${event.type}">
+                <h4>${event.title}</h4>
+                <span class="modal-date">${new Date(date).toLocaleDateString()}</span>
+            </div>
+            <div class="modal-body">
+                <p><i class="fas fa-clock"></i> ${event.time}</p>
+                <p><i class="fas fa-tag"></i> ${event.type.charAt(0).toUpperCase() + event.type.slice(1)}</p>
+            </div>
+        </div>
+    `;
+    return modal;
+}
+
+// Create day detail modal
+function createDayModal(dateStr, eventsList) {
+    const modal = document.createElement('div');
+    modal.className = 'day-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>${dateStr}</h4>
+            </div>
+            <div class="modal-body">
+                ${eventsList}
+            </div>
+        </div>
+    `;
+    return modal;
 }
 
 function updateMonthDisplay() {

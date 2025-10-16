@@ -3,7 +3,7 @@
     define('DB_HOST', 'localhost');
     define('DB_USER', 'root');
     define('DB_PASS', '');
-    define('DB_NAME', 'elitecricket_db');
+    define('DB_NAME', 'cricket_academy');
 
     //approot
     define('APPROOT', dirname(dirname(__FILE__)));
