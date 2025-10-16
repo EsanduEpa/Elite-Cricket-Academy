@@ -52,7 +52,13 @@
         }
         //excute the prepared statement
         public function execute() {
-            return $this->statement->execute();
+            try {
+                return $this->statement->execute();
+            } catch (PDOException $e) {
+                error_log("Database execution error: " . $e->getMessage());
+                error_log("SQL Error Info: " . print_r($this->statement->errorInfo(), true));
+                return false;
+            }
         }
 
         //get multiple records as result set
@@ -70,6 +76,11 @@
         //get row count
         public function rowCount(){
             return $this->statement->rowCount();
+        }
+
+        //get last insert id
+        public function lastInsertId(){
+            return $this->dbh->lastInsertId();
         }
     }
 ?>

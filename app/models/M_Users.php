@@ -7,37 +7,45 @@ class M_Users {
         $this->db = new Database();
     }
 
-    // Register user with extended fields
+    // Register user with new table structure
     public function register($data) {
-        $this->db->query('INSERT INTO users (full_name, date_of_birth, address, email, contact_number, school, username, password, created_at) VALUES(:full_name, :date_of_birth, :address, :email, :contact_number, :school, :username, :password, NOW())');
+        $this->db->query('INSERT INTO User (Name, DateOfBirth, Address, School, Email, PhoneNumber, Role, Username, PasswordHash, DateJoined) VALUES(:name, :date_of_birth, :address, :school, :email, :phone_number, :role, :username, :password_hash, NOW())');
         
         // Bind values
-        $this->db->bind(':full_name', $data['fullName']);
+        $this->db->bind(':name', $data['fullName']);
         $this->db->bind(':date_of_birth', $data['dateOfBirth']);
         $this->db->bind(':address', $data['address']);
-        $this->db->bind(':email', $data['email']);
-        $this->db->bind(':contact_number', $data['contactNumber']);
         $this->db->bind(':school', $data['school']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':phone_number', $data['contactNumber']);
+        $this->db->bind(':role', 'Player'); // Default role for registration
         $this->db->bind(':username', $data['username']);
-        $this->db->bind(':password', $data['password']);
+        $this->db->bind(':password_hash', $data['password']);
 
         // Execute
-        if($this->db->execute()) {
-            return true;
-        } else {
+        try {
+            if($this->db->execute()) {
+                // Return the new user ID
+                return $this->db->lastInsertId();
+            } else {
+                error_log("Database execution failed during user registration");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Database error during registration: " . $e->getMessage());
             return false;
         }
     }
 
     // Login user
     public function login($email, $password) {
-        $this->db->query('SELECT * FROM users WHERE email = :email OR username = :email');
+        $this->db->query('SELECT * FROM User WHERE Email = :email OR Username = :email');
         $this->db->bind(':email', $email);
 
         $row = $this->db->single();
 
         if($row) {
-            $hashed_password = $row->password;
+            $hashed_password = $row->PasswordHash;
             if(password_verify($password, $hashed_password)) {
                 return $row;
             }
@@ -48,7 +56,7 @@ class M_Users {
 
     // Find user by email
     public function findUserByEmail($email) {
-        $this->db->query('SELECT * FROM users WHERE email = :email');
+        $this->db->query('SELECT * FROM User WHERE Email = :email');
         $this->db->bind(':email', $email);
 
         $row = $this->db->single();
@@ -63,7 +71,7 @@ class M_Users {
 
     // Find user by username
     public function findUserByUsername($username) {
-        $this->db->query('SELECT * FROM users WHERE username = :username');
+        $this->db->query('SELECT * FROM User WHERE Username = :username');
         $this->db->bind(':username', $username);
 
         $row = $this->db->single();
@@ -78,7 +86,7 @@ class M_Users {
 
     // Get user by ID
     public function getUserById($id) {
-        $this->db->query('SELECT * FROM users WHERE id = :id');
+        $this->db->query('SELECT * FROM User WHERE UserID = :id');
         $this->db->bind(':id', $id);
 
         return $this->db->single();
@@ -86,7 +94,7 @@ class M_Users {
 
     // Get total users count
     public function getTotalUsers() {
-        $this->db->query('SELECT COUNT(*) as count FROM users');
+        $this->db->query('SELECT COUNT(*) as count FROM User');
         $result = $this->db->single();
         
         return $result ? $result->count : 25; // Return dummy data if no database
@@ -94,7 +102,7 @@ class M_Users {
 
     // Get total users by type (coach, player, trainer, staff)
     public function getTotalUsersByType($type) {
-        $this->db->query('SELECT COUNT(*) as count FROM users WHERE user_type = :type');
+        $this->db->query('SELECT COUNT(*) as count FROM User WHERE Role = :type');
         $this->db->bind(':type', $type);
         $result = $this->db->single();
         
@@ -114,7 +122,7 @@ class M_Users {
 
     // Get today's registrations
     public function getTodayRegistrations() {
-        $this->db->query('SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = CURDATE()');
+        $this->db->query('SELECT COUNT(*) as count FROM User WHERE DATE(DateJoined) = CURDATE()');
         $result = $this->db->single();
         
         return $result ? $result->count : 3; // Return dummy data if no database
@@ -122,10 +130,10 @@ class M_Users {
 
     // Get recent activities
     public function getRecentActivities($limit = 10) {
-        $this->db->query('SELECT ua.*, u.full_name as user_name 
-                         FROM user_activities ua 
-                         LEFT JOIN users u ON ua.user_id = u.id 
-                         ORDER BY ua.created_at DESC 
+        $this->db->query('SELECT al.*, u.Name as user_name 
+                         FROM ActivityLog al 
+                         LEFT JOIN User u ON al.UserID = u.UserID 
+                         ORDER BY al.Timestamp DESC 
                          LIMIT :limit');
         $this->db->bind(':limit', $limit);
         
@@ -182,7 +190,7 @@ class M_Users {
 
     // Get all users with pagination
     public function getAllUsers($offset = 0, $limit = 20) {
-        $this->db->query('SELECT * FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :offset');
+        $this->db->query('SELECT * FROM User ORDER BY DateJoined DESC LIMIT :limit OFFSET :offset');
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         
@@ -191,22 +199,24 @@ class M_Users {
 
     // Update user profile
     public function updateUser($data) {
-        $this->db->query('UPDATE users SET 
-                         full_name = :full_name,
-                         email = :email,
-                         contact_number = :contact_number,
-                         address = :address,
-                         user_type = :user_type,
-                         status = :status
-                         WHERE id = :id');
+        $this->db->query('UPDATE User SET 
+                         Name = :name,
+                         Email = :email,
+                         PhoneNumber = :phone_number,
+                         Address = :address,
+                         School = :school,
+                         Role = :role,
+                         Status = :status
+                         WHERE UserID = :user_id');
 
         // Bind values
-        $this->db->bind(':id', $data['id']);
-        $this->db->bind(':full_name', $data['full_name']);
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':name', $data['name']);
         $this->db->bind(':email', $data['email']);
-        $this->db->bind(':contact_number', $data['contact_number']);
+        $this->db->bind(':phone_number', $data['phone_number']);
         $this->db->bind(':address', $data['address']);
-        $this->db->bind(':user_type', $data['user_type']);
+        $this->db->bind(':school', $data['school']);
+        $this->db->bind(':role', $data['role']);
         $this->db->bind(':status', $data['status']);
 
         if ($this->db->execute()) {
@@ -216,17 +226,17 @@ class M_Users {
         }
     }
 
-    // Suspend user
+    // Suspend user (using AccountLockedUntil field from schema)
     public function suspendUser($id, $duration) {
-        $suspend_until = date('Y-m-d H:i:s', strtotime("+{$duration} days"));
+        $lock_until = date('Y-m-d H:i:s', strtotime("+{$duration} days"));
         
-        $this->db->query('UPDATE users SET 
-                         status = "suspended",
-                         suspended_until = :suspended_until
-                         WHERE id = :id');
+        $this->db->query('UPDATE User SET 
+                         Status = "inactive",
+                         AccountLockedUntil = :locked_until
+                         WHERE UserID = :id');
 
         $this->db->bind(':id', $id);
-        $this->db->bind(':suspended_until', $suspend_until);
+        $this->db->bind(':locked_until', $lock_until);
 
         if ($this->db->execute()) {
             return true;
@@ -237,10 +247,11 @@ class M_Users {
 
     // Activate user
     public function activateUser($id) {
-        $this->db->query('UPDATE users SET 
-                         status = "active",
-                         suspended_until = NULL
-                         WHERE id = :id');
+        $this->db->query('UPDATE User SET 
+                         Status = "active",
+                         AccountLockedUntil = NULL,
+                         LoginAttempts = 0
+                         WHERE UserID = :id');
 
         $this->db->bind(':id', $id);
 
@@ -249,6 +260,106 @@ class M_Users {
         } else {
             return false;
         }
+    }
+
+    // Update last login timestamp
+    public function updateLastLogin($userId) {
+        $this->db->query('UPDATE User SET 
+                         LastLoginAt = NOW(),
+                         LoginAttempts = 0
+                         WHERE UserID = :user_id');
+        
+        $this->db->bind(':user_id', $userId);
+        return $this->db->execute();
+    }
+
+    // Increment login attempts
+    public function incrementLoginAttempts($email) {
+        $this->db->query('UPDATE User SET 
+                         LoginAttempts = LoginAttempts + 1
+                         WHERE Email = :email OR Username = :email');
+        
+        $this->db->bind(':email', $email);
+        return $this->db->execute();
+    }
+
+    // Check if account is locked
+    public function isAccountLocked($email) {
+        $this->db->query('SELECT AccountLockedUntil, LoginAttempts FROM User 
+                         WHERE (Email = :email OR Username = :email) 
+                         AND Status = "active"');
+        
+        $this->db->bind(':email', $email);
+        $result = $this->db->single();
+        
+        if ($result) {
+            // Check if account is temporarily locked
+            if ($result->AccountLockedUntil && strtotime($result->AccountLockedUntil) > time()) {
+                return true;
+            }
+            
+            // Check if too many login attempts
+            if ($result->LoginAttempts >= 5) {
+                // Lock account for 30 minutes after 5 failed attempts
+                $this->lockAccount($email, 30);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // Lock account temporarily
+    public function lockAccount($email, $minutes = 30) {
+        $lock_until = date('Y-m-d H:i:s', strtotime("+{$minutes} minutes"));
+        
+        $this->db->query('UPDATE User SET 
+                         AccountLockedUntil = :locked_until
+                         WHERE Email = :email OR Username = :email');
+        
+        $this->db->bind(':email', $email);
+        $this->db->bind(':locked_until', $lock_until);
+        
+        return $this->db->execute();
+    }
+
+    // Create activity log entry
+    public function logActivity($userId, $action, $description, $ipAddress = null, $userAgent = null) {
+        $this->db->query('INSERT INTO ActivityLog (UserID, Action, Description, IPAddress, UserAgent) 
+                         VALUES (:user_id, :action, :description, :ip_address, :user_agent)');
+        
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':action', $action);
+        $this->db->bind(':description', $description);
+        $this->db->bind(':ip_address', $ipAddress);
+        $this->db->bind(':user_agent', $userAgent);
+        
+        return $this->db->execute();
+    }
+
+    // Create player profile for new registrations
+    public function createPlayerProfile($playerId, $data = []) {
+        $this->db->query('INSERT INTO PlayerProfile (PlayerID, SchoolInstitution, SubscriptionType) 
+                         VALUES (:player_id, :school, :subscription_type)');
+        
+        $this->db->bind(':player_id', $playerId);
+        $this->db->bind(':school', $data['school'] ?? null);
+        $this->db->bind(':subscription_type', 'basic'); // Default subscription
+        
+        return $this->db->execute();
+    }
+
+    // Get user with profile information
+    public function getUserWithProfile($userId) {
+        $this->db->query('SELECT u.*, pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, 
+                                pp.SubscriptionType, pp.SchoolInstitution, pp.EmergencyContactName, 
+                                pp.EmergencyContactPhone, pp.ParentGuardianName, pp.ParentGuardianPhone
+                         FROM User u 
+                         LEFT JOIN PlayerProfile pp ON u.UserID = pp.PlayerID 
+                         WHERE u.UserID = :user_id');
+        
+        $this->db->bind(':user_id', $userId);
+        return $this->db->single();
     }
 }
 ?> 
