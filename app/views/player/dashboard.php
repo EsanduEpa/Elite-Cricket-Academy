@@ -303,9 +303,12 @@
             </div>
             <!-- Row 3: Quick Actions and Payment Due Side by Side -->
             <div class="action-row">
-                <div class="quick-actions-container">
-                    <div class="section-header">
-                        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                <div class="action-card quick-actions">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                         </div>
+                        <div class="header-accent"></div>
                     </div>
                     <div class="quick-actions-content">
                         <div class="quick-action-card">
@@ -345,12 +348,7 @@
                             <div class="quick-action-icon equipment-shop">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <div class="quick-action-info">
-                                <h4>Equipment</h4>
-                                <p>Rent cricket gear</p>
-                            </div>
-                            <a href="<?php echo URLROOT; ?>/player/shopping" class="quick-btn">Shop</a>
-                        </div>
+                        
                     </div>
                 </div>
 
