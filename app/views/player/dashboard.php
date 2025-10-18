@@ -1,22 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Dashboard - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Mobile-specific meta tags -->
-    <meta name="theme-color" content="#2c3e50">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-</head>
-
-<body>
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<!-- Mobile-specific meta tags -->
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
     <!-- Player Dashboard Layout -->
     <div class="player-layout">
         <!-- Left Sidebar Panel -->
@@ -33,92 +21,67 @@
 
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
-                    <!-- PRIMARY FEATURES - High Priority -->
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player" class="nav-link active">
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/player" class="nav-link">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
-
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/training" class="nav-link">
                             <i class="fas fa-dumbbell"></i>
-                            <span>Training Schedule</span>
+                            <span>Training</span>
                         </a>
                     </li>
-
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>My Bookings</span>
-                            <?php if(!empty($data['upcomingBookings'])): ?>
-                                <span class="badge"><?php echo count($data['upcomingBookings']); ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
                     </li>
-
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/payments" class="nav-link">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Payments</span>
-                            <?php if(!empty($data['paymentsDue'])): ?>
-                                <span class="badge"><?php echo count($data['paymentsDue']); ?></span>
-                            <?php endif; ?>
+                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
+                            <i class="fas fa-calendar"></i>
+                            <span>Bookings</span>
                         </a>
                     </li>
-
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Shopping & Rental</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Medical Records</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/achievements" class="nav-link">
-                            <i class="fas fa-trophy"></i>
-                            <span>Achievements</span>
-                        </a>
-                    </li>
-
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Medical</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/payments" class="nav-link">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Payments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Shopping</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
-            <!-- Player Profile -->
-            <div class="player-profile">
+            <!-- Simple Profile Section -->
+            <div class="profile-section">
                 <div class="profile-avatar">
                     <i class="fas fa-user"></i>
                 </div>
-                <div class="profile-info">
-                    <div class="player-name"><?php echo $data['player']['name']; ?></div>
-                    <div class="player-role"><?php echo $data['player']['membership_level']; ?> Member</div>
-                </div>
-                <div class="logout-btn">
-                    <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                </div>
+                <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
+                <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
         </div>
 
@@ -127,14 +90,18 @@
             <!-- Dashboard Header -->
             <div class="dashboard-header">
                 <div class="header-content">
-                    <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo $data['player']['name']; ?>!</h1>
-                    <p>Your performance overview and upcoming activities</p>
-                </div>
-                <div class="header-actions">
-                    <button class="refresh-btn" onclick="refreshDashboard()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                    <div class="current-time" id="currentTime"></div>
+                    <div class="header-text">
+                        <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo $data['player']['name']; ?>!</h1>
+                        <p>Your cricket journey dashboard - Track progress, manage bookings, and achieve your goals</p>
+                    </div>
+                    <div class="header-actions">
+
+                        <button class="btn btn-refresh" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                            <div class="current-time" id="currentTime"></div>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -147,10 +114,7 @@
                     <div class="stat-content">
                         <div class="stat-title">Batting Average</div>
                         <div class="stat-value" data-target="<?php echo $data['performanceStats']['batting_avg']; ?>">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +2.3 this month
-                        </div>
+                       
                     </div>
                 </div>
 
@@ -161,10 +125,7 @@
                     <div class="stat-content">
                         <div class="stat-title">Strike Rate</div>
                         <div class="stat-value" data-target="<?php echo $data['performanceStats']['strike_rate']; ?>">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +5.8% this month
-                        </div>
+                       
                     </div>
                 </div>
 
@@ -175,10 +136,7 @@
                     <div class="stat-content">
                         <div class="stat-title">Total Runs</div>
                         <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_runs']; ?>">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +125 this month
-                        </div>
+                        
                     </div>
                 </div>
 
@@ -189,10 +147,7 @@
                     <div class="stat-content">
                         <div class="stat-title">Wickets Taken</div>
                         <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_wickets']; ?>">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            +8 this month
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -205,191 +160,146 @@
                             <h2><i class="fas fa-calendar-day"></i> Today's Schedule</h2>
                             <span class="date-display"><?php echo date('M j, Y'); ?></span>
                         </div>
-                        <div class="header-accent"></div>
                     </div>
                     <div class="card-content">
-                        <div class="schedule-item current">
-                            <div class="schedule-time">
-                                <div class="time-display">10:00 AM</div>
-                                <div class="duration">2 hours</div>
-                            </div>
-                            <div class="schedule-info">
-                                <h4>Morning Training Session</h4>
-                                <div class="schedule-meta">
-                                    <span><i class="fas fa-map-marker-alt"></i> Indoor Nets</span>
-                                    <span><i class="fas fa-user-tie"></i> Coach Johnson</span>
-                                </div>
-                            </div>
-                            <div class="schedule-status status-active">
-                                <i class="fas fa-play"></i> Active
-                            </div>
-                        </div>
-
-                        <div class="schedule-item upcoming">
-                            <div class="schedule-time">
-                                <div class="time-display">2:30 PM</div>
-                                <div class="duration">1.5 hours</div>
-                            </div>
-                            <div class="schedule-info">
-                                <h4>Fitness Training</h4>
-                                <div class="schedule-meta">
-                                    <span><i class="fas fa-dumbbell"></i> Gym Facility</span>
-                                    <span><i class="fas fa-fire"></i> Cardio & Strength</span>
-                                </div>
-                            </div>
-                            <div class="schedule-status status-upcoming">
-                                <i class="fas fa-clock"></i> Upcoming
-                            </div>
-                        </div>
-
-                        <div class="schedule-item planned">
-                            <div class="schedule-time">
-                                <div class="time-display">5:00 PM</div>
-                                <div class="duration">45 min</div>
-                            </div>
-                            <div class="schedule-info">
-                                <h4>Recovery Session</h4>
-                                <div class="schedule-meta">
-                                    <span><i class="fas fa-spa"></i> Recovery Room</span>
-                                    <span><i class="fas fa-leaf"></i> Stretching</span>
-                                </div>
-                            </div>
-                            <div class="schedule-status status-planned">
-                                <i class="fas fa-calendar"></i> Planned
-                            </div>
-                        </div>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Activity</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary">10:00 AM</div>
+                                        <div class="table-cell-secondary">2 hours</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Morning Training Session</div>
+                                        <div class="table-cell-details">
+                                             Indoor Nets - Coach Johnson
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary">2:30 PM</div>
+                                        <div class="table-cell-secondary">1.5 hours</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Fitness Training</div>
+                                        <div class="table-cell-details">
+                                             Gym Facility - Cardio & Strength
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge status-upcoming">Upcoming</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary">5:00 PM</div>
+                                        <div class="table-cell-secondary">45 min</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Recovery Session</div>
+                                        <div class="table-cell-details">
+                                            Recovery Room - Stretching
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge">Planned</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="schedule-card upcoming-events">
+                <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-calendar-check"></i> Upcoming Events</h2>
-                            <span class="event-count">5 events this week</span>
                         </div>
-                        <div class="header-accent"></div>
                     </div>
                     <div class="card-content">
-                        <div class="event-item match-event">
-                            <div class="event-date">
-                                <div class="day">07</div>
-                                <div class="month">SEP</div>
-                            </div>
-                            <div class="event-info">
-                                <h4>Match vs Central Cricket Club</h4>
-                                <div class="event-meta">
-                                    <span><i class="fas fa-clock"></i> 2:00 PM - 6:00 PM</span>
-                                    <span><i class="fas fa-map-marker-alt"></i> Main Ground</span>
-                                </div>
-                            </div>
-                            <div class="event-type type-match">
-                                <i class="fas fa-trophy"></i> Match
-                            </div>
-                        </div>
-
-                        <div class="event-item training-event">
-                            <div class="event-date">
-                                <div class="day">08</div>
-                                <div class="month">SEP</div>
-                            </div>
-                            <div class="event-info">
-                                <h4>Batting Practice Session</h4>
-                                <div class="event-meta">
-                                    <span><i class="fas fa-clock"></i> 10:00 AM - 12:00 PM</span>
-                                    <span><i class="fas fa-map-marker-alt"></i> Indoor Nets</span>
-                                </div>
-                            </div>
-                            <div class="event-type type-training">
-                                <i class="fas fa-dumbbell"></i> Training
-                            </div>
-                        </div>
-
-                        <div class="event-item assessment-event">
-                            <div class="event-date">
-                                <div class="day">09</div>
-                                <div class="month">SEP</div>
-                            </div>
-                            <div class="event-info">
-                                <h4>Fitness Assessment</h4>
-                                <div class="event-meta">
-                                    <span><i class="fas fa-clock"></i> 9:00 AM - 11:00 AM</span>
-                                    <span><i class="fas fa-map-marker-alt"></i> Gym Facility</span>
-                                </div>
-                            </div>
-                            <div class="event-type type-assessment">
-                                <i class="fas fa-chart-line"></i> Assessment
-                            </div>
-                        </div>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Event</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Sep 07</div>
+                                        <div class="table-cell-secondary">Sunday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Match vs Central Cricket Club</div>
+                                        <div class="table-cell-details">
+                                        </div>
+                                        <span class="table-badge">Match</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">2:00 PM</div>
+                                        <div class="table-cell-secondary">6:00 PM</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Sep 08</div>
+                                        <div class="table-cell-secondary">Monday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Batting Practice Session</div>
+                                        <div class="table-cell-details">
+                                        </div>
+                                        <span class="table-badge">Training</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">10:00 AM</div>
+                                        <div class="table-cell-secondary">12:00 PM</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Sep 09</div>
+                                        <div class="table-cell-secondary">Tuesday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Fitness Assessment</div>
+                                        <div class="table-cell-details">
+                                        </div>
+                                        <span class="table-badge">Assessment</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">9:00 AM</div>
+                                        <div class="table-cell-secondary">11:00 AM</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- Row 2: Calendar Section -->
             <div class="calendar-section-wrapper">
-                <div class="calendar-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-calendar-alt"></i> Training & Match Calendar</h2>
-                        </div>
-                        <div class="calendar-controls">
-                            <div class="calendar-nav">
-                                <button class="nav-btn" onclick="previousMonth()">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <div class="current-month" id="currentMonth">December 2024</div>
-                                <button class="nav-btn" onclick="nextMonth()">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                            <div class="view-toggle">
-                                <button class="view-btn active" onclick="setView('month')">Month</button>
-                                <button class="view-btn" onclick="setView('week')">Week</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="calendar-content">
-                        <div class="calendar-grid">
-                            <div class="calendar-weekdays">
-                                <div class="weekday">Sun</div>
-                                <div class="weekday">Mon</div>
-                                <div class="weekday">Tue</div>
-                                <div class="weekday">Wed</div>
-                                <div class="weekday">Thu</div>
-                                <div class="weekday">Fri</div>
-                                <div class="weekday">Sat</div>
-                            </div>
-                            
-                            <div class="calendar-days" id="calendarDays">
-                                <!-- Calendar days will be generated by JavaScript -->
-                            </div>
-                        </div>
-                        
-                        <!-- Calendar Legend -->
-                        <div class="calendar-legend">
-                            <div class="legend-item">
-                                <div class="legend-color training"></div>
-                                <span>Training</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color match"></div>
-                                <span>Match</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color meeting"></div>
-                                <span>Meeting</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color fitness"></div>
-                                <span>Fitness</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color assessment"></div>
-                                <span>Assessment</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <?php 
+                $calendarTitle = 'Training & Match Calendar';
+                $calendarIcon = 'fas fa-calendar-alt';
+                $calendarId = 'playerCalendar';
+                $calendarClass = 'player-calendar';
+                include APPROOT . '/views/inc/components/calendar.php'; 
+                ?>
             </div>
             <!-- Row 3: Quick Actions and Payment Due Side by Side -->
             <div class="action-row">
@@ -447,7 +357,6 @@
                         <div class="header-content">
                             <h2><i class="fas fa-credit-card"></i> Payment Due</h2>
                         </div>
-                        <div class="header-accent"></div>
                     </div>
                     <div class="card-content">
                         <?php if(!empty($data['paymentsDue'])): ?>
@@ -552,6 +461,7 @@
     </script>
 
     <!-- JavaScript for Dashboard -->
+    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

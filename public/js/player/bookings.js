@@ -782,3 +782,279 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 500);
 });
+
+// Facility Booking Management Functions
+function showFacilityBookingFromShopping() {
+    // Navigate to shopping page and show facilities section
+    window.location.href = '/Elite/player/shopping#facilities';
+}
+
+function viewFacilityBookingDetails(bookingId) {
+    // Show facility booking details modal
+    const facilityBookings = {
+        'FB001': {
+            id: 'FB001',
+            facility: 'Main Cricket Ground',
+            date: 'October 20, 2025',
+            time: '14:00 - 16:00',
+            duration: '2 hours',
+            purpose: 'Team Practice Session',
+            amount: 'LKR 5,000.00',
+            status: 'Confirmed',
+            amenities: ['Floodlights', 'Sound System', 'Scoreboard', 'Seating for 50'],
+            bookingDate: 'October 15, 2025',
+            paymentMethod: 'Credit Card',
+            paymentStatus: 'Paid'
+        },
+        'FB002': {
+            id: 'FB002',
+            facility: 'Indoor Training Hall',
+            date: 'October 25, 2025',
+            time: '10:00 - 12:00',
+            duration: '2 hours',
+            purpose: 'Individual Training',
+            amount: 'LKR 4,000.00',
+            status: 'Pending',
+            amenities: ['Air Conditioning', 'Equipment Storage', 'Changing Rooms'],
+            bookingDate: 'October 18, 2025',
+            paymentMethod: 'Bank Transfer',
+            paymentStatus: 'Pending'
+        },
+        'FB003': {
+            id: 'FB003',
+            facility: 'Practice Ground A',
+            date: 'October 15, 2025',
+            time: '16:00 - 18:00',
+            duration: '2 hours',
+            purpose: 'Batting Practice',
+            amount: 'LKR 3,000.00',
+            status: 'Completed',
+            amenities: ['Bowling Machine', 'Nets', 'Equipment Storage'],
+            bookingDate: 'October 10, 2025',
+            paymentMethod: 'Cash',
+            paymentStatus: 'Paid'
+        }
+    };
+
+    const booking = facilityBookings[bookingId];
+    if (!booking) return;
+
+    // Create and show modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content facility-booking-details">
+            <div class="modal-header">
+                <h3><i class="fas fa-building"></i> Facility Booking Details</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="booking-detail-grid">
+                    <div class="detail-section">
+                        <h4>Booking Information</h4>
+                        <div class="detail-item">
+                            <label>Booking ID:</label>
+                            <span>${booking.id}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Facility:</label>
+                            <span>${booking.facility}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Date & Time:</label>
+                            <span>${booking.date} • ${booking.time}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Duration:</label>
+                            <span>${booking.duration}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Purpose:</label>
+                            <span>${booking.purpose}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status:</label>
+                            <span class="status-badge status-${booking.status.toLowerCase()}">${booking.status}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>Payment Information</h4>
+                        <div class="detail-item">
+                            <label>Amount:</label>
+                            <span class="amount">${booking.amount}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Payment Method:</label>
+                            <span>${booking.paymentMethod}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Payment Status:</label>
+                            <span class="status-badge status-${booking.paymentStatus.toLowerCase()}">${booking.paymentStatus}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Booking Date:</label>
+                            <span>${booking.bookingDate}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="amenities-section">
+                    <h4>Included Amenities</h4>
+                    <div class="amenities-list">
+                        ${booking.amenities.map(amenity => `
+                            <div class="amenity-item">
+                                <i class="fas fa-check"></i>
+                                <span>${amenity}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                ${booking.status !== 'Completed' ? `
+                    <button class="btn btn-warning" onclick="modifyFacilityBooking('${booking.id}')">
+                        <i class="fas fa-edit"></i> Modify Booking
+                    </button>
+                ` : ''}
+                ${booking.status === 'Completed' ? `
+                    <button class="btn btn-primary" onclick="rebookFacility('${booking.id}')">
+                        <i class="fas fa-redo"></i> Book Again
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    // Add click outside to close
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function cancelFacilityBooking(bookingId) {
+    if (confirm('Are you sure you want to cancel this facility booking? This action cannot be undone.')) {
+        // Show loading state
+        const card = document.querySelector(`[onclick*="${bookingId}"]`).closest('.facility-booking-card');
+        card.style.opacity = '0.5';
+        
+        // Simulate API call
+        setTimeout(() => {
+            showSuccessMessage('Facility booking cancelled successfully');
+            // Update card to show cancelled status
+            const statusElement = card.querySelector('.booking-status');
+            statusElement.textContent = 'Cancelled';
+            statusElement.className = 'booking-status status-cancelled';
+            
+            // Update actions
+            const actions = card.querySelector('.booking-actions');
+            actions.innerHTML = `
+                <button class="btn btn-sm btn-secondary" onclick="viewFacilityBookingDetails('${bookingId}')">
+                    <i class="fas fa-eye"></i> Details
+                </button>
+                <button class="btn btn-sm btn-primary" onclick="rebookFacility('${bookingId}')">
+                    <i class="fas fa-redo"></i> Rebook
+                </button>
+            `;
+            
+            card.style.opacity = '1';
+        }, 1500);
+    }
+}
+
+function modifyFacilityBooking(bookingId) {
+    // Navigate to shopping page facilities section with modification parameters
+    window.location.href = `/Elite/player/shopping#facilities?modify=${bookingId}`;
+}
+
+function rebookFacility(bookingId) {
+    // Navigate to shopping page facilities section with rebook parameters
+    window.location.href = `/Elite/player/shopping#facilities?rebook=${bookingId}`;
+}
+
+function showSuccessMessage(message) {
+    // Create success toast
+    const toast = document.createElement('div');
+    toast.className = 'success-toast';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Show with animation
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Hide and remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Filter Functions for Booking Tables
+
+function filterUpcomingBookings() {
+    const filterValue = document.getElementById('upcomingSessionFilter').value;
+    const table = document.getElementById('upcomingBookingsTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const sessionBadge = row.querySelector('.table-badge:not(.status-confirmed):not(.status-pending):not(.status-completed)');
+        
+        if (filterValue === 'all' || (sessionBadge && sessionBadge.textContent.trim() === filterValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+function filterFacilityBookings() {
+    const filterValue = document.getElementById('facilityTypeFilter').value;
+    const table = document.getElementById('facilityBookingsTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const facilityBadge = row.querySelector('.table-badge:not(.status-confirmed):not(.status-pending):not(.status-completed)');
+        
+        if (filterValue === 'all' || (facilityBadge && facilityBadge.textContent.trim() === filterValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+function filterRecentBookings() {
+    const filterValue = document.getElementById('recentSessionFilter').value;
+    const table = document.getElementById('recentBookingsTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const sessionBadge = row.querySelector('.table-badge:not(.status-confirmed):not(.status-pending):not(.status-completed)');
+        
+        if (filterValue === 'all' || (sessionBadge && sessionBadge.textContent.trim() === filterValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}

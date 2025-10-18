@@ -1,9 +1,25 @@
 // Admin Dashboard JavaScript - Elite Cricket Academy
+console.log('✅ dashboard.js file loaded successfully!');
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing dashboard...');
     initializeDashboard();
     initializeSidebar();
-    initializeCharts();
+    
+    // Wait for Chart.js to be available
+    function waitForChart() {
+        if (typeof Chart !== 'undefined' && window.chartJsLoaded) {
+            console.log('Chart.js is available, initializing charts...');
+            initializeCharts();
+        } else {
+            console.log('Chart.js not ready, waiting... Chart available:', typeof Chart !== 'undefined', 'Flag set:', window.chartJsLoaded);
+            setTimeout(waitForChart, 100);
+        }
+    }
+    
+    // Give Chart.js some time to load
+    setTimeout(waitForChart, 500);
+    
     updateCurrentTime();
     
     // Update time every second
@@ -93,17 +109,22 @@ function initializeSidebar() {
 
 // Chart Initialization with comprehensive data
 function initializeCharts() {
+    console.log('initializeCharts called, Chart.js available:', typeof Chart !== 'undefined');
+    
     if (typeof Chart === 'undefined') {
         console.warn('Chart.js not loaded - loading from CDN');
         // Try to load Chart.js if not available
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
         script.onload = function() {
-            setTimeout(initializeCharts, 100);
+            console.log('Chart.js loaded dynamically');
+            setTimeout(initializeCharts, 500);
         };
         document.head.appendChild(script);
         return;
     }
+    
+    console.log('Starting chart initialization...');
 
     // Destroy existing charts to prevent conflicts
     if (window.chartInstances) {
@@ -141,7 +162,9 @@ function initializeCharts() {
 
     // Staff Distribution Chart (Summary Card)
     const staffCtx = document.getElementById('staffChart');
+    console.log('Staff chart canvas element:', staffCtx);
     if (staffCtx) {
+        console.log('Creating staff chart...');
         try {
             window.chartInstances.staffChart = new Chart(staffCtx, {
                 type: 'doughnut',
@@ -168,9 +191,12 @@ function initializeCharts() {
                     }
                 }
             });
+            console.log('Staff chart created successfully!');
         } catch (error) {
             console.error('Error creating staffChart:', error);
         }
+    } else {
+        console.error('Staff chart canvas element not found!');
     }
 
     // Player Progress Chart (Summary Card)

@@ -1,0 +1,450 @@
+/* Trainer Bookings Page Specific Styles */
+@import url('dashboard.css');
+
+/* Schedule Cards */
+.schedule-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.schedule-card:hover {
+    transform: translateY(-2px);
+}
+
+.schedule-card .card-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 15px 15px 0 0;
+}
+
+.schedule-card .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schedule-card .header-content h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.schedule-card .date-display {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.schedule-card .card-content {
+    padding: 0;
+    background: white;
+    border-radius: 0 0 15px 15px;
+}
+
+/* Dashboard Table Styles */
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    border-spacing: 0;
+}
+
+.dashboard-table th {
+    background: #4A90E2;
+    color: white;
+    padding: 15px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    margin: 0;
+}
+
+.dashboard-table th:first-child {
+    padding-left: 25px;
+}
+
+.dashboard-table th:last-child {
+    padding-right: 25px;
+}
+
+.dashboard-table td {
+    padding: 15px 15px;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+    vertical-align: top;
+}
+
+.dashboard-table td:first-child {
+    padding-left: 25px;
+}
+
+.dashboard-table td:last-child {
+    padding-right: 25px;
+}
+
+.dashboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+.dashboard-table tr:hover {
+    background: rgba(74, 144, 226, 0.05);
+}
+
+/* Table Cell Content Styles */
+.table-cell-primary {
+    font-weight: 600;
+    color: #4A90E2;
+    font-size: 14px;
+}
+
+.table-cell-secondary {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.table-cell-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.table-cell-details {
+    font-size: 13px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 3px;
+}
+
+.table-cell-details i {
+    color: #4A90E2;
+}
+
+.table-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+/* Status Specific Badges */
+.status-active {
+    background: rgba(46, 213, 115, 0.1);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+.status-upcoming {
+    background: rgba(255, 159, 67, 0.1);
+    color: #ff9f43;
+    border: 1px solid rgba(255, 159, 67, 0.3);
+}
+
+.status-completed {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+/* Button Icon Styles */
+.btn-icon {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    border: 1px solid rgba(74, 144, 226, 0.2);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 2px;
+    font-size: 12px;
+}
+
+.btn-icon:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-icon.success {
+    background: rgba(46, 213, 115, 0.1);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.2);
+}
+
+.btn-icon.success:hover {
+    background: #2ed573;
+    color: white;
+}
+
+.btn-icon.danger {
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.btn-icon.danger:hover {
+    background: #ff6b6b;
+    color: white;
+}
+
+/* Section Spacing */
+.today-sessions-section,
+.upcoming-sessions-section {
+    margin-bottom: 2rem;
+}
+
+/* Quick Actions Section */
+.quick-actions-section {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.action-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.action-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+
+.action-card h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.action-card p {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 200px;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+}
+
+/* Different icon colors for variety */
+.action-card:nth-child(1) .action-icon {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+}
+
+.action-card:nth-child(2) .action-icon {
+    background: linear-gradient(135deg, #2ed573 0%, #26c565 100%);
+    box-shadow: 0 8px 20px rgba(46, 213, 115, 0.3);
+}
+
+.action-card:nth-child(3) .action-icon {
+    background: linear-gradient(135deg, #ff9f43 0%, #ff8c1a 100%);
+    box-shadow: 0 8px 20px rgba(255, 159, 67, 0.3);
+}
+
+
+
+/* Success Message Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .schedule-card .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .dashboard-table {
+        font-size: 14px;
+    }
+    
+    .dashboard-table th,
+    .dashboard-table td {
+        padding: 10px 8px;
+    }
+    
+    .dashboard-table th:first-child,
+    .dashboard-table td:first-child {
+        padding-left: 15px;
+    }
+    
+    .dashboard-table th:last-child,
+    .dashboard-table td:last-child {
+        padding-right: 15px;
+    }
+
+    .table-cell-title {
+        font-size: 14px;
+    }
+
+    .table-cell-primary {
+        font-size: 13px;
+    }
+
+    .table-cell-secondary,
+    .table-cell-details {
+        font-size: 11px;
+    }
+
+    .table-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .btn-icon {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .schedule-card .card-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .schedule-card .header-content h2 {
+        font-size: 1.3rem;
+    }
+
+    /* Quick Actions Responsive */
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .action-card {
+        padding: 1.5rem;
+    }
+
+    .action-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .action-card p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 1rem;
+        max-width: none;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+}

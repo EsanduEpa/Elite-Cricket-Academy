@@ -22,13 +22,13 @@ class Trainer extends Controller {
         // Set sample session data for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
         $data = [
             'title' => 'Trainer Dashboard',
-            'trainer_name' => $_SESSION['username'] ?? 'John Smith',
+            'trainer_name' => $_SESSION['username'] ?? 'John Trainer',
             'upcoming_sessions' => $this->getUpcomingSessions(),
             'today_stats' => $this->getTodayStats()
         ];
@@ -40,7 +40,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
@@ -56,7 +56,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
@@ -72,7 +72,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
@@ -88,7 +88,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
@@ -105,7 +105,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
@@ -122,7 +122,7 @@ class Trainer extends Controller {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Smith';
+            $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 

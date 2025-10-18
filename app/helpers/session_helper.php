@@ -38,4 +38,15 @@ function redirect($page) {
     header('location: ' . URLROOT . '/' . $page);
     exit();
 }
+
+function hasRole($role) {
+    if(isset($_SESSION['user_role'])) {
+        return $_SESSION['user_role'] === $role;
+    }
+    return false;
+}
+
+function getUserRole() {
+    return $_SESSION['user_role'] ?? 'Guest';
+}
 ?> 
