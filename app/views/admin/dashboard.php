@@ -1,18 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Include Header -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/tournaments.css">
 
     <!-- Admin Dashboard Layout -->
     <div class="admin-layout">
@@ -107,8 +95,9 @@
                     <div class="current-time" id="currentTime"></div>
                 </div>
             </div>
-
+<br><br>
             <!-- Summary Cards -->
+             
             <div class="summary-cards">
                 <div class="summary-card staff-card">
                     <div class="card-icon">
@@ -132,32 +121,6 @@
                         </div>
                         <div class="chart-container">
                             <canvas id="staffChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="summary-card player-card">
-                    <div class="card-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Player Management</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">156</span>
-                                <span class="label">Active Players</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">89%</span>
-                                <span class="label">Attendance</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">23</span>
-                                <span class="label">New Joinings</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="playerChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -241,57 +204,13 @@
                 </div>
             </div>
 
-            <!-- Detailed Analytics Section -->
-            <div class="analytics-section">
-                <!-- Revenue & Performance Charts -->
-                <div class="analytics-row">
-                    <div class="chart-card large">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-area"></i> Monthly Revenue Trend</h3>
-                            <div class="chart-controls">
-                                <select id="revenueFilter">
-                                    <option value="6">Last 6 Months</option>
-                                    <option value="12" selected>Last 12 Months</option>
-                                    <option value="24">Last 24 Months</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-pie"></i> Student Distribution</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="studentDistributionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Activity & Performance Metrics -->
-                <div class="analytics-row">
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-bar"></i> Training Attendance</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="attendanceChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-trophy"></i> Performance Metrics</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Calendar Section -->
+            <?php 
+            $calendarTitle = 'Academy Calendar';
+            $calendarIcon = 'fas fa-calendar-alt';
+            $calendarId = 'adminCalendar';
+            include APPROOT . '/views/inc/components/calendar.php'; 
+            ?>
 
             <!-- Recent Activity & Quick Actions -->
             <div class="activity-section">
@@ -388,7 +307,32 @@
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        // Ensure Chart.js is loaded before proceeding
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        window.chartJsLoaded = typeof Chart !== 'undefined';
+        console.log('URLROOT for JS files: <?php echo URLROOT; ?>');
+    </script>
+    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+    <script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
+    
+    <!-- Chart.js Test -->
+    <script>
+        console.log('Chart.js test script running...');
+        console.log('Chart available:', typeof Chart);
+        
+        // Test if we can find the canvas elements
+        setTimeout(function() {
+            const staffCanvas = document.getElementById('staffChart');
+            console.log('Staff canvas found:', !!staffCanvas);
+            if (staffCanvas) {
+                console.log('Staff canvas dimensions:', staffCanvas.width, 'x', staffCanvas.height);
+                console.log('Staff canvas parent:', staffCanvas.parentElement);
+            }
+        }, 1000);
+    </script>
 </body>
 
 </html>

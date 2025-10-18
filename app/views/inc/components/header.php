@@ -12,6 +12,14 @@
 <header class="header">
     <nav class="nav-container">
         <div class="logo">Elite Cricket Academy</div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+        
         <ul class="nav-menu">
             <li><a href="<?php echo URLROOT; ?>">Home</a></li>
             <li><a href="<?php echo URLROOT; ?>/#programs">Programs</a></li>

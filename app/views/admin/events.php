@@ -1,20 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events & Tournaments - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/create-event-wizard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- FullCalendar CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-</head>
-<body>
-    <!-- Include Header -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/create-event-wizard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/events.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/tournaments.css">
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
 <div class="admin-layout">
     <!-- Left Sidebar Panel -->
@@ -133,15 +123,7 @@
                     <div class="stat-label">Upcoming Events</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon training">
-                    <i class="fas fa-dumbbell"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-number"><?php echo $data['eventStats']['trainingSessions']; ?></div>
-                    <div class="stat-label">Training Sessions</div>
-                </div>
-            </div>
+           
             <div class="stat-card">
                 <div class="stat-icon matches">
                     <i class="fas fa-medal"></i>
@@ -1302,6 +1284,10 @@ function viewEvent(eventId) {
 
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<!-- Common Sidebar JS -->
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<!-- Common Tournaments JS -->
+<script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
 <!-- Admin Events JS -->
 <script src="<?php echo URLROOT; ?>/js/admin/events.js"></script>
 <!-- Create Event Wizard JS -->

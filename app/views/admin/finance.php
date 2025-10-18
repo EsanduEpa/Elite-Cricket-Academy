@@ -1,19 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Management - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/finance.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Include Header -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/finance.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Admin Dashboard Layout -->
     <div class="admin-layout">
@@ -432,6 +420,7 @@
     </div>
 
     <!-- Include JavaScript -->
+    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/finance.js"></script>
     

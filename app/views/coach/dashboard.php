@@ -1,19 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coach Dashboard - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- FullCalendar CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-</head>
-<body>
-    <!-- Include Header (same as v_home.php) -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
@@ -195,24 +183,13 @@
 
             <!-- Secondary Content Grid for Calendar and Bookings -->
             <div class="secondary-content-grid">
-                <!-- Calendar Section - Made Smaller -->
-                <div class="calendar-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-calendar-alt"></i> Training Calendar</h2>
-                        <div class="calendar-controls">
-                            <button class="btn-control" onclick="prevMonth()">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span id="currentMonth">September 2025</span>
-                            <button class="btn-control" onclick="nextMonth()">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="calendar-container">
-                        <div id="trainingCalendar"></div>
-                    </div>
-                </div>
+                <!-- Calendar Section -->
+                <?php 
+                $calendarTitle = 'Training Calendar';
+                $calendarIcon = 'fas fa-calendar-alt';
+                $calendarId = 'trainingCalendar';
+                include APPROOT . '/views/inc/components/calendar.php'; 
+                ?>
 
                 <!-- Upcoming Bookings Section -->
                 <div class="bookings-section">
@@ -336,6 +313,7 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <!-- Coach Dashboard JavaScript -->
+    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
 </body>
 </html>

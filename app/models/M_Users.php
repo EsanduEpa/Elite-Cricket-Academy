@@ -349,13 +349,92 @@ class M_Users {
         return $this->db->execute();
     }
 
+    // Create coach profile
+    public function createCoachProfile($coachId, $data = []) {
+        $this->db->query('INSERT INTO CoachProfile (CoachID, Specialization, Experience, Certifications, IsHeadCoach) 
+                         VALUES (:coach_id, :specialization, :experience, :certifications, :is_head_coach)');
+        
+        $this->db->bind(':coach_id', $coachId);
+        $this->db->bind(':specialization', $data['specialization'] ?? 'All-rounder');
+        $this->db->bind(':experience', $data['experience'] ?? 0);
+        $this->db->bind(':certifications', $data['certifications'] ?? null);
+        $this->db->bind(':is_head_coach', $data['is_head_coach'] ?? false);
+        
+        return $this->db->execute();
+    }
+
+    // Create trainer profile
+    public function createTrainerProfile($trainerId, $data = []) {
+        $this->db->query('INSERT INTO TrainerProfile (TrainerID, Experience, Certifications) 
+                         VALUES (:trainer_id, :experience, :certifications)');
+        
+        $this->db->bind(':trainer_id', $trainerId);
+        $this->db->bind(':experience', $data['experience'] ?? 0);
+        $this->db->bind(':certifications', $data['certifications'] ?? null);
+        
+        return $this->db->execute();
+    }
+
+    // Create shop employee profile
+    public function createShopEmployeeProfile($employeeId, $data = []) {
+        $this->db->query('INSERT INTO ShopEmployeeProfile (ShopEmployeeID, Department, HireDate) 
+                         VALUES (:employee_id, :department, :hire_date)');
+        
+        $this->db->bind(':employee_id', $employeeId);
+        $this->db->bind(':department', $data['department'] ?? 'General');
+        $this->db->bind(':hire_date', $data['hire_date'] ?? date('Y-m-d'));
+        
+        return $this->db->execute();
+    }
+
+    // Create admin profile
+    public function createAdminProfile($adminId, $data = []) {
+        $this->db->query('INSERT INTO AdminProfile (AdminID, Section, Department, AccessLevel, HireDate) 
+                         VALUES (:admin_id, :section, :department, :access_level, :hire_date)');
+        
+        $this->db->bind(':admin_id', $adminId);
+        $this->db->bind(':section', $data['section'] ?? 'General');
+       $this->db->bind(':hire_date', $data['hire_date'] ?? date('Y-m-d'));
+        
+        return $this->db->execute();
+    }
+
+    // Create appropriate profile based on role
+    public function createRoleProfile($userId, $role, $data = []) {
+        switch($role) {
+            case 'Player':
+                return $this->createPlayerProfile($userId, $data);
+            case 'Coach':
+                return $this->createCoachProfile($userId, $data);
+            case 'Trainer':
+                return $this->createTrainerProfile($userId, $data);
+            case 'ShopEmployee':
+                return $this->createShopEmployeeProfile($userId, $data);
+            case 'Admin':
+                return $this->createAdminProfile($userId, $data);
+            default:
+                return false;
+        }
+    }
+
     // Get user with profile information
     public function getUserWithProfile($userId) {
-        $this->db->query('SELECT u.*, pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, 
+        $this->db->query('SELECT u.*, 
+                                pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, 
                                 pp.SubscriptionType, pp.SchoolInstitution, pp.EmergencyContactName, 
-                                pp.EmergencyContactPhone, pp.ParentGuardianName, pp.ParentGuardianPhone
+                                pp.EmergencyContactPhone, pp.ParentGuardianName, pp.ParentGuardianPhone,
+                                cp.Specialization as CoachSpecialization, cp.Experience as CoachExperience, 
+                                cp.Certifications as CoachCertifications, cp.IsHeadCoach,
+                                tp.Experience as TrainerExperience, tp.Certifications as TrainerCertifications,
+                                sep.Department as ShopDepartment, sep.HireDate as ShopHireDate,
+                                ap.Section as AdminSection, ap.Department as AdminDepartment, 
+                                ap.AccessLevel as AdminAccessLevel, ap.HireDate as AdminHireDate
                          FROM User u 
                          LEFT JOIN PlayerProfile pp ON u.UserID = pp.PlayerID 
+                         LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID
+                         LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID
+                         LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID
+                         LEFT JOIN AdminProfile ap ON u.UserID = ap.AdminID
                          WHERE u.UserID = :user_id');
         
         $this->db->bind(':user_id', $userId);
