@@ -100,6 +100,31 @@ CREATE TABLE ShopEmployeeProfile (
     FOREIGN KEY (ShopEmployeeID) REFERENCES User(UserID) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Shop employee managing products, rentals, and facility bookings';
 
+-- Admin-specific profile with enhanced permissions and security tracking
+CREATE TABLE AdminProfile (
+    AdminID INT PRIMARY KEY,
+    AdminLevel ENUM('super_admin', 'system_admin', 'content_admin', 'finance_admin') DEFAULT 'system_admin' COMMENT 'Admin access level hierarchy',
+    Department ENUM('Management', 'Operations', 'Finance', 'Technical', 'General') DEFAULT 'General' COMMENT 'Administrative department',
+    AccessPermissions JSON COMMENT 'JSON object storing specific permission flags',
+    LastLoginIP VARCHAR(45) COMMENT 'Last login IP address for security tracking',
+    LoginAttempts INT DEFAULT 0 COMMENT 'Failed login attempt counter',
+    AccountLocked BOOLEAN DEFAULT FALSE COMMENT 'Account lock status for security',
+    LockoutExpiry DATETIME NULL COMMENT 'When account lockout expires',
+    TwoFactorEnabled BOOLEAN DEFAULT FALSE COMMENT 'Two-factor authentication status',
+    SecurityClearance ENUM('Level1', 'Level2', 'Level3', 'Level4') DEFAULT 'Level1' COMMENT 'Security clearance level',
+    HireDate DATE NOT NULL COMMENT 'Admin hire/appointment date',
+    CreatedBy INT NULL COMMENT 'Admin who created this account',
+    LastPasswordChange DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Last password change timestamp',
+    SessionTimeout INT DEFAULT 30 COMMENT 'Session timeout in minutes',
+    
+    FOREIGN KEY (AdminID) REFERENCES User(UserID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (CreatedBy) REFERENCES User(UserID) ON DELETE SET NULL ON UPDATE CASCADE,
+    
+    INDEX idx_admin_level (AdminLevel),
+    INDEX idx_department (Department),
+    INDEX idx_security_clearance (SecurityClearance),
+    INDEX idx_account_status (AccountLocked, LockoutExpiry)
+) ENGINE=InnoDB COMMENT='Admin-specific profile with enhanced permissions and security tracking';
 -- =============================================================================
 -- SECTION 2: ENHANCED USER MANAGEMENT AND ASSIGNMENT SYSTEM  
 -- =============================================================================
@@ -1207,6 +1232,88 @@ BEGIN
         VALUES (NEW.PlayerID, 'attendance_alert', 'Attendance Notice',
                 CONCAT('You were marked as ', NEW.AttendanceStatus, ' for your coaching session. Please ensure regular attendance.'));
     END IF;
+END//
+DELIMITER ;
+
+
+-- Enhanced trigger for automatic role-based profile creation
+DELIMITER //
+CREATE TRIGGER tr_create_role_based_profile 
+AFTER INSERT ON User 
+FOR EACH ROW
+BEGIN
+    -- Create profile based on user role
+    CASE NEW.Role
+        WHEN 'player' THEN
+            INSERT INTO PlayerProfile (
+                PlayerID, 
+                SubscriptionType, 
+                BattingStyle, 
+                BowlingStyle
+            ) VALUES (
+                NEW.UserID, 
+                'basic', 
+                NULL, 
+                NULL
+            );
+            
+        WHEN 'coach' THEN
+            INSERT INTO CoachProfile (
+                CoachID, 
+                Specialization, 
+                Experience, 
+                IsHeadCoach
+            ) VALUES (
+                NEW.UserID, 
+                NULL, 
+                0, 
+                FALSE
+            );
+            
+        WHEN 'trainer' THEN
+            INSERT INTO TrainerProfile (
+                TrainerID, 
+                Experience
+            ) VALUES (
+                NEW.UserID, 
+                0
+            );
+            
+        WHEN 'shop' THEN
+            INSERT INTO ShopEmployeeProfile (
+                ShopEmployeeID, 
+                Department, 
+                HireDate
+            ) VALUES (
+                NEW.UserID, 
+                'General', 
+                CURDATE()
+            );
+            
+        -- Admin role doesn't need a separate profile table
+        WHEN 'admin' THEN
+            -- Log admin account creation for security
+            INSERT INTO ActivityLog (UserID, Action, Description) 
+            VALUES (NEW.UserID, 'admin_account_created', 'New admin account created - requires verification');
+            
+        ELSE
+            -- Log unknown role for debugging
+            INSERT INTO ActivityLog (UserID, Action, Description) 
+            VALUES (NEW.UserID, 'unknown_role_registered', CONCAT('Unknown role registered: ', NEW.Role));
+    END CASE;
+    
+    -- Log account creation for all users
+    INSERT INTO ActivityLog (UserID, Action, Description) 
+    VALUES (NEW.UserID, 'account_created', CONCAT('New ', NEW.Role, ' account created'));
+    
+    -- Send welcome notification for all users
+    INSERT INTO Notification (UserID, Type, Title, Message) 
+    VALUES (NEW.UserID, 'welcome', 'Welcome to Elite Cricket Academy', 
+            'Your account has been created successfully. Please complete your profile setup.');
+            
+    -- Queue welcome email for all users
+    INSERT INTO EmailLog (UserID, RecipientEmail, Subject, EmailType) 
+    VALUES (NEW.UserID, NEW.Email, 'Welcome to Elite Cricket Academy', 'welcome');
 END//
 DELIMITER ;
 
