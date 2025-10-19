@@ -12,7 +12,7 @@ if (isset($_SESSION['user_id'])) {
     echo "<p style='color: green;'>✅ User is logged in</p>";
     echo "<p><strong>User ID:</strong> " . $_SESSION['user_id'] . "</p>";
     echo "<p><strong>User Role:</strong> " . ($_SESSION['user_role'] ?? 'Not set') . "</p>";
-    echo "<p><strong>User Name:</strong> " . ($_SESSION['user_name'] ?? 'Not set') . "</p>";
+    echo "<p><strong>User Name:</strong> " . ($_SESSION['user_name'] ?? $_SESSION['name'] ?? 'Not set') . "</p>";
 } else {
     echo "<p style='color: red;'>❌ No user is logged in</p>";
     echo "<p>You need to login first to use the medical records system.</p>";

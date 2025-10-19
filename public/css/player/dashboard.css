@@ -423,6 +423,7 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
     overflow: hidden;
+    margin-bottom: 30px;
 }
 
 /* Card Header */
@@ -745,6 +746,7 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
     overflow: hidden;
+    margin-bottom: 30px;
 }
 
 /* Quick Actions Container */
@@ -755,6 +757,7 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
     overflow: hidden;
+    margin-bottom: 30px;
 }
 
 /* Section Header */
@@ -867,6 +870,7 @@ body {
     border-radius: 15px;
     padding: 25px;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    margin-bottom: 30px;
 }
 
 .metric-card h4 {

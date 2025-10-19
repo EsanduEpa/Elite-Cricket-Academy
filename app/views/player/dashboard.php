@@ -45,12 +45,7 @@
                             <span>Bookings</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/coachbooking" class="nav-link">
-                            <i class="fas fa-user-tie"></i>
-                            <span>Coach Sessions</span>
-                        </a>
-                    </li>
+                  
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
@@ -97,7 +92,7 @@
             <div class="dashboard-header">
                 <div class="header-content">
                     <div class="header-text">
-                        <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo $data['player']['name']; ?>!</h1>
+                        <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?>!</h1>
                         <p>Your cricket journey dashboard - Track progress, manage bookings, and achieve your goals</p>
                     </div>
                     <div class="header-actions">

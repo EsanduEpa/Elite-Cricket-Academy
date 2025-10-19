@@ -390,15 +390,15 @@ class Player extends Controller {
         if ($user) {
             return [
                 'id' => $user->UserID,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone ?? '+1-555-123-4567',
-                'roles' => $user->roles ?? 'Right-handed Batsman | Right-arm Fast Bowler',
-                'profile_picture' => $user->profile_picture ?? 'default-profile.jpg',
-                'date_of_birth' => $user->date_of_birth ?? '1999-01-15',
-                'address' => $user->address ?? '123 Willow Creek Rd, Anytown, USA',
-                'membership_level' => $user->membership_level ?? 'Premium',
-                'joined_date' => $user->created_at ?? '2023-06-15'
+                'name' => $user->Name,
+                'email' => $user->Email,
+                'phone' => $user->PhoneNumber ?? '+1-555-123-4567',
+                'roles' => 'Right-handed Batsman | Right-arm Fast Bowler', // Could be enhanced with profile data
+                'profile_picture' => 'default-profile.jpg', // Could be enhanced with profile data
+                'date_of_birth' => $user->DateOfBirth ?? '1999-01-15',
+                'address' => $user->Address ?? '123 Willow Creek Rd, Anytown, USA',
+                'membership_level' => 'Standard', // Could be enhanced with profile data
+                'joined_date' => $user->DateJoined ?? '2023-06-15'
             ];
         } else {
             // Fallback if user not found

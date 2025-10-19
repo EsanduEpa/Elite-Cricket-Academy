@@ -84,7 +84,7 @@
             <!-- Dashboard Header -->
             <div class="dashboard-header">
                 <div class="header-content">
-                    <h1><i class="fas fa-chalkboard-teacher"></i> Coach Dashboard</h1>
+                    <h1><i class="fas fa-chalkboard-teacher"></i> Welcome back, <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?>!</h1>
                     <p>Manage your training sessions, players, and schedules</p>
                 </div>
                 <div class="header-actions">
