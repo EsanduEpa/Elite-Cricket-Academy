@@ -217,15 +217,48 @@ class Admin extends Controller {
     public function create_event() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Debug: Log that we received POST data
+            error_log("======================================");
             error_log("Event creation POST received at: " . date('Y-m-d H:i:s'));
+            error_log("Session user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NOT SET'));
+            error_log("POST data count: " . count($_POST));
             error_log("POST data: " . print_r($_POST, true));
+            
+            // Check if user is logged in
+            if (!isset($_SESSION['user_id'])) {
+                error_log("ERROR: User not logged in!");
+                flash('event_message', '⚠️ You must be logged in to create events', 'alert alert-danger');
+                redirect('login');
+                return;
+            }
             
             // Sanitize POST data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
             
+            // Validate required POST fields exist
+            $requiredFields = ['event_name', 'event_type', 'event_category', 'event_venue', 
+                              'start_date', 'start_time', 'end_date', 'end_time',
+                              'primary_contact', 'contact_email', 'contact_phone'];
+            
+            $missingFields = [];
+            foreach ($requiredFields as $field) {
+                if (empty($_POST[$field])) {
+                    $missingFields[] = $field;
+                }
+            }
+            
+            if (!empty($missingFields)) {
+                error_log("ERROR: Missing required fields: " . implode(', ', $missingFields));
+                flash('event_message', '⚠️ Missing required fields: ' . implode(', ', $missingFields), 'alert alert-danger');
+                redirect('admin/create_event');
+                return;
+            }
+            
             // Merge date and time fields into DATETIME format
             $startDateTime = $_POST['start_date'] . ' ' . $_POST['start_time'] . ':00';
             $endDateTime = $_POST['end_date'] . ' ' . $_POST['end_time'] . ':00';
+            
+            error_log("Start DateTime: " . $startDateTime);
+            error_log("End DateTime: " . $endDateTime);
             
             // Handle optional datetime fields
             $registrationStart = !empty($_POST['registration_start']) ? 
@@ -238,24 +271,18 @@ class Admin extends Controller {
                 'name' => trim($_POST['event_name']),
                 'type' => $_POST['event_type'],
                 'category' => $_POST['event_category'],
-                'description' => trim($_POST['event_description']),
+                'description' => !empty($_POST['event_description']) ? trim($_POST['event_description']) : null,
                 'start_date' => $startDateTime,
                 'end_date' => $endDateTime,
                 'location' => trim($_POST['event_venue']),
-                'organized_by' => $_SESSION['user_id'], // Current admin user
                 'status' => isset($_POST['event_status']) ? $_POST['event_status'] : 'upcoming',
                 'max_participants' => !empty($_POST['max_participants']) ? intval($_POST['max_participants']) : null,
-                'registration_fee' => !empty($_POST['registration_fee']) ? floatval($_POST['registration_fee']) : 0.00,
+                'registration_fee' => !empty($_POST['registration_fee']) ? floatval($_POST['registration_fee']) : null,
                 'registration_start' => $registrationStart,
                 'registration_end' => $registrationEnd,
                 'primary_contact' => !empty($_POST['primary_contact']) ? trim($_POST['primary_contact']) : null,
                 'contact_email' => !empty($_POST['contact_email']) ? trim($_POST['contact_email']) : null,
-                'contact_phone' => !empty($_POST['contact_phone']) ? trim($_POST['contact_phone']) : null,
-                'secondary_contact' => !empty($_POST['secondary_contact']) ? trim($_POST['secondary_contact']) : null,
-                'secondary_email' => !empty($_POST['secondary_email']) ? trim($_POST['secondary_email']) : null,
-                'secondary_phone' => !empty($_POST['secondary_phone']) ? trim($_POST['secondary_phone']) : null,
-                'event_coordinator' => !empty($_POST['event_coordinator']) ? intval($_POST['event_coordinator']) : null,
-                'special_requirements' => !empty($_POST['special_requirements']) ? trim($_POST['special_requirements']) : null
+                'contact_phone' => !empty($_POST['contact_phone']) ? trim($_POST['contact_phone']) : null
             ];
             
             // Validate required fields

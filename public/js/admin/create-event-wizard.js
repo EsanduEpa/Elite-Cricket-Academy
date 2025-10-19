@@ -335,6 +335,7 @@ class EventWizard {
     submitForm(e) {
         e.preventDefault();
         console.log('=== MODAL EVENT FORM SUBMISSION STARTED ===');
+        console.log('Current step:', this.currentStep);
         
         if (this.validateCurrentStep()) {
             console.log('✓ Final validation passed');
@@ -344,17 +345,48 @@ class EventWizard {
             
             if (!form) {
                 console.error('❌ Form not found!');
+                alert('Error: Form element not found. Please refresh the page and try again.');
                 return;
             }
             
+            // Verify form action
+            if (!form.action || form.action === '') {
+                console.error('❌ Form action is empty!');
+                alert('Error: Form action URL is missing. Please contact support.');
+                return;
+            }
+            
+            console.log('Form found:', form);
             console.log('Form action:', form.action);
             console.log('Form method:', form.method);
             
             // Collect and log form data
             const formData = new FormData(form);
-            console.log('Form data being submitted:');
+            console.log('Form data being submitted (' + formData.entries().length + ' fields):');
+            let fieldCount = 0;
+            let emptyRequired = [];
+            
             for (let [key, value] of formData.entries()) {
-                console.log(`  ${key}: ${value}`);
+                fieldCount++;
+                console.log(`  ${fieldCount}. ${key}: ${value || '(empty)'}`);
+                
+                // Check if required field is empty
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field && field.hasAttribute('required') && !value) {
+                    emptyRequired.push(key);
+                }
+            }
+            
+            console.log(`Total fields: ${fieldCount}`);
+            
+            if (emptyRequired.length > 0) {
+                console.error('❌ Required fields are empty:', emptyRequired);
+                alert('Please fill all required fields:\n- ' + emptyRequired.join('\n- '));
+                
+                // Re-enable submit button
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+                submitBtn.disabled = false;
+                return;
             }
             
             // Show loading state
@@ -363,10 +395,31 @@ class EventWizard {
             console.log('✓ Submit button disabled, showing loading state');
 
             console.log('✓ Submitting form to server...');
-            // Actually submit the form to the server
-            form.submit();
+            
+            // Try to submit the form
+            try {
+                form.submit();
+                console.log('✓ Form.submit() called successfully');
+            } catch (error) {
+                console.error('❌ Form submission error:', error);
+                alert('Error submitting form: ' + error.message);
+                
+                // Re-enable submit button
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+                submitBtn.disabled = false;
+            }
         } else {
             console.error('✗ Validation failed - form not submitted');
+            console.log('Step', this.currentStep, 'validation failed');
+            
+            // Find which fields failed
+            const currentStepElement = document.querySelector(`[data-step="${this.currentStep}"]`);
+            if (currentStepElement) {
+                const invalidFields = currentStepElement.querySelectorAll('.error');
+                console.log('Invalid fields:', Array.from(invalidFields).map(f => f.id || f.name));
+            }
+            
+            alert('Please fill all required fields correctly before submitting.');
         }
     }
 

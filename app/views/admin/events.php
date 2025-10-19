@@ -516,44 +516,6 @@
                                 <div class="error-message" id="contactPhoneError">Please enter a valid phone number</div>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="secondaryContact">Secondary Contact Person</label>
-                            <input type="text" id="secondaryContact" name="secondary_contact" class="form-control" 
-                                   placeholder="Backup organizer (optional)">
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="secondaryEmail">Secondary Email</label>
-                                <input type="email" id="secondaryEmail" name="secondary_email" class="form-control" 
-                                       placeholder="backup@elitecricket.com">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secondaryPhone">Secondary Phone</label>
-                                <input type="tel" id="secondaryPhone" name="secondary_phone" class="form-control" 
-                                       placeholder="+94 71 987 6543">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="eventCoordinator">Event Coordinator</label>
-                            <select id="eventCoordinator" name="event_coordinator" class="form-control">
-                                <option value="">Select Coordinator</option>
-                                <option value="john_doe">John Doe (Head Coach)</option>
-                                <option value="jane_smith">Jane Smith (Academy Manager)</option>
-                                <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
-                                <option value="sarah_johnson">Sarah Johnson (Assistant Manager)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="specialRequirements">Special Requirements / Notes</label>
-                            <textarea id="specialRequirements" name="special_requirements" class="form-control" 
-                                    placeholder="Any special arrangements, equipment needs, dietary requirements, accessibility considerations, etc." 
-                                    rows="3"></textarea>
-                        </div>
                     </div>
 
                     <!-- Step 4: Confirmation -->

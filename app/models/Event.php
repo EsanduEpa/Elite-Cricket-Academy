@@ -243,7 +243,6 @@ class Event {
             StartDate, 
             EndDate, 
             Location, 
-            OrganizedBy, 
             Status, 
             MaxParticipants,
             RegistrationFee,
@@ -251,12 +250,7 @@ class Event {
             RegistrationEnd,
             PrimaryContact,
             ContactEmail,
-            ContactPhone,
-            SecondaryContact,
-            SecondaryEmail,
-            SecondaryPhone,
-            EventCoordinator,
-            SpecialRequirements
+            ContactPhone
         ) VALUES (
             :name,
             :type,
@@ -265,7 +259,6 @@ class Event {
             :start_date,
             :end_date,
             :location,
-            :organized_by,
             :status,
             :max_participants,
             :registration_fee,
@@ -273,12 +266,7 @@ class Event {
             :registration_end,
             :primary_contact,
             :contact_email,
-            :contact_phone,
-            :secondary_contact,
-            :secondary_email,
-            :secondary_phone,
-            :event_coordinator,
-            :special_requirements
+            :contact_phone
         )');
 
         // Bind values
@@ -289,7 +277,6 @@ class Event {
         $this->db->bind(':start_date', $data['start_date']);
         $this->db->bind(':end_date', $data['end_date']);
         $this->db->bind(':location', $data['location']);
-        $this->db->bind(':organized_by', $data['organized_by']);
         $this->db->bind(':status', $data['status']);
         $this->db->bind(':max_participants', $data['max_participants']);
         $this->db->bind(':registration_fee', $data['registration_fee']);
@@ -298,11 +285,6 @@ class Event {
         $this->db->bind(':primary_contact', $data['primary_contact']);
         $this->db->bind(':contact_email', $data['contact_email']);
         $this->db->bind(':contact_phone', $data['contact_phone']);
-        $this->db->bind(':secondary_contact', $data['secondary_contact']);
-        $this->db->bind(':secondary_email', $data['secondary_email']);
-        $this->db->bind(':secondary_phone', $data['secondary_phone']);
-        $this->db->bind(':event_coordinator', $data['event_coordinator']);
-        $this->db->bind(':special_requirements', $data['special_requirements']);
 
         // Execute
         try {
