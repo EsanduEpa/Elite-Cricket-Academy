@@ -48,7 +48,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#feedback-monitoring" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
                             <span class="badge">12</span>
