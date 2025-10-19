@@ -334,29 +334,39 @@ class EventWizard {
 
     submitForm(e) {
         e.preventDefault();
+        console.log('=== MODAL EVENT FORM SUBMISSION STARTED ===');
         
         if (this.validateCurrentStep()) {
+            console.log('✓ Final validation passed');
+            
             const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
+            const form = document.getElementById('eventWizardForm');
+            
+            if (!form) {
+                console.error('❌ Form not found!');
+                return;
+            }
+            
+            console.log('Form action:', form.action);
+            console.log('Form method:', form.method);
+            
+            // Collect and log form data
+            const formData = new FormData(form);
+            console.log('Form data being submitted:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
             
             // Show loading state
             submitBtn.innerHTML = '<div class="loading"></div> Creating Event...';
             submitBtn.disabled = true;
+            console.log('✓ Submit button disabled, showing loading state');
 
-            // Simulate form submission - replace with actual form submission
-            setTimeout(() => {
-                // Reset form and close modal
-                this.resetWizard();
-                closeCreateEventModal();
-                
-                // Show success message
-                showNotification('Event created successfully!', 'success');
-                
-                // Refresh events if needed
-                if (typeof refreshEvents === 'function') {
-                    refreshEvents();
-                }
-            }, 2000);
+            console.log('✓ Submitting form to server...');
+            // Actually submit the form to the server
+            form.submit();
+        } else {
+            console.error('✗ Validation failed - form not submitted');
         }
     }
 
@@ -548,13 +558,25 @@ function showNotification(message, type = 'info') {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 create-event-wizard.js DOMContentLoaded fired');
+    
     // Setup enhanced modal close handlers
     setupModalCloseHandlers();
     
     // Bind create event button
     const createEventBtn = document.getElementById('createEventBtn');
+    console.log('🔘 Create Event button found in wizard JS:', !!createEventBtn);
+    
     if (createEventBtn) {
-        createEventBtn.addEventListener('click', openCreateEventModal);
+        createEventBtn.addEventListener('click', function(e) {
+            console.log('🎯 CREATE EVENT BUTTON CLICKED! (from wizard.js)');
+            e.preventDefault();
+            e.stopPropagation();
+            openCreateEventModal();
+        });
+        console.log('✅ Event listener attached to Create Event button');
+    } else {
+        console.error('❌ Create Event button NOT FOUND in wizard JS!');
     }
     
     // Close modal when clicking outside

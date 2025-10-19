@@ -215,21 +215,81 @@ class Admin extends Controller {
     }
 
     public function create_event() {
-        if ($_POST) {
-            // Handle event creation
-            $eventModel = $this->model('Event');
-            $result = $eventModel->createEvent($_POST);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Debug: Log that we received POST data
+            error_log("Event creation POST received at: " . date('Y-m-d H:i:s'));
+            error_log("POST data: " . print_r($_POST, true));
             
-            if ($result) {
-                flash('event_message', 'Event created successfully');
-                redirect('admin/events');
-            } else {
-                flash('event_message', 'Something went wrong', 'alert alert-danger');
-                redirect('admin/events');
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            // Merge date and time fields into DATETIME format
+            $startDateTime = $_POST['start_date'] . ' ' . $_POST['start_time'] . ':00';
+            $endDateTime = $_POST['end_date'] . ' ' . $_POST['end_time'] . ':00';
+            
+            // Handle optional datetime fields
+            $registrationStart = !empty($_POST['registration_start']) ? 
+                str_replace('T', ' ', $_POST['registration_start']) . ':00' : null;
+            $registrationEnd = !empty($_POST['registration_end']) ? 
+                str_replace('T', ' ', $_POST['registration_end']) . ':00' : null;
+            
+            // Prepare data array for the model
+            $eventData = [
+                'name' => trim($_POST['event_name']),
+                'type' => $_POST['event_type'],
+                'category' => $_POST['event_category'],
+                'description' => trim($_POST['event_description']),
+                'start_date' => $startDateTime,
+                'end_date' => $endDateTime,
+                'location' => trim($_POST['event_venue']),
+                'organized_by' => $_SESSION['user_id'], // Current admin user
+                'status' => isset($_POST['event_status']) ? $_POST['event_status'] : 'upcoming',
+                'max_participants' => !empty($_POST['max_participants']) ? intval($_POST['max_participants']) : null,
+                'registration_fee' => !empty($_POST['registration_fee']) ? floatval($_POST['registration_fee']) : 0.00,
+                'registration_start' => $registrationStart,
+                'registration_end' => $registrationEnd,
+                'primary_contact' => !empty($_POST['primary_contact']) ? trim($_POST['primary_contact']) : null,
+                'contact_email' => !empty($_POST['contact_email']) ? trim($_POST['contact_email']) : null,
+                'contact_phone' => !empty($_POST['contact_phone']) ? trim($_POST['contact_phone']) : null,
+                'secondary_contact' => !empty($_POST['secondary_contact']) ? trim($_POST['secondary_contact']) : null,
+                'secondary_email' => !empty($_POST['secondary_email']) ? trim($_POST['secondary_email']) : null,
+                'secondary_phone' => !empty($_POST['secondary_phone']) ? trim($_POST['secondary_phone']) : null,
+                'event_coordinator' => !empty($_POST['event_coordinator']) ? intval($_POST['event_coordinator']) : null,
+                'special_requirements' => !empty($_POST['special_requirements']) ? trim($_POST['special_requirements']) : null
+            ];
+            
+            // Validate required fields
+            if (empty($eventData['name']) || empty($eventData['type']) || empty($eventData['category']) || 
+                empty($eventData['location']) || empty($eventData['start_date']) || empty($eventData['end_date'])) {
+                flash('event_message', '⚠️ Please fill all required fields (Name, Type, Category, Venue, Start Date/Time, End Date/Time)', 'alert alert-danger');
+                redirect('admin/create_event');
+                return;
+            }
+            
+            // Create event with error handling
+            try {
+                $eventModel = $this->model('Event');
+                $result = $eventModel->createEvent($eventData);
+                
+                if ($result) {
+                    flash('event_message', '✅ Event "' . $eventData['name'] . '" created successfully!', 'alert alert-success');
+                    redirect('admin/events');
+                } else {
+                    flash('event_message', '❌ Failed to create event. Please check the form data and try again.', 'alert alert-danger');
+                    redirect('admin/create_event');
+                }
+            } catch (Exception $e) {
+                error_log("Event creation exception: " . $e->getMessage());
+                flash('event_message', '❌ Database error: ' . $e->getMessage(), 'alert alert-danger');
+                redirect('admin/create_event');
             }
         } else {
+            // Load coaches and trainers for the event coordinator dropdown
+            $userModel = $this->model('M_Users');
+            
             $data = [
-                'title' => 'Create New Event - Elite Cricket Academy'
+                'title' => 'Create New Event - Elite Cricket Academy',
+                'coordinators' => [] // You can load staff members here if needed
             ];
             $this->view('admin/create_event', $data);
         }

@@ -232,10 +232,91 @@ class Event {
         return array_slice($recentEvents, 0, $limit);
     }
 
-    // Create new event (interface method) - INTERFACE DEMO VERSION (No Database)
+    // Create new event - REAL DATABASE VERSION
     public function createEvent($data) {
-        // Simulate successful creation
-        return true;
+        // Prepare the SQL statement with all fields from the updated Event table
+        $this->db->query('INSERT INTO Event (
+            Name, 
+            Type, 
+            Category, 
+            Description, 
+            StartDate, 
+            EndDate, 
+            Location, 
+            OrganizedBy, 
+            Status, 
+            MaxParticipants,
+            RegistrationFee,
+            RegistrationStart,
+            RegistrationEnd,
+            PrimaryContact,
+            ContactEmail,
+            ContactPhone,
+            SecondaryContact,
+            SecondaryEmail,
+            SecondaryPhone,
+            EventCoordinator,
+            SpecialRequirements
+        ) VALUES (
+            :name,
+            :type,
+            :category,
+            :description,
+            :start_date,
+            :end_date,
+            :location,
+            :organized_by,
+            :status,
+            :max_participants,
+            :registration_fee,
+            :registration_start,
+            :registration_end,
+            :primary_contact,
+            :contact_email,
+            :contact_phone,
+            :secondary_contact,
+            :secondary_email,
+            :secondary_phone,
+            :event_coordinator,
+            :special_requirements
+        )');
+
+        // Bind values
+        $this->db->bind(':name', $data['name']);
+        $this->db->bind(':type', $data['type']);
+        $this->db->bind(':category', $data['category']);
+        $this->db->bind(':description', $data['description']);
+        $this->db->bind(':start_date', $data['start_date']);
+        $this->db->bind(':end_date', $data['end_date']);
+        $this->db->bind(':location', $data['location']);
+        $this->db->bind(':organized_by', $data['organized_by']);
+        $this->db->bind(':status', $data['status']);
+        $this->db->bind(':max_participants', $data['max_participants']);
+        $this->db->bind(':registration_fee', $data['registration_fee']);
+        $this->db->bind(':registration_start', $data['registration_start']);
+        $this->db->bind(':registration_end', $data['registration_end']);
+        $this->db->bind(':primary_contact', $data['primary_contact']);
+        $this->db->bind(':contact_email', $data['contact_email']);
+        $this->db->bind(':contact_phone', $data['contact_phone']);
+        $this->db->bind(':secondary_contact', $data['secondary_contact']);
+        $this->db->bind(':secondary_email', $data['secondary_email']);
+        $this->db->bind(':secondary_phone', $data['secondary_phone']);
+        $this->db->bind(':event_coordinator', $data['event_coordinator']);
+        $this->db->bind(':special_requirements', $data['special_requirements']);
+
+        // Execute
+        try {
+            if ($this->db->execute()) {
+                error_log("Event created successfully");
+                return true;
+            } else {
+                error_log("Event creation failed - execute returned false");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Event creation error: " . $e->getMessage());
+            return false;
+        }
     }
 
     // Get calendar events (formatted for calendar display) - INTERFACE DEMO VERSION (No Database)

@@ -103,6 +103,9 @@
             </div>
         </div>
 
+        <!-- Flash Messages -->
+        <?php flash('event_message'); ?>
+
         <!-- Event Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -337,7 +340,7 @@
             </div>
 
             <!-- Form Content -->
-            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/create_event" method="POST">
                 <div class="wizard-content">
                     <!-- Step 1: Basic Details -->
                     <div class="step-content active" data-step="1">
@@ -1202,28 +1205,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Updated event handlers for new wizard modal
-    const createEventBtn = document.getElementById('createEventBtn');
-    const createTournamentBtn = document.getElementById('createTournamentBtn');
+    // Note: Create Event button handler is now in create-event-wizard.js to avoid timing issues
+    // Note: Create Tournament button handler is in create-tournament-wizard.js
     
-    if (createEventBtn) {
-        createEventBtn.addEventListener('click', () => {
-            console.log('Create Event button clicked!');
-            openCreateEventModal();
-        });
-    } else {
-        console.error('Create Event button not found!');
-    }
-    
-    if (createTournamentBtn) {
-        createTournamentBtn.addEventListener('click', () => {
-            console.log('Create Tournament button clicked!');
-            openTournamentModal();
-        });
-    } else {
-        console.error('Create Tournament button not found!');
-    }
-
     // Other existing event handlers
     const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
     const viewAllPastBtn = document.getElementById('viewAllPastBtn');
@@ -1381,6 +1365,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeFilter) typeFilter.addEventListener('change', filterEvents);
     if (dateFilter) dateFilter.addEventListener('change', filterEvents);
+    
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessage = document.getElementById('msg-flash');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.classList.add('alert-fade-out');
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 500);
+        }, 5000);
+    }
 });
 </script>
 
