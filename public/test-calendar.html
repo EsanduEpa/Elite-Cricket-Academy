@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Test - Elite Cricket Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Custom Calendar Styles */
+        .calendar-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+        }
+
+        .calendar-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .calendar-header h3 i {
+            color: #4A90E2;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .calendar-nav span {
+            font-weight: 600;
+            color: #333;
+            min-width: 200px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .calendar-btn {
+            background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(74, 144, 226, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 80px;
+        }
+
+        .calendar-day.header {
+            font-weight: 700;
+            color: #4A90E2;
+            background: rgba(74, 144, 226, 0.15);
+            cursor: default;
+            text-transform: uppercase;
+            font-size: 14px;
+            min-height: 40px;
+        }
+
+        .calendar-day.today {
+            background: rgba(74, 144, 226, 0.25);
+            border-color: #4A90E2;
+            border-width: 2px;
+            font-weight: 700;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day:not(.header):not(.other-month):hover {
+            background: rgba(74, 144, 226, 0.2);
+            transform: scale(1.05);
+        }
+
+        .calendar-day .date-number {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .calendar-day .event-indicator {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .calendar-day .event-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .event-dot.event { background: #4A90E2; }
+        .event-dot.coaching { background: #10b981; }
+        .event-dot.tournament { background: #ef4444; }
+        .event-dot.meeting { background: #f59e0b; }
+
+        .calendar-legend {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding-top: 20px;
+            border-top: 1px solid rgba(74, 144, 226, 0.2);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.event { background: #4A90E2; }
+        .legend-dot.coaching { background: #10b981; }
+        .legend-dot.tournament { background: #ef4444; }
+        .legend-dot.meeting { background: #f59e0b; }
+
+        .console-log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .console-log div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-calendar-check"></i> Calendar Test</h1>
+        
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <h3><i class="fas fa-calendar-alt"></i> Academy Calendar</h3>
+                <div class="calendar-nav">
+                    <button id="prevMonth" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
+                    <span id="currentMonthYear"></span>
+                    <button id="nextMonth" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <div class="calendar-legend">
+                <div class="legend-item"><span class="legend-dot event"></span> Events</div>
+                <div class="legend-item"><span class="legend-dot coaching"></span> Coaching Sessions</div>
+                <div class="legend-item"><span class="legend-dot tournament"></span> Tournaments</div>
+                <div class="legend-item"><span class="legend-dot meeting"></span> Meetings</div>
+            </div>
+        </div>
+
+        <div class="console-log" id="consoleLog">
+            <div><strong>Console Output:</strong></div>
+        </div>
+    </div>
+
+    <script>
+        // Custom console.log to display in the page
+        const logDiv = document.getElementById('consoleLog');
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const logEntry = document.createElement('div');
+            logEntry.textContent = args.join(' ');
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        console.log('✅ Page loaded');
+
+        // Calendar Events Data
+        const calendarEvents = [
+            { date: '2025-01-05', type: 'event', title: 'New Year Sports Gala' },
+            { date: '2025-01-10', type: 'coaching', title: 'Batting Masterclass' },
+            { date: '2025-01-12', type: 'coaching', title: 'Bowling Techniques' },
+            { date: '2025-01-15', type: 'tournament', title: 'Inter-Academy Championship' },
+            { date: '2025-01-18', type: 'meeting', title: 'Parents Meeting' },
+            { date: '2025-01-20', type: 'coaching', title: 'Fielding Drills' },
+            { date: '2025-01-22', type: 'event', title: 'Republic Day Celebration' },
+            { date: '2025-01-25', type: 'coaching', title: 'Wicket-keeping Workshop' },
+            { date: '2025-01-28', type: 'tournament', title: 'U-16 League Match' },
+            { date: '2025-01-30', type: 'meeting', title: 'Strategy Planning' }
+        ];
+
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        console.log('📅 Initial month:', currentMonth, 'year:', currentYear);
+
+        // Initialize Calendar
+        function initializeCalendar() {
+            console.log('🗓️ Initializing calendar...');
+            renderCalendar();
+            
+            // Navigation buttons
+            const prevBtn = document.getElementById('prevMonth');
+            const nextBtn = document.getElementById('nextMonth');
+            
+            console.log('Calendar buttons:', prevBtn ? '✅ Prev' : '❌ Prev', nextBtn ? '✅ Next' : '❌ Next');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    console.log('◀️ Previous month clicked:', currentMonth, currentYear);
+                    renderCalendar();
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    console.log('▶️ Next month clicked:', currentMonth, currentYear);
+                    renderCalendar();
+                });
+            }
+        }
+
+        // Render Calendar
+        function renderCalendar() {
+            console.log('📅 Rendering calendar...');
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            // Update month/year display
+            const monthYearElement = document.getElementById('currentMonthYear');
+            if (monthYearElement) {
+                monthYearElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                console.log('✅ Month/year set to:', monthYearElement.textContent);
+            }
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (!calendarGrid) {
+                console.error('❌ Calendar grid element not found!');
+                return;
+            }
+            
+            console.log('✅ Calendar grid found');
+            calendarGrid.innerHTML = '';
+            
+            // Add day headers
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day header';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+            
+            console.log('✅ Day headers added');
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            console.log('Days in month:', daysInMonth, 'First day:', firstDay);
+            
+            // Add previous month's days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayCell = createDayCell(daysInPrevMonth - i, true, currentMonth - 1);
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            // Add current month's days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === today.getDate() && 
+                               currentMonth === today.getMonth() && 
+                               currentYear === today.getFullYear();
+                const dayCell = createDayCell(day, false, currentMonth, isToday);
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            // Add next month's days
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = 7 - (totalCells % 7);
+            if (remainingCells < 7) {
+                for (let day = 1; day <= remainingCells; day++) {
+                    const dayCell = createDayCell(day, true, currentMonth + 1);
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+            
+            console.log('✅ Calendar rendered successfully with', daysInMonth, 'days');
+        }
+
+        // Create Day Cell
+        function createDayCell(day, isOtherMonth, month, isToday = false) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+            
+            if (isOtherMonth) {
+                dayCell.classList.add('other-month');
+            }
+            if (isToday) {
+                dayCell.classList.add('today');
+            }
+            
+            const dateNumber = document.createElement('div');
+            dateNumber.className = 'date-number';
+            dateNumber.textContent = day;
+            dayCell.appendChild(dateNumber);
+            
+            // Check for events on this day
+            const dateStr = `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+            
+            if (dayEvents.length > 0 && !isOtherMonth) {
+                const eventIndicator = document.createElement('div');
+                eventIndicator.className = 'event-indicator';
+                
+                dayEvents.forEach(event => {
+                    const eventDot = document.createElement('span');
+                    eventDot.className = `event-dot ${event.type}`;
+                    eventDot.title = event.title;
+                    eventIndicator.appendChild(eventDot);
+                });
+                
+                dayCell.appendChild(eventIndicator);
+            }
+            
+            return dayCell;
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM loaded, initializing calendar...');
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (calendarGrid) {
+                console.log('✅ Calendar grid found in DOM');
+                initializeCalendar();
+            } else {
+                console.error('❌ Calendar grid not found in DOM');
+            }
+        });
+    </script>
+</body>
+</html>

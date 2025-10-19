@@ -6,6 +6,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     initializeSidebar();
     
+    // Initialize custom calendar
+    if (document.getElementById('monthView')) {
+        console.log('Calendar found, initializing...');
+        initializeCalendar();
+    } else {
+        console.log('Calendar not found');
+    }
+    
     // Wait for Chart.js to be available
     function waitForChart() {
         if (typeof Chart !== 'undefined' && window.chartJsLoaded) {
@@ -745,3 +753,490 @@ function openModal(modalType) {
 // Export functions for global access
 window.refreshDashboard = refreshDashboard;
 window.openModal = openModal;
+
+// ============================================
+// Custom Calendar Implementation
+// ============================================
+
+// Calendar Data - Events, Coaching Sessions, Tournaments, Meetings (with times)
+const calendarEvents = [
+    // Events
+    { date: '2025-10-20', time: '09:00', type: 'event', title: 'Annual Sports Day' },
+    { date: '2025-10-25', time: '14:00', type: 'event', title: 'Player Awards Ceremony' },
+    { date: '2025-10-30', time: '10:00', type: 'event', title: 'Community Cricket Festival' },
+    { date: '2025-11-05', time: '11:00', type: 'event', title: 'Academy Open House' },
+    { date: '2025-11-15', time: '18:00', type: 'event', title: 'Fundraising Gala' },
+    
+    // Coaching Sessions
+    { date: '2025-10-21', time: '08:00', type: 'coaching', title: 'Advanced Batting Techniques' },
+    { date: '2025-10-22', time: '09:00', type: 'coaching', title: 'Bowling Masterclass' },
+    { date: '2025-10-23', time: '10:00', type: 'coaching', title: 'Fielding Drills' },
+    { date: '2025-10-24', time: '08:30', type: 'coaching', title: 'Wicket Keeping Session' },
+    { date: '2025-10-28', time: '15:00', type: 'coaching', title: 'Youth Cricket Training' },
+    { date: '2025-10-29', time: '16:00', type: 'coaching', title: 'Senior Team Practice' },
+    { date: '2025-11-01', time: '09:30', type: 'coaching', title: 'Spin Bowling Workshop' },
+    { date: '2025-11-04', time: '14:00', type: 'coaching', title: 'Power Hitting Clinic' },
+    { date: '2025-11-07', time: '07:00', type: 'coaching', title: 'Fitness & Conditioning' },
+    { date: '2025-11-11', time: '13:00', type: 'coaching', title: 'Mental Skills Training' },
+    
+    // Tournaments
+    { date: '2025-10-26', time: '09:00', type: 'tournament', title: 'Junior Championship Qualifier' },
+    { date: '2025-10-27', time: '10:00', type: 'tournament', title: 'Junior Championship Finals' },
+    { date: '2025-11-08', time: '08:00', type: 'tournament', title: 'Inter-Academy T20 Tournament' },
+    { date: '2025-11-09', time: '09:00', type: 'tournament', title: 'Inter-Academy T20 Semi-Finals' },
+    { date: '2025-11-10', time: '10:00', type: 'tournament', title: 'Inter-Academy T20 Finals' },
+    { date: '2025-11-16', time: '08:30', type: 'tournament', title: 'U-16 State Championship' },
+    
+    // Meetings
+    { date: '2025-10-21', time: '10:00', type: 'meeting', title: 'Staff Coordination Meeting' },
+    { date: '2025-10-24', time: '11:00', type: 'meeting', title: 'Parent-Coach Discussion' },
+    { date: '2025-10-31', time: '15:00', type: 'meeting', title: 'Monthly Finance Review' },
+    { date: '2025-11-06', time: '14:00', type: 'meeting', title: 'Curriculum Planning' },
+    { date: '2025-11-12', time: '16:00', type: 'meeting', title: 'Equipment Procurement' },
+    { date: '2025-11-14', time: '10:30', type: 'meeting', title: 'Board Meeting' }
+];
+
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let currentDay = new Date().getDate();
+let currentView = 'month';
+let currentWeekStart = null;
+let selectedDate = new Date(); // Track selected date
+
+// Initialize Calendar
+function initializeCalendar() {
+    console.log('🗓️ Initializing calendar...');
+    
+    // View toggle buttons
+    const viewButtons = document.querySelectorAll('.view-btn');
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentView = this.getAttribute('data-view');
+            renderCalendarView();
+        });
+    });
+    
+    // Today button
+    const todayBtn = document.getElementById('todayBtn');
+    if (todayBtn) {
+        todayBtn.addEventListener('click', () => {
+            const today = new Date();
+            selectedDate = new Date(today);
+            currentDay = today.getDate();
+            currentMonth = today.getMonth();
+            currentYear = today.getFullYear();
+            currentWeekStart = null; // Reset week start
+            renderCalendarView();
+        });
+    }
+    
+    // Navigation buttons
+    const prevBtn = document.getElementById('prevPeriod');
+    const nextBtn = document.getElementById('nextPeriod');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => navigatePeriod(-1));
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => navigatePeriod(1));
+    }
+    
+    renderCalendarView();
+}
+
+// Navigate between periods
+function navigatePeriod(direction) {
+    if (currentView === 'month') {
+        currentMonth += direction;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+    } else if (currentView === 'week') {
+        if (!currentWeekStart) {
+            currentWeekStart = new Date(selectedDate);
+            currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+        }
+        currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+        selectedDate = new Date(currentWeekStart);
+        currentMonth = currentWeekStart.getMonth();
+        currentYear = currentWeekStart.getFullYear();
+        currentDay = currentWeekStart.getDate();
+    } else if (currentView === 'day') {
+        selectedDate.setDate(selectedDate.getDate() + direction);
+        currentDay = selectedDate.getDate();
+        currentMonth = selectedDate.getMonth();
+        currentYear = selectedDate.getFullYear();
+    }
+    
+    renderCalendarView();
+}
+
+// Render current view
+function renderCalendarView() {
+    document.getElementById('monthView').style.display = 'none';
+    document.getElementById('weekView').style.display = 'none';
+    document.getElementById('dayView').style.display = 'none';
+    
+    if (currentView === 'month') {
+        document.getElementById('monthView').style.display = 'grid';
+        renderMonthView();
+    } else if (currentView === 'week') {
+        document.getElementById('weekView').style.display = 'grid';
+        renderWeekView();
+    } else if (currentView === 'day') {
+        document.getElementById('dayView').style.display = 'grid';
+        renderDayView();
+    }
+}
+
+// Render Month View (with dots only)
+function renderMonthView() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    document.getElementById('currentPeriod').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const calendarGrid = document.getElementById('monthView');
+    calendarGrid.innerHTML = '';
+    
+    // Add day headers
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayNames.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'calendar-day header';
+        dayHeader.textContent = day;
+        calendarGrid.appendChild(dayHeader);
+    });
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+    
+    // Add previous month's days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const dayCell = createMonthDayCell(daysInPrevMonth - i, true, currentMonth - 1);
+        calendarGrid.appendChild(dayCell);
+    }
+    
+    // Add current month's days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = day === today.getDate() && 
+                       currentMonth === today.getMonth() && 
+                       currentYear === today.getFullYear();
+        const dayCell = createMonthDayCell(day, false, currentMonth, isToday);
+        calendarGrid.appendChild(dayCell);
+    }
+    
+    // Add next month's days
+    const totalCells = firstDay + daysInMonth;
+    const remainingCells = 7 - (totalCells % 7);
+    if (remainingCells < 7) {
+        for (let day = 1; day <= remainingCells; day++) {
+            const dayCell = createMonthDayCell(day, true, currentMonth + 1);
+            calendarGrid.appendChild(dayCell);
+        }
+    }
+}
+
+// Create day cell for month view
+function createMonthDayCell(day, isOtherMonth, month, isToday = false) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day';
+    
+    if (isOtherMonth) {
+        dayCell.classList.add('other-month');
+    }
+    if (isToday) {
+        dayCell.classList.add('today');
+    }
+    
+    // Check if this is the selected date
+    const cellDate = new Date(currentYear, month, day);
+    if (!isOtherMonth && 
+        cellDate.getDate() === selectedDate.getDate() && 
+        cellDate.getMonth() === selectedDate.getMonth() && 
+        cellDate.getFullYear() === selectedDate.getFullYear()) {
+        dayCell.classList.add('selected');
+    }
+    
+    const dateNumber = document.createElement('div');
+    dateNumber.className = 'date-number';
+    dateNumber.textContent = day;
+    dayCell.appendChild(dateNumber);
+    
+    // Check for events on this day (show dots only)
+    const dateStr = `${currentYear}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+    
+    if (dayEvents.length > 0 && !isOtherMonth) {
+        const eventIndicator = document.createElement('div');
+        eventIndicator.className = 'event-indicator';
+        
+        dayEvents.forEach(event => {
+            const eventDot = document.createElement('span');
+            eventDot.className = `event-dot ${event.type}`;
+            eventDot.title = event.title;
+            eventIndicator.appendChild(eventDot);
+        });
+        
+        dayCell.appendChild(eventIndicator);
+    }
+    
+    // Add click handler to select date
+    if (!isOtherMonth) {
+        dayCell.addEventListener('click', () => {
+            selectedDate = new Date(currentYear, month, day);
+            currentDay = day;
+            renderCalendarView();
+            console.log('Selected date:', selectedDate.toDateString());
+        });
+    }
+    
+    return dayCell;
+}
+
+// Render Week View (with small text activities)
+function renderWeekView() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    // Initialize week start if not set
+    if (!currentWeekStart) {
+        currentWeekStart = new Date(selectedDate);
+        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+    }
+    
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    document.getElementById('currentPeriod').textContent = 
+        `${monthNames[currentWeekStart.getMonth()]} ${currentWeekStart.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}, ${currentWeekStart.getFullYear()}`;
+    
+    const weekView = document.getElementById('weekView');
+    weekView.innerHTML = '';
+    
+    // Add empty corner cell
+    const corner = document.createElement('div');
+    corner.className = 'time-slot';
+    corner.textContent = 'Time';
+    weekView.appendChild(corner);
+    
+    // Add day headers
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date();
+    
+    for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(currentWeekStart);
+        dayDate.setDate(dayDate.getDate() + i);
+        
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'day-header';
+        
+        const isToday = dayDate.toDateString() === today.toDateString();
+        const isSelected = dayDate.toDateString() === selectedDate.toDateString();
+        
+        if (isToday) dayHeader.classList.add('today');
+        if (isSelected) dayHeader.classList.add('selected');
+        
+        dayHeader.innerHTML = `<strong>${dayNames[i].substring(0, 3)}</strong><br>${dayDate.getDate()}`;
+        
+        // Add click handler to select date and switch to day view
+        dayHeader.addEventListener('click', () => {
+            selectedDate = new Date(dayDate);
+            currentDay = selectedDate.getDate();
+            currentMonth = selectedDate.getMonth();
+            currentYear = selectedDate.getFullYear();
+            
+            // Switch to day view
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.view-btn[data-view="day"]').classList.add('active');
+            currentView = 'day';
+            renderCalendarView();
+        });
+        
+        weekView.appendChild(dayHeader);
+    }
+    
+    // Time slots from 6 AM to 8 PM
+    const times = ['6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM'];
+    
+    times.forEach(time => {
+        // Time label
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'time-slot';
+        timeLabel.textContent = time;
+        weekView.appendChild(timeLabel);
+        
+        // Day columns
+        for (let i = 0; i < 7; i++) {
+            const dayDate = new Date(currentWeekStart);
+            dayDate.setDate(dayDate.getDate() + i);
+            const dateStr = dayDate.toISOString().split('T')[0];
+            
+            const dayColumn = document.createElement('div');
+            dayColumn.className = 'day-column';
+            
+            // Filter events for this day and time range
+            const dayEvents = calendarEvents.filter(event => {
+                if (event.date !== dateStr) return false;
+                const eventHour = parseInt(event.time.split(':')[0]);
+                const slotHour = time.includes('AM') ? 
+                    (time === '12 PM' ? 12 : parseInt(time)) : 
+                    (time === '12 PM' ? 12 : parseInt(time) + 12);
+                return eventHour >= slotHour && eventHour < slotHour + 2;
+            });
+            
+            dayEvents.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = `week-event ${event.type}`;
+                eventDiv.textContent = event.title;
+                eventDiv.title = `${event.time} - ${event.title}`;
+                dayColumn.appendChild(eventDiv);
+            });
+            
+            weekView.appendChild(dayColumn);
+        }
+    });
+}
+
+// Render Day View (with timeline)
+function renderDayView() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    const currentDate = new Date(selectedDate);
+    const dayOfWeek = currentDate.getDay();
+    
+    document.getElementById('currentPeriod').textContent = 
+        `${dayNames[dayOfWeek]}, ${monthNames[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
+    
+    const dayView = document.getElementById('dayView');
+    dayView.innerHTML = '';
+    
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+    
+    // Sort events by time
+    dayEvents.sort((a, b) => a.time.localeCompare(b.time));
+    
+    // Time slots from 6 AM to 9 PM
+    for (let hour = 6; hour <= 21; hour++) {
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'time-label';
+        const ampm = hour < 12 ? 'AM' : 'PM';
+        const displayHour = hour <= 12 ? hour : hour - 12;
+        timeLabel.textContent = `${displayHour}:00 ${ampm}`;
+        dayView.appendChild(timeLabel);
+        
+        const timeContent = document.createElement('div');
+        timeContent.className = 'time-content';
+        
+        // Find events in this hour
+        const hourEvents = dayEvents.filter(event => {
+            const eventHour = parseInt(event.time.split(':')[0]);
+            return eventHour === hour;
+        });
+        
+        if (hourEvents.length > 0) {
+            hourEvents.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = `day-event ${event.type}`;
+                
+                eventDiv.innerHTML = `
+                    <div class="event-time">${event.time}</div>
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-type">${event.type}</div>
+                `;
+                
+                timeContent.appendChild(eventDiv);
+            });
+        } else {
+            const noEvents = document.createElement('div');
+            noEvents.className = 'no-events';
+            noEvents.textContent = 'No activities scheduled';
+            timeContent.appendChild(noEvents);
+        }
+        
+        dayView.appendChild(timeContent);
+    }
+}
+
+
+
+// Show Activity Details Function
+function showActivityDetails(activityId) {
+    const activityDetails = {
+        1: {
+            title: 'New Player Registration',
+            details: 'Sarah Johnson (Age 14) has been registered for the Youth Cricket Program.',
+            time: 'Oct 19, 2025 - 10:30 AM',
+            additionalInfo: 'Contact: sarah.j@email.com | Parent: Mr. Johnson'
+        },
+        2: {
+            title: 'Tournament Scheduled',
+            details: 'Junior Championship 2025 has been scheduled for October 26-27.',
+            time: 'Oct 19, 2025 - 08:15 AM',
+            additionalInfo: 'Venue: Main Ground | Teams: 8 | Prize: $5,000'
+        },
+        3: {
+            title: '5-Star Feedback',
+            details: 'Excellent coaching and facilities. Alex has improved tremendously!',
+            time: 'Oct 18, 2025 - 04:45 PM',
+            additionalInfo: 'From: Parent of Alex Kumar | Rating: 5/5'
+        },
+        4: {
+            title: 'Payment Received',
+            details: '$450 payment received for monthly coaching fees.',
+            time: 'Oct 18, 2025 - 02:20 PM',
+            additionalInfo: 'From: Emma Wilson | Method: Credit Card | Ref: PMT-45678'
+        },
+        5: {
+            title: 'New Coach Hired',
+            details: 'Michael Roberts, former state player, joins as head coach.',
+            time: 'Oct 17, 2025 - 09:00 AM',
+            additionalInfo: 'Experience: 15 years | Specialization: Batting & Strategy'
+        },
+        6: {
+            title: 'Training Session',
+            details: 'Advanced batting session completed successfully with 15 participants.',
+            time: 'Oct 16, 2025 - 05:30 PM',
+            additionalInfo: 'Instructor: Coach Roberts | Duration: 2 hours'
+        },
+        7: {
+            title: 'Equipment Maintenance',
+            details: 'Routine maintenance completed for Ground A equipment.',
+            time: 'Oct 16, 2025 - 11:00 AM',
+            additionalInfo: 'Items: Pitch roller, nets, stumps | Status: All functional'
+        },
+        8: {
+            title: 'New Player Registration',
+            details: 'David Chen (Age 12) registered for Junior Cricket Program.',
+            time: 'Oct 15, 2025 - 03:15 PM',
+            additionalInfo: 'Contact: david.c@email.com | Parent: Mrs. Chen'
+        }
+    };
+    
+    const activity = activityDetails[activityId];
+    if (activity) {
+        const message = `${activity.title}\n\n${activity.details}\n\nTime: ${activity.time}\n\n${activity.additionalInfo}`;
+        alert(message);
+    }
+}
+
+// Initialize calendar when DOM is ready
+if (document.getElementById('calendarGrid')) {
+    initializeCalendar();
+}
+
+// Export functions
+window.showActivityDetails = showActivityDetails;
