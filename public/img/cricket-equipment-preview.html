@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Equipment Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .image-container {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .image-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%);
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            z-index: 1;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        h2 {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #333;
+            margin: 40px 0 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cricket Equipment Images Preview</h1>
+    <p>These are placeholder designs for the cricket equipment images. You can use these as templates or replace with actual product photos.</p>
+    
+    <div class="grid">
+        <h2>Featured Products</h2>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #8B4513, #D2691E);">
+            <div class="icon">🏏</div>
+            <div class="title">Pro Series Cricket Bat</div>
+            <div class="subtitle">Elite Pro - $299.99</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #DC143C, #FF6347);">
+            <div class="icon">⚾</div>
+            <div class="title">Premium Leather Ball</div>
+            <div class="subtitle">Elite Match - $45.99</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #228B22, #32CD32);">
+            <div class="icon">🧤</div>
+            <div class="title">Batting Gloves</div>
+            <div class="subtitle">Elite Guard - $89.99</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #4169E1, #6495ED);">
+            <div class="icon">🛡️</div>
+            <div class="title">Cricket Helmet</div>
+            <div class="subtitle">Elite Safety - $159.99</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #FF8C00, #FFA500);">
+            <div class="icon">🦵</div>
+            <div class="title">Cricket Leg Pads</div>
+            <div class="subtitle">Elite Guard - $129.99</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #9370DB, #BA55D3);">
+            <div class="icon">👕</div>
+            <div class="title">Training Jersey</div>
+            <div class="subtitle">Elite Wear - $59.99</div>
+        </div>
+        
+        <h2>Categories</h2>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #8B4513, #D2691E);">
+            <div class="icon">🏏</div>
+            <div class="title">Cricket Bats</div>
+            <div class="subtitle">45 Products</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #DC143C, #FF6347);">
+            <div class="icon">⚾</div>
+            <div class="title">Cricket Balls</div>
+            <div class="subtitle">28 Products</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #228B22, #32CD32);">
+            <div class="icon">🧤</div>
+            <div class="title">Gloves & Pads</div>
+            <div class="subtitle">50 Products</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #4169E1, #6495ED);">
+            <div class="icon">🛡️</div>
+            <div class="title">Helmets</div>
+            <div class="subtitle">18 Products</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #9370DB, #BA55D3);">
+            <div class="icon">👕</div>
+            <div class="title">Apparel</div>
+            <div class="subtitle">67 Products</div>
+        </div>
+        
+        <div class="image-container" style="background: linear-gradient(135deg, #2F4F4F, #708090);">
+            <div class="icon">👟</div>
+            <div class="title">Footwear</div>
+            <div class="subtitle">23 Products</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 40px; padding: 20px; background: white; border-radius: 8px;">
+        <h3>How to add real images:</h3>
+        <ol>
+            <li>Add actual product photos to <code>/public/img/products/</code> folder</li>
+            <li>Add category images to <code>/public/img/categories/</code> folder</li>
+            <li>Update the image names in the Shop.php controller</li>
+            <li>Recommended image sizes: 300x300px for products, 250x280px for categories</li>
+        </ol>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<svg width="250" height="280" viewBox="0 0 250 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ballsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="280" fill="url(#ballsGradient)" rx="12"/>
+  
+  <!-- Multiple cricket balls -->
+  <circle cx="100" cy="100" r="20" fill="#dc2626"/>
+  <circle cx="150" cy="120" r="18" fill="#ffffff"/>
+  <circle cx="120" cy="140" r="16" fill="#dc2626"/>
+  
+  <!-- Seam lines -->
+  <path d="M 85 100 Q 100 85 115 100" stroke="#ffffff" stroke-width="1" fill="none"/>
+  <path d="M 85 100 Q 100 115 115 100" stroke="#ffffff" stroke-width="1" fill="none"/>
+  
+  <path d="M 137 120 Q 150 107 163 120" stroke="#dc2626" stroke-width="1" fill="none"/>
+  <path d="M 137 120 Q 150 133 163 120" stroke="#dc2626" stroke-width="1" fill="none"/>
+  
+  <circle cx="190" cy="60" r="15" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="60" cy="230" r="18" fill="rgba(255,255,255,0.1)"/>
+  
+  <text x="125" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">Cricket Balls</text>
+  <text x="125" y="230" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">28 Products</text>
+</svg>

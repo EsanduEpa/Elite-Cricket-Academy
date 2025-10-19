@@ -1,0 +1,40 @@
+<svg width="250" height="280" viewBox="0 0 250 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glovesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="280" fill="url(#glovesGradient)" rx="12"/>
+  
+  <!-- Batting Gloves -->
+  <ellipse cx="80" cy="90" rx="18" ry="22" fill="#ffffff"/>
+  <rect x="67" y="70" width="26" height="10" fill="#ffffff" rx="5"/>
+  <!-- Fingers -->
+  <rect x="70" y="66" width="3" height="15" fill="#ffffff" rx="1"/>
+  <rect x="76" y="64" width="3" height="17" fill="#ffffff" rx="1"/>
+  <rect x="82" y="64" width="3" height="17" fill="#ffffff" rx="1"/>
+  <rect x="88" y="66" width="3" height="15" fill="#ffffff" rx="1"/>
+  
+  <!-- Leg Pads -->
+  <rect x="140" y="75" width="18" height="75" fill="#ffffff" rx="9"/>
+  <rect x="162" y="75" width="18" height="75" fill="#e0f2fe" rx="9"/>
+  
+  <!-- Pad sections -->
+  <rect x="144" y="82" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="144" y="98" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="144" y="114" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="144" y="130" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  
+  <rect x="166" y="82" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="166" y="98" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="166" y="114" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <rect x="166" y="130" width="10" height="12" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  
+  <circle cx="50" cy="50" r="12" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="200" cy="240" r="15" fill="rgba(255,255,255,0.1)"/>
+  
+  <text x="125" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">Gloves &amp; Pads</text>
+  <text x="125" y="230" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">50 Products</text>
+</svg>

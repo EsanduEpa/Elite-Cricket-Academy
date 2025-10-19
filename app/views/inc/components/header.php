@@ -11,9 +11,10 @@
 
 <header class="header">
     <nav class="nav-container">
-        <div class="logo">Elite Cricket Academy</div>
+        <div class="logo">Elite Cricket Accessories</div>
         <ul class="nav-menu">
             <li><a href="<?php echo URLROOT; ?>">Home</a></li>
+            <li><a href="<?php echo URLROOT; ?>/shop">Shop</a></li>
             <li><a href="<?php echo URLROOT; ?>/#programs">Programs</a></li>
             <li><a href="<?php echo URLROOT; ?>/#coaches">Coaches</a></li>
             <li><a href="<?php echo URLROOT; ?>/#facilities">Facilities</a></li>
