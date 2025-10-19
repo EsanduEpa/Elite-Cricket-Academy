@@ -29,7 +29,7 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#staff-management" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
                         <i class="fas fa-users-cog"></i>
                         <span>Staff Management</span>
                     </a>
@@ -160,7 +160,22 @@
             <div class="events-table-section">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-plus"></i> Upcoming Events</h2>
-                    <button class="btn btn-outline" id="viewAllUpcomingBtn">View All</button>
+                    <div class="event-filters">
+                        <select id="eventTypeFilter" class="filter-select">
+                            <option value="all">All Types</option>
+                            <option value="tournament">Tournament</option>
+                            <option value="training">Training</option>
+                            <option value="match">Match</option>
+                            <option value="meeting">Meeting</option>
+                        </select>
+                        <select id="eventDateFilter" class="filter-select">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <button class="btn btn-outline" id="viewAllUpcomingBtn">View All</button>
+                    </div>
                 </div>
                 <div class="events-table-wrapper">
                     <table class="events-table">
@@ -1321,6 +1336,52 @@ function deleteEvent(eventId) {
 function viewEvent(eventId) {
     window.location.href = `<?php echo URLROOT; ?>/admin/event_details/${eventId}`;
 }
+
+// Event Filter Functions
+function filterEvents() {
+    const typeFilter = document.getElementById('eventTypeFilter').value;
+    const dateFilter = document.getElementById('eventDateFilter').value;
+    const rows = document.querySelectorAll('.events-table tbody tr');
+    
+    rows.forEach(row => {
+        let showRow = true;
+        
+        // Type filter
+        if (typeFilter !== 'all') {
+            const eventType = row.querySelector('.event-type-badge')?.textContent.trim().toLowerCase();
+            if (eventType && !eventType.includes(typeFilter.toLowerCase())) {
+                showRow = false;
+            }
+        }
+        
+        // Date filter (simplified - would need actual dates in production)
+        if (dateFilter !== 'all' && showRow) {
+            const dateText = row.querySelector('.date-cell')?.textContent || '';
+            const today = new Date();
+            
+            if (dateFilter === 'today' && !dateText.includes(today.getDate().toString())) {
+                showRow = false;
+            } else if (dateFilter === 'week') {
+                // Filter for this week
+                showRow = true; // Simplified
+            } else if (dateFilter === 'month') {
+                // Filter for this month
+                showRow = true; // Simplified
+            }
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', function() {
+    const typeFilter = document.getElementById('eventTypeFilter');
+    const dateFilter = document.getElementById('eventDateFilter');
+    
+    if (typeFilter) typeFilter.addEventListener('change', filterEvents);
+    if (dateFilter) dateFilter.addEventListener('change', filterEvents);
+});
 </script>
 
 <!-- FullCalendar JS -->

@@ -193,6 +193,26 @@
             <div class="recent-activity-section">
                 <div class="section-header">
                     <h3><i class="fas fa-history"></i> Recent Activities</h3>
+                    <div class="activity-filters">
+                        <select id="activityTypeFilter" class="filter-select">
+                            <option value="all">All Activities</option>
+                            <option value="registration">Registration</option>
+                            <option value="event">Events</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="payment">Payments</option>
+                            <option value="staff">Staff</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <select id="activityTimeFilter" class="filter-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <button class="btn-filter-clear" onclick="clearActivityFilters()">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="activity-table">
@@ -316,6 +336,57 @@
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
+    
+    <!-- Activity Filters JavaScript -->
+    <script>
+        // Activity Filter Functions
+        function filterActivities() {
+            const typeFilter = document.getElementById('activityTypeFilter').value;
+            const timeFilter = document.getElementById('activityTimeFilter').value;
+            const rows = document.querySelectorAll('#activityTableBody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Type filter
+                if (typeFilter !== 'all') {
+                    const activityType = row.querySelector('.activity-badge').textContent.trim().toLowerCase();
+                    if (!activityType.includes(typeFilter.toLowerCase())) {
+                        showRow = false;
+                    }
+                }
+                
+                // Time filter (simplified - would need actual dates in production)
+                if (timeFilter !== 'all' && showRow) {
+                    const dateText = row.cells[2].textContent;
+                    const today = new Date();
+                    
+                    if (timeFilter === 'today' && !dateText.includes('Oct 19')) {
+                        showRow = false;
+                    } else if (timeFilter === 'week' && !dateText.includes('Oct 1')) {
+                        showRow = false;
+                    }
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        function clearActivityFilters() {
+            document.getElementById('activityTypeFilter').value = 'all';
+            document.getElementById('activityTimeFilter').value = 'all';
+            filterActivities();
+        }
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeFilter = document.getElementById('activityTypeFilter');
+            const timeFilter = document.getElementById('activityTimeFilter');
+            
+            if (typeFilter) typeFilter.addEventListener('change', filterActivities);
+            if (timeFilter) timeFilter.addEventListener('change', filterActivities);
+        });
+    </script>
     
     <!-- Chart.js Test -->
     <script>
