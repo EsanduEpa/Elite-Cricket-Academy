@@ -1,0 +1,26 @@
+<svg width="250" height="280" viewBox="0 0 250 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="batsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="280" fill="url(#batsGradient)" rx="12"/>
+  
+  <!-- Multiple cricket bats -->
+  <rect x="105" y="60" width="12" height="80" fill="#ffffff" rx="6"/>
+  <rect x="120" y="55" width="12" height="85" fill="#e0f2fe" rx="6"/>
+  <rect x="135" y="60" width="12" height="80" fill="#ffffff" rx="6"/>
+  
+  <!-- Handles -->
+  <rect x="108" y="50" width="6" height="15" fill="#1e40af" rx="3"/>
+  <rect x="123" y="45" width="6" height="15" fill="#1e40af" rx="3"/>
+  <rect x="138" y="50" width="6" height="15" fill="#1e40af" rx="3"/>
+  
+  <circle cx="60" cy="70" r="15" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="190" cy="220" r="20" fill="rgba(255,255,255,0.1)"/>
+  
+  <text x="125" y="180" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">Cricket Bats</text>
+  <text x="125" y="210" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">45 Products</text>
+</svg>

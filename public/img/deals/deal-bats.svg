@@ -1,0 +1,51 @@
+<svg width="400" height="250" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dealBatsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="dealHighlight" cx="20%" cy="20%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="250" fill="url(#dealBatsGradient)" rx="12"/>
+  <rect width="400" height="250" fill="url(#dealHighlight)" rx="12"/>
+  
+  <!-- Sale badge -->
+  <circle cx="350" cy="50" r="35" fill="#dc2626"/>
+  <text x="350" y="45" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">30%</text>
+  <text x="350" y="60" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">OFF</text>
+  
+  <!-- Cricket bats display -->
+  <rect x="50" y="60" width="15" height="100" fill="#ffffff" rx="7"/>
+  <rect x="80" y="50" width="15" height="110" fill="#e0f2fe" rx="7"/>
+  <rect x="110" y="55" width="15" height="105" fill="#ffffff" rx="7"/>
+  <rect x="140" y="45" width="15" height="115" fill="#e0f2fe" rx="7"/>
+  <rect x="170" y="60" width="15" height="100" fill="#ffffff" rx="7"/>
+  
+  <!-- Bat handles -->
+  <rect x="53" y="50" width="9" height="15" fill="#1e40af" rx="4"/>
+  <rect x="83" y="40" width="9" height="15" fill="#1e40af" rx="4"/>
+  <rect x="113" y="45" width="9" height="15" fill="#1e40af" rx="4"/>
+  <rect x="143" y="35" width="9" height="15" fill="#1e40af" rx="4"/>
+  <rect x="173" y="50" width="9" height="15" fill="#1e40af" rx="4"/>
+  
+  <!-- Text content -->
+  <text x="230" y="100" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">PREMIUM BATS</text>
+  <text x="230" y="125" fill="white" font-family="Arial, sans-serif" font-size="16" opacity="0.9">Professional Grade</text>
+  <text x="230" y="145" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.8">English Willow • Hand Selected</text>
+  
+  <!-- Price display -->
+  <text x="230" y="180" fill="#e0f2fe" font-family="Arial, sans-serif" font-size="14">Starting from</text>
+  <text x="230" y="200" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">$209.99</text>
+  <text x="320" y="200" fill="#e0f2fe" font-family="Arial, sans-serif" font-size="16" text-decoration="line-through">$299.99</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="60" cy="200" r="8" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="150" cy="30" r="12" fill="rgba(255,255,255,0.08)"/>
+  <circle cx="320" cy="80" r="6" fill="rgba(255,255,255,0.15)"/>
+</svg>

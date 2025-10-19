@@ -1,0 +1,37 @@
+<svg width="250" height="280" viewBox="0 0 250 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="apparelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="280" fill="url(#apparelGradient)" rx="12"/>
+  
+  <!-- Jersey -->
+  <rect x="100" y="70" width="50" height="70" fill="#ffffff" rx="4"/>
+  
+  <!-- Sleeves -->
+  <rect x="88" y="75" width="16" height="30" fill="#ffffff" rx="8"/>
+  <rect x="146" y="75" width="16" height="30" fill="#ffffff" rx="8"/>
+  
+  <!-- Collar -->
+  <rect x="118" y="70" width="14" height="6" fill="#1e40af" rx="3"/>
+  
+  <!-- Logo area -->
+  <rect x="115" y="85" width="20" height="10" fill="none" stroke="#1e40af" stroke-width="1" rx="1"/>
+  <text x="125" y="92" text-anchor="middle" fill="#1e40af" font-family="Arial, sans-serif" font-size="6">ELITE</text>
+  
+  <!-- Side stripes -->
+  <rect x="96" y="80" width="2" height="50" fill="#1e40af" rx="1"/>
+  <rect x="152" y="80" width="2" height="50" fill="#1e40af" rx="1"/>
+  
+  <!-- Number -->
+  <text x="125" y="115" text-anchor="middle" fill="#1e40af" font-family="Arial, sans-serif" font-size="18" font-weight="bold">7</text>
+  
+  <circle cx="60" cy="60" r="15" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="190" cy="230" r="18" fill="rgba(255,255,255,0.1)"/>
+  
+  <text x="125" y="190" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">Apparel</text>
+  <text x="125" y="220" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">67 Products</text>
+</svg>
