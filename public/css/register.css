@@ -314,6 +314,10 @@ body {
     display: none;
 }
 
+.error-message.show {
+    display: block;
+}
+
 .success-message {
     background: #2ecc71;
     color: white;

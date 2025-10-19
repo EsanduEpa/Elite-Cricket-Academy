@@ -389,3 +389,23 @@ body {
     border: 1px solid #f5c6cb;
 }
 
+/* Error messages for form validation */
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Flash messages */
+#msg-flash {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+

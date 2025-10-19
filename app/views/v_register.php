@@ -25,56 +25,56 @@ if (!function_exists('flash')) {
                 <form id="registrationForm" method="POST" action="">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
-                        <div class="error-message" id="fullNameError">Please enter your full name</div>
+                        <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" value="<?php echo $data['fullName']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['fullName_err'])) ? 'show' : ''; ?>" id="fullNameError"><?php echo $data['fullName_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="dateOfBirth">Date of birth</label>
-                        <input type="date" id="dateOfBirth" name="dateOfBirth" placeholder="DD - MM - YY" required>
-                        <div class="error-message" id="dateOfBirthError">Please enter a valid date of birth</div>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth" value="<?php echo $data['dateOfBirth']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['dateOfBirth_err'])) ? 'show' : ''; ?>" id="dateOfBirthError"><?php echo $data['dateOfBirth_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="address">Address</label>
-                        <input type="text" id="address" name="address" placeholder="Enter your address" required>
-                        <div class="error-message" id="addressError">Please enter your address</div>
+                        <input type="text" id="address" name="address" placeholder="Enter your address" value="<?php echo $data['address']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                        <div class="error-message" id="emailError">Please enter a valid email address</div>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" value="<?php echo $data['email']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['email_err'])) ? 'show' : ''; ?>" id="emailError"><?php echo $data['email_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="contactNumber">Contact Number</label>
-                        <input type="tel" id="contactNumber" name="contactNumber" placeholder="Enter your contact number" required>
-                        <div class="error-message" id="contactNumberError">Please enter a valid contact number</div>
+                        <input type="tel" id="contactNumber" name="contactNumber" placeholder="Enter your contact number" value="<?php echo $data['contactNumber']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['contactNumber_err'])) ? 'show' : ''; ?>" id="contactNumberError"><?php echo $data['contactNumber_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="school">School/Institution</label>
-                        <input type="text" id="school" name="school" placeholder="Enter your school/institution" required>
-                        <div class="error-message" id="schoolError">Please enter your school/institution</div>
+                        <input type="text" id="school" name="school" placeholder="Enter your school/institution" value="<?php echo $data['school']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['school_err'])) ? 'show' : ''; ?>" id="schoolError"><?php echo $data['school_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" name="username" placeholder="Choose a username" required>
-                        <div class="error-message" id="usernameError">Please choose a username (min 4 characters)</div>
+                        <input type="text" id="username" name="username" placeholder="Choose a username" value="<?php echo $data['username']; ?>" required>
+                        <div class="error-message <?php echo (!empty($data['username_err'])) ? 'show' : ''; ?>" id="usernameError"><?php echo $data['username_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" placeholder="Choose a password" required>
-                        <div class="error-message" id="passwordError">Password must be at least 8 characters long</div>
+                        <div class="error-message <?php echo (!empty($data['password_err'])) ? 'show' : ''; ?>" id="passwordError"><?php echo $data['password_err']; ?></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="confirmPassword">Re-enter password</label>
                         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password" required>
-                        <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                        <div class="error-message <?php echo (!empty($data['confirmPassword_err'])) ? 'show' : ''; ?>" id="confirmPasswordError"><?php echo $data['confirmPassword_err']; ?></div>
                     </div>
                     
                     <button type="submit" class="register-submit-btn">

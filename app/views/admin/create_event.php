@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Event - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
     <style>
         /* Event Creation Wizard Styles */
         .event-wizard-container {
@@ -567,8 +559,7 @@
     </style>
 </head>
 <body>
-    <!-- Include Header -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+
 
 <div class="admin-layout">
     <!-- Left Sidebar -->
@@ -1007,6 +998,7 @@
     </main>
 </div>
 
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
 <script>
 // Event Creation Wizard JavaScript

@@ -1,0 +1,1062 @@
+/* Admin Events Page Styles - Elite Cricket Academy */
+
+/* =============================================================================
+   EVENTS PAGE SPECIFIC STYLES
+   Enhanced styling for admin events page to make it more visually appealing
+   ============================================================================= */
+
+/* Event Statistics Cards - Enhanced Styling */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card {
+    position: relative;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        0 4px 12px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        var(--card-gradient-start, #4A90E2), 
+        var(--card-gradient-end, #8A2BE2));
+    border-radius: 20px 20px 0 0;
+    transition: height 0.3s ease;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, 
+        rgba(255, 255, 255, 0.3) 0%, 
+        transparent 70%);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    transition: all 0.6s ease;
+    pointer-events: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(74, 144, 226, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    border-color: rgba(74, 144, 226, 0.4);
+}
+
+.stat-card:hover::before {
+    height: 6px;
+}
+
+.stat-card:hover::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.stat-card:nth-child(1) {
+    --card-gradient-start: #FFD700;
+    --card-gradient-end: #FFA500;
+    animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(2) {
+    --card-gradient-start: #4ECDC4;
+    --card-gradient-end: #44A08D;
+    animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(3) {
+    --card-gradient-start: #8A2BE2;
+    --card-gradient-end: #DA70D6;
+    animation-delay: 0.3s;
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
+}
+
+.stat-icon::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, 
+        rgba(255, 255, 255, 0.3) 0%, 
+        transparent 60%);
+    animation: iconShine 3s infinite;
+}
+
+@keyframes iconShine {
+    0%, 100% {
+        transform: translate(-50%, -50%) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translate(-50%, -50%) rotate(180deg);
+        opacity: 0.6;
+    }
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 
+        0 12px 30px rgba(0, 0, 0, 0.2),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.stat-icon.tournament {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.stat-icon.upcoming {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+}
+
+.stat-icon.matches {
+    background: linear-gradient(135deg, #8A2BE2 0%, #DA70D6 100%);
+}
+
+.stat-icon i {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.stat-info {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2c3e50 0%, #4A90E2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-number {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+.stat-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #5a6c7d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+}
+
+.stat-card:hover .stat-label {
+    color: #4A90E2;
+}
+
+/* Add pulse animation for active/live stats */
+@keyframes statPulse {
+    0%, 100% {
+        box-shadow: 
+            0 10px 30px rgba(0, 0, 0, 0.08),
+            0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    50% {
+        box-shadow: 
+            0 10px 30px rgba(74, 144, 226, 0.2),
+            0 4px 12px rgba(74, 144, 226, 0.15);
+    }
+}
+
+.stat-card.live {
+    animation: statPulse 2s ease-in-out infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Events Header Styling */
+.events-header {
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 250, 252, 0.9) 50%,
+        rgba(240, 245, 251, 0.85) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(74, 144, 226, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    position: relative;
+    overflow: hidden;
+}
+
+.events-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        #4A90E2 0%, 
+        #8A2BE2 25%, 
+        #FF6B6B 50%, 
+        #4ECDC4 75%, 
+        #45B7D1 100%);
+    border-radius: 24px 24px 0 0;
+}
+
+.events-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.events-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.events-header p {
+    color: #5a6c7d;
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+}
+
+/* Calendar Container Enhancement */
+.calendar-container {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.08),
+        0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Events Sections Layout - Updated to vertical stacking */
+.events-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 2rem;
+}
+
+/* Events Card Styling */
+.events-card {
+    background: linear-gradient(145deg, 
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 8px 20px rgba(74, 144, 226, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.events-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.12),
+        0 10px 25px rgba(74, 144, 226, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Card Header */
+.events-card .card-header {
+    background: linear-gradient(135deg, 
+        rgba(74, 144, 226, 0.1) 0%,
+        rgba(138, 43, 226, 0.05) 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.events-card .card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.events-card .card-header h3 i {
+    font-size: 1.2rem;
+    color: #4A90E2;
+}
+
+/* Events List */
+.events-list {
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.events-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.events-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #4A90E2, #8A2BE2);
+    border-radius: 3px;
+}
+
+/* Event Item Styling */
+.event-item {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.event-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(45deg, #4A90E2, #8A2BE2);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.event-item:hover::before {
+    transform: scaleY(1);
+}
+
+.event-item:hover {
+    transform: translateX(8px);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(74, 144, 226, 0.3);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.08),
+        0 3px 10px rgba(74, 144, 226, 0.1);
+}
+
+/* Past Events Styling */
+.event-item.past {
+    opacity: 0.8;
+    background: rgba(245, 247, 250, 0.7);
+}
+
+.event-item.past:hover {
+    opacity: 1;
+    background: rgba(245, 247, 250, 0.9);
+}
+
+/* Event Date Styling */
+.event-date {
+    min-width: 70px;
+    text-align: center;
+    background: linear-gradient(135deg, #4A90E2, #8A2BE2);
+    color: white;
+    border-radius: 12px;
+    padding: 1rem 0.75rem;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.event-date .date-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.event-date .date-month {
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* Event Details */
+.event-details {
+    flex: 1;
+}
+
+.event-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+}
+
+.event-description {
+    color: #5a6c7d;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+}
+
+.event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Event Type Badges */
+.event-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.event-type.tournament {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #8B4513;
+}
+
+.event-type.training {
+    background: linear-gradient(45deg, #4ECDC4, #44A08D);
+    color: white;
+}
+
+.event-type.match {
+    background: linear-gradient(45deg, #FF6B6B, #E55D87);
+    color: white;
+}
+
+.event-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5a6c7d;
+    font-size: 0.9rem;
+}
+
+.event-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.event-status.completed {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+/* Event Actions */
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-action.edit {
+    background: linear-gradient(45deg, #4A90E2, #45B7D1);
+    color: white;
+}
+
+.btn-action.edit:hover {
+    background: linear-gradient(45deg, #357ABD, #3498DB);
+    transform: scale(1.1);
+}
+
+.btn-action.delete {
+    background: linear-gradient(45deg, #FF6B6B, #E55D87);
+    color: white;
+}
+
+.btn-action.delete:hover {
+    background: linear-gradient(45deg, #E74C3C, #C0392B);
+    transform: scale(1.1);
+}
+
+.btn-action.view {
+    background: linear-gradient(45deg, #8A2BE2, #9932CC);
+    color: white;
+}
+
+.btn-action.view:hover {
+    background: linear-gradient(45deg, #7B68EE, #8A2BE2);
+    transform: scale(1.1);
+}
+
+/* Button Styling */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #4A90E2, #45B7D1);
+    color: white;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #357ABD, #3498DB);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #8A2BE2, #9932CC);
+    color: white;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(45deg, #7B68EE, #8A2BE2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+}
+
+.btn-outline {
+    background: rgba(255, 255, 255, 0.7);
+    color: #4A90E2;
+    border: 2px solid rgba(74, 144, 226, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-outline:hover {
+    background: rgba(74, 144, 226, 0.1);
+    border-color: #4A90E2;
+    transform: translateY(-2px);
+}
+
+/* Calendar Navigation */
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 15px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(45deg, #4A90E2, #45B7D1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: linear-gradient(45deg, #357ABD, #3498DB);
+    transform: scale(1.1);
+}
+
+.current-month {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .events-sections {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .events-header .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .events-header h1 {
+        font-size: 2rem;
+    }
+    
+    .event-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .event-date {
+        align-self: center;
+    }
+    
+    .event-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .calendar-nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+/* Events Table Styles */
+.events-table-section {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 25px;
+}
+
+.events-table-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.events-table-section .section-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.events-table-section .section-header h2 i {
+    color: #4A90E2;
+}
+
+/* Event Filters */
+.event-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.event-filters .filter-select {
+    padding: 0.6rem 1rem;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2c3e50;
+    background: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.event-filters .filter-select:focus {
+    outline: none;
+    border-color: #4A90E2;
+    background: white;
+    box-shadow: 0 3px 10px rgba(74, 144, 226, 0.15);
+}
+
+.event-filters .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+}
+
+.events-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.events-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.events-table thead {
+    background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+    color: white;
+}
+
+.events-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.events-table tbody tr {
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+    transition: all 0.3s ease;
+}
+
+.events-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.03);
+}
+
+.events-table tbody tr.past-event {
+    opacity: 0.8;
+}
+
+.events-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.events-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #333;
+    vertical-align: middle;
+}
+
+.events-table .date-cell {
+    width: 100px;
+}
+
+.table-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+    border-radius: 10px;
+    color: white;
+    min-width: 70px;
+}
+
+.table-date .date-day {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.table-date .date-month {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.table-date .date-year {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.events-table .title-cell {
+    font-weight: 600;
+    color: #2c3e50;
+    max-width: 250px;
+}
+
+.events-table .description-cell {
+    max-width: 300px;
+    line-height: 1.5;
+    color: #555;
+}
+
+.events-table .location-cell {
+    color: #666;
+}
+
+.events-table .location-cell i {
+    color: #4A90E2;
+    margin-right: 5px;
+}
+
+.event-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.event-type-badge.tournament {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.event-type-badge.training {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.event-type-badge.match {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.event-type-badge.practice {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+}
+
+.event-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.event-status-badge.completed {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.actions-cell {
+    width: 120px;
+}
+
+.btn-action-table {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin: 0 4px;
+}
+
+.btn-action-table.edit {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+}
+
+.btn-action-table.edit:hover {
+    background: rgba(74, 144, 226, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-action-table.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-action-table.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-action-table.view {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.btn-action-table.view:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+    .events-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .events-card .card-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .events-list {
+        padding: 0.75rem;
+    }
+    
+    .event-item {
+        padding: 1rem;
+    }
+
+    .events-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .events-table {
+        min-width: 900px;
+    }
+    
+    .events-table-section .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
