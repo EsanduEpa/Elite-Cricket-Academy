@@ -182,6 +182,15 @@ class Admin extends Controller {
         }
     }
 
+    // Staff Management
+    public function staff() {
+        $data = [
+            'title' => 'Staff Management - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/staff', $data);
+    }
+
     // Events and Tournaments Management
     public function events() {
         $eventModel = $this->model('Event');

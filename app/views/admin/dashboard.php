@@ -26,7 +26,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#staff-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
                             <i class="fas fa-users-cog"></i>
                             <span>Staff Management</span>
                         </a>
