@@ -362,13 +362,15 @@
                                 <label for="eventType">Event Type <span class="required">*</span></label>
                                 <select id="eventType" name="event_type" class="form-control" required>
                                     <option value="">Select Event Type</option>
-                                    <option value="tournament">Tournament</option>
-                                    <option value="training_camp">Training Camp</option>
-                                    <option value="match">Match/Game</option>
-                                    <option value="workshop">Workshop/Clinic</option>
-                                    <option value="trial">Trial/Selection</option>
-                                    <option value="meeting">Team Meeting</option>
-                                    <option value="other">Other</option>
+                                    <option value="Tournament">Tournament</option>
+                                    <option value="Training Camp">Training Camp</option>
+                                    <option value="Match">Match</option>
+                                    <option value="Workshop">Workshop</option>
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Competition">Competition</option>
+                                    <option value="Trial">Trial</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Other">Other</option>
                                 </select>
                                 <div class="error-message" id="eventTypeError">Please select an event type</div>
                             </div>
