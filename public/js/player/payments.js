@@ -832,3 +832,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Save form data periodically
 setInterval(autoSaveFormData, 10000); // Save every 10 seconds
+
+// Scroll to Recent Payments section
+function scrollToRecentPayments() {
+    const recentPaymentsSection = document.getElementById('recent-payments');
+    if (recentPaymentsSection) {
+        recentPaymentsSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+        
+        // Add a highlight effect
+        recentPaymentsSection.style.transform = 'scale(1.02)';
+        recentPaymentsSection.style.boxShadow = '0 8px 30px rgba(74, 144, 226, 0.3)';
+        recentPaymentsSection.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            recentPaymentsSection.style.transform = 'scale(1)';
+            recentPaymentsSection.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
+        }, 600);
+        
+        // Show success message
+        showNotification('Showing payment history', 'success');
+    }
+}

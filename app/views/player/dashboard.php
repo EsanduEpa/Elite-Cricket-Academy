@@ -46,6 +46,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/coachbooking" class="nav-link">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Coach Sessions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>

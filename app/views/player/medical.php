@@ -89,166 +89,827 @@
                 <p>Track your health, fitness assessments, and medical history.</p>
             </div>
 
-            <!-- Health Overview -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-heartbeat"></i>
+            <?php flash('medical_message'); ?>
+
+            <!-- Health Overview - Compact Table -->
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-heartbeat"></i> Health Overview</h2>
                     </div>
-                    <div class="stat-value">Excellent</div>
-                    <div class="stat-label">Overall Health</div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-weight"></i>
-                    </div>
-                    <div class="stat-value">75kg</div>
-                    <div class="stat-label">Weight</div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title"><i class="fas fa-weight"></i> Weight</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">75 kg</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Normal</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-secondary">Oct 10, 2025</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title"><i class="fas fa-ruler-vertical"></i> Height</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">178 cm</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Normal</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-secondary">Registration</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title"><i class="fas fa-heart"></i> Resting HR</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">68 bpm</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Excellent</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-secondary">Oct 10, 2025</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title"><i class="fas fa-percentage"></i> Body Fat</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">12%</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Athletic</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-secondary">Sept 15, 2025</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title"><i class="fas fa-lungs"></i> Lung Capacity</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">4.2 L</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Above Average</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-secondary">Sept 15, 2025</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-ruler-vertical"></i>
+            </div>
+
+            <!-- Trainer Assigned Plans -->
+            <div class="schedule-row">
+                <!-- Current Workout Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-dumbbell"></i> Current Workout Plans</h2>
+                            <span class="event-count">2 Active</span>
+                        </div>
                     </div>
-                    <div class="stat-value">178cm</div>
-                    <div class="stat-label">Height</div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Trainer</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Strength & Conditioning</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> 3x per week • Started Oct 5
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Coach Johnson</div>
+                                        <div class="table-cell-secondary">Physical Trainer</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewWorkoutPlan(1)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Cricket-Specific Fitness</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> Daily • Started Oct 1
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Trainer Mike</div>
+                                        <div class="table-cell-secondary">Fitness Specialist</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewWorkoutPlan(2)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
+
+                <!-- Current Nutrition Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-apple-alt"></i> Nutrition Plans</h2>
+                            <span class="event-count">1 Active</span>
+                        </div>
                     </div>
-                    <div class="stat-value">Oct 10</div>
-                    <div class="stat-label">Last Checkup</div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Trainer</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Performance Diet Plan</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> 30 days • Started Oct 8
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Nutritionist Sarah</div>
+                                        <div class="table-cell-secondary">Sports Nutritionist</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewNutritionPlan(1)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Supplement Plans -->
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-capsules"></i> Supplement Recommendations</h2>
+                        <span class="event-count">3 Active</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Supplement</th>
+                                <th>Dosage</th>
+                                <th>Trainer</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title">Whey Protein Powder</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-info-circle"></i> Post-workout recovery
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">25g</div>
+                                    <div class="table-cell-secondary">2x daily</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-title">Coach Johnson</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">60 days</div>
+                                    <div class="table-cell-secondary">Started Oct 1</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Active</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title">Creatine Monohydrate</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-info-circle"></i> Strength & power
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">5g</div>
+                                    <div class="table-cell-secondary">Daily</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-title">Coach Johnson</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">90 days</div>
+                                    <div class="table-cell-secondary">Started Sept 20</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Active</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title">Multivitamin Complex</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-info-circle"></i> General health support
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">1 tablet</div>
+                                    <div class="table-cell-secondary">Morning</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-title">Nutritionist Sarah</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">30 days</div>
+                                    <div class="table-cell-secondary">Started Oct 8</div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Active</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Recent Medical Records -->
-            <div class="schedule-section">
-                <h3>Recent Medical Records</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">Oct 10</div>
-                    <div class="schedule-details">
-                        <h4>Annual Health Checkup</h4>
-                        <p><i class="fas fa-check-circle" style="color: green;"></i> All clear • <i class="fas fa-user-md"></i> Dr. Smith • General health assessment completed</p>
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-notes-medical"></i> Recent Medical Records</h2>
+                        <button class="btn btn-primary" onclick="openAddMedicalModal()">
+                            <i class="fas fa-plus"></i> Add Record
+                        </button>
                     </div>
                 </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">Sept 15</div>
-                    <div class="schedule-details">
-                        <h4>Fitness Assessment</h4>
-                        <p><i class="fas fa-chart-line"></i> Fitness Level: Excellent • <i class="fas fa-dumbbell"></i> Trainer Johnson • Cardiovascular and strength tests</p>
-                    </div>
-                </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">Aug 22</div>
-                    <div class="schedule-details">
-                        <h4>Injury Prevention Screening</h4>
-                        <p><i class="fas fa-shield-alt"></i> No risk factors identified • <i class="fas fa-user-md"></i> Sports Medicine Specialist • Biomechanical analysis</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fitness Metrics -->
-            <div class="schedule-section">
-                <h3>Current Fitness Metrics</h3>
-                
-                <div class="stats-overview" style="margin-bottom: 20px;">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-heart"></i>
+                <div class="card-content">
+                    <?php if (!empty($data['medicalRecords'])): ?>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Injury Details</th>
+                                    <th>Diagnosis</th>
+                                    <th>Treatment</th>
+                                    <th>Recovery Status</th>
+                                    <th>Reported By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($data['medicalRecords'] as $record): ?>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo date('M d', strtotime($record->ReportedDate)); ?></div>
+                                        <div class="table-cell-secondary"><?php echo date('Y', strtotime($record->ReportedDate)); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->InjuryDetails); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->Diagnosis); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->TreatmentGiven); ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
+                                            <?php echo ucfirst($record->RecoveryStatus); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->reported_by_name ?? 'Self'); ?></div>
+                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->reported_by_role ?? 'Player'); ?></div>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewMedicalRecord(<?php echo $record->RecordID; ?>)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-notes-medical"></i>
+                            </div>
+                            <h3>No Medical Records</h3>
+                            <p>You haven't added any medical records yet. Click the "Add Record" button above to create your first medical record.</p>
                         </div>
-                        <div class="stat-value">68 bpm</div>
-                        <div class="stat-label">Resting Heart Rate</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-lungs"></i>
-                        </div>
-                        <div class="stat-value">4.2L</div>
-                        <div class="stat-label">Lung Capacity</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <div class="stat-value">12%</div>
-                        <div class="stat-label">Body Fat</div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Medical History -->
-            <div class="schedule-section">
-                <h3>Medical History</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">2024</div>
-                    <div class="schedule-details">
-                        <h4>Minor Ankle Sprain</h4>
-                        <p><i class="fas fa-bandage"></i> Fully recovered • Rehabilitation completed • No long-term effects</p>
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-history"></i> Medical History</h2>
+                        <span class="event-count">2 Records</span>
                     </div>
                 </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">2023</div>
-                    <div class="schedule-details">
-                        <h4>Fitness Program Start</h4>
-                        <p><i class="fas fa-play"></i> Began structured fitness program • Baseline measurements taken • Regular monitoring established</p>
-                    </div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Condition/Event</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-primary">2024</div>
+                                    <div class="table-cell-secondary">Recent</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-title">Minor Ankle Sprain</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-bandage"></i> Sports Injury
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-recovered">Fully Recovered</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-check-circle medical-status-good"></i> Rehabilitation completed • No long-term effects
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-primary">2023</div>
+                                    <div class="table-cell-secondary">Program Start</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-title">Fitness Program Start</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-play"></i> Baseline Assessment
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-active">Ongoing</span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-chart-line medical-status-good"></i> Structured program • Regular monitoring established
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Vaccinations & Immunizations -->
-            <div class="schedule-section">
-                <h3>Vaccinations & Immunizations</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">✓</div>
-                    <div class="schedule-details">
-                        <h4>COVID-19 Vaccination</h4>
-                        <p>Fully vaccinated • Booster received • Last updated: March 2025</p>
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-syringe"></i> Vaccinations & Immunizations</h2>
+                        <span class="event-count">Up to Date</span>
                     </div>
                 </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time">✓</div>
-                    <div class="schedule-details">
-                        <h4>Tetanus Shot</h4>
-                        <p>Up to date • Valid until 2028 • No adverse reactions reported</p>
-                    </div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Vaccination</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th>Next Due</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title">COVID-19 Vaccination</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-virus"></i> mRNA Vaccine
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-up-to-date">
+                                        <i class="fas fa-check-circle"></i> Up to Date
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">March 2025</div>
+                                    <div class="table-cell-secondary">Booster received</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">March 2026</div>
+                                    <div class="table-cell-secondary">Annual booster</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-shield-virus medical-status-protective"></i> Fully vaccinated
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="table-cell-title">Tetanus Shot</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-bandage"></i> Tetanus Toxoid
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="table-badge status-up-to-date">
+                                        <i class="fas fa-check-circle"></i> Up to Date
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">2018</div>
+                                    <div class="table-cell-secondary">Standard dose</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">2028</div>
+                                    <div class="table-cell-secondary">10-year cycle</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-check-circle medical-status-good"></i> No adverse reactions
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Medical Actions -->
+            <!-- Quick Medical Actions -->
             <div class="quick-actions">
-                <h3>Medical Actions</h3>
+                <h3><i class="fas fa-bolt"></i> Quick Medical Actions</h3>
                 <div class="action-buttons">
-                    <a href="#" class="action-btn" onclick="alert('Schedule checkup feature coming soon!')">
+                    <button class="action-btn" onclick="alert('Schedule checkup feature coming soon!')">
                         <i class="fas fa-calendar-plus"></i> Schedule Checkup
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Download records feature coming soon!')">
+                    </button>
+                    <button class="action-btn" onclick="alert('Download records feature coming soon!')">
                         <i class="fas fa-download"></i> Download Records
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Emergency contacts feature coming soon!')">
+                    </button>
+                    <button class="action-btn" onclick="alert('Emergency contacts feature coming soon!')">
                         <i class="fas fa-phone"></i> Emergency Contacts
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Health tips feature coming soon!')">
-                        <i class="fas fa-lightbulb"></i> Health Tips
+                    </button>
+                    <a href="<?php echo URLROOT; ?>/player/trainerplans" class="action-btn">
+                        <i class="fas fa-clipboard-list"></i> View All Trainer Plans
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
-    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+    <!-- Add Medical Record Modal -->
+    <div id="addMedicalModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-notes-medical"></i> Add Medical Record</h3>
+                <span class="close" onclick="closeAddMedicalModal()">&times;</span>
+            </div>
+            <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="reported_date">Date of Incident/Checkup *</label>
+                        <input type="date" id="reported_date" name="reported_date" class="form-control" required max="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="injury_details">Injury/Health Details *</label>
+                        <textarea id="injury_details" name="injury_details" class="form-control" rows="3" required 
+                                placeholder="Describe the injury, symptoms, or health condition in detail..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="diagnosis">Diagnosis *</label>
+                        <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required 
+                                placeholder="Medical diagnosis or assessment..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="treatment_given">Treatment Given</label>
+                        <textarea id="treatment_given" name="treatment_given" class="form-control" rows="2" 
+                                placeholder="Treatment provided, medications, therapy, etc..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recovery_status">Recovery Status *</label>
+                        <select id="recovery_status" name="recovery_status" class="form-control" required>
+                            <option value="">Select status...</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="recovering">Recovering</option>
+                            <option value="recovered">Fully Recovered</option>
+                            <option value="chronic">Chronic Condition</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddMedicalModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Workout Plan Modal -->
+    <div id="workoutPlanModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-dumbbell"></i> Workout Plan Details</h3>
+                <span class="close" onclick="closeModal('workoutPlanModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="workoutPlanContent">
+                <!-- Workout plan content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Nutrition Plan Modal -->
+    <div id="nutritionPlanModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-apple-alt"></i> Nutrition Plan Details</h3>
+                <span class="close" onclick="closeModal('nutritionPlanModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="nutritionPlanContent">
+                <!-- Nutrition plan content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add Medical Record Modal Functions
+        function openAddMedicalModal() {
+            const modal = document.getElementById('addMedicalModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Set default date to today
+            const dateInput = document.getElementById('reported_date');
+            if (!dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
+        
+        function closeAddMedicalModal() {
+            const modal = document.getElementById('addMedicalModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Reset form
+            const form = modal.querySelector('form');
+            form.reset();
+        }
+        
+        function viewMedicalRecord(recordId) {
+            // This would show detailed view of the medical record
+            alert('Viewing medical record #' + recordId);
+        }
+        
+        // View workout plan function
+        function viewWorkoutPlan(planId) {
+            const modal = document.getElementById('workoutPlanModal');
+            const content = document.getElementById('workoutPlanContent');
+            
+            // Sample workout plan content (in real app, this would be fetched from server)
+            const workoutPlans = {
+                1: {
+                    title: 'Strength & Conditioning',
+                    trainer: 'Coach Johnson',
+                    frequency: '3x per week',
+                    duration: '45-60 minutes',
+                    details: `
+                        <h4>Week 1-2: Foundation Phase</h4>
+                        <ul>
+                            <li>Warm-up: 10 minutes dynamic stretching</li>
+                            <li>Squats: 3 sets x 12 reps</li>
+                            <li>Push-ups: 3 sets x 15 reps</li>
+                            <li>Planks: 3 sets x 30 seconds</li>
+                            <li>Pull-ups: 3 sets x 8 reps</li>
+                            <li>Cool-down: 10 minutes static stretching</li>
+                        </ul>
+                        <h4>Week 3-4: Progression Phase</h4>
+                        <ul>
+                            <li>Warm-up: 10 minutes dynamic stretching</li>
+                            <li>Weighted squats: 4 sets x 10 reps</li>
+                            <li>Bench press: 4 sets x 12 reps</li>
+                            <li>Planks: 4 sets x 45 seconds</li>
+                            <li>Chin-ups: 4 sets x 10 reps</li>
+                            <li>Cool-down: 10 minutes static stretching</li>
+                        </ul>
+                    `
+                },
+                2: {
+                    title: 'Cricket-Specific Fitness',
+                    trainer: 'Trainer Mike',
+                    frequency: 'Daily',
+                    duration: '30-45 minutes',
+                    details: `
+                        <h4>Daily Routine</h4>
+                        <ul>
+                            <li>Cricket-specific warm-up: 10 minutes</li>
+                            <li>Agility ladder drills: 15 minutes</li>
+                            <li>Batting stance practice: 10 minutes</li>
+                            <li>Fielding position drills: 15 minutes</li>
+                            <li>Cool-down stretches: 10 minutes</li>
+                        </ul>
+                        <h4>Focus Areas</h4>
+                        <ul>
+                            <li>Hand-eye coordination</li>
+                            <li>Reaction time improvement</li>
+                            <li>Cricket-specific movements</li>
+                            <li>Endurance building</li>
+                        </ul>
+                    `
+                }
+            };
+            
+            const plan = workoutPlans[planId];
+            if (plan) {
+                content.innerHTML = `
+                    <div class="plan-header">
+                        <h4>${plan.title}</h4>
+                        <p><strong>Trainer:</strong> ${plan.trainer}</p>
+                        <p><strong>Frequency:</strong> ${plan.frequency}</p>
+                        <p><strong>Duration:</strong> ${plan.duration}</p>
+                    </div>
+                    <div class="plan-details">
+                        ${plan.details}
+                    </div>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // View nutrition plan function
+        function viewNutritionPlan(planId) {
+            const modal = document.getElementById('nutritionPlanModal');
+            const content = document.getElementById('nutritionPlanContent');
+            
+            // Sample nutrition plan content
+            const nutritionPlans = {
+                1: {
+                    title: 'Performance Diet Plan',
+                    trainer: 'Nutritionist Sarah',
+                    duration: '30 days',
+                    details: `
+                        <h4>Daily Meal Plan</h4>
+                        <div class="meal-plan">
+                            <h5>Breakfast (7:00 AM)</h5>
+                            <ul>
+                                <li>Oatmeal with berries and nuts</li>
+                                <li>Greek yogurt</li>
+                                <li>Green tea</li>
+                            </ul>
+                            
+                            <h5>Mid-Morning Snack (10:00 AM)</h5>
+                            <ul>
+                                <li>Banana with almond butter</li>
+                                <li>Water (500ml)</li>
+                            </ul>
+                            
+                            <h5>Lunch (1:00 PM)</h5>
+                            <ul>
+                                <li>Grilled chicken breast</li>
+                                <li>Brown rice</li>
+                                <li>Steamed vegetables</li>
+                                <li>Water (500ml)</li>
+                            </ul>
+                            
+                            <h5>Pre-Training Snack (3:30 PM)</h5>
+                            <ul>
+                                <li>Apple with honey</li>
+                                <li>Sports drink</li>
+                            </ul>
+                            
+                            <h5>Post-Training (6:00 PM)</h5>
+                            <ul>
+                                <li>Protein shake</li>
+                                <li>Banana</li>
+                            </ul>
+                            
+                            <h5>Dinner (8:00 PM)</h5>
+                            <ul>
+                                <li>Grilled fish or lean meat</li>
+                                <li>Quinoa or sweet potato</li>
+                                <li>Green salad</li>
+                                <li>Water (500ml)</li>
+                            </ul>
+                        </div>
+                        
+                        <h4>Key Guidelines</h4>
+                        <ul>
+                            <li>Drink at least 3 liters of water daily</li>
+                            <li>Eat every 3-4 hours</li>
+                            <li>Include protein in every meal</li>
+                            <li>Avoid processed foods and sugary drinks</li>
+                            <li>Time carbohydrate intake around training sessions</li>
+                        </ul>
+                    `
+                }
+            };
+            
+            const plan = nutritionPlans[planId];
+            if (plan) {
+                content.innerHTML = `
+                    <div class="plan-header">
+                        <h4>${plan.title}</h4>
+                        <p><strong>Nutritionist:</strong> ${plan.trainer}</p>
+                        <p><strong>Duration:</strong> ${plan.duration}</p>
+                    </div>
+                    <div class="plan-details">
+                        ${plan.details}
+                    </div>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // Close modal function
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const addMedicalModal = document.getElementById('addMedicalModal');
+            const workoutModal = document.getElementById('workoutPlanModal');
+            const nutritionModal = document.getElementById('nutritionPlanModal');
+            
+            if (event.target === addMedicalModal) {
+                closeAddMedicalModal();
+            }
+            if (event.target === workoutModal) {
+                workoutModal.style.display = 'none';
+            }
+            if (event.target === nutritionModal) {
+                nutritionModal.style.display = 'none';
+            }
+        }
+    </script>
+
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/medical.js"></script>
 </body>

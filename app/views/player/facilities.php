@@ -104,45 +104,7 @@
             </div>
         </div>
 
-        <!-- Facilities Stats -->
-        <div class="shopping-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Facilities Available</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">16</div>
-                    <div class="stat-label">Hours Daily</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-label">Capacity</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-star"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">5★</div>
-                    <div class="stat-label">Premium Quality</div>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- Facility Navigation -->
         <div class="shop-navigation">

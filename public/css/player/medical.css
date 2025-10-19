@@ -15,14 +15,539 @@
 }
 
 /* Medical record status indicators */
-.schedule-details i.fa-check-circle {
+.medical-status-good {
     color: #27ae60 !important;
 }
 
-.schedule-details i.fa-shield-alt {
+.medical-status-protective {
     color: #3498db !important;
 }
 
-.schedule-details i.fa-bandage {
+.medical-status-warning {
     color: #f39c12 !important;
+}
+
+.medical-status-alert {
+    color: #e74c3c !important;
+}
+
+/* Medical-specific table badges */
+.table-badge.status-completed {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.table-badge.status-excellent {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.table-badge.status-clear {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.table-badge.status-recovering {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.table-badge.status-recovered {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.table-badge.status-chronic {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.table-badge.status-ongoing {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+    border: 1px solid rgba(23, 162, 184, 0.3);
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state .empty-icon {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #495057;
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin-bottom: 30px;
+    font-size: 16px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* Form styling for modal */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-control::placeholder {
+    color: #999;
+}
+
+/* Header button styling */
+.card-header .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #357ABD, #2c5aa0);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-1px);
+}
+
+.table-badge.status-recovered {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.table-badge.status-up-to-date {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.table-badge.status-up-to-date i {
+    font-size: 10px;
+}
+
+/* Medical table enhancements */
+.dashboard-table .table-cell-details i {
+    margin-right: 5px;
+    width: 12px;
+    text-align: center;
+}
+
+/* Medical icon colors in table cells */
+.table-cell-details i.fa-stethoscope,
+.table-cell-details i.fa-notes-medical {
+    color: #e74c3c;
+}
+
+.table-cell-details i.fa-chart-line,
+.table-cell-details i.fa-dumbbell {
+    color: #27ae60;
+}
+
+.table-cell-details i.fa-shield-alt,
+.table-cell-details i.fa-shield-virus {
+    color: #3498db;
+}
+
+.table-cell-details i.fa-bandage {
+    color: #f39c12;
+}
+
+.table-cell-details i.fa-play {
+    color: #9b59b6;
+}
+
+.table-cell-details i.fa-virus {
+    color: #e67e22;
+}
+
+.table-cell-details i.fa-syringe {
+    color: #34495e;
+}
+
+/* Vaccination status styling */
+.table-badge i.fa-check-circle {
+    color: inherit;
+}
+
+/* Enhanced medical table spacing */
+.schedule-card .dashboard-table td {
+    padding: 18px 15px;
+}
+
+.schedule-card .dashboard-table th {
+    padding: 16px 15px;
+}
+
+/* Medical record type styling */
+.table-cell-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 3px;
+}
+
+.table-cell-details {
+    font-size: 12px;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.table-cell-primary {
+    font-weight: 600;
+    color: #34495e;
+    font-size: 14px;
+}
+
+.table-cell-secondary {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 2px;
+}
+
+/* Medical section headers */
+.card-header .event-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Hover effects for medical tables */
+.dashboard-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.03);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+/* Medical data highlighting */
+.table-cell-primary.highlight {
+    color: #4A90E2;
+    font-weight: 700;
+}
+
+/* Status-specific row styling */
+.dashboard-table tbody tr.status-normal {
+    border-left: 3px solid #27ae60;
+}
+
+.dashboard-table tbody tr.status-warning {
+    border-left: 3px solid #f39c12;
+}
+
+.dashboard-table tbody tr.status-alert {
+    border-left: 3px solid #e74c3c;
+}
+
+/* Responsive medical tables */
+@media (max-width: 1024px) {
+    .schedule-card .dashboard-table {
+        font-size: 12px;
+    }
+    
+    .schedule-card .dashboard-table th,
+    .schedule-card .dashboard-table td {
+        padding: 12px 10px;
+    }
+    
+    .table-cell-title {
+        font-size: 13px;
+    }
+    
+    .table-cell-details {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .schedule-card .dashboard-table th,
+    .schedule-card .dashboard-table td {
+        padding: 10px 8px;
+    }
+    
+    .table-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+}
+
+/* Small button styles for table actions */
+.btn-sm {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-sm:hover {
+    background: #357abd;
+    transform: translateY(-1px);
+}
+
+.btn-sm i {
+    font-size: 11px;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 15px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+.modal-header {
+    background: #4A90E2;
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.close {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.plan-header {
+    background: rgba(74, 144, 226, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.plan-header h4 {
+    color: #4A90E2;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.plan-header p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.plan-details h4, .plan-details h5 {
+    color: #333;
+    margin: 20px 0 10px 0;
+}
+
+.plan-details h4 {
+    font-size: 16px;
+    border-bottom: 2px solid #4A90E2;
+    padding-bottom: 5px;
+}
+
+.plan-details h5 {
+    font-size: 14px;
+    color: #4A90E2;
+    margin: 15px 0 8px 0;
+}
+
+.plan-details ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.plan-details li {
+    margin: 5px 0;
+    color: #555;
+}
+
+.meal-plan {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+/* Medical-specific action button variations */
+.quick-actions .action-buttons .action-btn:nth-child(1) {
+    background: rgba(39, 174, 96, 0.1);
+    border-color: rgba(39, 174, 96, 0.3);
+    color: #27ae60;
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(1):hover {
+    background: #27ae60;
+    color: white;
+    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(2) {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.3);
+    color: #3498db;
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(2):hover {
+    background: #3498db;
+    color: white;
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(3) {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(3):hover {
+    background: #e74c3c;
+    color: white;
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(4) {
+    background: rgba(155, 89, 182, 0.1);
+    border-color: rgba(155, 89, 182, 0.3);
+    color: #9b59b6;
+}
+
+.quick-actions .action-buttons .action-btn:nth-child(4):hover {
+    background: #9b59b6;
+    color: white;
+    box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
 }

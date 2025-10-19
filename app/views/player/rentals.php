@@ -104,45 +104,7 @@
             </div>
         </div>
 
-        <!-- Rental Stats -->
-        <div class="rental-stats">
-            <div class="rental-stat-card">
-                <div class="rental-stat-icon">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="rental-stat-content">
-                    <div class="rental-stat-number">25+</div>
-                    <div class="rental-stat-label">Equipment Items</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Pickup Available</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">$15</div>
-                    <div class="stat-label">Starting From</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Insured</div>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- Rental Navigation -->
         <div class="rental-navigation">

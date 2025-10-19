@@ -108,65 +108,8 @@
             </div>
         </div>
 
-        <!-- Shopping Stats -->
-        <div class="shopping-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">150+</div>
-                    <div class="stat-label">Products Available</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">25+</div>
-                    <div class="stat-label">Rental Equipment</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Facilities</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shipping-fast"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">24h</div>
-                    <div class="stat-label">Fast Delivery</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Shopping Navigation -->
-        <div class="shop-navigation">
-            <button class="nav-btn active" data-section="products" onclick="switchToSection('products')">
-                <i class="fas fa-shopping-bag"></i>
-                Products
-            </button>
-            <button class="nav-btn" data-section="rentals" onclick="switchToSection('rentals')">
-                <i class="fas fa-tools"></i>
-                Equipment Rentals
-            </button>
-            <button class="nav-btn" data-section="facilities" onclick="switchToSection('facilities')">
-                <i class="fas fa-building"></i>
-                Facility Booking
-            </button>
-            <button class="nav-btn" data-section="orders" onclick="switchToSection('orders')">
-                <i class="fas fa-receipt"></i>
-                My Orders
-            </button>
-        </div>
+        
 
         <!-- Products Section -->
         <div id="products-section" class="shop-section active">
