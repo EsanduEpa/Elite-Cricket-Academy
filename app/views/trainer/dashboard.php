@@ -7,7 +7,6 @@
         <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h3>Trainer Dashboard</h3>
             <div class="trainer-info">
                 <div class="trainer-avatar">
                     <i class="fas fa-user-circle"></i>
@@ -67,7 +66,7 @@
         </nav>
         
         <div class="sidebar-footer">
-            <a href="<?php echo URLROOT; ?>/logout" class="logout-btn">
+            <a href="#" class="logout-btn" onclick="logoutUser()">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
@@ -1412,47 +1411,7 @@
                         </div>
                     </div>
 
-                    <!-- Personalized Diet Plan -->
-                    <div class="plan-card personalized" data-plan-type="personalized">
-                        <div class="plan-header">
-                            <div class="plan-title">
-                                <h3>Recovery Diet - Kamal Silva</h3>
-                                <span class="plan-tag personalized">Personalized</span>
-                            </div>
-                            <div class="plan-actions">
-                                <button class="action-btn-small" title="Edit Plan">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn-small" title="Delete Plan">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="plan-content">
-                            <p class="plan-description">Post-injury recovery diet with anti-inflammatory foods and enhanced protein intake.</p>
-                            <div class="plan-details">
-                                <div class="detail-item">
-                                    <i class="fas fa-clock"></i>
-                                    <span>4 weeks duration</span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-heartbeat"></i>
-                                    <span>Recovery focused</span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-user"></i>
-                                    <span>Individual plan</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="plan-footer">
-                            <button class="assign-btn">
-                                <i class="fas fa-user-edit"></i>
-                                Modify Assignment
-                            </button>
-                            <button class="view-btn">View Details</button>
-                        </div>
-                    </div>
+                    <!-- Personalized Diet Plan - REMOVED -->
 
                     <!-- Tournament Preparation -->
                     <div class="plan-card general" data-plan-type="general">
@@ -1594,7 +1553,88 @@
 
             <!-- Assignment Management -->
             <div class="assignment-container">
-                <h2>Plan Assignments</h2>
+                <div class="assignment-header">
+                    <h2>Plan Assignments</h2>
+                    <button class="btn-primary" id="newAssignmentBtn">
+                        <i class="fas fa-plus"></i>
+                        New Assignment
+                    </button>
+                </div>
+
+                <!-- New Assignment Form -->
+                <div class="new-assignment-form" id="newAssignmentForm" style="display: none;">
+                    <div class="form-card">
+                        <h3><i class="fas fa-user-plus"></i> Assign Plans to Player/Team</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="playerSelect">Player/Team</label>
+                                <select id="playerSelect" class="form-select">
+                                    <option value="">Select Player/Team</option>
+                                    <option value="kamal-silva">Kamal Silva</option>
+                                    <option value="sarah-fernando">Sarah Fernando</option>
+                                    <option value="michael-perera">Michael Perera</option>
+                                    <option value="youth-group">Youth Group (15 players)</option>
+                                    <option value="senior-team">Senior Team (18 players)</option>
+                                    <option value="junior-team">Junior Team (12 players)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="dietPlanSelect">Diet Plan</label>
+                                <select id="dietPlanSelect" class="form-select">
+                                    <option value="none">None</option>
+                                    <option value="weight-gain">Weight Gain Program</option>
+                                    <option value="tournament-prep">Tournament Prep Diet</option>
+                                    <option value="maintenance">Maintenance Diet</option>
+                                    <option value="cutting">Cutting Program</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="supplementPlanSelect">Supplement Plan</label>
+                                <select id="supplementPlanSelect" class="form-select">
+                                    <option value="none">None</option>
+                                    <option value="basic-athletic">Basic Athletic Support</option>
+                                    <option value="performance-enhancement">Performance Enhancement</option>
+                                    <option value="recovery-focused">Recovery Focused</option>
+                                    <option value="pre-competition">Pre-Competition</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="startDate">Start Date</label>
+                                <input type="date" id="startDate" class="form-input" value="2025-10-15">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="duration">Duration (weeks)</label>
+                                <select id="duration" class="form-select">
+                                    <option value="2">2 weeks</option>
+                                    <option value="4">4 weeks</option>
+                                    <option value="6" selected>6 weeks</option>
+                                    <option value="8">8 weeks</option>
+                                    <option value="12">12 weeks</option>
+                                    <option value="ongoing">Ongoing</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="notes">Notes (Optional)</label>
+                                <textarea id="notes" class="form-textarea" placeholder="Special instructions or notes..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="cancelAssignment()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn-primary" onclick="saveAssignment()">
+                                <i class="fas fa-save"></i> Save Assignment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="assignment-table">
                     <table>
                         <thead>
@@ -1615,8 +1655,24 @@
                                         <span>Kamal Silva</span>
                                     </div>
                                 </td>
-                                <td><span class="plan-badge personalized">Recovery Diet</span></td>
-                                <td><span class="plan-badge supplement">Basic Athletic</span></td>
+                                <td>
+                                    <select class="inline-select diet-plan-select" data-player="kamal-silva">
+                                        <option value="none">None</option>
+                                        <option value="weight-gain" selected>Weight Gain Program</option>
+                                        <option value="tournament-prep">Tournament Prep Diet</option>
+                                        <option value="maintenance">Maintenance Diet</option>
+                                        <option value="cutting">Cutting Program</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select supplement-plan-select" data-player="kamal-silva">
+                                        <option value="none">None</option>
+                                        <option value="basic-athletic" selected>Basic Athletic Support</option>
+                                        <option value="performance-enhancement">Performance Enhancement</option>
+                                        <option value="recovery-focused">Recovery Focused</option>
+                                        <option value="pre-competition">Pre-Competition</option>
+                                    </select>
+                                </td>
                                 <td>Aug 15, 2025</td>
                                 <td>
                                     <div class="progress-bar">
@@ -1625,11 +1681,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <button class="action-btn-small" title="View Progress">
+                                    <button class="action-btn-small" title="View Progress" onclick="viewProgress('kamal-silva')">
                                         <i class="fas fa-chart-line"></i>
                                     </button>
-                                    <button class="action-btn-small" title="Edit Assignment">
-                                        <i class="fas fa-edit"></i>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeAssignment('kamal-silva')">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -1640,8 +1696,24 @@
                                         <span>Youth Group (15 players)</span>
                                     </div>
                                 </td>
-                                <td><span class="plan-badge general">Weight Gain Program</span></td>
-                                <td><span class="plan-badge supplement">Basic Athletic</span></td>
+                                <td>
+                                    <select class="inline-select diet-plan-select" data-player="youth-group">
+                                        <option value="none">None</option>
+                                        <option value="weight-gain" selected>Weight Gain Program</option>
+                                        <option value="tournament-prep">Tournament Prep Diet</option>
+                                        <option value="maintenance">Maintenance Diet</option>
+                                        <option value="cutting">Cutting Program</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select supplement-plan-select" data-player="youth-group">
+                                        <option value="none">None</option>
+                                        <option value="basic-athletic" selected>Basic Athletic Support</option>
+                                        <option value="performance-enhancement">Performance Enhancement</option>
+                                        <option value="recovery-focused">Recovery Focused</option>
+                                        <option value="pre-competition">Pre-Competition</option>
+                                    </select>
+                                </td>
                                 <td>Sep 1, 2025</td>
                                 <td>
                                     <div class="progress-bar">
@@ -1650,11 +1722,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <button class="action-btn-small" title="View Progress">
+                                    <button class="action-btn-small" title="View Progress" onclick="viewProgress('youth-group')">
                                         <i class="fas fa-chart-line"></i>
                                     </button>
-                                    <button class="action-btn-small" title="Edit Assignment">
-                                        <i class="fas fa-edit"></i>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeAssignment('youth-group')">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -1665,8 +1737,24 @@
                                         <span>Senior Team (18 players)</span>
                                     </div>
                                 </td>
-                                <td><span class="plan-badge tournament">Tournament Prep</span></td>
-                                <td><span class="plan-badge supplement">Performance Enhancement</span></td>
+                                <td>
+                                    <select class="inline-select diet-plan-select" data-player="senior-team">
+                                        <option value="none">None</option>
+                                        <option value="weight-gain">Weight Gain Program</option>
+                                        <option value="tournament-prep" selected>Tournament Prep Diet</option>
+                                        <option value="maintenance">Maintenance Diet</option>
+                                        <option value="cutting">Cutting Program</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select supplement-plan-select" data-player="senior-team">
+                                        <option value="none">None</option>
+                                        <option value="basic-athletic">Basic Athletic Support</option>
+                                        <option value="performance-enhancement" selected>Performance Enhancement</option>
+                                        <option value="recovery-focused">Recovery Focused</option>
+                                        <option value="pre-competition">Pre-Competition</option>
+                                    </select>
+                                </td>
                                 <td>Aug 1, 2025</td>
                                 <td>
                                     <div class="progress-bar">
@@ -1675,11 +1763,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <button class="action-btn-small" title="View Progress">
+                                    <button class="action-btn-small" title="View Progress" onclick="viewProgress('senior-team')">
                                         <i class="fas fa-chart-line"></i>
                                     </button>
-                                    <button class="action-btn-small" title="Edit Assignment">
-                                        <i class="fas fa-edit"></i>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeAssignment('senior-team')">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -2026,6 +2114,321 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Workout Assignment Management -->
+            <div class="workout-assignment-container">
+                <div class="assignment-header">
+                    <h2><i class="fas fa-clipboard-list"></i> Workout Plan Assignments</h2>
+                    <button class="btn-primary" id="newWorkoutAssignmentBtn">
+                        <i class="fas fa-plus"></i>
+                        New Assignment
+                    </button>
+                </div>
+
+                <!-- New Workout Assignment Form -->
+                <div class="new-assignment-form" id="newWorkoutAssignmentForm" style="display: none;">
+                    <div class="form-card">
+                        <h3><i class="fas fa-user-plus"></i> Assign Workout Plan to Player/Team</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="workoutPlayerSelect">Player/Team</label>
+                                <select id="workoutPlayerSelect" class="form-select">
+                                    <option value="">Select Player/Team</option>
+                                    <option value="kamal-silva">Kamal Silva</option>
+                                    <option value="sarah-fernando">Sarah Fernando</option>
+                                    <option value="michael-perera">Michael Perera</option>
+                                    <option value="shanali-perera">Shanali Perera</option>
+                                    <option value="kasun-rajapaksa">Kasun Rajapaksa</option>
+                                    <option value="youth-group">Youth Group (15 players)</option>
+                                    <option value="senior-team">Senior Team (18 players)</option>
+                                    <option value="junior-team">Junior Team (12 players)</option>
+                                    <option value="fast-bowlers">Fast Bowlers Group</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="exerciseSelect">Exercise Videos</label>
+                                <select id="exerciseSelect" class="form-select">
+                                    <option value="none">None</option>
+                                    <option value="dynamic-warmup">Dynamic Warm-up Routine (15 min)</option>
+                                    <option value="core-strength">Core Strength Training (25 min)</option>
+                                    <option value="cardio-endurance">Cardio Endurance Training (30 min)</option>
+                                    <option value="stretching-recovery">Stretching & Recovery (20 min)</option>
+                                    <option value="shoulder-mobility">Shoulder Mobility Exercises (20 min)</option>
+                                    <option value="power-training">Power Training Exercises (20 min)</option>
+                                    <option value="lower-body-power">Lower Body Power Exercises (30 min)</option>
+                                    <option value="shoulder-stability">Shoulder Stability Work (20 min)</option>
+                                    <option value="functional-strength">Functional Strength Training (25 min)</option>
+                                    <option value="flexibility-mobility">Flexibility & Mobility (20 min)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="workoutTypeSelect">Workout Plan Type</label>
+                                <select id="workoutTypeSelect" class="form-select">
+                                    <option value="none">None</option>
+                                    <option value="injury-recovery">Injury Recovery Plan</option>
+                                    <option value="tournament-prep">Tournament Preparation</option>
+                                    <option value="team-requirement">Team Requirements</option>
+                                    <option value="individual-fitness">Individual Fitness</option>
+                                    <option value="strength-training">Strength Training</option>
+                                    <option value="endurance-building">Endurance Building</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="workoutStartDate">Start Date</label>
+                                <input type="date" id="workoutStartDate" class="form-input" value="2025-10-15">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="workoutDuration">Duration (weeks)</label>
+                                <select id="workoutDuration" class="form-select">
+                                    <option value="2">2 weeks</option>
+                                    <option value="4" selected>4 weeks</option>
+                                    <option value="6">6 weeks</option>
+                                    <option value="8">8 weeks</option>
+                                    <option value="12">12 weeks</option>
+                                    <option value="ongoing">Ongoing</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="workoutNotes">Notes (Optional)</label>
+                                <textarea id="workoutNotes" class="form-textarea" placeholder="Special instructions, modifications, or notes..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="cancelWorkoutAssignment()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn-primary" onclick="saveWorkoutAssignment()">
+                                <i class="fas fa-save"></i> Save Assignment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workout Assignment Table -->
+                <div class="assignment-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player/Group</th>
+                                <th>Exercise Video</th>
+                                <th>Workout Plan Type</th>
+                                <th>Start Date</th>
+                                <th>Duration</th>
+                                <th>Progress</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="player-info">
+                                        <div class="player-avatar">SP</div>
+                                        <span>Shanali Perera</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="inline-select exercise-video-select" data-player="shanali-perera">
+                                        <option value="none">None</option>
+                                        <option value="dynamic-warmup">Dynamic Warm-up Routine</option>
+                                        <option value="core-strength">Core Strength Training</option>
+                                        <option value="cardio-endurance">Cardio Endurance Training</option>
+                                        <option value="stretching-recovery">Stretching & Recovery</option>
+                                        <option value="shoulder-mobility" selected>Shoulder Mobility Exercises</option>
+                                        <option value="power-training">Power Training Exercises</option>
+                                        <option value="lower-body-power">Lower Body Power Exercises</option>
+                                        <option value="shoulder-stability">Shoulder Stability Work</option>
+                                        <option value="functional-strength">Functional Strength Training</option>
+                                        <option value="flexibility-mobility">Flexibility & Mobility</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select workout-type-select" data-player="shanali-perera">
+                                        <option value="none">None</option>
+                                        <option value="injury-recovery" selected>Injury Recovery</option>
+                                        <option value="tournament-prep">Tournament Prep</option>
+                                        <option value="team-requirement">Team Requirements</option>
+                                        <option value="individual-fitness">Individual Fitness</option>
+                                        <option value="strength-training">Strength Training</option>
+                                        <option value="endurance-building">Endurance Building</option>
+                                    </select>
+                                </td>
+                                <td>Sep 20, 2025</td>
+                                <td>8 weeks</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 45%"></div>
+                                        <span class="progress-text">45%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="action-btn-small" title="View Progress" onclick="viewWorkoutProgress('shanali-perera')">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeWorkoutAssignment('shanali-perera')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="player-info">
+                                        <div class="player-avatar">ST</div>
+                                        <span>Senior Team (18 players)</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="inline-select exercise-video-select" data-player="senior-team">
+                                        <option value="none">None</option>
+                                        <option value="dynamic-warmup" selected>Dynamic Warm-up Routine</option>
+                                        <option value="core-strength">Core Strength Training</option>
+                                        <option value="cardio-endurance">Cardio Endurance Training</option>
+                                        <option value="stretching-recovery">Stretching & Recovery</option>
+                                        <option value="shoulder-mobility">Shoulder Mobility Exercises</option>
+                                        <option value="power-training">Power Training Exercises</option>
+                                        <option value="lower-body-power">Lower Body Power Exercises</option>
+                                        <option value="shoulder-stability">Shoulder Stability Work</option>
+                                        <option value="functional-strength">Functional Strength Training</option>
+                                        <option value="flexibility-mobility">Flexibility & Mobility</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select workout-type-select" data-player="senior-team">
+                                        <option value="none">None</option>
+                                        <option value="injury-recovery">Injury Recovery</option>
+                                        <option value="tournament-prep" selected>Tournament Prep</option>
+                                        <option value="team-requirement">Team Requirements</option>
+                                        <option value="individual-fitness">Individual Fitness</option>
+                                        <option value="strength-training">Strength Training</option>
+                                        <option value="endurance-building">Endurance Building</option>
+                                    </select>
+                                </td>
+                                <td>Oct 1, 2025</td>
+                                <td>6 weeks</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 25%"></div>
+                                        <span class="progress-text">25%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="action-btn-small" title="View Progress" onclick="viewWorkoutProgress('senior-team')">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeWorkoutAssignment('senior-team')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="player-info">
+                                        <div class="player-avatar">FB</div>
+                                        <span>Fast Bowlers Group</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="inline-select exercise-video-select" data-player="fast-bowlers">
+                                        <option value="none">None</option>
+                                        <option value="dynamic-warmup">Dynamic Warm-up Routine</option>
+                                        <option value="core-strength" selected>Core Strength Training</option>
+                                        <option value="cardio-endurance">Cardio Endurance Training</option>
+                                        <option value="stretching-recovery">Stretching & Recovery</option>
+                                        <option value="shoulder-mobility">Shoulder Mobility Exercises</option>
+                                        <option value="power-training">Power Training Exercises</option>
+                                        <option value="lower-body-power">Lower Body Power Exercises</option>
+                                        <option value="shoulder-stability">Shoulder Stability Work</option>
+                                        <option value="functional-strength">Functional Strength Training</option>
+                                        <option value="flexibility-mobility">Flexibility & Mobility</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select workout-type-select" data-player="fast-bowlers">
+                                        <option value="none">None</option>
+                                        <option value="injury-recovery">Injury Recovery</option>
+                                        <option value="tournament-prep">Tournament Prep</option>
+                                        <option value="team-requirement" selected>Team Requirements</option>
+                                        <option value="individual-fitness">Individual Fitness</option>
+                                        <option value="strength-training">Strength Training</option>
+                                        <option value="endurance-building">Endurance Building</option>
+                                    </select>
+                                </td>
+                                <td>Sep 15, 2025</td>
+                                <td>4 weeks</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 75%"></div>
+                                        <span class="progress-text">75%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="action-btn-small" title="View Progress" onclick="viewWorkoutProgress('fast-bowlers')">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeWorkoutAssignment('fast-bowlers')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="player-info">
+                                        <div class="player-avatar">KR</div>
+                                        <span>Kasun Rajapaksa</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="inline-select exercise-video-select" data-player="kasun-rajapaksa">
+                                        <option value="none">None</option>
+                                        <option value="dynamic-warmup">Dynamic Warm-up Routine</option>
+                                        <option value="core-strength">Core Strength Training</option>
+                                        <option value="cardio-endurance" selected>Cardio Endurance Training</option>
+                                        <option value="stretching-recovery">Stretching & Recovery</option>
+                                        <option value="shoulder-mobility">Shoulder Mobility Exercises</option>
+                                        <option value="power-training">Power Training Exercises</option>
+                                        <option value="lower-body-power">Lower Body Power Exercises</option>
+                                        <option value="shoulder-stability">Shoulder Stability Work</option>
+                                        <option value="functional-strength">Functional Strength Training</option>
+                                        <option value="flexibility-mobility">Flexibility & Mobility</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="inline-select workout-type-select" data-player="kasun-rajapaksa">
+                                        <option value="none">None</option>
+                                        <option value="injury-recovery">Injury Recovery</option>
+                                        <option value="tournament-prep">Tournament Prep</option>
+                                        <option value="team-requirement">Team Requirements</option>
+                                        <option value="individual-fitness" selected>Individual Fitness</option>
+                                        <option value="strength-training">Strength Training</option>
+                                        <option value="endurance-building">Endurance Building</option>
+                                    </select>
+                                </td>
+                                <td>Oct 5, 2025</td>
+                                <td>5 weeks</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 15%"></div>
+                                        <span class="progress-text">15%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="action-btn-small" title="View Progress" onclick="viewWorkoutProgress('kasun-rajapaksa')">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button class="action-btn-small" title="Remove Assignment" onclick="removeWorkoutAssignment('kasun-rajapaksa')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
