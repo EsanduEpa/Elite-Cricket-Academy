@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 </head>
 <body>
+<?php require_once APPROOT . '/views/inc/components/dev_mode_banner.php'; ?>
 
 <header class="header">
     <nav class="nav-container">

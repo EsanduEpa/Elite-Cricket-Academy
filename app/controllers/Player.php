@@ -4,26 +4,14 @@ class Player extends Controller {
     private $userModel;
     
     public function __construct() {
+        // Check authentication for all player pages
+        requireAuth(['Player']);
         // Database disabled for UI testing
         // $this->userModel = $this->model('M_Users');
     }
     
-    private function requireLogin() {
-        // TEMPORARILY DISABLED FOR TESTING - REMOVE THIS COMMENT IN PRODUCTION
-        return true;
-        
-        if (!function_exists('isLoggedIn')) {
-            require_once APPROOT . '/helpers/session_helper.php';
-        }
-        if (!isLoggedIn()) {
-            redirect('login');
-            exit;
-        }
-    }
-    
     // Main dashboard
     public function index() {
-        $this->requireLogin();
         $playerData = $this->getPlayerData();
         
         $data = [
@@ -66,7 +54,6 @@ class Player extends Controller {
     
     // Training Schedule
     public function training() {
-        $this->requireLogin();
         $data = [
             'title' => 'Training Schedule',
             'player' => $this->getPlayerData(),
@@ -77,7 +64,6 @@ class Player extends Controller {
     
     // Shopping and Rental Info
     public function shopping() {
-        $this->requireLogin();
         $data = [
             'title' => 'Shopping & Rentals',
             'player' => $this->getPlayerData(),
@@ -90,7 +76,6 @@ class Player extends Controller {
     
     // My Bookings
     public function bookings() {
-        $this->requireLogin();
         $data = [
             'title' => 'My Bookings',
             'player' => $this->getPlayerData(),
@@ -103,7 +88,6 @@ class Player extends Controller {
     
     // Medical Records
     public function medical() {
-        $this->requireLogin();
         $data = [
             'title' => 'Medical Records',
             'player' => $this->getPlayerData(),
@@ -116,7 +100,6 @@ class Player extends Controller {
     
     // Performance History
     public function performance() {
-        $this->requireLogin();
         $data = [
             'title' => 'Performance History',
             'player' => $this->getPlayerData(),
@@ -129,7 +112,6 @@ class Player extends Controller {
     
     // Achievements
     public function achievements() {
-        $this->requireLogin();
         $data = [
             'title' => 'Achievements',
             'player' => $this->getPlayerData(),
@@ -142,7 +124,6 @@ class Player extends Controller {
     
     // Payment History
     public function payments() {
-        $this->requireLogin();
         $data = [
             'title' => 'Payment History',
             'player' => $this->getPlayerData(),
@@ -155,7 +136,6 @@ class Player extends Controller {
     
     // Tournaments
     public function tournaments() {
-        $this->requireLogin();
         $data = [
             'title' => 'Tournaments',
             'player' => $this->getPlayerData(),
@@ -169,7 +149,6 @@ class Player extends Controller {
 
     // Equipment Rentals
     public function rentals() {
-        $this->requireLogin();
         $data = [
             'title' => 'Equipment Rentals',
             'player' => $this->getPlayerData(),
@@ -182,7 +161,6 @@ class Player extends Controller {
 
     // Facilities
     public function facilities() {
-        $this->requireLogin();
         $data = [
             'title' => 'Facility Booking',
             'player' => $this->getPlayerData(),
@@ -703,7 +681,6 @@ class Player extends Controller {
 
     // New Shopping Related Methods
     public function productDetails($productId) {
-        $this->requireLogin();
         $products = $this->getAvailableProducts();
         $product = null;
         
@@ -729,7 +706,6 @@ class Player extends Controller {
     }
 
     public function facilityBooking() {
-        $this->requireLogin();
         $data = [
             'title' => 'Facility Booking',
             'player' => $this->getPlayerData(),
@@ -740,7 +716,6 @@ class Player extends Controller {
     }
 
     public function cart() {
-        $this->requireLogin();
         $data = [
             'title' => 'Shopping Cart',
             'player' => $this->getPlayerData(),
@@ -751,7 +726,6 @@ class Player extends Controller {
     }
 
     public function checkout() {
-        $this->requireLogin();
         $data = [
             'title' => 'Checkout',
             'player' => $this->getPlayerData(),
