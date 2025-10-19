@@ -9,7 +9,7 @@
     define('APPROOT', dirname(dirname(__FILE__)));
 
     // URL root
-    define('URLROOT', 'http://localhost/Elite/public');
+    define('URLROOT', 'http://localhost/Elite');
 
     //website name
     define('SITENAME', 'Elite-Cricket-Academy');
