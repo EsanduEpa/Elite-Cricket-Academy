@@ -262,6 +262,26 @@ class Admin extends Controller {
         
         $this->view('admin/events', $data);
     }
+    public function events() {
+        $eventModel = $this->model('Event');
+        
+        $data = [
+            'title' => 'Events & Tournaments - Elite Cricket Academy',
+            'upcomingEvents' => $eventModel->getUpcomingEvents(10),
+            'pastEvents' => $eventModel->getPastEvents(10),
+            'recentEvents' => $eventModel->getRecentEvents(5),
+            'eventStats' => [
+                'totalEvents' => 45,
+                'upcomingCount' => 8,
+                'pastCount' => 37,
+                'tournaments' => 12,
+                'trainingSessions' => 25,
+                'matches' => 8
+            ]
+        ];
+        
+        $this->view('admin/events', $data);
+    }
 
     public function create_event() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
