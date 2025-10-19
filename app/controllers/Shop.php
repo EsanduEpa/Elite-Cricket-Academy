@@ -1,21 +1,8 @@
 <?php
 class Shop extends Controller {
     public function __construct() {
-        // Temporarily disabled for testing - Check if user is logged in and has shop employee role
-        // if (!isLoggedIn() || !hasRole('ShopEmployee')) {
-        //     redirect('login');
-        // }
-        
-        // Set up mock session for testing
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['user_name'] = 'Test Shop Employee';
-            $_SESSION['user_role'] = 'ShopEmployee';
-            $_SESSION['user_email'] = 'shop@test.com';
-        }
+        // Check if user is logged in and has shop employee role
+        requireAuth(['ShopEmployee']);
     }
     
     public function index() {

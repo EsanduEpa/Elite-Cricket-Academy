@@ -1,7 +1,8 @@
 <?php
 class Admin extends Controller {
     public function __construct() {
-        // Simple constructor for interface-only dashboard
+        // Check authentication for all admin pages
+        requireAuth(['Admin']);
     }
     
     public function index() {
