@@ -1,0 +1,474 @@
+/* Common Sidebar Styles for All Dashboards - Elite Cricket Academy */
+/* Universal sidebar functionality that works across admin, player, coach, trainer, and shop dashboards */
+
+/* Base Sidebar Structure */
+.sidebar {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #333;
+    position: fixed;
+    left: 0;
+    top: 80px; /* Match header height */
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+/* Sidebar Variants - Different dashboards can use these classes */
+.admin-sidebar,
+.player-sidebar,
+.coach-sidebar,
+.trainer-sidebar,
+.shop-sidebar {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #333;
+    position: fixed;
+    left: 0;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Collapsed Sidebar State */
+.sidebar.collapsed,
+.admin-sidebar.collapsed,
+.player-sidebar.collapsed,
+.coach-sidebar.collapsed,
+.trainer-sidebar.collapsed,
+.shop-sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .logo h3,
+.sidebar.collapsed .nav-link span,
+.sidebar.collapsed .profile-name,
+.sidebar.collapsed .profile-role,
+.sidebar.collapsed .badge,
+.admin-sidebar.collapsed .admin-logo h3,
+.admin-sidebar.collapsed .sidebar-nav .nav-link span,
+.admin-sidebar.collapsed .admin-name,
+.admin-sidebar.collapsed .admin-role,
+.admin-sidebar.collapsed .badge,
+.player-sidebar.collapsed .player-logo h3,
+.player-sidebar.collapsed .nav-link span,
+.player-sidebar.collapsed .profile-name,
+.player-sidebar.collapsed .profile-role,
+.coach-sidebar.collapsed .coach-logo h3,
+.coach-sidebar.collapsed .nav-link span,
+.trainer-sidebar.collapsed .trainer-logo h3,
+.trainer-sidebar.collapsed .nav-link span,
+.shop-sidebar.collapsed .shop-logo h3,
+.shop-sidebar.collapsed .nav-link span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-link,
+.admin-sidebar.collapsed .sidebar-nav .nav-link,
+.player-sidebar.collapsed .nav-link,
+.coach-sidebar.collapsed .nav-link,
+.trainer-sidebar.collapsed .nav-link,
+.shop-sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 15px 12px;
+}
+
+.sidebar.collapsed .nav-link i,
+.admin-sidebar.collapsed .sidebar-nav .nav-link i,
+.player-sidebar.collapsed .nav-link i,
+.coach-sidebar.collapsed .nav-link i,
+.trainer-sidebar.collapsed .nav-link i,
+.shop-sidebar.collapsed .nav-link i {
+    margin-right: 0;
+}
+
+.sidebar.collapsed .sidebar-header,
+.admin-sidebar.collapsed .sidebar-header,
+.player-sidebar.collapsed .sidebar-header,
+.coach-sidebar.collapsed .sidebar-header,
+.trainer-sidebar.collapsed .sidebar-header,
+.shop-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+}
+
+.sidebar.collapsed .logo,
+.admin-sidebar.collapsed .admin-logo,
+.player-sidebar.collapsed .player-logo,
+.coach-sidebar.collapsed .coach-logo,
+.trainer-sidebar.collapsed .trainer-logo,
+.shop-sidebar.collapsed .shop-logo {
+    justify-content: center;
+    gap: 0;
+}
+
+.sidebar.collapsed .profile,
+.admin-sidebar.collapsed .admin-profile,
+.player-sidebar.collapsed .profile-section,
+.coach-sidebar.collapsed .coach-profile,
+.trainer-sidebar.collapsed .trainer-profile,
+.shop-sidebar.collapsed .shop-profile {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(74, 144, 226, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+/* Logo Styles - Universal for all dashboard types */
+.logo,
+.admin-logo,
+.player-logo,
+.coach-logo,
+.trainer-logo,
+.shop-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo i,
+.admin-logo i,
+.player-logo i,
+.coach-logo i,
+.trainer-logo i,
+.shop-logo i {
+    font-size: 24px;
+    color: #4A90E2;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.logo h3,
+.admin-logo h3,
+.player-logo h3,
+.coach-logo h3,
+.trainer-logo h3,
+.shop-logo h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    color: #4A90E2;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 25px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(5px);
+    outline: none;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle:focus {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+}
+
+.sidebar-toggle:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+}
+
+/* Navigation Menu - Universal Styles */
+.sidebar-nav,
+.nav-menu-container {
+    padding: 25px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav .nav-menu {
+    list-style: none;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px;
+    padding: 0 15px;
+    margin: 0;
+    width: 100%;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 0;
+    width: 100%;
+    display: block !important;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 25px;
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-nav .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.sidebar-nav .nav-link:hover::before {
+    left: 100%;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+    transform: translateX(10px) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+    border-color: rgba(74, 144, 226, 0.5);
+}
+
+.sidebar-nav .nav-link.active,
+.sidebar-nav .nav-item.active .nav-link {
+    background: rgba(74, 144, 226, 0.2);
+    color: #4A90E2;
+    border-color: rgba(74, 144, 226, 0.6);
+    font-weight: 600;
+    box-shadow: 0 5px 20px rgba(74, 144, 226, 0.25);
+}
+
+.sidebar-nav .nav-link i {
+    width: 20px;
+    font-size: 16px;
+    margin-right: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav .nav-link:hover i {
+    transform: scale(1.2) rotate(5deg);
+    color: #4A90E2;
+}
+
+.sidebar-nav .nav-link span {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* Profile Section - Universal Styles */
+.profile-section,
+.admin-profile,
+.player-profile,
+.coach-profile,
+.trainer-profile,
+.shop-profile {
+    margin-top: auto;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-top: 1px solid rgba(74, 144, 226, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-avatar,
+.admin-avatar,
+.player-avatar,
+.coach-avatar,
+.trainer-avatar,
+.shop-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    transition: all 0.3s ease;
+}
+
+.profile-avatar:hover,
+.admin-avatar:hover,
+.player-avatar:hover,
+.coach-avatar:hover,
+.trainer-avatar:hover,
+.shop-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.profile-name,
+.admin-name,
+.player-name,
+.coach-name,
+.trainer-name,
+.shop-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 2px;
+    text-align: center;
+}
+
+.profile-role,
+.admin-role,
+.player-role,
+.coach-role,
+.trainer-role,
+.shop-role {
+    color: #666;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Action Buttons */
+.action-btn,
+.logout-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border: none;
+    border-radius: 20px;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.action-btn:hover,
+.logout-btn:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+}
+
+/* Responsive Design for All Sidebars */
+@media (max-width: 1024px) {
+    .sidebar,
+    .admin-sidebar,
+    .player-sidebar,
+    .coach-sidebar,
+    .trainer-sidebar,
+    .shop-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.sidebar-open,
+    .admin-sidebar.sidebar-open,
+    .player-sidebar.sidebar-open,
+    .coach-sidebar.sidebar-open,
+    .trainer-sidebar.sidebar-open,
+    .shop-sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-toggle {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar-header {
+        padding: 20px 15px;
+    }
+    
+    .nav-menu,
+    .sidebar-nav .nav-menu {
+        padding: 0 10px;
+    }
+    
+    .sidebar-nav .nav-link {
+        padding: 12px 15px;
+    }
+    
+    .profile-section,
+    .admin-profile,
+    .player-profile,
+    .coach-profile,
+    .trainer-profile,
+    .shop-profile {
+        padding: 15px;
+    }
+}
+
+/* Badge Styles */
+.badge {
+    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* Notification Dot */
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #ff4757;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}

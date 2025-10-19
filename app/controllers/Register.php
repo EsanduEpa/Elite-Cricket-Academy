@@ -15,8 +15,8 @@ class Register extends Controller {
 
         // Check for POST request
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Process form
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            // Process form - sanitize input data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
             $data = [
                 'fullName' => trim($_POST['fullName']),
@@ -68,6 +68,8 @@ class Register extends Controller {
 
             if(empty($data['username'])) {
                 $data['username_err'] = 'Please choose a username';
+            } elseif($this->userModel->findUserByUsername($data['username'])) {
+                $data['username_err'] = 'Username is already taken';
             }
 
             if(empty($data['password'])) {
@@ -93,11 +95,36 @@ class Register extends Controller {
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
                 
                 // Register user
-                if($this->userModel->register($data)) {
+                if($userId = $this->userModel->register($data)) {
+                    // Try to create player profile with additional information
+                    try {
+                        $this->userModel->createPlayerProfile($userId, [
+                            'school' => $data['school']
+                        ]);
+                    } catch (Exception $e) {
+                        // Log error but continue - profile can be created later
+                        error_log("Player profile creation failed: " . $e->getMessage());
+                    }
+                    
+                    // Try to log the registration activity
+                    try {
+                        $this->userModel->logActivity(
+                            $userId, 
+                            'account_created', 
+                            'New player account registered',
+                            $_SERVER['REMOTE_ADDR'] ?? null,
+                            $_SERVER['HTTP_USER_AGENT'] ?? null
+                        );
+                    } catch (Exception $e) {
+                        // Log error but continue - activity logging is not critical
+                        error_log("Activity logging failed: " . $e->getMessage());
+                    }
+                    
+                    // Always redirect after successful user registration
                     flash('register_success', 'Registration successful! Welcome to Elite Cricket Academy.');
                     redirect('login');
                 } else {
-                    die('Something went wrong');
+                    die('Something went wrong during registration');
                 }
             } else {
                             // Load view with errors

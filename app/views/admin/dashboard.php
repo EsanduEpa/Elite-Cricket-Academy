@@ -1,18 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/styles.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
-    <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Include Header -->
-    <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/tournaments.css">
 
     <!-- Admin Dashboard Layout -->
     <div class="admin-layout">
@@ -38,7 +26,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#staff-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
                             <i class="fas fa-users-cog"></i>
                             <span>Staff Management</span>
                         </a>
@@ -59,7 +47,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#feedback-monitoring" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
                             <span class="badge">12</span>
@@ -107,278 +95,228 @@
                     <div class="current-time" id="currentTime"></div>
                 </div>
             </div>
-
-            <!-- Summary Cards -->
+            <!-- Summary Cards - 4 in a Row with Charts -->
             <div class="summary-cards">
                 <div class="summary-card staff-card">
-                    <div class="card-icon">
-                        <i class="fas fa-users-cog"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Staff Management</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">24</span>
-                                <span class="label">Total Staff</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">12</span>
-                                <span class="label">Coaches</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">6</span>
-                                <span class="label">Trainers</span>
-                            </div>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-users-cog"></i>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="staffChart"></canvas>
+                        <div class="card-info">
+                            <span class="number">24</span>
+                            <span class="label">Total Staff</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="summary-card player-card">
-                    <div class="card-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3>Player Management</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">156</span>
-                                <span class="label">Active Players</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">89%</span>
-                                <span class="label">Attendance</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">23</span>
-                                <span class="label">New Joinings</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="playerChart"></canvas>
-                        </div>
+                    <div class="chart-container">
+                        <canvas id="staffChart"></canvas>
                     </div>
                 </div>
 
                 <div class="summary-card events-card">
-                    <div class="card-icon">
-                        <i class="fas fa-calendar-alt"></i>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="number">8</span>
+                            <span class="label">Upcoming Events</span>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Events & Tournaments</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">8</span>
-                                <span class="label">Upcoming Events</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">3</span>
-                                <span class="label">Tournaments</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">15</span>
-                                <span class="label">This Month</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="eventsChart"></canvas>
-                        </div>
+                    <div class="chart-container">
+                        <canvas id="eventsChart"></canvas>
                     </div>
                 </div>
 
                 <div class="summary-card feedback-card">
-                    <div class="card-icon">
-                        <i class="fas fa-comments"></i>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="number">12</span>
+                            <span class="label">Pending Reviews</span>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Feedback Monitoring</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">12</span>
-                                <span class="label">Pending Reviews</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">4.7</span>
-                                <span class="label">Avg Rating</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">98%</span>
-                                <span class="label">Satisfaction</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="feedbackChart"></canvas>
-                        </div>
+                    <div class="chart-container">
+                        <canvas id="feedbackChart"></canvas>
                     </div>
                 </div>
 
                 <div class="summary-card finance-card">
-                    <div class="card-icon">
-                        <i class="fas fa-chart-line"></i>
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="number">$45,680</span>
+                            <span class="label">Monthly Revenue</span>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Finance Management</h3>
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="number">$45,680</span>
-                                <span class="label">Monthly Revenue</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">92%</span>
-                                <span class="label">Collection Rate</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="number">$8,250</span>
-                                <span class="label">Outstanding</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="financeChart"></canvas>
-                        </div>
+                    <div class="chart-container">
+                        <canvas id="financeChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Detailed Analytics Section -->
-            <div class="analytics-section">
-                <!-- Revenue & Performance Charts -->
-                <div class="analytics-row">
-                    <div class="chart-card large">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-area"></i> Monthly Revenue Trend</h3>
-                            <div class="chart-controls">
-                                <select id="revenueFilter">
-                                    <option value="6">Last 6 Months</option>
-                                    <option value="12" selected>Last 12 Months</option>
-                                    <option value="24">Last 24 Months</option>
-                                </select>
-                            </div>
+            <!-- Academy Calendar - Custom JS Implementation -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Academy Calendar</h3>
+                    <div class="calendar-controls">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="month"><i class="fas fa-calendar"></i> Month</button>
+                            <button class="view-btn" data-view="week"><i class="fas fa-calendar-week"></i> Week</button>
+                            <button class="view-btn" data-view="day"><i class="fas fa-calendar-day"></i> Day</button>
                         </div>
-                        <div class="chart-content">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-pie"></i> Student Distribution</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="studentDistributionChart"></canvas>
+                        <div class="calendar-nav">
+                            <button id="todayBtn" class="calendar-btn today-btn" title="Go to Today"><i class="fas fa-calendar-check"></i></button>
+                            <button id="prevPeriod" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
+                            <span id="currentPeriod"></span>
+                            <button id="nextPeriod" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Activity & Performance Metrics -->
-                <div class="analytics-row">
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-chart-bar"></i> Training Attendance</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="attendanceChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card medium">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-trophy"></i> Performance Metrics</h3>
-                        </div>
-                        <div class="chart-content">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </div>
+                <div id="calendarContent" class="calendar-content">
+                    <div id="monthView" class="calendar-grid"></div>
+                    <div id="weekView" class="week-view" style="display: none;"></div>
+                    <div id="dayView" class="day-view" style="display: none;"></div>
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-dot event"></span> Events</div>
+                    <div class="legend-item"><span class="legend-dot coaching"></span> Coaching Sessions</div>
+                    <div class="legend-item"><span class="legend-dot tournament"></span> Tournaments</div>
+                    <div class="legend-item"><span class="legend-dot meeting"></span> Meetings</div>
                 </div>
             </div>
 
-            <!-- Recent Activity & Quick Actions -->
-            <div class="activity-section">
-                <div class="activity-card">
-                    <div class="activity-header">
-                        <h3><i class="fas fa-history"></i> Recent Activities</h3>
-                        <a href="#" class="view-all">View All</a>
-                    </div>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon registration">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p><strong>New player registered:</strong> Sarah Johnson (Age 14)</p>
-                                <small>2 hours ago</small>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon event">
-                                <i class="fas fa-calendar-plus"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p><strong>Tournament scheduled:</strong> Junior Championship 2025</p>
-                                <small>4 hours ago</small>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon feedback">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p><strong>5-star feedback received</strong> from parent of Alex Kumar</p>
-                                <small>1 day ago</small>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon payment">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p><strong>Payment received:</strong> $450 from Emma Wilson</p>
-                                <small>1 day ago</small>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon staff">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p><strong>New coach hired:</strong> Michael Roberts (Former State Player)</p>
-                                <small>2 days ago</small>
-                            </div>
-                        </div>
+            <!-- Recent Activity Table -->
+            <div class="recent-activity-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-history"></i> Recent Activities</h3>
+                    <div class="activity-filters">
+                        <select id="activityTypeFilter" class="filter-select">
+                            <option value="all">All Activities</option>
+                            <option value="registration">Registration</option>
+                            <option value="event">Events</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="payment">Payments</option>
+                            <option value="staff">Staff</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <select id="activityTimeFilter" class="filter-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <button class="btn-filter-clear" onclick="clearActivityFilters()">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
                     </div>
                 </div>
+                <div class="table-responsive">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>Description</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityTableBody">
+                            <tr>
+                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
+                                <td>New player registered: Sarah Johnson (Age 14)</td>
+                                <td>Oct 19, 2025 - 10:30 AM</td>
+                                <td><span class="status-badge active">Active</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(1)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge event"><i class="fas fa-calendar-plus"></i> Event</span></td>
+                                <td>Tournament scheduled: Junior Championship 2025</td>
+                                <td>Oct 19, 2025 - 08:15 AM</td>
+                                <td><span class="status-badge scheduled">Scheduled</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(2)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge feedback"><i class="fas fa-star"></i> Feedback</span></td>
+                                <td>5-star feedback received from parent of Alex Kumar</td>
+                                <td>Oct 18, 2025 - 04:45 PM</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(3)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge payment"><i class="fas fa-credit-card"></i> Payment</span></td>
+                                <td>Payment received: $450 from Emma Wilson</td>
+                                <td>Oct 18, 2025 - 02:20 PM</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(4)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge staff"><i class="fas fa-user-tie"></i> Staff</span></td>
+                                <td>New coach hired: Michael Roberts (Former State Player)</td>
+                                <td>Oct 17, 2025 - 09:00 AM</td>
+                                <td><span class="status-badge active">Active</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(5)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge training"><i class="fas fa-dumbbell"></i> Training</span></td>
+                                <td>Advanced batting session completed: 15 participants</td>
+                                <td>Oct 16, 2025 - 05:30 PM</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(6)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge maintenance"><i class="fas fa-tools"></i> Maintenance</span></td>
+                                <td>Equipment maintenance completed for Ground A</td>
+                                <td>Oct 16, 2025 - 11:00 AM</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(7)">Show More</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
+                                <td>New player registered: David Chen (Age 12)</td>
+                                <td>Oct 15, 2025 - 03:15 PM</td>
+                                <td><span class="status-badge active">Active</span></td>
+                                <td><button class="btn-show-more" onclick="showActivityDetails(8)">Show More</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                <div class="quick-actions-card">
-                    <div class="actions-header">
-                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-                    </div>
-                    <div class="actions-grid">
-                        <button class="action-btn primary" onclick="openModal('addPlayer')">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Add New Player</span>
-                        </button>
-                        <button class="action-btn secondary" onclick="openModal('scheduleEvent')">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span>Schedule Event</span>
-                        </button>
-                        <button class="action-btn success" onclick="openModal('generateReport')">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Generate Report</span>
-                        </button>
-                        <button class="action-btn warning" onclick="openModal('sendNotification')">
-                            <i class="fas fa-bell"></i>
-                            <span>Send Notification</span>
-                        </button>
-                        <button class="action-btn info" onclick="openModal('manageStaff')">
-                            <i class="fas fa-users-cog"></i>
-                            <span>Manage Staff</span>
-                        </button>
-                        <button class="action-btn danger" onclick="openModal('reviewFeedback')">
-                            <i class="fas fa-comments"></i>
-                            <span>Review Feedback</span>
-                        </button>
-                    </div>
+            <!-- Quick Actions - 3 Buttons Per Row, 2 Rows -->
+            <div class="quick-actions-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                </div>
+                <div class="quick-actions-grid">
+                    <button class="action-btn primary" onclick="openModal('addPlayer')">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add New Player</span>
+                    </button>
+                    <button class="action-btn secondary" onclick="openModal('scheduleEvent')">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Schedule Event</span>
+                    </button>
+                    <button class="action-btn success" onclick="openModal('generateReport')">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Generate Report</span>
+                    </button>
+                    <button class="action-btn warning" onclick="openModal('sendNotification')">
+                        <i class="fas fa-bell"></i>
+                        <span>Send Notification</span>
+                    </button>
+                    <button class="action-btn info" onclick="openModal('manageStaff')">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Manage Staff</span>
+                    </button>
+                    <button class="action-btn danger" onclick="openModal('reviewFeedback')">
+                        <i class="fas fa-comments"></i>
+                        <span>Review Feedback</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -388,7 +326,83 @@
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        // Ensure Chart.js is loaded before proceeding
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        window.chartJsLoaded = typeof Chart !== 'undefined';
+        console.log('URLROOT for JS files: <?php echo URLROOT; ?>');
+    </script>
+    <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+    <script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
+    
+    <!-- Activity Filters JavaScript -->
+    <script>
+        // Activity Filter Functions
+        function filterActivities() {
+            const typeFilter = document.getElementById('activityTypeFilter').value;
+            const timeFilter = document.getElementById('activityTimeFilter').value;
+            const rows = document.querySelectorAll('#activityTableBody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Type filter
+                if (typeFilter !== 'all') {
+                    const activityType = row.querySelector('.activity-badge').textContent.trim().toLowerCase();
+                    if (!activityType.includes(typeFilter.toLowerCase())) {
+                        showRow = false;
+                    }
+                }
+                
+                // Time filter (simplified - would need actual dates in production)
+                if (timeFilter !== 'all' && showRow) {
+                    const dateText = row.cells[2].textContent;
+                    const today = new Date();
+                    
+                    if (timeFilter === 'today' && !dateText.includes('Oct 19')) {
+                        showRow = false;
+                    } else if (timeFilter === 'week' && !dateText.includes('Oct 1')) {
+                        showRow = false;
+                    }
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        function clearActivityFilters() {
+            document.getElementById('activityTypeFilter').value = 'all';
+            document.getElementById('activityTimeFilter').value = 'all';
+            filterActivities();
+        }
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeFilter = document.getElementById('activityTypeFilter');
+            const timeFilter = document.getElementById('activityTimeFilter');
+            
+            if (typeFilter) typeFilter.addEventListener('change', filterActivities);
+            if (timeFilter) timeFilter.addEventListener('change', filterActivities);
+        });
+    </script>
+    
+    <!-- Chart.js Test -->
+    <script>
+        console.log('Chart.js test script running...');
+        console.log('Chart available:', typeof Chart);
+        
+        // Test if we can find the canvas elements
+        setTimeout(function() {
+            const staffCanvas = document.getElementById('staffChart');
+            console.log('Staff canvas found:', !!staffCanvas);
+            if (staffCanvas) {
+                console.log('Staff canvas dimensions:', staffCanvas.width, 'x', staffCanvas.height);
+                console.log('Staff canvas parent:', staffCanvas.parentElement);
+            }
+        }, 1000);
+    </script>
 </body>
 
 </html>

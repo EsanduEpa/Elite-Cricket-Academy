@@ -4,26 +4,14 @@ class Player extends Controller {
     private $userModel;
     
     public function __construct() {
+        // Check authentication for all player pages
+        requireAuth(['Player']);
         // Database disabled for UI testing
         // $this->userModel = $this->model('M_Users');
     }
     
-    private function requireLogin() {
-        // TEMPORARILY DISABLED FOR TESTING - REMOVE THIS COMMENT IN PRODUCTION
-        return true;
-        
-        if (!function_exists('isLoggedIn')) {
-            require_once APPROOT . '/helpers/session_helper.php';
-        }
-        if (!isLoggedIn()) {
-            redirect('login');
-            exit;
-        }
-    }
-    
     // Main dashboard
     public function index() {
-        $this->requireLogin();
         $playerData = $this->getPlayerData();
         
         $data = [
@@ -66,7 +54,6 @@ class Player extends Controller {
     
     // Training Schedule
     public function training() {
-        $this->requireLogin();
         $data = [
             'title' => 'Training Schedule',
             'player' => $this->getPlayerData(),
@@ -77,7 +64,6 @@ class Player extends Controller {
     
     // Shopping and Rental Info
     public function shopping() {
-        $this->requireLogin();
         $data = [
             'title' => 'Shopping & Rentals',
             'player' => $this->getPlayerData(),
@@ -90,7 +76,6 @@ class Player extends Controller {
     
     // My Bookings
     public function bookings() {
-        $this->requireLogin();
         $data = [
             'title' => 'My Bookings',
             'player' => $this->getPlayerData(),
@@ -103,7 +88,6 @@ class Player extends Controller {
     
     // Medical Records
     public function medical() {
-        $this->requireLogin();
         $data = [
             'title' => 'Medical Records',
             'player' => $this->getPlayerData(),
@@ -116,7 +100,6 @@ class Player extends Controller {
     
     // Performance History
     public function performance() {
-        $this->requireLogin();
         $data = [
             'title' => 'Performance History',
             'player' => $this->getPlayerData(),
@@ -129,7 +112,6 @@ class Player extends Controller {
     
     // Achievements
     public function achievements() {
-        $this->requireLogin();
         $data = [
             'title' => 'Achievements',
             'player' => $this->getPlayerData(),
@@ -142,7 +124,6 @@ class Player extends Controller {
     
     // Payment History
     public function payments() {
-        $this->requireLogin();
         $data = [
             'title' => 'Payment History',
             'player' => $this->getPlayerData(),
@@ -155,7 +136,6 @@ class Player extends Controller {
     
     // Tournaments
     public function tournaments() {
-        $this->requireLogin();
         $data = [
             'title' => 'Tournaments',
             'player' => $this->getPlayerData(),
@@ -165,6 +145,30 @@ class Player extends Controller {
             'tournamentStats' => $this->getTournamentStats()
         ];
         $this->view('player/tournaments', $data);
+    }
+
+    // Equipment Rentals
+    public function rentals() {
+        $data = [
+            'title' => 'Equipment Rentals',
+            'player' => $this->getPlayerData(),
+            'rentals' => $this->getRentalEquipment(),
+            'myRentals' => $this->getMyRentals(),
+            'rentalStats' => $this->getRentalStats()
+        ];
+        $this->view('player/rentals', $data);
+    }
+
+    // Facilities
+    public function facilities() {
+        $data = [
+            'title' => 'Facility Booking',
+            'player' => $this->getPlayerData(),
+            'facilities' => $this->getAvailableFacilities(),
+            'myBookings' => $this->getMyFacilityBookings(),
+            'facilityStats' => $this->getFacilityStats()
+        ];
+        $this->view('player/facilities', $data);
     }
     
     // Helper methods with demo data
@@ -293,28 +297,7 @@ class Player extends Controller {
         ];
     }
     
-    private function getAvailableProducts() {
-        return [
-            ['name' => 'Cricket Bat Pro', 'price' => 'LKR 15,000.00', 'category' => 'Equipment'],
-            ['name' => 'Protective Gear Set', 'price' => 'LKR 10,000.00', 'category' => 'Safety'],
-            ['name' => 'Training Jersey', 'price' => 'LKR 2,000.00', 'category' => 'Apparel']
-        ];
-    }
     
-    private function getRentalEquipment() {
-        return [
-            ['name' => 'Premium Cricket Bat', 'daily_rate' => 'LKR 25,000.00', 'available' => true],
-            ['name' => 'Bowling Machine Access', 'hourly_rate' => 'LKR 1,500.00', 'available' => true],
-            ['name' => 'Video Analysis Equipment', 'session_rate' => 'LKR 1000.00', 'available' => false]
-        ];
-    }
-    
-    private function getMyRentals() {
-        return [
-            ['item' => 'Cricket Bat Premium', 'start_date' => '2025-09-01', 'return_date' => '2025-09-08', 'status' => 'Active'],
-            ['item' => 'Protective Gear', 'start_date' => '2025-08-15', 'return_date' => '2025-09-15', 'status' => 'Active']
-        ];
-    }
     
     private function getCoachSessions() {
         return [
@@ -524,6 +507,314 @@ class Player extends Controller {
             'matches_won' => 32,
             'win_percentage' => 71.1,
             'total_prize_money' => 'LKR 275,000'
+        ];
+    }
+
+    // Shopping System Methods
+    private function getAvailableProducts() {
+        return [
+            [
+                'id' => 1,
+                'name' => 'Professional Cricket Bat',
+                'description' => 'Premium English Willow cricket bat with professional finish',
+                'price' => 18500.00,
+                'category' => 'Bats',
+                'image' => 'cricket-bat-pro.jpg',
+                'rating' => 4.8,
+                'reviews' => 25,
+                'stock' => 15,
+                'brand' => 'Elite Sports',
+                'features' => ['English Willow', 'Professional Grade', 'Free Grip Tape'],
+                'discount' => 15
+            ],
+            [
+                'id' => 2,
+                'name' => 'Protective Gear Set',
+                'description' => 'Complete protection set including helmet, pads, and gloves',
+                'price' => 12500.00,
+                'category' => 'Protection',
+                'image' => 'protective-gear-set.jpg',
+                'rating' => 4.6,
+                'reviews' => 18,
+                'stock' => 8,
+                'brand' => 'SafeGuard',
+                'features' => ['Complete Set', 'Professional Grade', 'Lightweight'],
+                'discount' => 10
+            ],
+            [
+                'id' => 3,
+                'name' => 'Cricket Ball Set (6 pieces)',
+                'description' => 'Professional leather cricket balls for training and matches',
+                'price' => 2500.00,
+                'category' => 'Balls',
+                'image' => 'cricket-balls.jpg',
+                'rating' => 4.7,
+                'reviews' => 32,
+                'stock' => 25,
+                'brand' => 'Elite Sports',
+                'features' => ['Leather Construction', 'Match Quality', '6 Piece Set'],
+                'discount' => 0
+            ],
+            [
+                'id' => 4,
+                'name' => 'Elite Training Kit',
+                'description' => 'Complete training kit with jersey, shorts, and accessories',
+                'price' => 4500.00,
+                'category' => 'Apparel',
+                'image' => 'training-kit.jpg',
+                'rating' => 4.5,
+                'reviews' => 15,
+                'stock' => 20,
+                'brand' => 'Elite Academy',
+                'features' => ['Moisture Wicking', 'Breathable Fabric', 'Academy Logo'],
+                'discount' => 5
+            ]
+        ];
+    }
+
+    private function getRentalEquipment() {
+        return [
+            [
+                'id' => 1,
+                'name' => 'Professional Cricket Bat',
+                'description' => 'Premium bat available for short-term rental',
+                'rental_price_daily' => 500.00,
+                'rental_price_weekly' => 2500.00,
+                'category' => 'Bats',
+                'image' => 'rental-bat.jpg',
+                'available_quantity' => 5,
+                'condition' => 'Excellent'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Bowling Machine',
+                'description' => 'Automatic bowling machine for practice sessions',
+                'rental_price_daily' => 1500.00,
+                'rental_price_weekly' => 8000.00,
+                'category' => 'Training Equipment',
+                'image' => 'bowling-machine.jpg',
+                'available_quantity' => 2,
+                'condition' => 'Good'
+            ],
+            [
+                'id' => 3,
+                'name' => 'Practice Net Setup',
+                'description' => 'Portable cricket practice net for individual training',
+                'rental_price_daily' => 800.00,
+                'rental_price_weekly' => 4000.00,
+                'category' => 'Training Equipment',
+                'image' => 'practice-net.jpg',
+                'available_quantity' => 3,
+                'condition' => 'Good'
+            ]
+        ];
+    }
+
+    private function getAvailableFacilities() {
+        return [
+            [
+                'id' => 1,
+                'name' => 'Main Cricket Ground',
+                'description' => 'Full-size cricket ground with pavilion facilities',
+                'hourly_rate' => 2500.00,
+                'capacity' => 22,
+                'amenities' => ['Pavilion', 'Changing Rooms', 'Scoreboard', 'Lighting'],
+                'image' => 'main-ground.jpg',
+                'booking_slots' => [
+                    '06:00-08:00', '08:00-10:00', '10:00-12:00', 
+                    '14:00-16:00', '16:00-18:00', '18:00-20:00'
+                ]
+            ],
+            [
+                'id' => 2,
+                'name' => 'Practice Ground A',
+                'description' => 'Medium-size practice ground perfect for training sessions',
+                'hourly_rate' => 1500.00,
+                'capacity' => 15,
+                'amenities' => ['Practice Nets', 'Equipment Storage', 'Water Facility'],
+                'image' => 'practice-ground-a.jpg',
+                'booking_slots' => [
+                    '06:00-08:00', '08:00-10:00', '10:00-12:00', 
+                    '14:00-16:00', '16:00-18:00', '18:00-20:00'
+                ]
+            ],
+            [
+                'id' => 3,
+                'name' => 'Indoor Training Hall',
+                'description' => 'Climate-controlled indoor facility for year-round training',
+                'hourly_rate' => 2000.00,
+                'capacity' => 12,
+                'amenities' => ['Air Conditioning', 'Artificial Turf', 'Video Analysis'],
+                'image' => 'indoor-hall.jpg',
+                'booking_slots' => [
+                    '06:00-08:00', '08:00-10:00', '10:00-12:00', 
+                    '14:00-16:00', '16:00-18:00', '18:00-20:00'
+                ]
+            ]
+        ];
+    }
+
+    private function getMyRentals() {
+        return [
+            [
+                'id' => 1,
+                'equipment_name' => 'Professional Cricket Bat',
+                'rental_start' => '2025-10-15',
+                'rental_end' => '2025-10-22',
+                'daily_rate' => 500.00,
+                'total_cost' => 3500.00,
+                'status' => 'Active',
+                'condition_on_rental' => 'Excellent'
+            ],
+            [
+                'id' => 2,
+                'equipment_name' => 'Practice Net Setup',
+                'rental_start' => '2025-10-10',
+                'rental_end' => '2025-10-17',
+                'daily_rate' => 800.00,
+                'total_cost' => 5600.00,
+                'status' => 'Returned',
+                'condition_on_return' => 'Good'
+            ]
+        ];
+    }
+
+    // New Shopping Related Methods
+    public function productDetails($productId) {
+        $products = $this->getAvailableProducts();
+        $product = null;
+        
+        foreach ($products as $p) {
+            if ($p['id'] == $productId) {
+                $product = $p;
+                break;
+            }
+        }
+        
+        if (!$product) {
+            redirect('player/shopping');
+        }
+        
+        $data = [
+            'title' => $product['name'],
+            'player' => $this->getPlayerData(),
+            'product' => $product,
+            'relatedProducts' => array_slice($products, 0, 3)
+        ];
+        
+        $this->view('player/product-details', $data);
+    }
+
+    public function facilityBooking() {
+        $data = [
+            'title' => 'Facility Booking',
+            'player' => $this->getPlayerData(),
+            'facilities' => $this->getAvailableFacilities()
+        ];
+        
+        $this->view('player/facility-booking', $data);
+    }
+
+    public function cart() {
+        $data = [
+            'title' => 'Shopping Cart',
+            'player' => $this->getPlayerData(),
+            'cartItems' => $this->getCartItems()
+        ];
+        
+        $this->view('player/cart', $data);
+    }
+
+    public function checkout() {
+        $data = [
+            'title' => 'Checkout',
+            'player' => $this->getPlayerData(),
+            'cartItems' => $this->getCartItems(),
+            'cartTotal' => $this->getCartTotal()
+        ];
+        
+        $this->view('player/checkout', $data);
+    }
+
+    private function getCartItems() {
+        // Mock cart data - in real implementation, this would come from session/database
+        return [
+            [
+                'id' => 1,
+                'name' => 'Professional Cricket Bat',
+                'price' => 18500.00,
+                'quantity' => 1,
+                'image' => 'cricket-bat-pro.jpg',
+                'discount' => 15
+            ],
+            [
+                'id' => 2,
+                'name' => 'Protective Gear Set',
+                'price' => 12500.00,
+                'quantity' => 1,
+                'image' => 'protective-gear-set.jpg',
+                'discount' => 10
+            ]
+        ];
+    }
+
+    private function getCartTotal() {
+        $items = $this->getCartItems();
+        $subtotal = 0;
+        
+        foreach ($items as $item) {
+            $discountedPrice = $item['price'] * (1 - $item['discount'] / 100);
+            $subtotal += $discountedPrice * $item['quantity'];
+        }
+        
+        $memberDiscount = $subtotal * 0.05; // 5% member discount
+        $total = $subtotal - $memberDiscount;
+        
+        return [
+            'subtotal' => $subtotal,
+            'member_discount' => $memberDiscount,
+            'total' => $total
+        ];
+    }
+
+    private function getRentalStats() {
+        return [
+            'total_equipment' => 25,
+            'active_rentals' => 3,
+            'total_spent' => 450,
+            'member_discount' => '15%'
+        ];
+    }
+
+    private function getMyFacilityBookings() {
+        return [
+            [
+                'id' => 1,
+                'facility' => 'Indoor Practice Nets',
+                'date' => '2024-01-25',
+                'time' => '10:00 AM',
+                'duration' => '2 hours',
+                'status' => 'confirmed',
+                'total' => 70
+            ],
+            [
+                'id' => 2,
+                'facility' => 'Main Cricket Ground',
+                'date' => '2024-01-28',
+                'time' => '2:00 PM',
+                'duration' => '4 hours',
+                'status' => 'pending',
+                'total' => 200
+            ]
+        ];
+    }
+
+    private function getFacilityStats() {
+        return [
+            'total_facilities' => 8,
+            'hours_available' => 16,
+            'max_capacity' => 50,
+            'rating' => '5★'
         ];
     }
 }

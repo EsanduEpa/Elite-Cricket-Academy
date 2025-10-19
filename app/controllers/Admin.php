@@ -1,7 +1,8 @@
 <?php
 class Admin extends Controller {
     public function __construct() {
-        // Simple constructor for interface-only dashboard
+        // Check authentication for all admin pages
+        requireAuth(['Admin']);
     }
     
     public function index() {
@@ -180,6 +181,15 @@ class Admin extends Controller {
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+    }
+
+    // Staff Management
+    public function staff() {
+        $data = [
+            'title' => 'Staff Management - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/staff', $data);
     }
 
     // Events and Tournaments Management
@@ -428,6 +438,243 @@ class Admin extends Controller {
         ];
         
         $this->view('admin/finance', $data);
+    }
+
+    // Feedback Monitoring
+    public function feedback() {
+        $feedbackModel = $this->model('Feedback');
+        
+        // Get all feedbacks with different statuses
+        $allFeedbacks = $feedbackModel->getAllFeedbacks();
+        
+        // Separate by status
+        $pendingFeedbacks = array_filter($allFeedbacks, function($f) {
+            return isset($f['status']) && $f['status'] === 'pending';
+        });
+        
+        $inProgressFeedbacks = array_filter($allFeedbacks, function($f) {
+            return isset($f['status']) && $f['status'] === 'in_progress';
+        });
+        
+        $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
+            return isset($f['status']) && $f['status'] === 'resolved';
+        });
+        
+        // Add dummy data if no database results
+        if (empty($allFeedbacks)) {
+            $allFeedbacks = [
+                [
+                    'id' => 1,
+                    'subject' => 'Training Quality Feedback',
+                    'message' => 'The coaching sessions are excellent but need more practice time. The coaches are very supportive.',
+                    'user_name' => 'John Smith',
+                    'status' => 'pending',
+                    'priority' => 'medium',
+                    'category' => 'training',
+                    'created_at' => '2025-10-18 10:30:00',
+                    'user_email' => 'john.smith@email.com'
+                ],
+                [
+                    'id' => 2,
+                    'subject' => 'Facility Improvement Suggestion',
+                    'message' => 'The changing rooms could use better lighting and ventilation. Also, more benches would be helpful.',
+                    'user_name' => 'Sarah Johnson',
+                    'status' => 'in_progress',
+                    'priority' => 'low',
+                    'category' => 'facilities',
+                    'created_at' => '2025-10-17 14:15:00',
+                    'user_email' => 'sarah.j@email.com'
+                ],
+                [
+                    'id' => 3,
+                    'subject' => 'Equipment Request',
+                    'message' => 'We need more batting helmets for junior players. Current stock is insufficient for the growing number of students.',
+                    'user_name' => 'Mike Wilson',
+                    'status' => 'pending',
+                    'priority' => 'high',
+                    'category' => 'equipment',
+                    'created_at' => '2025-10-17 09:45:00',
+                    'user_email' => 'mike.w@email.com'
+                ],
+                [
+                    'id' => 4,
+                    'subject' => 'Schedule Conflict Issue',
+                    'message' => 'There is a scheduling conflict between junior and senior training sessions on weekends.',
+                    'user_name' => 'Emily Brown',
+                    'status' => 'resolved',
+                    'priority' => 'high',
+                    'category' => 'scheduling',
+                    'created_at' => '2025-10-15 16:20:00',
+                    'resolved_at' => '2025-10-16 10:00:00',
+                    'admin_response' => 'Schedule has been adjusted. Junior sessions now at 8 AM, seniors at 10 AM.',
+                    'user_email' => 'emily.b@email.com'
+                ],
+                [
+                    'id' => 5,
+                    'subject' => 'Payment System Feedback',
+                    'message' => 'The online payment system is great but could use more payment options like digital wallets.',
+                    'user_name' => 'David Lee',
+                    'status' => 'pending',
+                    'priority' => 'medium',
+                    'category' => 'system',
+                    'created_at' => '2025-10-14 11:30:00',
+                    'user_email' => 'david.lee@email.com'
+                ],
+                [
+                    'id' => 6,
+                    'subject' => 'Coach Performance Appreciation',
+                    'message' => 'Coach Williams has been exceptional in improving my batting technique. Highly appreciate the dedication.',
+                    'user_name' => 'Lisa Anderson',
+                    'status' => 'resolved',
+                    'priority' => 'low',
+                    'category' => 'appreciation',
+                    'created_at' => '2025-10-13 13:45:00',
+                    'resolved_at' => '2025-10-14 09:00:00',
+                    'admin_response' => 'Thank you for your positive feedback. We have shared it with Coach Williams.',
+                    'user_email' => 'lisa.a@email.com'
+                ],
+                [
+                    'id' => 7,
+                    'subject' => 'Tournament Organization Query',
+                    'message' => 'When will the registration open for the upcoming junior cricket championship?',
+                    'user_name' => 'Robert Martinez',
+                    'status' => 'in_progress',
+                    'priority' => 'medium',
+                    'category' => 'events',
+                    'created_at' => '2025-10-12 15:00:00',
+                    'user_email' => 'robert.m@email.com'
+                ],
+                [
+                    'id' => 8,
+                    'subject' => 'Parking Space Concern',
+                    'message' => 'Limited parking space during peak hours. Parents have difficulty finding parking spots.',
+                    'user_name' => 'Jennifer White',
+                    'status' => 'pending',
+                    'priority' => 'high',
+                    'category' => 'facilities',
+                    'created_at' => '2025-10-11 08:30:00',
+                    'user_email' => 'jennifer.w@email.com'
+                ],
+                [
+                    'id' => 9,
+                    'subject' => 'Cafeteria Menu Suggestion',
+                    'message' => 'It would be great to have more healthy food options in the cafeteria menu.',
+                    'user_name' => 'Chris Taylor',
+                    'status' => 'resolved',
+                    'priority' => 'low',
+                    'category' => 'services',
+                    'created_at' => '2025-10-10 12:15:00',
+                    'resolved_at' => '2025-10-11 14:30:00',
+                    'admin_response' => 'New healthy menu items have been added. Check the updated menu board.',
+                    'user_email' => 'chris.t@email.com'
+                ],
+                [
+                    'id' => 10,
+                    'subject' => 'Medical Facility Inquiry',
+                    'message' => 'Is there a sports physiotherapist available on-site for injury consultations?',
+                    'user_name' => 'Amanda Clark',
+                    'status' => 'pending',
+                    'priority' => 'medium',
+                    'category' => 'medical',
+                    'created_at' => '2025-10-09 10:00:00',
+                    'user_email' => 'amanda.c@email.com'
+                ],
+                [
+                    'id' => 11,
+                    'subject' => 'Equipment Maintenance Issue',
+                    'message' => 'Some of the bowling machines in Practice Net 2 are not working properly.',
+                    'user_name' => 'Kevin Brown',
+                    'status' => 'in_progress',
+                    'priority' => 'high',
+                    'category' => 'equipment',
+                    'created_at' => '2025-10-08 14:45:00',
+                    'user_email' => 'kevin.b@email.com'
+                ],
+                [
+                    'id' => 12,
+                    'subject' => 'Membership Benefits Query',
+                    'message' => 'What additional benefits are included in the premium membership package?',
+                    'user_name' => 'Rachel Green',
+                    'status' => 'resolved',
+                    'priority' => 'low',
+                    'category' => 'membership',
+                    'created_at' => '2025-10-07 11:20:00',
+                    'resolved_at' => '2025-10-08 09:15:00',
+                    'admin_response' => 'Premium membership includes priority booking, free equipment rental, and personalized training sessions.',
+                    'user_email' => 'rachel.g@email.com'
+                ]
+            ];
+            
+            $pendingFeedbacks = array_filter($allFeedbacks, function($f) {
+                return $f['status'] === 'pending';
+            });
+            
+            $inProgressFeedbacks = array_filter($allFeedbacks, function($f) {
+                return $f['status'] === 'in_progress';
+            });
+            
+            $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
+                return $f['status'] === 'resolved';
+            });
+        }
+        
+        $data = [
+            'title' => 'Feedback Monitoring - Elite Cricket Academy',
+            'allFeedbacks' => $allFeedbacks,
+            'pendingFeedbacks' => array_values($pendingFeedbacks),
+            'inProgressFeedbacks' => array_values($inProgressFeedbacks),
+            'resolvedFeedbacks' => array_values($resolvedFeedbacks),
+            'feedbackStats' => [
+                'total' => count($allFeedbacks),
+                'pending' => count($pendingFeedbacks),
+                'inProgress' => count($inProgressFeedbacks),
+                'resolved' => count($resolvedFeedbacks),
+                'highPriority' => count(array_filter($allFeedbacks, function($f) {
+                    return isset($f['priority']) && $f['priority'] === 'high';
+                })),
+                'todayCount' => count(array_filter($allFeedbacks, function($f) {
+                    return isset($f['created_at']) && date('Y-m-d', strtotime($f['created_at'])) === date('Y-m-d');
+                })),
+                'avgResponseTime' => '4.2 hours',
+                'satisfactionRate' => 92
+            ]
+        ];
+        
+        $this->view('admin/feedback', $data);
+    }
+
+    // Update feedback status via AJAX
+    public function updateFeedbackStatus() {
+        header('Content-Type: application/json');
+        
+        if ($_POST && isset($_POST['feedback_id']) && isset($_POST['status'])) {
+            $feedbackModel = $this->model('Feedback');
+            $response = isset($_POST['response']) ? $_POST['response'] : '';
+            
+            $result = $feedbackModel->updateFeedbackStatus(
+                $_POST['feedback_id'],
+                $_POST['status'],
+                $response
+            );
+            
+            echo json_encode(['success' => $result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        }
+    }
+
+    // Delete feedback via AJAX
+    public function deleteFeedback() {
+        header('Content-Type: application/json');
+        
+        if ($_POST && isset($_POST['feedback_id'])) {
+            $feedbackModel = $this->model('Feedback');
+            $result = $feedbackModel->deleteFeedback($_POST['feedback_id']);
+            
+            echo json_encode(['success' => $result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        }
     }
 }
 ?>

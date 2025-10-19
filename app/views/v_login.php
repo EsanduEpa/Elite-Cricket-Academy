@@ -22,15 +22,24 @@
                     <div class="login-box">
                         <h2>LOGIN</h2>
                         
-                        <form id="loginForm" class="login-form">
+                        <!-- Show flash messages if any -->
+                        <?php flash('register_success'); ?>
+                        
+                        <form method="POST" action="<?php echo URLROOT; ?>/login" class="login-form">
                             <div class="form-group">
-                                <label for="username">Username</label>
-                                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                                <label for="email">Email or Username</label>
+                                <input type="text" id="email" name="email" placeholder="Enter your email or username" value="<?php echo $data['email']; ?>" required>
+                                <div class="error-message <?php echo (!empty($data['email_err'])) ? 'show' : ''; ?>">
+                                    <?php echo $data['email_err']; ?>
+                                </div>
                             </div>
                             
                             <div class="form-group">
                                 <label for="password">Password</label>
                                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                                <div class="error-message <?php echo (!empty($data['password_err'])) ? 'show' : ''; ?>">
+                                    <?php echo $data['password_err']; ?>
+                                </div>
                             </div>
                             
                             <div class="forgot-password">
@@ -56,7 +65,8 @@
         </main>
     </div>
 
-    <script src="<?php echo URLROOT; ?>/js/login.js"></script>
+    <!-- <script src="<?php echo URLROOT; ?>/js/login.js"></script> -->
+    <!-- JavaScript disabled to use PHP form submission -->
 </body>
 </html>
 
