@@ -616,6 +616,9 @@
                 <p>Follow these steps to create a comprehensive cricket academy event</p>
             </div>
 
+            <!-- Flash Messages -->
+            <?php flash('event_message'); ?>
+
             <!-- Progress Bar -->
             <div class="progress-container">
                 <div class="progress-bar">
@@ -640,7 +643,7 @@
             </div>
 
             <!-- Form Content -->
-            <form id="eventForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+            <form id="eventForm" action="<?php echo URLROOT; ?>/admin/create_event" method="POST">
                 <div class="wizard-content">
                     <!-- Step 1: Basic Details -->
                     <div class="step-content active" data-step="1">
@@ -1011,6 +1014,7 @@ class EventWizard {
     }
 
     init() {
+        this.form = document.getElementById('eventForm');
         this.bindEvents();
         this.updateProgress();
         this.setMinDates();
@@ -1019,7 +1023,7 @@ class EventWizard {
     bindEvents() {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextStep());
         document.getElementById('prevBtn').addEventListener('click', () => this.prevStep());
-        document.getElementById('eventForm').addEventListener('submit', (e) => this.submitForm(e));
+        this.form.addEventListener('submit', (e) => this.submitForm(e));
         
         // Real-time validation
         document.querySelectorAll('.form-control').forEach(input => {
@@ -1110,13 +1114,16 @@ class EventWizard {
     }
 
     validateCurrentStep() {
+        console.log(`Validating step ${this.currentStep}...`);
         const currentStepElement = document.querySelector(`[data-step="${this.currentStep}"]`);
         const requiredFields = currentStepElement.querySelectorAll('[required]');
         let isValid = true;
+        let invalidFields = [];
 
         requiredFields.forEach(field => {
             if (!this.validateField(field)) {
                 isValid = false;
+                invalidFields.push(field.name || field.id);
             }
         });
 
@@ -1124,7 +1131,14 @@ class EventWizard {
         if (this.currentStep === 2) {
             if (!this.validateDates()) {
                 isValid = false;
+                invalidFields.push('date validation');
             }
+        }
+
+        if (isValid) {
+            console.log(`✓ Step ${this.currentStep} validation passed`);
+        } else {
+            console.error(`✗ Step ${this.currentStep} validation failed. Invalid fields:`, invalidFields);
         }
 
         return isValid;
@@ -1285,21 +1299,33 @@ class EventWizard {
 
     submitForm(e) {
         e.preventDefault();
+        console.log('=== EVENT FORM SUBMISSION STARTED ===');
+        console.log('Form action:', this.form.action);
+        console.log('Form method:', this.form.method);
         
         if (this.validateCurrentStep()) {
+            console.log('✓ Validation passed');
+            
+            // Collect all form data
+            const formData = new FormData(this.form);
+            console.log('Form data being submitted:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
+            
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
             
             // Show loading state
             submitBtn.innerHTML = '<div class="loading"></div> Creating Event...';
             submitBtn.disabled = true;
+            console.log('✓ Submit button disabled, showing loading state');
 
-            // Simulate form submission
-            setTimeout(() => {
-                // In real implementation, submit the form
-                alert('Event created successfully!');
-                window.location.href = '<?php echo URLROOT; ?>/admin/events';
-            }, 2000);
+            console.log('✓ Submitting form to:', this.form.action);
+            // Actually submit the form to the server
+            this.form.submit();
+        } else {
+            console.error('✗ Validation failed - form not submitted');
         }
     }
 }
@@ -1896,6 +1922,21 @@ window.addEventListener('beforeunload', function() {
     }
 }
 </style>
+
+<script>
+// Auto-dismiss flash messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const flashMessage = document.getElementById('msg-flash');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.classList.add('alert-fade-out');
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 500);
+        }, 5000);
+    }
+});
+</script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 

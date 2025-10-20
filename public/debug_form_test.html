@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Form Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #45a049; }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .test-btn {
+            background: #2196F3;
+            margin: 10px 5px;
+        }
+        .test-btn:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Event Creation System - Debug Test</h1>
+
+    <div class="section">
+        <h2>1. Test Database Connection</h2>
+        <button onclick="testDatabase()">Test Database</button>
+        <div id="dbResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Test Session</h2>
+        <button onclick="testSession()">Test Session</button>
+        <div id="sessionResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Test Form Submission (AJAX)</h2>
+        <button onclick="testFormSubmission()">Test AJAX Submit</button>
+        <div id="formResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Test Direct Form Submit</h2>
+        <form id="testForm" action="http://localhost/Elite/admin/create_event" method="POST" onsubmit="return confirmSubmit()">
+            <input type="hidden" name="event_name" value="Debug Test Event">
+            <input type="hidden" name="event_type" value="Match">
+            <input type="hidden" name="event_category" value="senior">
+            <input type="hidden" name="event_venue" value="Test Ground">
+            <input type="hidden" name="event_description" value="This is a debug test event">
+            <input type="hidden" name="start_date" value="2025-11-01">
+            <input type="hidden" name="start_time" value="10:00">
+            <input type="hidden" name="end_date" value="2025-11-01">
+            <input type="hidden" name="end_time" value="18:00">
+            <button type="submit">Submit Test Form</button>
+        </form>
+        <div id="directResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Console Logs</h2>
+        <pre id="consoleLogs">Open browser console (F12) to see detailed logs...</pre>
+    </div>
+
+    <script>
+        console.log('=== EVENT DEBUG PAGE LOADED ===');
+        
+        function testDatabase() {
+            console.log('Testing database connection...');
+            document.getElementById('dbResult').innerHTML = '<p>Testing...</p>';
+            
+            fetch('<?php echo APPROOT; ?>/test_db.php')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Database test result:', data);
+                    if (data.success) {
+                        document.getElementById('dbResult').innerHTML = 
+                            `<p class="success">✓ Database connected</p>
+                             <p>Event table columns: ${data.columns}</p>
+                             <p>Total events: ${data.count}</p>`;
+                    } else {
+                        document.getElementById('dbResult').innerHTML = 
+                            `<p class="error">✗ Database error: ${data.error}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Database test error:', error);
+                    document.getElementById('dbResult').innerHTML = 
+                        `<p class="error">✗ Error: ${error.message}</p>`;
+                });
+        }
+        
+        function testSession() {
+            console.log('Testing session...');
+            document.getElementById('sessionResult').innerHTML = '<p>Testing...</p>';
+            
+            // Check if we can access the login page
+            fetch('http://localhost/Elite/login')
+                .then(response => {
+                    console.log('Login page status:', response.status);
+                    if (response.ok) {
+                        document.getElementById('sessionResult').innerHTML = 
+                            `<p class="success">✓ Server responding (status: ${response.status})</p>
+                             <p>Check if logged in: <a href="http://localhost/Elite/admin/dashboard" target="_blank">Admin Dashboard</a></p>`;
+                    } else {
+                        document.getElementById('sessionResult').innerHTML = 
+                            `<p class="warning">⚠ Response status: ${response.status}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Session test error:', error);
+                    document.getElementById('sessionResult').innerHTML = 
+                        `<p class="error">✗ Error: ${error.message}</p>`;
+                });
+        }
+        
+        function testFormSubmission() {
+            console.log('Testing form submission via AJAX...');
+            document.getElementById('formResult').innerHTML = '<p>Testing...</p>';
+            
+            const formData = new FormData();
+            formData.append('event_name', 'AJAX Test Event');
+            formData.append('event_type', 'Match');
+            formData.append('event_category', 'senior');
+            formData.append('event_venue', 'Test Venue');
+            formData.append('event_description', 'AJAX test event');
+            formData.append('start_date', '2025-11-01');
+            formData.append('start_time', '10:00');
+            formData.append('end_date', '2025-11-01');
+            formData.append('end_time', '18:00');
+            
+            console.log('Sending data:', Object.fromEntries(formData));
+            
+            fetch('http://localhost/Elite/admin/create_event', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.text();
+            })
+            .then(html => {
+                console.log('Response HTML length:', html.length);
+                if (html.includes('Event') || html.includes('success')) {
+                    document.getElementById('formResult').innerHTML = 
+                        '<p class="success">✓ Form submitted! Check browser console and error log.</p>';
+                } else {
+                    document.getElementById('formResult').innerHTML = 
+                        `<p class="warning">⚠ Response received but unclear if successful.</p>
+                         <details><summary>View Response</summary><pre>${html.substring(0, 500)}...</pre></details>`;
+                }
+            })
+            .catch(error => {
+                console.error('AJAX test error:', error);
+                document.getElementById('formResult').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            });
+        }
+        
+        function confirmSubmit() {
+            console.log('Direct form submission starting...');
+            document.getElementById('directResult').innerHTML = 
+                '<p class="warning">⚠ Form submitted. You should be redirected...</p>';
+            return true;
+        }
+        
+        // Log all console messages to the page as well
+        const originalLog = console.log;
+        const logContainer = document.getElementById('consoleLogs');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+            ).join(' ');
+            logContainer.textContent += message + '\n';
+        };
+    </script>
+</body>
+</html>

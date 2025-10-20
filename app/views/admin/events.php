@@ -103,6 +103,9 @@
             </div>
         </div>
 
+        <!-- Flash Messages -->
+        <?php flash('event_message'); ?>
+
         <!-- Event Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -216,9 +219,13 @@
                                     <?php echo $event['description']; ?>
                                 </td>
                                 <td class="actions-cell">
-                                    <button class="btn-action-table edit" onclick="editEvent(<?php echo $event['id']; ?>)" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                    <button 
+    class="btn-action-table edit" 
+    onclick="editEvent(<?php echo isset($event['EventID']) ? (int)$event['EventID'] : (isset($event['id']) ? (int)$event['id'] : 0); ?>)" 
+    title="Edit"
+>
+    <i class="fas fa-edit"></i>
+</button>
                                     <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -337,7 +344,7 @@
             </div>
 
             <!-- Form Content -->
-            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/create_event" method="POST">
                 <div class="wizard-content">
                     <!-- Step 1: Basic Details -->
                     <div class="step-content active" data-step="1">
@@ -359,13 +366,15 @@
                                 <label for="eventType">Event Type <span class="required">*</span></label>
                                 <select id="eventType" name="event_type" class="form-control" required>
                                     <option value="">Select Event Type</option>
-                                    <option value="tournament">Tournament</option>
-                                    <option value="training_camp">Training Camp</option>
-                                    <option value="match">Match/Game</option>
-                                    <option value="workshop">Workshop/Clinic</option>
-                                    <option value="trial">Trial/Selection</option>
-                                    <option value="meeting">Team Meeting</option>
-                                    <option value="other">Other</option>
+                                    <option value="Tournament">Tournament</option>
+                                    <option value="Training Camp">Training Camp</option>
+                                    <option value="Match">Match</option>
+                                    <option value="Workshop">Workshop</option>
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Competition">Competition</option>
+                                    <option value="Trial">Trial</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Other">Other</option>
                                 </select>
                                 <div class="error-message" id="eventTypeError">Please select an event type</div>
                             </div>
@@ -512,44 +521,6 @@
                                        placeholder="+94 77 123 4567" required>
                                 <div class="error-message" id="contactPhoneError">Please enter a valid phone number</div>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="secondaryContact">Secondary Contact Person</label>
-                            <input type="text" id="secondaryContact" name="secondary_contact" class="form-control" 
-                                   placeholder="Backup organizer (optional)">
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="secondaryEmail">Secondary Email</label>
-                                <input type="email" id="secondaryEmail" name="secondary_email" class="form-control" 
-                                       placeholder="backup@elitecricket.com">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secondaryPhone">Secondary Phone</label>
-                                <input type="tel" id="secondaryPhone" name="secondary_phone" class="form-control" 
-                                       placeholder="+94 71 987 6543">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="eventCoordinator">Event Coordinator</label>
-                            <select id="eventCoordinator" name="event_coordinator" class="form-control">
-                                <option value="">Select Coordinator</option>
-                                <option value="john_doe">John Doe (Head Coach)</option>
-                                <option value="jane_smith">Jane Smith (Academy Manager)</option>
-                                <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
-                                <option value="sarah_johnson">Sarah Johnson (Assistant Manager)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="specialRequirements">Special Requirements / Notes</label>
-                            <textarea id="specialRequirements" name="special_requirements" class="form-control" 
-                                    placeholder="Any special arrangements, equipment needs, dietary requirements, accessibility considerations, etc." 
-                                    rows="3"></textarea>
                         </div>
                     </div>
 
@@ -1202,28 +1173,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Updated event handlers for new wizard modal
-    const createEventBtn = document.getElementById('createEventBtn');
-    const createTournamentBtn = document.getElementById('createTournamentBtn');
+    // Note: Create Event button handler is now in create-event-wizard.js to avoid timing issues
+    // Note: Create Tournament button handler is in create-tournament-wizard.js
     
-    if (createEventBtn) {
-        createEventBtn.addEventListener('click', () => {
-            console.log('Create Event button clicked!');
-            openCreateEventModal();
-        });
-    } else {
-        console.error('Create Event button not found!');
-    }
-    
-    if (createTournamentBtn) {
-        createTournamentBtn.addEventListener('click', () => {
-            console.log('Create Tournament button clicked!');
-            openTournamentModal();
-        });
-    } else {
-        console.error('Create Tournament button not found!');
-    }
-
     // Other existing event handlers
     const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
     const viewAllPastBtn = document.getElementById('viewAllPastBtn');
@@ -1317,15 +1269,20 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Legacy functions for existing events (can be updated later)
+// Note: editEvent() function is defined in events.js
+
+
 function editEvent(eventId) {
-    // Fetch event details and populate form
-    fetch(`<?php echo URLROOT; ?>/admin/get_event/${eventId}`)
-        .then(response => response.json())
-        .then(event => {
-            alert('Edit functionality will be updated to use the new wizard format');
-        });
+    if (!eventId || eventId === 0) {
+        console.error("⚠️ Invalid event ID passed to editEvent()");
+        alert("Invalid event ID. Please refresh the page and try again.");
+        return;
+    }
+
+    // Redirect to the edit page
+    window.location.href = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
 }
+
 
 function deleteEvent(eventId) {
     if (confirm('Are you sure you want to delete this event?')) {
@@ -1381,6 +1338,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeFilter) typeFilter.addEventListener('change', filterEvents);
     if (dateFilter) dateFilter.addEventListener('change', filterEvents);
+    
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessage = document.getElementById('msg-flash');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.classList.add('alert-fade-out');
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 500);
+        }, 5000);
+    }
 });
 </script>
 

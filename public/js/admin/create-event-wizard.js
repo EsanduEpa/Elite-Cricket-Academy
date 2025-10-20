@@ -334,29 +334,92 @@ class EventWizard {
 
     submitForm(e) {
         e.preventDefault();
+        console.log('=== MODAL EVENT FORM SUBMISSION STARTED ===');
+        console.log('Current step:', this.currentStep);
         
         if (this.validateCurrentStep()) {
+            console.log('✓ Final validation passed');
+            
             const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
+            const form = document.getElementById('eventWizardForm');
+            
+            if (!form) {
+                console.error('❌ Form not found!');
+                alert('Error: Form element not found. Please refresh the page and try again.');
+                return;
+            }
+            
+            // Verify form action
+            if (!form.action || form.action === '') {
+                console.error('❌ Form action is empty!');
+                alert('Error: Form action URL is missing. Please contact support.');
+                return;
+            }
+            
+            console.log('Form found:', form);
+            console.log('Form action:', form.action);
+            console.log('Form method:', form.method);
+            
+            // Collect and log form data
+            const formData = new FormData(form);
+            console.log('Form data being submitted (' + formData.entries().length + ' fields):');
+            let fieldCount = 0;
+            let emptyRequired = [];
+            
+            for (let [key, value] of formData.entries()) {
+                fieldCount++;
+                console.log(`  ${fieldCount}. ${key}: ${value || '(empty)'}`);
+                
+                // Check if required field is empty
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field && field.hasAttribute('required') && !value) {
+                    emptyRequired.push(key);
+                }
+            }
+            
+            console.log(`Total fields: ${fieldCount}`);
+            
+            if (emptyRequired.length > 0) {
+                console.error('❌ Required fields are empty:', emptyRequired);
+                alert('Please fill all required fields:\n- ' + emptyRequired.join('\n- '));
+                
+                // Re-enable submit button
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+                submitBtn.disabled = false;
+                return;
+            }
             
             // Show loading state
             submitBtn.innerHTML = '<div class="loading"></div> Creating Event...';
             submitBtn.disabled = true;
+            console.log('✓ Submit button disabled, showing loading state');
 
-            // Simulate form submission - replace with actual form submission
-            setTimeout(() => {
-                // Reset form and close modal
-                this.resetWizard();
-                closeCreateEventModal();
+            console.log('✓ Submitting form to server...');
+            
+            // Try to submit the form
+            try {
+                form.submit();
+                console.log('✓ Form.submit() called successfully');
+            } catch (error) {
+                console.error('❌ Form submission error:', error);
+                alert('Error submitting form: ' + error.message);
                 
-                // Show success message
-                showNotification('Event created successfully!', 'success');
-                
-                // Refresh events if needed
-                if (typeof refreshEvents === 'function') {
-                    refreshEvents();
-                }
-            }, 2000);
+                // Re-enable submit button
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+                submitBtn.disabled = false;
+            }
+        } else {
+            console.error('✗ Validation failed - form not submitted');
+            console.log('Step', this.currentStep, 'validation failed');
+            
+            // Find which fields failed
+            const currentStepElement = document.querySelector(`[data-step="${this.currentStep}"]`);
+            if (currentStepElement) {
+                const invalidFields = currentStepElement.querySelectorAll('.error');
+                console.log('Invalid fields:', Array.from(invalidFields).map(f => f.id || f.name));
+            }
+            
+            alert('Please fill all required fields correctly before submitting.');
         }
     }
 
@@ -548,13 +611,25 @@ function showNotification(message, type = 'info') {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 create-event-wizard.js DOMContentLoaded fired');
+    
     // Setup enhanced modal close handlers
     setupModalCloseHandlers();
     
     // Bind create event button
     const createEventBtn = document.getElementById('createEventBtn');
+    console.log('🔘 Create Event button found in wizard JS:', !!createEventBtn);
+    
     if (createEventBtn) {
-        createEventBtn.addEventListener('click', openCreateEventModal);
+        createEventBtn.addEventListener('click', function(e) {
+            console.log('🎯 CREATE EVENT BUTTON CLICKED! (from wizard.js)');
+            e.preventDefault();
+            e.stopPropagation();
+            openCreateEventModal();
+        });
+        console.log('✅ Event listener attached to Create Event button');
+    } else {
+        console.error('❌ Create Event button NOT FOUND in wizard JS!');
     }
     
     // Close modal when clicking outside
