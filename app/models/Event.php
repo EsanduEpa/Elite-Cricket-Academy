@@ -12,10 +12,10 @@ class Event {
             EventID as id,
             Name as title,
             StartDate as event_date,
-            Type as event_type,
+            Type,
             Description as description,
             Location as location,
-            Status as status,
+            Status,
             Category,
             EndDate,
             RegistrationFee,
@@ -27,15 +27,19 @@ class Event {
         WHERE Status IN ("upcoming", "registration_open") 
             AND StartDate >= NOW()
         ORDER BY StartDate ASC 
-        LIMIT ' . (int)$limit);
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
         $results = $this->db->resultSet();
         
         // Convert objects to arrays and format event_type
         $formatted = [];
         foreach ($results as $event) {
             $eventArray = (array)$event; // Convert stdClass to array
-            $eventArray['event_type'] = strtolower(str_replace(' ', '_', $eventArray['event_type']));
+            // Add lowercase event_type with underscores for frontend compatibility
+            $eventArray['event_type'] = (isset($eventArray['Type']) && !is_null($eventArray['Type']) && $eventArray['Type'] !== '')
+                ? strtolower(str_replace(' ', '_', $eventArray['Type'])) 
+                : '';
             $formatted[] = $eventArray;
         }
         
@@ -48,10 +52,10 @@ class Event {
             EventID as id,
             Name as title,
             StartDate as event_date,
-            Type as event_type,
+            Type,
             Description as description,
             Location as location,
-            Status as status,
+            Status,
             Category,
             EndDate,
             RegistrationFee,
@@ -62,18 +66,21 @@ class Event {
         FROM Event 
         WHERE (Status = "completed" OR EndDate < NOW())
         ORDER BY StartDate DESC 
-        LIMIT ' . (int)$limit);
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
         $results = $this->db->resultSet();
         
         // Convert objects to arrays and format event_type
         $formatted = [];
         foreach ($results as $event) {
             $eventArray = (array)$event; // Convert stdClass to array
-            $eventArray['event_type'] = strtolower(str_replace(' ', '_', $eventArray['event_type']));
-            // Ensure status is set to completed for past events
-            if ($eventArray['status'] != 'cancelled') {
-                $eventArray['status'] = 'completed';
+            $eventArray['event_type'] = (isset($eventArray['Type']) && !is_null($eventArray['Type']) && $eventArray['Type'] !== '')
+                ? strtolower(str_replace(' ', '_', $eventArray['Type']))
+                : '';
+            // Ensure Status is set to completed for past events
+            if (isset($eventArray['Status']) && $eventArray['Status'] != 'cancelled') {
+                $eventArray['Status'] = 'completed';
             }
             $formatted[] = $eventArray;
         }
@@ -87,21 +94,24 @@ class Event {
             EventID as id,
             Name as title,
             StartDate as event_date,
-            Type as event_type,
+            Type,
             Description as description,
             Location as location,
-            Status as status
+            Status
         FROM Event 
         ORDER BY EventID DESC 
-        LIMIT ' . (int)$limit);
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
         $results = $this->db->resultSet();
         
         // Convert objects to arrays and format event_type
         $formatted = [];
         foreach ($results as $event) {
             $eventArray = (array)$event; // Convert stdClass to array
-            $eventArray['event_type'] = strtolower(str_replace(' ', '_', $eventArray['event_type']));
+            $eventArray['event_type'] = isset($eventArray['Type']) && $eventArray['Type']
+                ? strtolower(str_replace(' ', '_', $eventArray['Type']))
+                : '';
             $formatted[] = $eventArray;
         }
         
@@ -114,10 +124,10 @@ class Event {
             EventID as id,
             Name as title,
             StartDate as event_date,
-            Type as event_type,
+            Type,
             Description as description,
             Location as location,
-            Status as status
+            Status
         FROM Event 
         WHERE DATE(StartDate) = CURDATE()
             AND Status IN ("upcoming", "registration_open", "ongoing")
@@ -125,10 +135,14 @@ class Event {
         
         $results = $this->db->resultSet();
         
-        // Convert objects to arrays
+        // Convert objects to arrays and format event_type
         $formatted = [];
         foreach ($results as $event) {
-            $formatted[] = (array)$event;
+            $eventArray = (array)$event;
+            $eventArray['event_type'] = (isset($eventArray['Type']) && !is_null($eventArray['Type']) && $eventArray['Type'] !== '')
+                ? strtolower(str_replace(' ', '_', $eventArray['Type']))
+                : '';
+            $formatted[] = $eventArray;
         }
         
         return $formatted;
@@ -140,19 +154,23 @@ class Event {
             EventID as id,
             Name as title,
             StartDate as event_date,
-            Type as event_type,
+            Type,
             Description as description,
             Location as location,
-            Status as status
+            Status
         FROM Event 
         ORDER BY StartDate DESC');
         
         $results = $this->db->resultSet();
         
-        // Convert objects to arrays
+        // Convert objects to arrays and add event_type
         $formatted = [];
         foreach ($results as $event) {
-            $formatted[] = (array)$event;
+            $eventArray = (array)$event;
+            $eventArray['event_type'] = (isset($eventArray['Type']) && !is_null($eventArray['Type']) && $eventArray['Type'] !== '')
+                ? strtolower(str_replace(' ', '_', $eventArray['Type']))
+                : '';
+            $formatted[] = $eventArray;
         }
         
         return $formatted;
@@ -187,16 +205,18 @@ class Event {
 
     // Get event by ID from database
     public function getEventById($id) {
+        error_log("===getEventById() called with ID: $id===");
+        
         $this->db->query('SELECT 
-            EventID as id,
-            Name as title,
-            StartDate as event_date,
-            EndDate,
-            Type as event_type,
+            EventID,
+            Name,
+            Type,
             Category,
-            Description as description,
-            Location as location,
-            Status as status,
+            Description,
+            StartDate,
+            EndDate,
+            Location,
+            Status,
             RegistrationStart,
             RegistrationEnd,
             MaxParticipants,
@@ -210,11 +230,24 @@ class Event {
         $this->db->bind(':id', $id);
         $result = $this->db->single();
         
-        return $result ? (array)$result : null;
+        if (!$result) {
+            error_log("Event not found for ID: $id");
+            return null;
+        }
+        
+        // Convert stdClass to clean associative array using JSON encode/decode
+        $eventArray = json_decode(json_encode($result), true);
+        error_log("getEventById() keys: " . implode(', ', array_keys($eventArray)));
+        
+        return $eventArray;
     }
 
     // Update event in database
     public function updateEvent($data) {
+        // DEBUG: Log incoming data
+        error_log("=== updateEvent() called ===");
+        error_log("Data received: " . print_r($data, true));
+        
         $this->db->query('UPDATE Event SET
             Name = :name,
             Type = :type,
@@ -251,17 +284,29 @@ class Event {
         $this->db->bind(':contact_email', $data['contact_email']);
         $this->db->bind(':contact_phone', $data['contact_phone']);
 
+        // DEBUG: Log bound parameters
+        error_log("Bound values:");
+        error_log("  ID: " . $data['id']);
+        error_log("  Name: " . $data['name']);
+        error_log("  Start Date: " . $data['start_date']);
+        error_log("  End Date: " . $data['end_date']);
+
         // Execute
         try {
             if ($this->db->execute()) {
-                error_log("Event updated successfully");
+                error_log("✅ Event updated successfully - EventID: " . $data['id']);
                 return true;
             } else {
-                error_log("Event update failed");
+                error_log("❌ Event update failed - execute() returned false");
+                // Try to get PDO error info
+                if (method_exists($this->db, 'getError')) {
+                    error_log("Database error: " . $this->db->getError());
+                }
                 return false;
             }
         } catch (Exception $e) {
-            error_log("Event update error: " . $e->getMessage());
+            error_log("❌ Event update exception: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return false;
         }
     }
@@ -292,7 +337,7 @@ class Event {
         return $result ? (int)$result->total : 0;
     }
 
-    // Create new event in database
+    // Create new event - REAL DATABASE VERSION
     public function createEvent($data) {
         // Prepare the SQL statement with all fields from the updated Event table
         $this->db->query('INSERT INTO Event (
@@ -361,3 +406,4 @@ class Event {
         }
     }
 }
+
