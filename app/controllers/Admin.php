@@ -1,6 +1,10 @@
 <?php
 class Admin extends Controller {
     public function __construct() {
+        // Debug: What URL did we receive?
+        echo "<!-- DEBUG CONSTRUCTOR: URL = " . ($_GET['url'] ?? 'none') . " -->";
+        
+        error_log("Admin controller constructor called - Method will be: " . ($_GET['url'] ?? 'none'));
         // Check authentication for all admin pages
         requireAuth(['Admin']);
     }
@@ -371,24 +375,134 @@ class Admin extends Controller {
         }
     }
 
+    public function edit_event_form($id) {
+        // This method loads event data and displays it in the wizard on the events page
+        $eventModel = $this->model('Event');
+        $event = $eventModel->getEventById($id);
+        
+        if (!$event) {
+            flash('event_message', '❌ Event not found', 'alert alert-danger');
+            redirect('admin/events');
+            return;
+        }
+        
+        // Get all events for the tables
+        $upcomingEvents = $eventModel->getUpcomingEvents(10);
+        $pastEvents = $eventModel->getPastEvents(10);
+        
+        // Calculate stats
+        $totalEvents = $eventModel->getTotalEvents();
+        $upcomingCount = count($eventModel->getUpcomingEvents(1000));
+        
+        // Get event type counts
+        $db = new Database();
+        $db->query('SELECT Type, COUNT(*) as count FROM Event GROUP BY Type');
+        $typeCounts = $db->resultSet();
+        
+        $tournaments = 0;
+        $trainingSessions = 0;
+        $matches = 0;
+        
+        foreach ($typeCounts as $typeCount) {
+            $type = $typeCount->Type;
+            $count = (int)$typeCount->count;
+            
+            if ($type == 'Tournament') {
+                $tournaments = $count;
+            } elseif ($type == 'Training Camp') {
+                $trainingSessions = $count;
+            } elseif ($type == 'Match') {
+                $matches = $count;
+            }
+        }
+        
+        $data = [
+            'title' => 'Edit Event - Elite Cricket Academy',
+            'upcomingEvents' => $upcomingEvents,
+            'pastEvents' => $pastEvents,
+            'recentEvents' => $eventModel->getRecentEvents(5),
+            'eventStats' => [
+                'totalEvents' => $totalEvents,
+                'upcomingCount' => $upcomingCount,
+                'pastCount' => $totalEvents - $upcomingCount,
+                'tournaments' => $tournaments,
+                'trainingSessions' => $trainingSessions,
+                'matches' => $matches
+            ],
+            'editEvent' => $event, // Event data to populate the wizard
+            'editMode' => true // Flag to trigger wizard opening
+        ];
+        
+        $this->view('admin/events', $data);
+    }
+
     public function edit_event($id) {
+        echo "<!-- DEBUG: Admin::edit_event() called with ID: $id -->";
+        error_log("Admin::edit_event() called with ID: $id");
+        
         $eventModel = $this->model('Event');
         
-        if ($_POST) {
-            // Handle event update
-            $result = $eventModel->updateEvent($id, $_POST);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // DEBUG: Log POST data
+            error_log("=== Edit Event POST received ===");
+            error_log("POST data: " . print_r($_POST, true));
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            // Combine date and time fields - FIX: Use correct field names from form
+            // Form sends: StartDate_date, StartTime, EndDate_date, EndTime
+            $startDateTime = $_POST['StartDate_date'] . ' ' . $_POST['StartTime'] . ':00';
+            $endDateTime = $_POST['EndDate_date'] . ' ' . $_POST['EndTime'] . ':00';
+            
+            error_log("Start DateTime: " . $startDateTime);
+            error_log("End DateTime: " . $endDateTime);
+            
+            // Prepare event data with exact column names
+            $eventData = [
+                'id' => $id,
+                'name' => trim($_POST['Name']),
+                'type' => $_POST['Type'],
+                'category' => $_POST['Category'] ?? null,
+                'description' => !empty($_POST['Description']) ? trim($_POST['Description']) : null,
+                'start_date' => $startDateTime,
+                'end_date' => $endDateTime,
+                'location' => !empty($_POST['Location']) ? trim($_POST['Location']) : null,
+                'status' => $_POST['Status'] ?? 'upcoming',
+                'max_participants' => !empty($_POST['MaxParticipants']) ? intval($_POST['MaxParticipants']) : null,
+                'registration_fee' => !empty($_POST['RegistrationFee']) ? floatval($_POST['RegistrationFee']) : null,
+                'registration_start' => !empty($_POST['RegistrationStart']) ? $_POST['RegistrationStart'] . ':00' : null,
+                'registration_end' => !empty($_POST['RegistrationEnd']) ? $_POST['RegistrationEnd'] . ':00' : null,
+                'primary_contact' => !empty($_POST['PrimaryContact']) ? trim($_POST['PrimaryContact']) : null,
+                'contact_email' => !empty($_POST['ContactEmail']) ? trim($_POST['ContactEmail']) : null,
+                'contact_phone' => !empty($_POST['ContactPhone']) ? trim($_POST['ContactPhone']) : null
+            ];
+            
+            error_log("Event data prepared for update: " . print_r($eventData, true));
+            
+            // Update event
+            $result = $eventModel->updateEvent($eventData);
             
             if ($result) {
-                flash('event_message', 'Event updated successfully');
+                flash('event_message', '✅ Event updated successfully!', 'alert alert-success');
                 redirect('admin/events');
             } else {
-                flash('event_message', 'Something went wrong', 'alert alert-danger');
-                redirect('admin/events');
+                flash('event_message', '❌ Failed to update event. Please try again.', 'alert alert-danger');
+                redirect('admin/edit_event/' . $id);
             }
         } else {
+            // GET request - Display edit form
+            $event = $eventModel->getEventById($id);
+            
+            if (!$event) {
+                flash('event_message', '❌ Event not found', 'alert alert-danger');
+                redirect('admin/events');
+                return;
+            }
+            
             $data = [
                 'title' => 'Edit Event - Elite Cricket Academy',
-                'event' => $eventModel->getEventById($id)
+                'event' => $event
             ];
             $this->view('admin/edit_event', $data);
         }

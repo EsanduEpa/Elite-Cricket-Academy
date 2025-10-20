@@ -19,6 +19,13 @@
             //initiate pdo
             try {
                 $this->dbh = new PDO($dsn, $this->user, $this->password, $options);
+                
+                // Set PDO to preserve natural column name casing from database
+                $this->dbh->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
+                
+                // Ensure error mode and default fetch mode are set
+                $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $this->dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
             } catch (PDOException $e) {
                 $this->error = $e->getMessage();
                 echo "Connection failed: " . $this->error;
