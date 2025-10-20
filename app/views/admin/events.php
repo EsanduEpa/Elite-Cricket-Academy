@@ -219,9 +219,13 @@
                                     <?php echo $event['description']; ?>
                                 </td>
                                 <td class="actions-cell">
-                                    <button class="btn-action-table edit" onclick="editEvent(<?php echo $event['id']; ?>)" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                    <button 
+    class="btn-action-table edit" 
+    onclick="editEvent(<?php echo isset($event['EventID']) ? (int)$event['EventID'] : (isset($event['id']) ? (int)$event['id'] : 0); ?>)" 
+    title="Edit"
+>
+    <i class="fas fa-edit"></i>
+</button>
                                     <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -1265,15 +1269,20 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Legacy functions for existing events (can be updated later)
+// Note: editEvent() function is defined in events.js
+
+
 function editEvent(eventId) {
-    // Fetch event details and populate form
-    fetch(`<?php echo URLROOT; ?>/admin/get_event/${eventId}`)
-        .then(response => response.json())
-        .then(event => {
-            alert('Edit functionality will be updated to use the new wizard format');
-        });
+    if (!eventId || eventId === 0) {
+        console.error("⚠️ Invalid event ID passed to editEvent()");
+        alert("Invalid event ID. Please refresh the page and try again.");
+        return;
+    }
+
+    // Redirect to the edit page
+    window.location.href = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
 }
+
 
 function deleteEvent(eventId) {
     if (confirm('Are you sure you want to delete this event?')) {

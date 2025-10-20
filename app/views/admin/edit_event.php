@@ -1,6 +1,10 @@
 <?php
-// DEBUG: What keys does the event array have?
-echo "<!-- DEBUG EVENT KEYS: " . (isset($data['event']) ? implode(', ', array_keys($data['event'])) : 'NO EVENT DATA') . " -->";
+// Debug using error_log instead of HTML comments to avoid contaminating output
+if (isset($data['event'])) {
+    error_log("Edit Event View - Event keys: " . implode(', ', array_keys($data['event'])));
+} else {
+    error_log("Edit Event View - NO EVENT DATA");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

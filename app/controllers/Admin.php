@@ -1,10 +1,9 @@
 <?php
 class Admin extends Controller {
     public function __construct() {
-        // Debug: What URL did we receive?
-        echo "<!-- DEBUG CONSTRUCTOR: URL = " . ($_GET['url'] ?? 'none') . " -->";
-        
+        // Debug using error_log (doesn't contaminate output)
         error_log("Admin controller constructor called - Method will be: " . ($_GET['url'] ?? 'none'));
+        
         // Check authentication for all admin pages
         requireAuth(['Admin']);
     }
@@ -437,7 +436,7 @@ class Admin extends Controller {
     }
 
     public function edit_event($id) {
-        echo "<!-- DEBUG: Admin::edit_event() called with ID: $id -->";
+        // Debug using error_log only (no HTML output)
         error_log("Admin::edit_event() called with ID: $id");
         
         $eventModel = $this->model('Event');
