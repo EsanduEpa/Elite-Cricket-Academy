@@ -80,7 +80,10 @@
                 </div>
                 <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
                 <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
+                <a href="<?php echo URLROOT; ?>/player/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>

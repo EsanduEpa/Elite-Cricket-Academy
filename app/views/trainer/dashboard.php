@@ -81,11 +81,14 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-info">
-                <div class="trainer-name"><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Trainer'; ?></div>
+                <div class="trainer-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
                 <div class="trainer-role">Physical Trainer</div>
             </div>
-            <div class="logout-btn">
-                <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
+            <div class="profile-actions">
+                <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
             </div>

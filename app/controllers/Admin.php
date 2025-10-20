@@ -429,5 +429,91 @@ class Admin extends Controller {
         
         $this->view('admin/finance', $data);
     }
+
+    // Profile Management
+    public function profile() {
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'] ?? 1;
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        $data = [
+            'title' => 'My Profile',
+            'user' => $userProfile
+        ];
+        
+        $this->view('admin/profile', $data);
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone_number' => trim($_POST['phone_number']),
+                'address' => trim($_POST['address']),
+                'school' => trim($_POST['school']),
+                'role' => $_SESSION['user_role'] ?? 'Admin',
+                'status' => 'active'
+            ];
+            
+            // Validate data
+            $errors = [];
+            if (empty($userData['name'])) {
+                $errors[] = 'Name is required';
+            }
+            if (empty($userData['email'])) {
+                $errors[] = 'Email is required';
+            }
+            if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+            
+            if (empty($errors)) {
+                if ($userModel->updateUser($userData)) {
+                    // Update session data
+                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_email'] = $userData['email'];
+                    
+                    flash('profile_message', 'Profile updated successfully');
+                } else {
+                    flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+                }
+            } else {
+                flash('profile_message', implode('<br>', $errors), 'alert alert-danger');
+            }
+        }
+        
+        redirect('admin/profile');
+    }
+
+    // Deactivate Account
+    public function deactivateAccount() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            if ($userModel->suspendUser($userId, 9999)) {
+                // Clear session and redirect to login
+                session_destroy();
+                flash('login_message', 'Your account has been deactivated successfully');
+                redirect('login');
+            } else {
+                flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
+                redirect('admin/profile');
+            }
+        } else {
+            redirect('admin/profile');
+        }
+    }
 }
 ?>

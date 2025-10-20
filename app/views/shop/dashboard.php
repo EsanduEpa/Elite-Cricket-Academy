@@ -81,13 +81,30 @@
                 </li>
             </ul>
         </nav>
+
+
+<!-- Simple Profile Section -->
+        <div class="profile-section">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+                <div class="profile-role">Shop Employee</div>
+                <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
     <main class="main-content" id="mainContent">
         <div class="dashboard-header">
-            <h1><i class="fas fa-store"></i> Shop Management Dashboard</h1>
-            <p>Welcome back, <?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?>! Manage your shop operations efficiently.</p>
+            <h1><i class="fas fa-store"></i> Welcome back, <?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?>!</h1>
+            <p>Shop Management Dashboard - Manage your shop operations efficiently.</p>
             <div class="current-time">
                 <i class="fas fa-clock"></i>
                 <span id="currentDateTime"></span>

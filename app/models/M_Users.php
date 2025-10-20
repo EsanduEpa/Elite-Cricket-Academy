@@ -419,16 +419,32 @@ class M_Users {
 
     // Get user with profile information
     public function getUserWithProfile($userId) {
-        $this->db->query('SELECT u.*, 
+        $this->db->query('SELECT u.UserID, u.Name, u.DateOfBirth, u.PhoneNumber, u.Email, 
+                                u.Address, u.School, u.Role, u.Username, u.DateJoined, u.Status,
+                                u.RequiresPasswordChange, u.PasswordChangeDeadline, u.LastLoginAt,
+                                u.LoginAttempts, u.AccountLockedUntil, u.CreatedBy, u.Notes,
+                                
+                                -- Player Profile fields
                                 pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, 
-                                pp.SubscriptionType, pp.SchoolInstitution, pp.EmergencyContactName, 
-                                pp.EmergencyContactPhone, pp.ParentGuardianName, pp.ParentGuardianPhone,
+                                pp.SubscriptionType, pp.EmergencyContactName, pp.EmergencyContactPhone, 
+                                pp.ParentGuardianName, pp.ParentGuardianPhone, 
+                                pp.PreviousExperience, pp.MedicalConditions, pp.HowHeardAboutUs,
+                                
+                                -- Coach Profile fields
                                 cp.Specialization as CoachSpecialization, cp.Experience as CoachExperience, 
                                 cp.Certifications as CoachCertifications, cp.IsHeadCoach,
+                                
+                                -- Trainer Profile fields
                                 tp.Experience as TrainerExperience, tp.Certifications as TrainerCertifications,
+                                
+                                -- Shop Employee Profile fields
                                 sep.Department as ShopDepartment, sep.HireDate as ShopHireDate,
-                                ap.Section as AdminSection, ap.Department as AdminDepartment, 
-                                ap.AccessLevel as AdminAccessLevel, ap.HireDate as AdminHireDate
+                                
+                                -- Admin Profile fields
+                                ap.AdminLevel, ap.Department as AdminDepartment, ap.AccessPermissions,
+                                ap.LastLoginIP, ap.AccountLocked, ap.LockoutExpiry, ap.TwoFactorEnabled,
+                                ap.SecurityClearance, ap.HireDate as AdminHireDate, ap.SessionTimeout
+                                
                          FROM User u 
                          LEFT JOIN PlayerProfile pp ON u.UserID = pp.PlayerID 
                          LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID
@@ -439,6 +455,120 @@ class M_Users {
         
         $this->db->bind(':user_id', $userId);
         return $this->db->single();
+    }
+
+    // Update Player Profile specific fields
+    public function updatePlayerProfile($data) {
+        // First check if PlayerProfile exists
+        $this->db->query('SELECT PlayerID FROM PlayerProfile WHERE PlayerID = :user_id');
+        $this->db->bind(':user_id', $data['user_id']);
+        $existingProfile = $this->db->single();
+        
+        if ($existingProfile) {
+            // Update existing profile
+            $this->db->query('UPDATE PlayerProfile SET 
+                             BattingStyle = :batting_style,
+                             BowlingStyle = :bowling_style,
+                             JerseyNumber = :jersey_number,
+                             SubscriptionType = :subscription_type,
+                             EmergencyContactName = :emergency_contact_name,
+                             EmergencyContactPhone = :emergency_contact_phone,
+                             ParentGuardianName = :parent_guardian_name,
+                             ParentGuardianPhone = :parent_guardian_phone,
+                             SchoolInstitution = :school_institution,
+                             PreviousExperience = :previous_experience,
+                             MedicalConditions = :medical_conditions,
+                             HowHeardAboutUs = :how_heard_about_us
+                             WHERE PlayerID = :user_id');
+        } else {
+            // Create new profile
+            $this->db->query('INSERT INTO PlayerProfile (
+                             PlayerID, BattingStyle, BowlingStyle, JerseyNumber, SubscriptionType,
+                             EmergencyContactName, EmergencyContactPhone, ParentGuardianName, 
+                             ParentGuardianPhone, SchoolInstitution, PreviousExperience,
+                             MedicalConditions, HowHeardAboutUs
+                             ) VALUES (
+                             :user_id, :batting_style, :bowling_style, :jersey_number, :subscription_type,
+                             :emergency_contact_name, :emergency_contact_phone, :parent_guardian_name,
+                             :parent_guardian_phone, :school_institution, :previous_experience,
+                             :medical_conditions, :how_heard_about_us
+                             )');
+        }
+        
+        // Bind values (same for both INSERT and UPDATE)
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':batting_style', $data['batting_style'] ?? null);
+        $this->db->bind(':bowling_style', $data['bowling_style'] ?? null);
+        $this->db->bind(':jersey_number', $data['jersey_number'] ?? null);
+        $this->db->bind(':subscription_type', $data['subscription_type'] ?? 'basic');
+        $this->db->bind(':emergency_contact_name', $data['emergency_contact_name'] ?? null);
+        $this->db->bind(':emergency_contact_phone', $data['emergency_contact_phone'] ?? null);
+        $this->db->bind(':parent_guardian_name', $data['parent_guardian_name'] ?? null);
+        $this->db->bind(':parent_guardian_phone', $data['parent_guardian_phone'] ?? null);
+        $this->db->bind(':school_institution', $data['school_institution'] ?? null);
+        $this->db->bind(':previous_experience', $data['previous_experience'] ?? null);
+        $this->db->bind(':medical_conditions', $data['medical_conditions'] ?? null);
+        $this->db->bind(':how_heard_about_us', $data['how_heard_about_us'] ?? null);
+        
+        return $this->db->execute();
+    }
+
+    // Update Coach Profile specific fields
+    public function updateCoachProfile($data) {
+        $this->db->query('UPDATE CoachProfile SET 
+                         Specialization = :specialization,
+                         Experience = :experience,
+                         Certifications = :certifications
+                         WHERE CoachID = :user_id');
+        
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':specialization', $data['specialization'] ?? null);
+        $this->db->bind(':experience', $data['experience'] ?? 0);
+        $this->db->bind(':certifications', $data['certifications'] ?? null);
+        
+        return $this->db->execute();
+    }
+
+    // Update Trainer Profile specific fields
+    public function updateTrainerProfile($data) {
+        $this->db->query('UPDATE TrainerProfile SET 
+                         Experience = :experience,
+                         Certifications = :certifications
+                         WHERE TrainerID = :user_id');
+        
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':experience', $data['experience'] ?? 0);
+        $this->db->bind(':certifications', $data['certifications'] ?? null);
+        
+        return $this->db->execute();
+    }
+
+    // Update Shop Employee Profile specific fields
+    public function updateShopEmployeeProfile($data) {
+        $this->db->query('UPDATE ShopEmployeeProfile SET 
+                         Department = :department
+                         WHERE ShopEmployeeID = :user_id');
+        
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':department', $data['department'] ?? 'General');
+        
+        return $this->db->execute();
+    }
+
+    // Update Admin Profile specific fields
+    public function updateAdminProfile($data) {
+        $this->db->query('UPDATE AdminProfile SET 
+                         AdminLevel = :admin_level,
+                         Department = :department,
+                         SecurityClearance = :security_clearance
+                         WHERE AdminID = :user_id');
+        
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':admin_level', $data['admin_level'] ?? 'system_admin');
+        $this->db->bind(':department', $data['department'] ?? 'General');
+        $this->db->bind(':security_clearance', $data['security_clearance'] ?? 'Level1');
+        
+        return $this->db->execute();
     }
 }
 ?> 

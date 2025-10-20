@@ -395,6 +395,45 @@
     box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
 }
 
+/* Profile Actions - Button Container */
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* Profile and Logout Buttons - Circular Design */
+.profile-btn,
+.logout-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+.profile-btn:hover,
+.logout-btn:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+}
+
+.profile-btn i,
+.logout-btn i {
+    font-size: 14px;
+}
+
 /* Responsive Design for All Sidebars */
 @media (max-width: 1024px) {
     .sidebar,

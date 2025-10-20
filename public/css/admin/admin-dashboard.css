@@ -2,6 +2,73 @@
 /* Uses Universal Sidebar Design - No Unique Branding Colors */
 @import url('../common/sidebar.css');
 
+/* Action Button Style - Matching Player Dashboard */
+.action-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 15px 20px !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+    text-decoration: none !important;
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    border: 1px solid rgba(74, 144, 226, 0.3) !important;
+    backdrop-filter: blur(5px) !important;
+    gap: 10px !important;
+}
+
+.action-btn:hover {
+    background: #4A90E2 !important;
+    color: white !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4) !important;
+}
+
+.action-btn i {
+    font-size: 18px !important;
+}
+
+/* Profile Actions - Ensure visibility */
+.profile-actions {
+    display: flex !important;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* Profile and Logout Buttons - Force visibility */
+.profile-btn,
+.logout-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(74, 144, 226, 0.3) !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+.profile-btn:hover,
+.logout-btn:hover {
+    background: #4A90E2 !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4) !important;
+}
+
+.profile-btn i,
+.logout-btn i {
+    font-size: 14px !important;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;

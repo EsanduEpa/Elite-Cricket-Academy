@@ -1826,6 +1826,308 @@ class Player extends Controller {
         ];
     }
 
+    // Profile Management
+    public function profile() {
+        $this->requireLogin();
+        
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'] ?? 1; // Fallback to user ID 1 if session not set
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        // If getUserWithProfile fails, try getting basic user data
+        if (!$userProfile) {
+            $userProfile = $userModel->getUserById($userId);
+        }
+        
+        // If still no user data, create a basic user object
+        if (!$userProfile) {
+            $userProfile = (object) [
+                'UserID' => $userId,
+                'Name' => $_SESSION['user_name'] ?? 'Unknown User',
+                'Email' => $_SESSION['user_email'] ?? '',
+                'PhoneNumber' => '',
+                'Address' => '',
+                'School' => '',
+                'Role' => $_SESSION['user_role'] ?? 'Player',
+                'Status' => 'active'
+            ];
+        }
+        
+        // Check if profile is complete (has essential details filled)
+        $isProfileComplete = $this->isProfileComplete($userProfile);
+        
+        $data = [
+            'title' => $isProfileComplete ? 'My Profile' : 'Add Profile Details',
+            'user' => $userProfile,
+            'player' => $this->getPlayerData(),
+            'isProfileComplete' => $isProfileComplete,
+            'formMode' => $isProfileComplete ? 'update' : 'add'
+        ];
+        
+        $this->view('player/profile', $data);
+    }
+
+    // Check if profile has essential details filled
+    private function isProfileComplete($userProfile) {
+        // Check if essential player profile fields are filled
+        $essentialFields = [
+            'Name', 'Email', 'PhoneNumber', 'Address'
+        ];
+        
+        foreach ($essentialFields as $field) {
+            if (empty($userProfile->$field)) {
+                return false;
+            }
+        }
+        
+        // For players, also check if cricket-specific details are filled
+        if (isset($userProfile->Role) && $userProfile->Role === 'Player') {
+            if (empty($userProfile->BattingStyle) && empty($userProfile->BowlingStyle)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // Add Profile Details (for first-time profile setup)
+    public function addProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $this->requireLogin();
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'];
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone_number' => trim($_POST['phone_number']),
+                'address' => trim($_POST['address']),
+                'school' => trim($_POST['school']),
+                'role' => $_SESSION['user_role'], // Keep current role
+                'status' => 'active' // Keep active
+            ];
+            
+            // Validate data
+            $errors = [];
+            if (empty($userData['name'])) {
+                $errors[] = 'Name is required';
+            }
+            if (empty($userData['email'])) {
+                $errors[] = 'Email is required';
+            }
+            if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+            if (empty($userData['phone_number'])) {
+                $errors[] = 'Phone number is required';
+            }
+            if (empty($userData['address'])) {
+                $errors[] = 'Address is required';
+            }
+            
+            if (empty($errors)) {
+                $updateSuccess = false;
+                
+                // Update basic user info
+                if ($userModel->updateUser($userData)) {
+                    // Update session data
+                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_email'] = $userData['email'];
+                    
+                    // Add role-specific profile data
+                    $userRole = $_SESSION['user_role'] ?? 'Player';
+                    
+                    if ($userRole === 'Player') {
+                        $playerData = [
+                            'user_id' => $userId,
+                            'batting_style' => trim($_POST['batting_style'] ?? ''),
+                            'bowling_style' => trim($_POST['bowling_style'] ?? ''),
+                            'jersey_number' => !empty($_POST['jersey_number']) ? intval($_POST['jersey_number']) : null,
+                            'subscription_type' => trim($_POST['subscription_type'] ?? 'basic'),
+                            'emergency_contact_name' => trim($_POST['emergency_contact_name'] ?? ''),
+                            'emergency_contact_phone' => trim($_POST['emergency_contact_phone'] ?? ''),
+                            'parent_guardian_name' => trim($_POST['parent_guardian_name'] ?? ''),
+                            'parent_guardian_phone' => trim($_POST['parent_guardian_phone'] ?? ''),
+                            'school_institution' => trim($_POST['school_institution'] ?? ''),
+                            'previous_experience' => trim($_POST['previous_experience'] ?? ''),
+                            'medical_conditions' => trim($_POST['medical_conditions'] ?? ''),
+                            'how_heard_about_us' => trim($_POST['how_heard_about_us'] ?? '')
+                        ];
+                        $updateSuccess = $userModel->updatePlayerProfile($playerData);
+                    }
+                    
+                    if ($updateSuccess) {
+                        flash('profile_message', 'Profile details added successfully! Welcome to Elite Cricket Academy!', 'alert alert-success');
+                    } else {
+                        flash('profile_message', 'Profile updated, but some additional details may not have been saved', 'alert alert-warning');
+                    }
+                } else {
+                    flash('profile_message', 'Failed to add profile details', 'alert alert-danger');
+                }
+            } else {
+                flash('profile_message', implode('<br>', $errors), 'alert alert-danger');
+            }
+        }
+        
+        redirect('player/profile');
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $this->requireLogin();
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'];
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone_number' => trim($_POST['phone_number']),
+                'address' => trim($_POST['address']),
+                'school' => trim($_POST['school']),
+                'role' => $_SESSION['user_role'], // Keep current role
+                'status' => 'active' // Keep active
+            ];
+            
+            // Validate data
+            $errors = [];
+            if (empty($userData['name'])) {
+                $errors[] = 'Name is required';
+            }
+            if (empty($userData['email'])) {
+                $errors[] = 'Email is required';
+            }
+            if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+            
+            if (empty($errors)) {
+                $updateSuccess = false;
+                
+                // Update basic user info
+                if ($userModel->updateUser($userData)) {
+                    // Update session data
+                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_email'] = $userData['email'];
+                    
+                    // Update role-specific profile data
+                    $userRole = $_SESSION['user_role'] ?? 'Player';
+                    
+                    switch ($userRole) {
+                        case 'Player':
+                            $playerData = [
+                                'user_id' => $userId,
+                                'batting_style' => trim($_POST['batting_style'] ?? ''),
+                                'bowling_style' => trim($_POST['bowling_style'] ?? ''),
+                                'jersey_number' => !empty($_POST['jersey_number']) ? intval($_POST['jersey_number']) : null,
+                                'subscription_type' => trim($_POST['subscription_type'] ?? 'basic'),
+                                'emergency_contact_name' => trim($_POST['emergency_contact_name'] ?? ''),
+                                'emergency_contact_phone' => trim($_POST['emergency_contact_phone'] ?? ''),
+                                'parent_guardian_name' => trim($_POST['parent_guardian_name'] ?? ''),
+                                'parent_guardian_phone' => trim($_POST['parent_guardian_phone'] ?? ''),
+                                'school_institution' => trim($_POST['school_institution'] ?? ''),
+                                'previous_experience' => trim($_POST['previous_experience'] ?? ''),
+                                'medical_conditions' => trim($_POST['medical_conditions'] ?? ''),
+                                'how_heard_about_us' => trim($_POST['how_heard_about_us'] ?? '')
+                            ];
+                            $updateSuccess = $userModel->updatePlayerProfile($playerData);
+                            break;
+                            
+                        case 'Coach':
+                            $coachData = [
+                                'user_id' => $userId,
+                                'specialization' => trim($_POST['specialization'] ?? ''),
+                                'experience' => !empty($_POST['experience']) ? intval($_POST['experience']) : 0,
+                                'certifications' => trim($_POST['certifications'] ?? '')
+                            ];
+                            $updateSuccess = $userModel->updateCoachProfile($coachData);
+                            break;
+                            
+                        case 'Trainer':
+                            $trainerData = [
+                                'user_id' => $userId,
+                                'experience' => !empty($_POST['experience']) ? intval($_POST['experience']) : 0,
+                                'certifications' => trim($_POST['certifications'] ?? '')
+                            ];
+                            $updateSuccess = $userModel->updateTrainerProfile($trainerData);
+                            break;
+                            
+                        case 'ShopEmployee':
+                            $shopData = [
+                                'user_id' => $userId,
+                                'department' => trim($_POST['department'] ?? 'General')
+                            ];
+                            $updateSuccess = $userModel->updateShopEmployeeProfile($shopData);
+                            break;
+                            
+                        case 'Admin':
+                            $adminData = [
+                                'user_id' => $userId,
+                                'admin_level' => trim($_POST['admin_level'] ?? 'system_admin'),
+                                'department' => trim($_POST['department'] ?? 'General'),
+                                'security_clearance' => trim($_POST['security_clearance'] ?? 'Level1')
+                            ];
+                            $updateSuccess = $userModel->updateAdminProfile($adminData);
+                            break;
+                            
+                        default:
+                            $updateSuccess = true; // No additional profile to update
+                            break;
+                    }
+                    
+                    if ($updateSuccess) {
+                        flash('profile_message', 'Profile updated successfully');
+                    } else {
+                        flash('profile_message', 'Profile updated, but some role-specific data may not have been saved', 'alert alert-warning');
+                    }
+                } else {
+                    flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+                }
+            } else {
+                flash('profile_message', implode('<br>', $errors), 'alert alert-danger');
+            }
+        }
+        
+        redirect('player/profile');
+    }
+
+
+
+    // Deactivate Account
+    public function deactivateAccount() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $this->requireLogin();
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'];
+            
+            if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
+                // Clear session and redirect to login
+                session_destroy();
+                flash('login_message', 'Your account has been deactivated successfully');
+                redirect('login');
+            } else {
+                flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
+                redirect('player/profile');
+            }
+        } else {
+            redirect('player/profile');
+        }
+    }
+
     // Get trainer session types
     private function getTrainerSessionTypes() {
         return [

@@ -1137,6 +1137,37 @@ body {
     border-radius: 8px;
 }
 
+/* Profile Actions Styling */
+.profile-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.profile-btn {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    padding: 8px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.profile-btn:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
 
 
 .loading::after {

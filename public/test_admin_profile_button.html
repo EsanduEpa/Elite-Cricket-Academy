@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile Button Test</title>
+    <link rel="stylesheet" href="css/admin/admin-dashboard.css">
+    <link rel="stylesheet" href="css/common/sidebar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile-section">
+                <div class="profile-pic">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="admin-profile">
+                    <h3>Admin Dashboard</h3>
+                    <p>Administrator</p>
+                    <div class="profile-actions">
+                        <a href="#" class="profile-btn"><i class="fas fa-user-edit"></i> Profile</a>
+                        <a href="#" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <h1>Test Page for Admin Profile Button</h1>
+            <p>Check if the profile button appears in the sidebar.</p>
+        </main>
+    </div>
+
+    <style>
+        /* Debug styles to highlight elements */
+        .profile-actions {
+            border: 2px solid red !important;
+            background-color: yellow !important;
+        }
+        
+        .profile-btn, .logout-btn {
+            border: 1px solid blue !important;
+            background-color: lightgreen !important;
+        }
+    </style>
+</body>
+</html>

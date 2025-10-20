@@ -70,11 +70,18 @@
                 </ul>
             </nav>
             
-            <!-- Logout Button -->
-            <div class="logout-section">
-                <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
+            <!-- Profile Section -->
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?></div>
+                <div class="profile-role">Cricket Coach</div>
+                <a href="<?php echo URLROOT; ?>/coach/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
         </div>
