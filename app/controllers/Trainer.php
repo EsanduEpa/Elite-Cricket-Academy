@@ -121,6 +121,81 @@ class Trainer extends Controller {
         $this->view('trainer/medical', $data);
     }
 
+    public function injuryReports() {
+        // Temporary bypass for development
+        if (!isset($_SESSION['user_id'])) {
+            $_SESSION['user_id'] = 1;
+            $_SESSION['username'] = 'John Trainer';
+            $_SESSION['user_type'] = 'trainer';
+        }
+
+        // Initialize medical model to get all medical records
+        $medicalModel = $this->model('M_Medical');
+        
+        // Get all medical records from PlayerMedicalRecord table
+        $medicalRecords = $medicalModel->getAllMedicalRecords();
+
+        $data = [
+            'title' => 'Injury Reports - All Players',
+            'medical_records' => $medicalRecords
+        ];
+
+        $this->view('trainer/injury-reports', $data);
+    }
+
+    // URL-friendly method name for injury_reports route (underscore version)
+    public function injury_reports() {
+        return $this->injuryReports();
+    }
+
+    // Update verification status for medical records
+    public function updateVerifyStatus() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        // Validate input
+        if (!isset($_POST['record_id']) || !isset($_POST['verify_status'])) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        $recordId = intval($_POST['record_id']);
+        $verifyStatus = trim($_POST['verify_status']);
+        $verifyComments = trim($_POST['verify_comments'] ?? '');
+
+        // Validate verify status
+        $allowedStatuses = ['pending', 'verified', 'rejected'];
+        if (!in_array($verifyStatus, $allowedStatuses)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
+            return;
+        }
+
+        try {
+            // Initialize medical model
+            $medicalModel = $this->model('M_Medical');
+            
+            // Update verify status
+            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Verification status updated successfully',
+                    'record_id' => $recordId,
+                    'new_status' => $verifyStatus
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update verification status']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
+    }
+
     // API methods for AJAX requests
     public function getSessionsData() {
         header('Content-Type: application/json');

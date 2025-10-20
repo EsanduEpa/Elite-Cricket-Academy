@@ -61,23 +61,7 @@ body {
 
 /* Trainer-specific sidebar customizations */
 /* Base sidebar styles are imported from ../common/sidebar.css */
-
-/* Collapsed state adjustments */
-.trainer-sidebar.collapsed .trainer-logo h3,
-.trainer-sidebar.collapsed .nav-link span,
-.trainer-sidebar.collapsed .trainer-name,
-.trainer-sidebar.collapsed .trainer-role {
-    display: none;
-}
-
-.trainer-sidebar.collapsed .nav-link {
-    justify-content: center;
-    padding: 15px 12px;
-}
-
-.trainer-sidebar.collapsed .nav-link i {
-    margin-right: 0;
-}
+/* Removed custom sidebar styles to use common sidebar design */
 
 /* Mobile responsive behavior */
 @media (max-width: 1024px) {
@@ -293,19 +277,7 @@ body {
     margin-bottom: 5px;
 }
 
-.sidebar-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.15) 0%, 
-        rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
-    margin: -0.5rem -0.5rem 1rem -0.5rem;
-    box-shadow: 
-        0 6px 20px rgba(96, 165, 250, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
+/* Removed custom .sidebar-header styles to use common sidebar design */
 
 .program-description {
     color: var(--text-secondary);
@@ -400,15 +372,7 @@ body {
     font-weight: 400;
 }
 
-/* Modern Glass Tile Navigation with enhanced active states */
-.sidebar-nav {
-    padding: 0.5rem 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
-}
+/* Removed custom .sidebar-nav styles to use common sidebar design */
 
 .nav-list {
     list-style: none;
@@ -431,139 +395,15 @@ body {
     }
 }
 
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 16px;
-    position: relative;
-    font-weight: 600;
-    font-size: 0.9rem;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.25) 0%, 
-        rgba(255, 255, 255, 0.1) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-        0 6px 20px rgba(96, 165, 250, 0.08),
-        0 3px 12px rgba(96, 165, 250, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-    margin-bottom: 0;
-    overflow: hidden;
-}
+/* Removed custom .nav-link styles to use common sidebar design */
 
-.nav-link::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
-    opacity: 0;
-    transform: translateX(-100%);
-    transition: all 0.6s ease;
-    pointer-events: none;
-}
+/* Removed custom .nav-link pseudo-elements to use common sidebar design */
 
-.nav-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #60a5fa, #3b82f6);
-    opacity: 0;
-    border-radius: 16px;
-    transition: all 0.3s ease;
-    z-index: -1;
-}
+/* Removed custom .nav-link:hover styles to use common sidebar design */
 
-.nav-link:hover {
-    color: white;
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 
-        0 20px 40px rgba(96, 165, 250, 0.25),
-        0 12px 30px rgba(96, 165, 250, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
-    background: linear-gradient(135deg, 
-        rgba(96, 165, 250, 0.9) 0%, 
-        rgba(59, 130, 246, 0.9) 100%);
-}
+/* Removed custom .nav-link active states to use common sidebar design */
 
-.nav-link:hover::before {
-    opacity: 1;
-}
-
-.nav-link:hover::after {
-    opacity: 1;
-    transform: translateX(100%);
-}
-
-.nav-link:active {
-    transform: translateY(-1px) scale(0.98);
-    box-shadow: 
-        0 8px 20px rgba(96, 165, 250, 0.4),
-        inset 0 2px 4px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.nav-link:active::after {
-    opacity: 0.8;
-    transform: translateX(50%);
-    transition: all 0.2s ease;
-}
-
-.nav-item.active .nav-link {
-    background: linear-gradient(135deg, 
-        rgba(96, 165, 250, 0.95) 0%, 
-        rgba(59, 130, 246, 0.95) 100%) !important;
-    color: white !important;
-    transform: translateY(-4px) scale(1.02) !important;
-    box-shadow: 
-        0 25px 50px rgba(96, 165, 250, 0.35),
-        0 15px 35px rgba(96, 165, 250, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.nav-item.active .nav-link::before {
-    opacity: 1 !important;
-    transition: opacity 0.3s ease !important;
-}
-
-/* Enhanced nav link icon transitions */
-.nav-link i {
-    font-size: 1.2rem;
-    width: 24px;
-    text-align: center;
-    opacity: 0.9;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Blue Themed Icon Variations with smooth transitions */
-.nav-link[href*="dashboard"] i {
-    color: #3b82f6;
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-link[href*="schedules"] i {
-    color: #1d4ed8;
-    filter: drop-shadow(0 0 8px rgba(29, 78, 216, 0.4));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Removed custom nav-link icon styles to use common sidebar design */
 
 .nav-link[href*="bookings"] i {
     color: #2563eb;
@@ -603,60 +443,11 @@ body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Clean Logout Button */
-.sidebar-footer {
-    width: 100%;
-    padding: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: auto;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.1) 0%, 
-        rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-    margin-bottom: -0.5rem;
-    box-shadow: 
-        0 -6px 20px rgba(96, 165, 250, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
+/* Removed custom .sidebar-footer styles to use common sidebar design */
 
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 0.75rem;
-    text-decoration: none;
-    color: #ef4444;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.2) 0%, 
-        rgba(255, 255, 255, 0.1) 100%);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 100%;
-    justify-content: center;
-    font-weight: 500;
-    font-size: 0.8rem;
-    box-shadow: 
-        0 3px 12px rgba(239, 68, 68, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
+/* Removed custom .logout-btn styles to use common sidebar design */
 
-.logout-btn:hover {
-    background: linear-gradient(135deg, 
-        rgba(239, 68, 68, 0.15) 0%, 
-        rgba(239, 68, 68, 0.1) 100%);
-    border-color: rgba(239, 68, 68, 0.5);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 8px 25px rgba(239, 68, 68, 0.2),
-        0 4px 15px rgba(239, 68, 68, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    color: #dc2626;
-}
+/* Removed custom .logout-btn:hover styles to use common sidebar design */
 
 /* Main Content with Glass Design */
 .main-content {

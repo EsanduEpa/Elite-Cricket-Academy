@@ -19,47 +19,59 @@
         <nav class="sidebar-nav">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link active">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="nav-item active">
+                
+                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
                         <i class="fas fa-calendar-check"></i>
                         <span>Player Bookings</span>
                     </a>
                 </li>
                 
-                
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/events" class="nav-link">
-                        <i class="fas fa-calendar-plus"></i>
-                        <span>Events & Tournaments</span>
-                    </a>
-                </li>
-                
-               
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                        <i class="fas fa-apple-whole"></i>
-                        <span>Nutrition Plans</span>
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="nav-link">
+                        <i class="fas fa-user-injured"></i>
+                        <span>Injury Reports</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/fitness" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Supplement plans</span>
+                    </a>
+                </li>
+                
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/nutients" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Nutrition plans</span>
+                    </a>
+                </li>
+              
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/workouts" class="nav-link">
                         <i class="fas fa-dumbbell"></i>
-                        <span>Fitness Programs</span>
+                        <span>Workout plans</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/medical" class="nav-link">
-                        <i class="fas fa-heart-pulse"></i>
-                        <span>Medical Records</span>
+                    <a href="<?php echo URLROOT; ?>/trainer/schedules" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Training Schedules</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/reports" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Progress Reports</span>
                     </a>
                 </li>
             </ul>

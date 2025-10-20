@@ -312,6 +312,70 @@ class Player extends Controller {
             redirect('player/medical');
         }
     }
+
+    // Delete medical record (only if verify status is rejected)
+    public function deleteMedicalRecord() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        // Validate input
+        if (!isset($_POST['record_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Missing record ID']);
+            return;
+        }
+
+        $recordId = intval($_POST['record_id']);
+        
+        try {
+            // Initialize medical model
+            if (!isset($this->medicalModel)) {
+                $this->medicalModel = $this->model('M_Medical');
+            }
+            
+            // Get current logged-in player data
+            $playerData = $this->getPlayerData();
+            $playerId = $playerData['id'];
+            
+            // First, verify this record belongs to the current player
+            $existingRecord = $this->medicalModel->getMedicalRecord($recordId);
+            
+            if (!$existingRecord) {
+                echo json_encode(['success' => false, 'message' => 'Medical record not found']);
+                return;
+            }
+            
+            if ($existingRecord->PlayerID != $playerId) {
+                echo json_encode(['success' => false, 'message' => 'Access denied - record does not belong to current player']);
+                return;
+            }
+            
+            // Check if verify status is 'rejected' - only then allow deletion
+            $verifyStatus = strtolower($existingRecord->verifyStatus ?? 'pending');
+            if ($verifyStatus !== 'rejected') {
+                echo json_encode(['success' => false, 'message' => 'Medical record can only be deleted if verification status is "rejected"']);
+                return;
+            }
+            
+            // Delete the record
+            $success = $this->medicalModel->deleteMedicalRecord($recordId);
+            
+            if ($success) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Medical record deleted successfully',
+                    'record_id' => $recordId
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete medical record']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
+    }
     
     // Performance History
     public function performance() {

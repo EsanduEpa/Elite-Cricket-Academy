@@ -406,6 +406,7 @@
                                     <th>Diagnosis</th>
                                     <th>Treatment</th>
                                     <th>Recovery Status</th>
+                                    <th>Verify Status</th>
                                     <th>Reported By</th>
                                     <th>Actions</th>
                                 </tr>
@@ -432,13 +433,26 @@
                                         </span>
                                     </td>
                                     <td>
+                                        <span class="table-badge verify-<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>">
+                                            <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
+                                        </span>
+                                        
+                                    </td>
+                                    <td>
                                         <div class="table-cell-title"><?php echo htmlspecialchars($record->reported_by_name ?? 'Self'); ?></div>
                                         <div class="table-cell-secondary"><?php echo htmlspecialchars($record->reported_by_role ?? 'Player'); ?></div>
                                     </td>
                                     <td>
-                                        <button class="btn-sm btn-secondary" onclick="openUpdateStatusModal(<?php echo $record->RecordID; ?>, '<?php echo $record->RecoveryStatus; ?>')">
-                                            <i class="fas fa-edit"></i> Update Status
-                                        </button>
+                                        <div class="action-buttons">
+                                            <button class="btn-sm btn-secondary" onclick="openUpdateStatusModal(<?php echo $record->RecordID; ?>, '<?php echo $record->RecoveryStatus; ?>')">
+                                                <i class="fas fa-edit"></i> Update Status
+                                            </button>
+                                            <?php if (strtolower($record->verifyStatus ?? 'pending') === 'rejected'): ?>
+                                                <button class="btn-sm btn-danger" onclick="confirmDeleteRecord(<?php echo $record->RecordID; ?>)" title="Delete Record">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -456,70 +470,7 @@
                 </div>
             </div>
 
-            <!-- Medical History -->
-            <div class="schedule-card">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-history"></i> Medical History</h2>
-                        <span class="event-count">2 Records</span>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Condition/Event</th>
-                                <th>Status</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">2024</div>
-                                    <div class="table-cell-secondary">Recent</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Minor Ankle Sprain</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-bandage"></i> Sports Injury
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-recovered">Fully Recovered</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-check-circle medical-status-good"></i> Rehabilitation completed • No long-term effects
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">2023</div>
-                                    <div class="table-cell-secondary">Program Start</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Fitness Program Start</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-play"></i> Baseline Assessment
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Ongoing</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-chart-line medical-status-good"></i> Structured program • Regular monitoring established
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+           
             <!-- Vaccinations & Immunizations -->
             <div class="schedule-card">
                 <div class="card-header">
@@ -736,6 +687,33 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Delete Medical Record Confirmation Modal -->
+    <div id="deleteRecordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle text-danger"></i> Delete Medical Record</h3>
+                <span class="close" onclick="closeDeleteRecordModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to delete this medical record?</p>
+                <p class="text-muted">This record has been marked as "rejected" by a trainer, which allows deletion. Once deleted, this information will be permanently removed from your medical history.</p>
+                
+                <input type="hidden" id="delete_record_id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteRecordModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deleteMedicalRecord()">
+                    <i class="fas fa-trash"></i> Delete Record
+                </button>
+            </div>
         </div>
     </div>
 
@@ -961,12 +939,68 @@
             form.reset();
         }
 
+        // Delete Record Modal Functions
+        function confirmDeleteRecord(recordId) {
+            const modal = document.getElementById('deleteRecordModal');
+            const recordIdInput = document.getElementById('delete_record_id');
+            
+            // Set the record ID
+            recordIdInput.value = recordId;
+            
+            // Show modal
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDeleteRecordModal() {
+            const modal = document.getElementById('deleteRecordModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function deleteMedicalRecord() {
+            const recordId = document.getElementById('delete_record_id').value;
+            
+            if (!recordId) {
+                alert('Error: No record ID found');
+                return;
+            }
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('record_id', recordId);
+
+            // Send delete request
+            fetch('<?php echo URLROOT; ?>/player/deleteMedicalRecord', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload page
+                    alert('Medical record deleted successfully');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to delete medical record');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the record');
+            })
+            .finally(() => {
+                closeDeleteRecordModal();
+            });
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const addMedicalModal = document.getElementById('addMedicalModal');
             const workoutModal = document.getElementById('workoutPlanModal');
             const nutritionModal = document.getElementById('nutritionPlanModal');
             const updateStatusModal = document.getElementById('updateStatusModal');
+            const deleteRecordModal = document.getElementById('deleteRecordModal');
             
             if (event.target === addMedicalModal) {
                 closeAddMedicalModal();
@@ -979,6 +1013,9 @@
             }
             if (event.target === updateStatusModal) {
                 closeUpdateStatusModal();
+            }
+            if (event.target === deleteRecordModal) {
+                closeDeleteRecordModal();
             }
         }
     </script>

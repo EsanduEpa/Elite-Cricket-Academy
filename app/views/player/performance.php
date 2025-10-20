@@ -241,34 +241,7 @@
                 </div>
             </div>
 
-            <!-- Training Progress -->
-            <div class="schedule-section">
-                <h3>Training Progress</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-check-circle" style="color: green;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Batting Improvement</h4>
-                        <p>Average improved from 38.5 to 45.2 in last month • Keep up the great work!</p>
-                    </div>
-                </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-arrow-up" style="color: #4A90E2;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Fitness Level</h4>
-                        <p>Completed 28 training sessions • Fitness score increased by 15%</p>
-                    </div>
-                </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-star" style="color: gold;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Goals Achievement</h4>
-                        <p>Achieved 3 out of 4 monthly goals • 85% completion rate</p>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Achievements -->
             <div class="schedule-card upcoming-schedule">
@@ -288,8 +261,9 @@
                                 <th>Match</th>
                                 <th>Tournament</th>
                                 <th>Achievement</th>
-                                <th>Picture</th>
+                                <!--<th>Picture</th> -->
                                 <th>Verified Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -316,11 +290,11 @@
                                     </div>
                                     <span class="table-badge" style="background: gold; color: black;">Batting</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <!-- <td style="text-align: center;">
                                     <button class="action-btn" onclick="viewPicture('century_oct15.jpg')" style="font-size: 12px; padding: 6px 10px;">
                                         <i class="fas fa-image"></i> View
                                     </button>
-                                </td>
+                                </td>  -->
                                 <td style="text-align: center;">
                                     <span class="table-badge status-confirmed">Verified</span>
                                 </td>
@@ -348,11 +322,11 @@
                                     </div>
                                     <span class="table-badge" style="background: #ff6b6b;">Team</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <!-- <td style="text-align: center;">
                                     <button class="action-btn" onclick="viewPicture('hot_streak_oct12.jpg')" style="font-size: 12px; padding: 6px 10px;">
                                         <i class="fas fa-image"></i> View
-                                    </button>
-                                </td>
+                                    </button>  
+                                </td> -->
                                 <td style="text-align: center;">
                                     <span class="table-badge status-confirmed">Verified</span>
                                 </td>
@@ -411,11 +385,11 @@
                                     </div>
                                     <span class="table-badge" style="background: gold; color: black;">Milestone</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <!-- <td style="text-align: center;">
                                     <button class="action-btn" onclick="viewPicture('first_century_sep15.jpg')" style="font-size: 12px; padding: 6px 10px;">
                                         <i class="fas fa-image"></i> View
                                     </button>
-                                </td>
+                                </td> --> 
                                 <td style="text-align: center;">
                                     <span class="table-badge status-confirmed">Verified</span>
                                 </td>
@@ -443,11 +417,11 @@
                                     </div>
                                     <span class="table-badge" style="background: green;">Team</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <!-- <td style="text-align: center;">
                                     <button class="action-btn" onclick="viewPicture('team_player_aug22.jpg')" style="font-size: 12px; padding: 6px 10px;">
                                         <i class="fas fa-image"></i> View
                                     </button>
-                                </td>
+                                </td> -->
                                 <td style="text-align: center;">
                                     <span class="table-badge status-confirmed">Verified</span>
                                 </td>
