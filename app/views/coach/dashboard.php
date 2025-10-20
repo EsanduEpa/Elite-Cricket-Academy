@@ -53,6 +53,37 @@
                             <span>Players</span>
                         </a>
                     </li>
+                    <!-- New navigation items for Coach Dashboard -->
+                    <li class="nav-item">
+                        <a href="#performance" class="nav-link nav-anchor" data-tooltip="Player Performance">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Player performance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#sessions" class="nav-link nav-anchor" data-tooltip="Sessions">
+                            <i class="fas fa-stopwatch"></i>
+                            <span>Sessions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#teamSelection" class="nav-link nav-anchor" data-tooltip="Team Selection">
+                            <i class="fas fa-user-friends"></i>
+                            <span>Team Selection</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#health" class="nav-link nav-anchor" data-tooltip="Health & Injury">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Health & Injury</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#notifications" class="nav-link nav-anchor" data-tooltip="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
                     
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/recommendations" class="nav-link" data-tooltip="Recommendations">
@@ -259,6 +290,74 @@
                 </div>
             </div>
 
+            <!-- Charts & Analytics Section -->
+            <div class="analytics-section">
+                <div class="section-header full-width">
+                    <h2><i class="fas fa-chart-area"></i> Analytics & Player Insights</h2>
+                    <p class="muted">Interactive, data-driven charts help you monitor player progress, attendance trends, and health status. Use the filters to focus on specific players, date ranges, or teams.</p>
+                </div>
+
+                <div class="analytics-grid">
+                    <!-- Player Performance Chart -->
+                    <div class="analytics-card" id="performance">
+                        <div class="card-header">
+                            <h3>Player Performance</h3>
+                            <div class="controls">
+                                <select id="performancePlayerSelect"></select>
+                                <select id="performanceRangeSelect">
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last 12 months</option>
+                                </select>
+                                <button class="btn small" id="performanceToggleType">Toggle Line/Bar</button>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="performanceChart" aria-label="Player performance over time"></canvas>
+                        </div>
+                        <div class="card-footer muted">Tip: Click a legend item to show/hide series. Hover for exact values.</div>
+                    </div>
+
+                    <!-- Attendance Chart -->
+                    <div class="analytics-card" id="sessions">
+                        <div class="card-header">
+                            <h3>Attendance & Session Participation</h3>
+                            <div class="controls">
+                                <select id="attendanceTeamSelect"></select>
+                                <select id="attendanceRangeSelect">
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last 12 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="attendanceChart" aria-label="Attendance per session"></canvas>
+                        </div>
+                        <div class="card-footer muted">Monthly totals shown as bars. Use filters to compare squads or individuals.</div>
+                    </div>
+
+                    <!-- Health Status Pie Chart -->
+                    <div class="analytics-card" id="health">
+                        <div class="card-header">
+                            <h3>Health & Injury Overview</h3>
+                            <div class="controls">
+                                <select id="healthFilterSelect">
+                                    <option value="all">All Players</option>
+                                    <option value="fit">Fit</option>
+                                    <option value="under_observation">Under Observation</option>
+                                    <option value="injured">Injured</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="healthChart" aria-label="Health status distribution"></canvas>
+                        </div>
+                        <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Quick Actions & Recent Activity -->
             <div class="bottom-section">
                 <div class="quick-actions-card">
@@ -319,6 +418,12 @@
 
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        // Expose server-side dashboard data to client-side scripts
+        window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Coach Dashboard JavaScript -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
