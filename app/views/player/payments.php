@@ -89,42 +89,10 @@
                 <p>View your payment history, manage subscriptions, and handle billing.</p>
             </div>
 
-            <!-- Payment Overview -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="stat-value">$450</div>
-                    <div class="stat-label">Account Balance</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-value">$150</div>
-                    <div class="stat-label">Monthly Fee</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value">Nov 15</div>
-                    <div class="stat-label">Next Payment</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-value">Active</div>
-                    <div class="stat-label">Membership Status</div>
-                </div>
-            </div>
+           
+            
 
-            <!-- Subscription Details -->
+            <!-- Subscription Details
             <div class="schedule-section">
                 <h3>Current Subscription</h3>
                 
@@ -143,10 +111,10 @@
                         <p>Unlimited training sessions • Personal coaching • Equipment rental • Tournament participation</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Recent Payments -->
-            <div class="schedule-card recent-payments">
+            <div id="recent-payments" class="schedule-card recent-payments">
                 <div class="card-header">
                     <div class="header-content">
                         <h2><i class="fas fa-history"></i> Recent Payments</h2>
@@ -171,10 +139,8 @@
                                     <div class="table-cell-secondary">2025</div>
                                 </td>
                                 <td>
-                                    <div class="table-cell-title">Monthly Membership Fee</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-star"></i> Premium Membership
-                                    </div>
+                                    <div class="table-cell-title">Monthly  Fee</div>
+                                    
                                 </td>
                                 <td style="text-align: center;">
                                     <div class="table-cell-primary payment-amount">$150.00</div>
@@ -202,9 +168,7 @@
                                 </td>
                                 <td>
                                     <div class="table-cell-title">Private Coaching Session</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user-tie"></i> 1-on-1 Training
-                                    </div>
+                                    
                                 </td>
                                 <td style="text-align: center;">
                                     <div class="table-cell-primary payment-amount">$75.00</div>
@@ -225,36 +189,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Sept 15</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Monthly Membership Fee</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-star"></i> Premium Membership
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$150.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Visa ****2341</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-paid">Paid</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-view">View</button>
-                                        <button class="btn btn-download">Receipt</button>
-                                    </div>
-                                </td>
-                            </tr>
+                           
                             <tr>
                                 <td style="text-align: center;">
                                     <div class="table-cell-primary">Sept 5</div>
@@ -316,10 +251,8 @@
                                     <div class="table-cell-secondary">2025</div>
                                 </td>
                                 <td>
-                                    <div class="table-cell-title">Monthly Membership Fee</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-robot"></i> Auto-payment enabled
-                                    </div>
+                                    <div class="table-cell-title">Monthly  Fee</div>
+                                 
                                 </td>
                                 <td style="text-align: center;">
                                     <div class="table-cell-primary payment-amount">$150.00</div>
@@ -403,7 +336,7 @@
                     <a href="#" class="action-btn" onclick="alert('Make payment feature coming soon!')">
                         <i class="fas fa-plus"></i> Make Payment
                     </a>
-                    <a href="#" class="action-btn" onclick="alert('Payment history feature coming soon!')">
+                    <a href="#recent-payments" class="action-btn" onclick="scrollToRecentPayments()">
                         <i class="fas fa-history"></i> View History
                     </a>
                     <a href="#" class="action-btn" onclick="alert('Manage cards feature coming soon!')">

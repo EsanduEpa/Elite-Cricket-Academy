@@ -7,26 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeShoppingPage() {
     console.log('=== INITIALIZING SHOPPING PAGE ===');
     
-    try {
-        // Wait for DOM to be ready
-        setTimeout(() => {
-            try {
-                initSectionNavigation();
-                initShoppingCart();
-                initFilters();
-                setMinimumDates();
-                
-                // Initialize section visibility
-                initializeSectionVisibility();
-                
-                console.log('Shopping page initialization complete');
-            } catch (error) {
-                console.error('Error during shopping page initialization:', error);
-            }
-        }, 100);
-    } catch (error) {
-        console.error('Critical error initializing shopping page:', error);
-    }
+    // Wait for DOM to be ready
+    setTimeout(() => {
+        initSectionNavigation();
+        initShoppingCart();
+        initRentalFunctionality();
+        initFacilityBooking();
+        initFilters();
+        setMinimumDates();
+        
+        // Initialize section visibility
+        initializeSectionVisibility();
+        
+        console.log('Shopping page initialization complete');
+    }, 100);
 }
 
 // Initialize section visibility - show products by default, hide others
@@ -60,7 +54,7 @@ function initializeSectionVisibility() {
     });
 }
 
-// Initialize filters for products and orders
+// Initialize filters for products, rentals, facilities, and orders
 function initFilters() {
     // Product filters
     const categoryFilter = document.getElementById('category-filter');
@@ -75,6 +69,18 @@ function initFilters() {
     }
     if (priceFilter) {
         priceFilter.addEventListener('change', filterProducts);
+    }
+    
+    // Rental filters
+    const rentalCategoryFilter = document.getElementById('rental-category-filter');
+    if (rentalCategoryFilter) {
+        rentalCategoryFilter.addEventListener('change', filterRentals);
+    }
+    
+    // Facility filters
+    const facilityTypeFilter = document.getElementById('facility-type-filter');
+    if (facilityTypeFilter) {
+        facilityTypeFilter.addEventListener('change', filterFacilities);
     }
     
     // Order filters
@@ -138,9 +144,41 @@ function filterProducts() {
     });
 }
 
+// Filter rental equipment
+function filterRentals() {
+    const rentalCategoryFilter = document.getElementById('rental-category-filter');
+    const selectedCategory = rentalCategoryFilter ? rentalCategoryFilter.value : 'all';
+    
+    const rentalCards = document.querySelectorAll('.rental-card');
+    
+    rentalCards.forEach(card => {
+        const cardCategory = card.dataset.category;
+        
+        if (selectedCategory === 'all' || cardCategory === selectedCategory) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 
-
-
+// Filter facilities
+function filterFacilities() {
+    const facilityTypeFilter = document.getElementById('facility-type-filter');
+    const selectedType = facilityTypeFilter ? facilityTypeFilter.value : 'all';
+    
+    const facilityCards = document.querySelectorAll('.facility-card');
+    
+    facilityCards.forEach(card => {
+        const cardType = card.dataset.type;
+        
+        if (selectedType === 'all' || cardType === selectedType) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 
 // Filter orders
 function filterOrders() {
@@ -184,7 +222,31 @@ function closeCartModal() {
     }
 }
 
+function closeRentalModal() {
+    const modal = document.getElementById('rentalModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 
+function closeFacilityModal() {
+    const modal = document.getElementById('facilityModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function confirmRental() {
+    console.log('Rental confirmed');
+    closeRentalModal();
+    showNotification('Equipment rental confirmed!', 'success');
+}
+
+function confirmBooking() {
+    console.log('Facility booking confirmed');
+    closeFacilityModal();
+    showNotification('Facility booking confirmed!', 'success');
+}
 
 function checkout() {
     console.log('Proceeding to checkout');
@@ -207,28 +269,41 @@ function showNotification(message, type = 'info') {
 }
 
 // Manual section switcher for testing
-function switchSection(section) {
-    console.log('Switching to section:', section);
+function switchToSection(sectionName) {
+    console.log('=== MANUAL SECTION SWITCH ===');
+    console.log('Switching to section:', sectionName);
+    
+    const sections = document.querySelectorAll('.shop-section');
+    const navBtns = document.querySelectorAll('.nav-btn');
     
     // Hide all sections
-    const sections = ['products'];
-    sections.forEach(sectionName => {
-        const sectionElement = document.getElementById(sectionName);
-        if (sectionElement) {
-            sectionElement.style.display = 'none';
-        }
+    sections.forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('active');
     });
     
     // Show target section
-    const targetElement = document.getElementById(section);
-    if (targetElement) {
-        targetElement.style.display = 'block';
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) {
+        targetSection.style.display = 'block';
+        targetSection.classList.add('active');
+        console.log('✅ Switched to:', sectionName + '-section');
+    } else {
+        console.log('❌ Section not found:', sectionName + '-section');
     }
+    
+    // Update nav buttons
+    navBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-section') === sectionName) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 // Debug function to test all sections (can be called from console)
 function testAllSections() {
-    const sections = ['products'];
+    const sections = ['products', 'rentals', 'facilities'];
     sections.forEach((sectionName, index) => {
         setTimeout(() => {
             console.log('Testing section:', sectionName);
@@ -344,38 +419,25 @@ function initShoppingCart() {
     updateCartCount();
 }
 
-// Main cart function - handles all cart additions
-function addToCart(productId, productName, price, imageUrl) {
-    try {
-        // Validate input parameters
-        if (!productId || !productName || !price) {
-            console.error('Missing required parameters for addToCart');
-            return false;
-        }
-        
-        const existingItem = cart.find(item => item.id === productId);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                id: productId,
-                name: productName,
-                price: parseFloat(price),
-                image: imageUrl || '/Elite/img/product-default.jpg',
-                quantity: 1
-            });
-        }
-        
-        localStorage.setItem('shoppingCart', JSON.stringify(cart));
-        updateCartCount();
-        showCartNotification(productName + ' added to cart!');
-        return true;
-    } catch (error) {
-        console.error('Error adding to cart:', error);
-        showNotification('Error adding item to cart', 'error');
-        return false;
+// Renamed to avoid conflict with legacy addToCart calls
+function addToCartNew(productId, productName, price, imageUrl) {
+    const existingItem = cart.find(item => item.id === productId);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: price,
+            image: imageUrl,
+            quantity: 1
+        });
     }
+    
+    localStorage.setItem('shoppingCart', JSON.stringify(cart));
+    updateCartCount();
+    showCartNotification(productName + ' added to cart!');
 }
 
 function updateCartCount() {
@@ -387,26 +449,157 @@ function updateCartCount() {
 }
 
 function showCartNotification(message) {
-    showNotification(message, 'success');
+    const notification = document.createElement('div');
+    notification.className = 'cart-notification';
+    notification.textContent = message;
+    notification.style.cssText = 'position: fixed; top: 100px; right: 20px; background: #4A90E2; color: white; padding: 12px 20px; border-radius: 8px; z-index: 1000; animation: slideIn 0.3s ease;';
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(function() {
+        notification.remove();
+    }, 3000);
 }
 
 function viewCart() {
     alert('Cart functionality: ' + cart.length + ' items in cart. Full cart view coming soon!');
 }
 
+// Rental Functionality
+function initRentalFunctionality() {
+    const durationSelects = document.querySelectorAll('.rental-duration');
+    durationSelects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            calculateRentalTotal();
+        });
+    });
+}
 
+function rentEquipment(equipmentId, equipmentName, dailyRate) {
+    const modal = document.createElement('div');
+    modal.className = 'rental-modal';
+    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Rent ' + equipmentName + '</h3><button class="close-modal" onclick="this.closest(\\'.rental-modal\\').remove()">&times;</button></div><div class="modal-body"><p>Daily Rate: $' + dailyRate + '</p><label for="rentalDays">Rental Duration (days):</label><input type="number" id="rentalDays" min="1" value="1" onchange="updateRentalTotal(' + dailyRate + ')"><p>Total: $<span id="rentalTotal">' + dailyRate + '</span></p><div class="modal-actions"><button class="btn btn-primary" onclick="confirmRental(\\'' + equipmentId + '\\', \\'' + equipmentName + '\\', ' + dailyRate + ')">Confirm Rental</button><button class="btn btn-secondary" onclick="this.closest(\\'.rental-modal\\').remove()">Cancel</button></div></div></div>';
+    
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+    
+    document.body.appendChild(modal);
+}
 
+function updateRentalTotal(dailyRate) {
+    const days = document.getElementById('rentalDays').value;
+    const total = dailyRate * days;
+    document.getElementById('rentalTotal').textContent = total;
+}
 
+function confirmRental(equipmentId, equipmentName, dailyRate) {
+    const days = document.getElementById('rentalDays').value;
+    const total = dailyRate * days;
+    
+    addToCartNew('rental_' + equipmentId, equipmentName + ' (' + days + ' days)', total, '/Elite/img/equipment-default.jpg');
+    
+    document.querySelector('.rental-modal').remove();
+}
 
+function calculateRentalTotal() {
+    // Calculate total for rental form if it exists
+    const startDate = document.getElementById('rentalStartDate');
+    const endDate = document.getElementById('rentalEndDate');
+    const equipmentSelect = document.getElementById('equipmentSelect');
+    
+    if (startDate && endDate && equipmentSelect && startDate.value && endDate.value) {
+        const start = new Date(startDate.value);
+        const end = new Date(endDate.value);
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        
+        if (days > 0) {
+            const dailyRate = parseFloat(equipmentSelect.selectedOptions[0].dataset.price) || 0;
+            const total = days * dailyRate;
+            
+            const totalElement = document.getElementById('rentalTotalAmount');
+            if (totalElement) {
+                totalElement.textContent = total.toFixed(2);
+            }
+        }
+    }
+}
 
+// Return equipment function
+function returnEquipment(equipmentId, equipmentName) {
+    const confirmed = confirm(`Are you sure you want to return "${equipmentName}"?`);
+    if (confirmed) {
+        // In a real implementation, this would send a request to the server
+        alert(`Return request submitted for "${equipmentName}".\n\nOur staff will contact you shortly to arrange pickup.\n\nThank you for using our rental service!`);
+        
+        // Optionally remove the rental item from the display
+        // In a real implementation, you would refresh the rental list from server
+        console.log('Return requested for equipment ID:', equipmentId);
+    }
+}
 
+// Facility Booking Functionality
+function initFacilityBooking() {
+    const facilitySelects = document.querySelectorAll('.facility-select');
+    facilitySelects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            calculateFacilityTotal();
+        });
+    });
+}
 
+function bookFacility(facilityId, facilityName, hourlyRate) {
+    const modal = document.createElement('div');
+    modal.className = 'booking-modal';
+    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Book ' + facilityName + '</h3><button class="close-modal" onclick="this.closest(\\'.booking-modal\\').remove()">&times;</button></div><div class="modal-body"><p>Hourly Rate: $' + hourlyRate + '</p><label for="bookingDate">Date:</label><input type="date" id="bookingDate" required><label for="bookingHours">Duration (hours):</label><input type="number" id="bookingHours" min="1" value="1" onchange="updateBookingTotal(' + hourlyRate + ')"><p>Total: $<span id="bookingTotal">' + hourlyRate + '</span></p><div class="modal-actions"><button class="btn btn-primary" onclick="confirmBooking(\\'' + facilityId + '\\', \\'' + facilityName + '\\', ' + hourlyRate + ')">Confirm Booking</button><button class="btn btn-secondary" onclick="this.closest(\\'.booking-modal\\').remove()">Cancel</button></div></div></div>';
+    
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+    
+    document.body.appendChild(modal);
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('bookingDate').min = today;
+}
 
+function updateBookingTotal(hourlyRate) {
+    const hours = document.getElementById('bookingHours').value;
+    const total = hourlyRate * hours;
+    document.getElementById('bookingTotal').textContent = total;
+}
 
+function confirmBooking(facilityId, facilityName, hourlyRate) {
+    const date = document.getElementById('bookingDate').value;
+    const hours = document.getElementById('bookingHours').value;
+    const total = hourlyRate * hours;
+    
+    if (!date) {
+        alert('Please select a booking date.');
+        return;
+    }
+    
+    addToCartNew('booking_' + facilityId, facilityName + ' (' + date + ', ' + hours + 'h)', total, '/Elite/img/facility-default.jpg');
+    
+    document.querySelector('.booking-modal').remove();
+}
 
+function calculateFacilityTotal() {
+    const facilitySelect = document.getElementById('facilitySelect');
+    const hoursInput = document.getElementById('facilityHours');
+    
+    if (facilitySelect && hoursInput && facilitySelect.value && hoursInput.value) {
+        const hourlyRate = parseFloat(facilitySelect.selectedOptions[0].dataset.price) || 0;
+        const hours = parseInt(hoursInput.value) || 0;
+        const total = hourlyRate * hours;
+        
+        const totalElement = document.getElementById('facilityTotalAmount');
+        if (totalElement) {
+            totalElement.textContent = total.toFixed(2);
+        }
+    }
+}
 
-
-
+function showFacilityBooking() {
+    // Navigate to facilities section
+    showSection('facilities');
+}
 
 // Utility function to show a specific section
 function showSection(sectionName) {
@@ -487,37 +680,54 @@ function viewProductDetails(productId) {
     }
 }
 
-// Helper function for legacy product ID calls
-function addProductToCart(productNumber) {
-    try {
-        const productCards = document.querySelectorAll('.product-card');
-        const productCard = Array.from(productCards)[productNumber - 1];
-        
-        if (!productCard) {
-            console.error('Product card not found for number:', productNumber);
-            return false;
-        }
-        
-        const productId = 'product_' + productNumber;
-        const titleElement = productCard.querySelector('.product-title');
-        const priceElement = productCard.querySelector('.product-price');
-        const imageElement = productCard.querySelector('.product-image img');
-        
-        if (!titleElement || !priceElement) {
-            console.error('Required product elements not found');
-            return false;
-        }
-        
-        const productName = titleElement.textContent;
-        const priceText = priceElement.textContent;
-        const price = parseFloat(priceText.replace(/[$,]/g, ''));
-        const imageUrl = imageElement ? imageElement.src : '/Elite/img/product-default.jpg';
-        
-        return addToCart(productId, productName, price, imageUrl);
-    } catch (error) {
-        console.error('Error adding product to cart:', error);
-        return false;
+// Legacy function for direct product ID calls
+function addToCart(productIdOrObject, productName, price, imageUrl) {
+    // Handle both new object format and legacy direct calls
+    if (typeof productIdOrObject === 'object') {
+        const item = productIdOrObject;
+        addToCart(item.id, item.name, item.price, item.image);
+        return;
     }
+    
+    // Handle legacy calls with productId as number
+    if (typeof productIdOrObject === 'number') {
+        const productCards = document.querySelectorAll('.product-card');
+        const productCard = Array.from(productCards)[productIdOrObject - 1];
+        if (productCard) {
+            const productId = 'product_' + productIdOrObject;
+            const productName = productCard.querySelector('.product-title').textContent;
+            const priceText = productCard.querySelector('.product-price').textContent;
+            const price = parseFloat(priceText.replace('$', ''));
+            const imageUrl = productCard.querySelector('.product-image img') ? productCard.querySelector('.product-image img').src : '/Elite/img/product-default.jpg';
+            
+            addToCartInternal(productId, productName, price, imageUrl);
+        }
+        return;
+    }
+    
+    // Standard call with all parameters
+    addToCartInternal(productIdOrObject, productName, price, imageUrl);
+}
+
+// Internal function that actually handles cart operations
+function addToCartInternal(productId, productName, price, imageUrl) {
+    const existingItem = cart.find(item => item.id === productId);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: price,
+            image: imageUrl,
+            quantity: 1
+        });
+    }
+    
+    localStorage.setItem('shoppingCart', JSON.stringify(cart));
+    updateCartCount();
+    showCartNotification(productName + ' added to cart!');
 }
 
 // Add CSS for modals and animations
@@ -525,4 +735,125 @@ const style = document.createElement('style');
 style.textContent = '@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } .modal-content { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 400px; width: 90%; } .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; } .modal-body label { display: block; margin: 10px 0 5px 0; font-weight: 600; } .modal-body input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; } .modal-actions { display: flex; gap: 10px; margin-top: 20px; } .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; } .close-modal:hover { color: #333; }';
 document.head.appendChild(style);
 
-// End of shopping.js - focused on products and orders only
+// Facility Filtering Functions
+function filterFacilitiesByType(type) {
+    console.log('Filtering facilities by type:', type);
+    
+    const facilitiesGrid = document.getElementById('facilities-grid');
+    if (!facilitiesGrid) {
+        console.log('Facilities grid not found');
+        return;
+    }
+    
+    const facilityCards = facilitiesGrid.querySelectorAll('.facility-card');
+    
+    facilityCards.forEach(card => {
+        const cardType = card.getAttribute('data-type');
+        
+        if (type === 'all' || cardType === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Update navigation buttons
+    const navBtns = document.querySelectorAll('.shop-navigation .nav-btn');
+    navBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.onclick && btn.onclick.toString().includes(type)) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Facility booking functions
+function closeFacilityModal() {
+    const modal = document.getElementById('facilityModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function confirmBooking() {
+    const form = document.getElementById('facility-form');
+    const formData = new FormData(form);
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    // Show success message
+    alert('Facility booking confirmed! You will receive a confirmation email shortly.');
+    closeFacilityModal();
+}
+
+// Initialize facility booking when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today
+    const dateInput = document.getElementById('booking-date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
+    
+    // Add event listener for facility booking buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('book-facility')) {
+            const facilityData = e.target.dataset;
+            openFacilityModal(facilityData);
+        }
+    });
+});
+
+function openFacilityModal(facilityData) {
+    const modal = document.getElementById('facilityModal');
+    const detailsDiv = document.getElementById('facility-details');
+    
+    if (!modal || !detailsDiv) return;
+    
+    // Populate facility details
+    detailsDiv.innerHTML = `
+        <div class="booking-facility-info">
+            <h4>${facilityData.name}</h4>
+            <p>Capacity: ${facilityData.capacity || 'Not specified'}</p>
+            ${facilityData.hourly ? `<p>Hourly Rate: $${facilityData.hourly}</p>` : ''}
+            ${facilityData.half ? `<p>Half Day: $${facilityData.half}</p>` : ''}
+            ${facilityData.full ? `<p>Full Day: $${facilityData.full}</p>` : ''}
+        </div>
+    `;
+    
+    // Set up price calculation
+    const durationSelect = document.getElementById('booking-duration');
+    const totalSpan = document.getElementById('booking-total');
+    
+    if (durationSelect && totalSpan) {
+        durationSelect.addEventListener('change', function() {
+            updateBookingTotal(facilityData);
+        });
+        
+        // Initial calculation
+        updateBookingTotal(facilityData);
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function updateBookingTotal(facilityData) {
+    const duration = document.getElementById('booking-duration').value;
+    const totalSpan = document.getElementById('booking-total');
+    
+    let total = 0;
+    
+    if (facilityData.hourly) {
+        total = parseFloat(facilityData.hourly) * parseInt(duration);
+    } else if (duration === '4' && facilityData.half) {
+        total = parseFloat(facilityData.half);
+    } else if (duration === '8' && facilityData.full) {
+        total = parseFloat(facilityData.full);
+    }
+    
+    totalSpan.textContent = total.toFixed(2);
+}

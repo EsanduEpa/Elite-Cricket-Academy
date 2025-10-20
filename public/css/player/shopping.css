@@ -137,42 +137,7 @@
     box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-/* Shopping Stats */
-.shopping-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
 
-/* Shop Sections */
-.shop-section {
-    display: none;
-}
-
-.shop-section.active {
-    display: block;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.section-header h2 {
-    color: #2c3e50;
-    font-size: 1.8rem;
-    margin: 0;
-}
-
-.section-header p {
-    color: #7f8c8d;
-    margin: 0.5rem 0 0 0;
-}
 
 /* Shop Filters */
 .shop-filters {

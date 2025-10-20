@@ -64,19 +64,18 @@
             </nav>
             
             <!-- Admin Profile -->
-            <div class="admin-profile">
+            <div class="profile-section">
                 <div class="profile-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <div class="profile-info">
-                    <span class="admin-name">Admin User</span>
-                    <span class="admin-role">Super Administrator</span>
-                </div>
-                            <div class="logout-btn">
-                <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
+                <div class="profile-role">Super Administrator</div>
+                <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
                 </a>
-            </div>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
         </div>
         

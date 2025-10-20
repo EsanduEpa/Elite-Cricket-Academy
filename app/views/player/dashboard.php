@@ -45,6 +45,7 @@
                             <span>Bookings</span>
                         </a>
                     </li>
+                  
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
@@ -79,7 +80,10 @@
                 </div>
                 <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
                 <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
+                <a href="<?php echo URLROOT; ?>/player/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
@@ -91,7 +95,7 @@
             <div class="dashboard-header">
                 <div class="header-content">
                     <div class="header-text">
-                        <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo $data['player']['name']; ?>!</h1>
+                        <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?>!</h1>
                         <p>Your cricket journey dashboard - Track progress, manage bookings, and achieve your goals</p>
                     </div>
                     <div class="header-actions">
@@ -303,12 +307,9 @@
             </div>
             <!-- Row 3: Quick Actions and Payment Due Side by Side -->
             <div class="action-row">
-                <div class="action-card quick-actions">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-                         </div>
-                        <div class="header-accent"></div>
+                <div class="quick-actions-container">
+                    <div class="section-header">
+                        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
                     </div>
                     <div class="quick-actions-content">
                         <div class="quick-action-card">
@@ -348,7 +349,12 @@
                             <div class="quick-action-icon equipment-shop">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
-                        
+                            <div class="quick-action-info">
+                                <h4>Equipment</h4>
+                                <p>Rent cricket gear</p>
+                            </div>
+                            <a href="<?php echo URLROOT; ?>/player/shopping" class="quick-btn">Shop</a>
+                        </div>
                     </div>
                 </div>
 

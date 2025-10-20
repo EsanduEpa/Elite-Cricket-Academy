@@ -224,5 +224,100 @@ class Coach extends Controller {
         ];
         $this->view('coach/medical', $data);
     }
+
+    // Profile Management
+    public function profile() {
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'] ?? 1;
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        $data = [
+            'title' => 'My Profile',
+            'user' => $userProfile
+        ];
+        
+        $this->view('coach/profile', $data);
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone_number' => trim($_POST['phone_number']),
+                'address' => trim($_POST['address']),
+                'school' => trim($_POST['school']),
+                'role' => $_SESSION['user_role'] ?? 'Coach',
+                'status' => 'active'
+            ];
+            
+            // Update coach-specific fields if provided
+            $coachData = [
+                'user_id' => $userId,
+                'certification' => trim($_POST['certification'] ?? ''),
+                'experience_years' => intval($_POST['experience_years'] ?? 0),
+                'specialization' => trim($_POST['specialization'] ?? ''),
+                'hourly_rate' => floatval($_POST['hourly_rate'] ?? 0)
+            ];
+            
+            // Validate data
+            $errors = [];
+            if (empty($userData['name'])) {
+                $errors[] = 'Name is required';
+            }
+            if (empty($userData['email'])) {
+                $errors[] = 'Email is required';
+            }
+            if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+            
+            if (empty($errors)) {
+                if ($userModel->updateUser($userData) && $userModel->updateCoachProfile($coachData)) {
+                    // Update session data
+                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_email'] = $userData['email'];
+                    
+                    flash('profile_message', 'Profile updated successfully');
+                } else {
+                    flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+                }
+            } else {
+                flash('profile_message', implode('<br>', $errors), 'alert alert-danger');
+            }
+        }
+        
+        redirect('coach/profile');
+    }
+
+    // Deactivate Account
+    public function deactivateAccount() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            if ($userModel->suspendUser($userId, 9999)) {
+                // Clear session and redirect to login
+                session_destroy();
+                flash('login_message', 'Your account has been deactivated successfully');
+                redirect('login');
+            } else {
+                flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
+                redirect('coach/profile');
+            }
+        } else {
+            redirect('coach/profile');
+        }
+    }
 }
 ?>

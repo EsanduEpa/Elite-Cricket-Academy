@@ -962,5 +962,92 @@ class Shop extends Controller {
             ['id' => 6, 'name' => 'Storage', 'count' => 1]
         ];
     }
+
+    // Profile Management
+    public function profile() {
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'];
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        $data = [
+            'title' => 'My Profile',
+            'user' => $userProfile,
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager'
+        ];
+        
+        $this->view('shop/profile', $data);
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'];
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone_number' => trim($_POST['phone_number']),
+                'address' => trim($_POST['address']),
+                'school' => trim($_POST['school']),
+                'role' => $_SESSION['user_role'], // Keep current role
+                'status' => 'active' // Keep active
+            ];
+            
+            // Validate data
+            $errors = [];
+            if (empty($userData['name'])) {
+                $errors[] = 'Name is required';
+            }
+            if (empty($userData['email'])) {
+                $errors[] = 'Email is required';
+            }
+            if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            }
+            
+            if (empty($errors)) {
+                if ($userModel->updateUser($userData)) {
+                    // Update session data
+                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_email'] = $userData['email'];
+                    
+                    flash('profile_message', 'Profile updated successfully');
+                } else {
+                    flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+                }
+            } else {
+                flash('profile_message', implode('<br>', $errors), 'alert alert-danger');
+            }
+        }
+        
+        redirect('shop/profile');
+    }
+
+    // Deactivate Account
+    public function deactivateAccount() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'];
+            
+            if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
+                // Clear session and redirect to login
+                session_destroy();
+                flash('login_message', 'Your account has been deactivated successfully');
+                redirect('login');
+            } else {
+                flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
+                redirect('shop/profile');
+            }
+        } else {
+            redirect('shop/profile');
+        }
+    }
 }
 ?>

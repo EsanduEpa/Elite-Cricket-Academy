@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/bookings.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/bookings.css?v=<?php echo time(); ?>">
     
     <div class="player-layout">
         <!-- Simple Sidebar -->
@@ -83,394 +83,220 @@
 
         <!-- Main Content Area -->
         <div class="main-content">
-            <!-- Simple Page Header -->
+            <!-- Dashboard Header - Using Same Style as Dashboard -->
             <div class="dashboard-header">
-                <h1><i class="fas fa-calendar"></i> My Bookings</h1>
-                <p>Manage your training session bookings and view upcoming reservations.</p>
-            </div>
-
-            <!-- Booking Stats -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1>Session Bookings</h1>
+                        <p>Book sessions with coaches and trainers or view your existing bookings</p>
                     </div>
-                    <div class="stat-value">8</div>
-                    <div class="stat-label">Active Bookings</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value">24h</div>
-                    <div class="stat-label">Total Hours</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <div class="stat-value">45</div>
-                    <div class="stat-label">Past Sessions</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-value">4.9</div>
-                    <div class="stat-label">Average Rating</div>
-                </div>
-            </div>
-
-            <!-- Quick Booking -->
-            <div class="quick-actions">
-                <h3>Quick Booking</h3>
-                <div class="action-buttons">
-                    <a href="#" class="action-btn" onclick="alert('Book net practice feature coming soon!')">
-                        <i class="fas fa-baseball-ball"></i> Book Net Practice
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Book fitness session feature coming soon!')">
-                        <i class="fas fa-dumbbell"></i> Book Fitness Session
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Book coaching session feature coming soon!')">
-                        <i class="fas fa-user-tie"></i> Book Coaching
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Book ground facility feature coming soon!')">
-                        <i class="fas fa-futbol"></i> Book Ground
-                    </a>
-                </div>
-            </div>
-
-            <!-- Upcoming Bookings -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-alt"></i> Upcoming Bookings</h2>
-                        <div class="filter-section">
-                            <select id="upcomingSessionFilter" class="filter-dropdown" onchange="filterUpcomingBookings()">
-                                <option value="all">All Session Types</option>
-                                <option value="Training">Training</option>
-                                <option value="Fitness">Fitness</option>
-                                <option value="Private">Private</option>
-                                <option value="Team">Team</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table" id="upcomingBookingsTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Session</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 17</div>
-                                    <div class="table-cell-secondary">Thursday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Net Practice Session</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-map-marker-alt"></i> Indoor Nets - Coach Johnson
-                                    </div>
-                                    <span class="table-badge">Training</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">12:00 PM</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 18</div>
-                                    <div class="table-cell-secondary">Friday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Fitness Training</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-dumbbell"></i> Gym Facility - Strength & Cardio
-                                    </div>
-                                    <span class="table-badge">Fitness</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">2:30 PM</div>
-                                    <div class="table-cell-secondary">4:00 PM</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 20</div>
-                                    <div class="table-cell-secondary">Sunday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Private Coaching</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user-tie"></i> Outdoor Pitch - Coach Williams
-                                    </div>
-                                    <span class="table-badge">Private</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">9:00 AM</div>
-                                    <div class="table-cell-secondary">10:30 AM</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 22</div>
-                                    <div class="table-cell-secondary">Tuesday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Ground Practice</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-users"></i> Main Ground - Team Practice
-                                    </div>
-                                    <span class="table-badge">Team</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">3:00 PM</div>
-                                    <div class="table-cell-secondary">5:00 PM</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Facility Bookings -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-building"></i> Facility Bookings</h2>
-                        <div class="filter-section">
-                            <select id="facilityTypeFilter" class="filter-dropdown" onchange="filterFacilityBookings()">
-                                <option value="all">All Facility Types</option>
-                                <option value="Ground">Ground</option>
-                                <option value="Indoor">Indoor</option>
-                                <option value="Practice">Practice</option>
-                            </select>
-                        </div>
-                        <a href="<?php echo URLROOT; ?>/player/shopping" class="action-btn" onclick="showFacilityBookingFromShopping()" style="font-size: 14px; padding: 8px 12px;">
-                            <i class="fas fa-plus"></i> Book Facility
+                    <div class="header-actions">
+                        <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="btn btn-training">
+                            <i class="fas fa-user-tie"></i>
+                            Coach Sessions
                         </a>
+                        <a href="<?php echo URLROOT; ?>/player/trainer_sessions" class="btn btn-performance">
+                            <i class="fas fa-dumbbell"></i>
+                            Trainer Sessions
+                        </a>
+                        <button class="btn btn-calendar" onclick="showBookingHistory()">
+                            <i class="fas fa-history"></i>
+                            Booking History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+           
+
+            <!-- Quick Booking Section - Small Cards -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-rocket"></i> Quick Booking</h2>
+                    <p>Choose your preferred session type to get started</p>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <!-- Coach Sessions Card -->
+                    <div class="stat-card action-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-title">Coach Sessions</div>
+                            <div class="stat-value" style="color: #4A90E2; font-size: 18px; font-weight: 600;">₹2,000+</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">Expert Cricket Coaching</div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="action-btn" style="width: 100%; padding: 12px;">
+                                <i class="fas fa-calendar-plus"></i> Book Coach Session
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Trainer Sessions Card -->
+                    <div class="stat-card action-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-title">Trainer Sessions</div>
+                            <div class="stat-value" style="color: #4A90E2; font-size: 18px; font-weight: 600;">₹1,500+</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">Fitness & Conditioning</div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <a href="<?php echo URLROOT; ?>/player/trainer_sessions" class="action-btn" style="width: 100%; padding: 12px;">
+                                <i class="fas fa-calendar-plus"></i> Book Trainer Session
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Sessions Overview -->
+            <div class="schedule-card upcoming-schedule">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-calendar-alt"></i> Upcoming Sessions</h2>
+                        <div class="header-filters">
+                            <select class="form-control filter-select" id="session-type-filter" onchange="filterSessions()">
+                                <option value="all">All Sessions</option>
+                                <option value="coach">Coach Sessions</option>
+                                <option value="trainer">Trainer Sessions</option>
+                            </select>
+                            <select class="form-control filter-select" id="status-filter" onchange="filterSessions()">
+                                <option value="all">All Status</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="card-content">
-                    <table class="dashboard-table" id="facilityBookingsTable">
+                    <table class="dashboard-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Facility</th>
-                                <th>Time</th>
-                                <th>Cost</th>
+                                <th>Session Details</th>
+                                <th>Instructor</th>
+                                <th>Date & Time</th>
+                                <th>Location</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 20</div>
-                                    <div class="table-cell-secondary">Sunday</div>
+                        <tbody id="sessions-tbody">
+                            <!-- Coach Session Example -->
+                            <tr data-type="coach" data-status="confirmed">
+                                <td>
+                                    <div class="table-cell-title">Batting Technique Session</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-user-tie"></i> Coach Session
+                                    </div>
+                                    <span class="table-badge">Coach</span>
                                 </td>
                                 <td>
-                                    <div class="table-cell-title">Main Cricket Ground</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-users"></i> Team Practice Session
-                                    </div>
-                                    <span class="table-badge">Ground</span>
+                                    <div class="table-cell-primary">Coach Johnson</div>
+                                    <div class="table-cell-secondary">Cricket Coach</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">2:00 PM</div>
-                                    <div class="table-cell-secondary">4:00 PM</div>
+                                <td>
+                                    <div class="table-cell-primary">Oct 20, 2025</div>
+                                    <div class="table-cell-secondary">9:00 AM - 10:00 AM</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">LKR 5,000</div>
-                                    <div class="table-cell-secondary">2 hours</div>
+                                <td>
+                                    <div class="table-cell-primary">Indoor Net 1</div>
+                                    <div class="table-cell-secondary">Premium Facility</div>
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="table-badge status-confirmed">Confirmed</span>
                                 </td>
-                            </tr>
-                            <tr>
                                 <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 25</div>
-                                    <div class="table-cell-secondary">Friday</div>
+                                    <button class="action-btn btn-sm" onclick="viewSession(1)">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Trainer Session Example -->
+                            <tr data-type="trainer" data-status="confirmed">
+                                <td>
+                                    <div class="table-cell-title">Strength & Conditioning</div>
+                                    <div class="table-cell-details">
+                                        <i class="fas fa-dumbbell"></i> Trainer Session
+                                    </div>
+                                    <span class="table-badge">Trainer</span>
                                 </td>
                                 <td>
-                                    <div class="table-cell-title">Indoor Training Hall</div>
+                                    <div class="table-cell-primary">Trainer Williams</div>
+                                    <div class="table-cell-secondary">Fitness Trainer</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">Oct 21, 2025</div>
+                                    <div class="table-cell-secondary">6:00 AM - 7:00 AM</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">Fitness Center</div>
+                                    <div class="table-cell-secondary">Gym Facility</div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="table-badge status-confirmed">Confirmed</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <button class="action-btn btn-sm" onclick="viewSession(2)">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Pending Coach Session -->
+                            <tr data-type="coach" data-status="pending">
+                                <td>
+                                    <div class="table-cell-title">Bowling Technique Session</div>
                                     <div class="table-cell-details">
-                                        <i class="fas fa-user"></i> Individual Training
+                                        <i class="fas fa-user-tie"></i> Coach Session
                                     </div>
-                                    <span class="table-badge">Indoor</span>
+                                    <span class="table-badge">Coach</span>
                                 </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">12:00 PM</div>
+                                <td>
+                                    <div class="table-cell-primary">Coach Anderson</div>
+                                    <div class="table-cell-secondary">Cricket Coach</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">LKR 4,000</div>
-                                    <div class="table-cell-secondary">2 hours</div>
+                                <td>
+                                    <div class="table-cell-primary">Oct 22, 2025</div>
+                                    <div class="table-cell-secondary">2:00 PM - 3:00 PM</div>
+                                </td>
+                                <td>
+                                    <div class="table-cell-primary">Practice Ground B</div>
+                                    <div class="table-cell-secondary">Outdoor Field</div>
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="table-badge status-pending">Pending</span>
                                 </td>
-                            </tr>
-                            <tr>
                                 <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 15</div>
-                                    <div class="table-cell-secondary">Tuesday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Practice Ground A</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-baseball-ball"></i> Batting Practice
-                                    </div>
-                                    <span class="table-badge">Practice</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">4:00 PM</div>
-                                    <div class="table-cell-secondary">6:00 PM</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">LKR 3,000</div>
-                                    <div class="table-cell-secondary">2 hours</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-completed">Completed</span>
+                                    <button class="action-btn btn-sm" onclick="makePayment(3)">
+                                        <i class="fas fa-credit-card"></i> Pay
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Recent Bookings -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-history"></i> Recent Bookings</h2>
-                        <div class="filter-section">
-                            <select id="recentSessionFilter" class="filter-dropdown" onchange="filterRecentBookings()">
-                                <option value="all">All Session Types</option>
-                                <option value="Training">Training</option>
-                                <option value="Fitness">Fitness</option>
-                                <option value="Private">Private</option>
-                                <option value="Team">Team</option>
-                            </select>
+                    
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-icon">
+                            <i class="fas fa-calendar-times"></i>
                         </div>
+                        <h3>No Sessions Found</h3>
+                        <p>No sessions match your current filter criteria.</p>
+                        <button class="action-btn" onclick="clearFilters()">
+                            <i class="fas fa-filter"></i> Clear Filters
+                        </button>
                     </div>
                 </div>
-                <div class="card-content">
-                    <table class="dashboard-table" id="recentBookingsTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Session</th>
-                                <th>Rating</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 15</div>
-                                    <div class="table-cell-secondary">Tuesday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Net Practice Session</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-comment"></i> Great batting practice session
-                                    </div>
-                                    <span class="table-badge">Training</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">5.0</div>
-                                    <div class="table-cell-secondary">⭐⭐⭐⭐⭐</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-completed">Completed</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 13</div>
-                                    <div class="table-cell-secondary">Sunday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Fitness Training</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-comment"></i> Excellent workout intensity
-                                    </div>
-                                    <span class="table-badge">Fitness</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">5.0</div>
-                                    <div class="table-cell-secondary">⭐⭐⭐⭐⭐</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-completed">Completed</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 11</div>
-                                    <div class="table-cell-secondary">Friday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Private Coaching</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-comment"></i> Improved batting technique
-                                    </div>
-                                    <span class="table-badge">Private</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">4.0</div>
-                                    <div class="table-cell-secondary">⭐⭐⭐⭐</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-completed">Completed</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
 
-            <!-- Booking Actions -->
-            <div class="quick-actions">
-                <h3>Booking Management</h3>
-                <div class="action-buttons">
-                    <a href="#" class="action-btn" onclick="alert('View all bookings feature coming soon!')">
-                        <i class="fas fa-list"></i> View All Bookings
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Booking history feature coming soon!')">
-                        <i class="fas fa-history"></i> Booking History
-                    </a>
-                    <a href="#" class="action-btn" onclick="alert('Cancel booking feature coming soon!')">
-                        <i class="fas fa-times"></i> Cancel Booking
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
+
+   
 
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>

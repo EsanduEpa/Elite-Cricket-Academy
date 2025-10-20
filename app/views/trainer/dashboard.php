@@ -94,11 +94,14 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-info">
-                <div class="trainer-name"><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Trainer'; ?></div>
+                <div class="trainer-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
                 <div class="trainer-role">Physical Trainer</div>
             </div>
-            <div class="logout-btn">
-                <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
+            <div class="profile-actions">
+                <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
             </div>
@@ -111,7 +114,7 @@
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-text">
-                    <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John'; ?>!</h1>
+                    <h1><i class="fas fa-tachometer-alt"></i> Welcome back, <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?>!</h1>
                     <p>Your training management dashboard - Schedule sessions, track progress, and manage your clients</p>
                 </div>
                 <div class="header-actions">
