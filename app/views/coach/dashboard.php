@@ -57,7 +57,7 @@
                     <li class="nav-item">
                         <a href="#performance" class="nav-link nav-anchor" data-tooltip="Player Performance">
                             <i class="fas fa-chart-line"></i>
-                            <span>Player Performance</span>
+                            <span>Player performance</span>
                         </a>
                     </li>
                     <li class="nav-item">
