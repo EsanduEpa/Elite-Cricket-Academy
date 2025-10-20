@@ -103,5 +103,35 @@ class M_Medical {
         
         return $this->db->single();
     }
+    
+    // Get all medical records for trainers (all players)
+    public function getAllMedicalRecords() {
+        $this->db->query('SELECT 
+            pmr.*,
+            u.name as reported_by_name,
+            u.role as reported_by_role,
+            p.name as player_name,
+            p.UserID as player_user_id
+            FROM PlayerMedicalRecord pmr 
+            LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
+            LEFT JOIN User p ON pmr.PlayerID = p.UserID
+            ORDER BY pmr.ReportedDate DESC');
+        
+        return $this->db->resultSet();
+    }
+    
+    // Update verification status for a medical record
+    public function updateVerifyStatus($recordId, $verifyStatus, $comments = '') {
+        $this->db->query('UPDATE PlayerMedicalRecord SET 
+            verifyStatus = :verify_status
+            WHERE RecordID = :record_id');
+        
+        // Bind values
+        $this->db->bind(':record_id', $recordId);
+        $this->db->bind(':verify_status', $verifyStatus);
+        
+        // Execute
+        return $this->db->execute();
+    }
 }
 ?>

@@ -7,11 +7,9 @@
     <div class="trainer-sidebar" id="trainerSidebar">
         <div class="sidebar-header">
             <div class="trainer-info">
-                <div class="trainer-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
+               
                 <div class="trainer-details">
-                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Smith'; ?></h4>
+                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Trainer'; ?></h4>
                     <p>Physical Trainer</p>
                 </div>
             </div>
@@ -36,31 +34,32 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/exercises" class="nav-link">
-                        <i class="fas fa-running"></i>
-                        <span>Common Exercises</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i>
-                        <span>Supplement Recommendations</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="nav-link">
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
                         <i class="fas fa-user-injured"></i>
                         <span>Injury Reports</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout-plans" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Supplement plans</span>
+                    </a>
+                </li>
+                
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/nutients" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Nutrition plans</span>
+                    </a>
+                </li>
+              
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/workouts" class="nav-link">
                         <i class="fas fa-dumbbell"></i>
-                        <span>Individual Workouts</span>
+                        <span>Workout plans</span>
                     </a>
                 </li>
                 
@@ -1879,7 +1878,7 @@
                             <i class="fas fa-capsules"></i>
                             <span>Supplements</span>
                         </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="quick-action-btn">
+                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="quick-action-btn">
                             <i class="fas fa-user-injured"></i>
                             <span>Injury Reports</span>
                         </a>

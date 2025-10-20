@@ -867,7 +867,7 @@ CREATE TABLE PlayerMedicalRecord (
     RecoveryStatus ENUM('recovering', 'recovered', 'chronic', 'ongoing') DEFAULT 'ongoing',
     ReportedDate DATE NOT NULL,
     ReportedBy INT COMMENT 'Doctor, trainer, or player who reported',
-    
+    verifyStatus ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
     FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ReportedBy) REFERENCES User(UserID) ON DELETE SET NULL ON UPDATE CASCADE,
     INDEX idx_player_medical (PlayerID),
