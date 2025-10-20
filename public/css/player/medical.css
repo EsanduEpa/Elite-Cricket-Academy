@@ -50,6 +50,74 @@
     border: 1px solid rgba(52, 152, 219, 0.3);
 }
 
+/* Recovery status badges */
+.table-badge.status-ongoing {
+    background: rgba(241, 196, 15, 0.1);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.table-badge.status-recovering {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.table-badge.status-recovered {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.table-badge.status-chronic {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Secondary button styling */
+.btn-sm.btn-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+.btn-sm.btn-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+}
+
+/* Form help styling */
+.form-help {
+    background: rgba(52, 152, 219, 0.05);
+    border-left: 4px solid #3498db;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.form-help p {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-help ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.form-help li {
+    margin-bottom: 5px;
+    color: #34495e;
+}
+
+.form-help li strong {
+    color: #2c3e50;
+}
+
 .table-badge.status-recovering {
     background: rgba(255, 193, 7, 0.1);
     color: #ffc107;

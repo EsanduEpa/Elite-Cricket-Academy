@@ -253,6 +253,65 @@ class Player extends Controller {
             redirect('player/medical');
         }
     }
+
+    // Update medical record recovery status
+    public function updateMedicalRecord() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize medical model
+            if (!isset($this->medicalModel)) {
+                $this->medicalModel = $this->model('M_Medical');
+            }
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            // Get current logged-in player data
+            $playerData = $this->getPlayerData();
+            $playerId = $playerData['id'];
+            
+            $recordId = $_POST['record_id'];
+            $recoveryStatus = $_POST['recovery_status'];
+            
+            // First, verify this record belongs to the current player
+            $existingRecord = $this->medicalModel->getMedicalRecord($recordId);
+            
+            if (!$existingRecord || $existingRecord->PlayerID != $playerId) {
+                flash('medical_message', 'Record not found or access denied', 'alert alert-danger');
+                redirect('player/medical');
+                return;
+            }
+            
+            // Prepare update data
+            $updateData = [
+                'injury_details' => $existingRecord->InjuryDetails,
+                'diagnosis' => $existingRecord->Diagnosis,
+                'treatment_given' => $existingRecord->TreatmentGiven,
+                'recovery_status' => $recoveryStatus,
+                'reported_date' => $existingRecord->ReportedDate
+            ];
+            
+            // Validate recovery status
+            $validStatuses = ['ongoing', 'recovering', 'recovered', 'chronic'];
+            if (empty($recoveryStatus) || !in_array($recoveryStatus, $validStatuses)) {
+                flash('medical_message', 'Invalid recovery status selected', 'alert alert-danger');
+                redirect('player/medical');
+                return;
+            }
+            
+            // Update record in database
+            $success = $this->medicalModel->updateMedicalRecord($recordId, $updateData);
+            
+            if ($success) {
+                flash('medical_message', 'Recovery status updated successfully');
+                redirect('player/medical');
+            } else {
+                flash('medical_message', 'Failed to update recovery status', 'alert alert-danger');
+                redirect('player/medical');
+            }
+        } else {
+            redirect('player/medical');
+        }
+    }
     
     // Performance History
     public function performance() {

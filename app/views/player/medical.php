@@ -436,8 +436,8 @@
                                         <div class="table-cell-secondary"><?php echo htmlspecialchars($record->reported_by_role ?? 'Player'); ?></div>
                                     </td>
                                     <td>
-                                        <button class="btn-sm" onclick="viewMedicalRecord(<?php echo $record->RecordID; ?>)">
-                                            <i class="fas fa-eye"></i> View
+                                        <button class="btn-sm btn-secondary" onclick="openUpdateStatusModal(<?php echo $record->RecordID; ?>, '<?php echo $record->RecoveryStatus; ?>')">
+                                            <i class="fas fa-edit"></i> Update Status
                                         </button>
                                     </td>
                                 </tr>
@@ -697,6 +697,48 @@
         </div>
     </div>
 
+    <!-- Update Medical Record Status Modal -->
+    <div id="updateStatusModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Update Recovery Status</h3>
+                <span class="close" onclick="closeUpdateStatusModal()">&times;</span>
+            </div>
+            <form method="POST" action="<?php echo URLROOT; ?>/player/updateMedicalRecord">
+                <div class="modal-body">
+                    <input type="hidden" id="update_record_id" name="record_id">
+                    
+                    <div class="form-group">
+                        <label for="update_recovery_status">Recovery Status *</label>
+                        <select id="update_recovery_status" name="recovery_status" class="form-control" required>
+                            <option value="">Select status...</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="recovering">Recovering</option>
+                            <option value="recovered">Fully Recovered</option>
+                            <option value="chronic">Chronic Condition</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-help">
+                        <p><strong>Status Definitions:</strong></p>
+                        <ul>
+                            <li><strong>Ongoing:</strong> Condition is still active/symptomatic</li>
+                            <li><strong>Recovering:</strong> In the process of healing</li>
+                            <li><strong>Fully Recovered:</strong> No symptoms, returned to full activity</li>
+                            <li><strong>Chronic:</strong> Long-term condition requiring ongoing management</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUpdateStatusModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Add Medical Record Modal Functions
         function openAddMedicalModal() {
@@ -892,11 +934,39 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
+        // Update Status Modal Functions
+        function openUpdateStatusModal(recordId, currentStatus) {
+            const modal = document.getElementById('updateStatusModal');
+            const recordIdInput = document.getElementById('update_record_id');
+            const statusSelect = document.getElementById('update_recovery_status');
+            
+            // Set the record ID
+            recordIdInput.value = recordId;
+            
+            // Set the current status as selected
+            statusSelect.value = currentStatus;
+            
+            // Show modal
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeUpdateStatusModal() {
+            const modal = document.getElementById('updateStatusModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Reset form
+            const form = modal.querySelector('form');
+            form.reset();
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const addMedicalModal = document.getElementById('addMedicalModal');
             const workoutModal = document.getElementById('workoutPlanModal');
             const nutritionModal = document.getElementById('nutritionPlanModal');
+            const updateStatusModal = document.getElementById('updateStatusModal');
             
             if (event.target === addMedicalModal) {
                 closeAddMedicalModal();
@@ -906,6 +976,9 @@
             }
             if (event.target === nutritionModal) {
                 nutritionModal.style.display = 'none';
+            }
+            if (event.target === updateStatusModal) {
+                closeUpdateStatusModal();
             }
         }
     </script>

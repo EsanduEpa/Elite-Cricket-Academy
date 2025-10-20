@@ -58,7 +58,7 @@ class Shop extends Controller {
             'featured_products' => $this->getFeaturedProducts()
         ];
         
-        $this->view('shop/v_shop_products', $data);
+        $this->view('shop/shopping', $data);
     }
 
     public function accessories() {
