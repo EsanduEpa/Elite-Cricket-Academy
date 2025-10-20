@@ -1,7 +1,8 @@
 <?php
 class Coach extends Controller {
     public function __construct() {
-        // Simple constructor for interface-only coach dashboard
+        // Check authentication for all coach pages
+        requireAuth(['Coach']);
     }
     
     public function index() {

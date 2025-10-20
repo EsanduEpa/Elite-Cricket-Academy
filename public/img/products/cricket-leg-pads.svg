@@ -1,0 +1,85 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="padsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#cbd5e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="padWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f1f5f9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <filter id="padFilter" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.15)"/>
+    </filter>
+  </defs>
+  <rect width="300" height="300" fill="url(#padsGradient)" rx="20"/>
+  
+  <!-- Left leg pad -->
+  <rect x="110" y="60" width="28" height="130" fill="url(#padWhite)" rx="14" filter="url(#padFilter)"/>
+  
+  <!-- Right leg pad -->
+  <rect x="162" y="60" width="28" height="130" fill="url(#padWhite)" rx="14" filter="url(#padFilter)"/>
+  
+  <!-- Left pad protection segments -->
+  <rect x="112" y="68" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="112" y="90" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="112" y="112" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="112" y="134" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="112" y="156" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="112" y="178" width="24" height="10" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  
+  <!-- Right pad protection segments -->
+  <rect x="164" y="68" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="164" y="90" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="164" y="112" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="164" y="134" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="164" y="156" width="24" height="18" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  <rect x="164" y="178" width="24" height="10" fill="none" stroke="#334155" stroke-width="1.2" rx="2"/>
+  
+  <!-- Professional straps -->
+  <rect x="140" y="85" width="20" height="4" fill="#1f2937" rx="2"/>
+  <rect x="140" y="125" width="20" height="4" fill="#1f2937" rx="2"/>
+  <rect x="140" y="165" width="20" height="4" fill="#1f2937" rx="2"/>
+  
+  <!-- Knee protection caps -->
+  <ellipse cx="124" cy="95" rx="8" ry="14" fill="url(#padWhite)" filter="url(#padFilter)"/>
+  <ellipse cx="176" cy="95" rx="8" ry="14" fill="url(#padWhite)" filter="url(#padFilter)"/>
+  
+  <!-- Impact protection zones -->
+  <circle cx="124" cy="120" r="3" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="124" cy="140" r="3" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="124" cy="160" r="3" fill="#8b5cf6" opacity="0.8"/>
+  
+  <circle cx="176" cy="120" r="3" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="176" cy="140" r="3" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="176" cy="160" r="3" fill="#8b5cf6" opacity="0.8"/>
+  
+  <!-- Professional branding -->
+  <rect x="125" y="210" width="50" height="10" fill="none" stroke="#334155" stroke-width="1" rx="2"/>
+  <text x="150" y="217" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="6" font-weight="bold">ELITE GUARD PRO</text>
+  
+  <!-- Professional certification -->
+  <circle cx="150" cy="240" r="8" fill="none" stroke="#10b981" stroke-width="2"/>
+  <text x="150" y="244" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8" font-weight="bold">✓</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="60" cy="60" r="10" fill="rgba(139, 92, 246, 0.1)"/>
+  <circle cx="240" cy="240" r="12" fill="rgba(51, 65, 85, 0.1)"/>
+  <circle cx="40" cy="220" r="8" fill="rgba(16, 185, 129, 0.1)"/>
+  
+  <text x="150" y="275" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Professional Leg Protection</text>
+</svg>
+  
+  <!-- Straps -->
+  <rect x="105" y="85" width="35" height="3" fill="#1e40af" rx="1"/>
+  <rect x="105" y="135" width="35" height="3" fill="#1e40af" rx="1"/>
+  
+  <rect x="160" y="85" width="35" height="3" fill="#1e40af" rx="1"/>
+  <rect x="160" y="135" width="35" height="3" fill="#1e40af" rx="1"/>
+  
+  <circle cx="70" cy="220" r="20" fill="rgba(255,255,255,0.1)"/>
+  <text x="150" y="280" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Cricket Leg Pads - $129.99</text>
+</svg>

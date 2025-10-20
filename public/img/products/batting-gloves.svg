@@ -1,0 +1,82 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glovesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#cbd5e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gloveWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f1f5f9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <filter id="gloveFilter" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.15)"/>
+    </filter>
+  </defs>
+  <rect width="300" height="300" fill="url(#glovesGradient)" rx="20"/>
+  
+  <!-- Left glove palm -->
+  <ellipse cx="120" cy="130" rx="28" ry="40" fill="url(#gloveWhite)" filter="url(#gloveFilter)"/>
+  <rect x="100" y="95" width="40" height="18" fill="url(#gloveWhite)" rx="9" filter="url(#gloveFilter)"/>
+  
+  <!-- Left glove fingers -->
+  <rect x="105" y="88" width="7" height="28" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="114" y="83" width="7" height="33" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="123" y="83" width="7" height="33" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="132" y="88" width="7" height="28" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  
+  <!-- Left thumb -->
+  <ellipse cx="145" cy="140" rx="6" ry="16" fill="url(#gloveWhite)" filter="url(#gloveFilter)"/>
+  
+  <!-- Right glove palm -->
+  <ellipse cx="180" cy="130" rx="28" ry="40" fill="url(#gloveWhite)" filter="url(#gloveFilter)"/>
+  <rect x="160" y="95" width="40" height="18" fill="url(#gloveWhite)" rx="9" filter="url(#gloveFilter)"/>
+  
+  <!-- Right glove fingers -->
+  <rect x="165" y="88" width="7" height="28" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="174" y="83" width="7" height="33" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="183" y="83" width="7" height="33" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  <rect x="192" y="88" width="7" height="28" fill="url(#gloveWhite)" rx="3.5" filter="url(#gloveFilter)"/>
+  
+  <!-- Right thumb -->
+  <ellipse cx="155" cy="140" rx="6" ry="16" fill="url(#gloveWhite)" filter="url(#gloveFilter)"/>
+  
+  <!-- Professional protection padding -->
+  <rect x="105" y="145" width="30" height="20" fill="none" stroke="#334155" stroke-width="1.2" rx="3"/>
+  <rect x="165" y="145" width="30" height="20" fill="none" stroke="#334155" stroke-width="1.2" rx="3"/>
+  
+  <!-- Knuckle protection -->
+  <circle cx="108" cy="105" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="117" cy="100" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="126" cy="100" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="135" cy="105" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  
+  <circle cx="168" cy="105" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="177" cy="100" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="186" cy="100" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="195" cy="105" r="2.5" fill="#8b5cf6" opacity="0.8"/>
+  
+  <!-- Velcro straps -->
+  <rect x="110" y="170" width="20" height="4" fill="#1f2937" rx="2"/>
+  <rect x="170" y="170" width="20" height="4" fill="#1f2937" rx="2"/>
+  
+  <!-- Brand markings -->
+  <rect x="110" y="135" width="20" height="6" fill="none" stroke="#334155" stroke-width="0.8" rx="1"/>
+  <text x="120" y="139" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="4" font-weight="bold">ELITE</text>
+  
+  <rect x="170" y="135" width="20" height="6" fill="none" stroke="#334155" stroke-width="0.8" rx="1"/>
+  <text x="180" y="139" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="4" font-weight="bold">ELITE</text>
+  
+  <!-- Professional certification -->
+  <circle cx="150" cy="210" r="8" fill="none" stroke="#10b981" stroke-width="2"/>
+  <text x="150" y="214" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8" font-weight="bold">✓</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="60" cy="60" r="10" fill="rgba(139, 92, 246, 0.1)"/>
+  <circle cx="240" cy="240" r="12" fill="rgba(51, 65, 85, 0.1)"/>
+  <circle cx="80" cy="200" r="15" fill="rgba(16, 185, 129, 0.1)"/>
+  
+  <text x="150" y="270" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Professional Batting Gloves</text>
+</svg>

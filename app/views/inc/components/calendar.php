@@ -106,29 +106,158 @@ function initializeCommonCalendar(calendarId) {
             height: 'auto',
             aspectRatio: 1.6,
             events: [
+                // Today
                 {
-                    title: 'Training Session',
+                    title: 'Youth Training Session',
                     start: new Date().toISOString().split('T')[0] + 'T10:00:00',
-                    backgroundColor: '#4A90E2',
-                    borderColor: '#4A90E2'
+                    backgroundColor: '#667eea',
+                    borderColor: '#667eea',
+                    extendedProps: {
+                        description: 'Morning training for youth team',
+                        location: 'Ground A'
+                    }
                 },
                 {
-                    title: 'Team Practice', 
+                    title: 'Coach Meeting',
+                    start: new Date().toISOString().split('T')[0] + 'T15:00:00',
+                    backgroundColor: '#764ba2',
+                    borderColor: '#764ba2',
+                    extendedProps: {
+                        description: 'Monthly coaches coordination meeting',
+                        location: 'Admin Office'
+                    }
+                },
+                // Tomorrow
+                {
+                    title: 'New Player Registration',
+                    start: new Date(Date.now() + 1*24*60*60*1000).toISOString().split('T')[0] + 'T09:00:00',
+                    backgroundColor: '#10b981',
+                    borderColor: '#10b981',
+                    extendedProps: {
+                        description: 'Registration for new academy members',
+                        location: 'Reception'
+                    }
+                },
+                // Day 2
+                {
+                    title: 'Senior Team Practice', 
                     start: new Date(Date.now() + 2*24*60*60*1000).toISOString().split('T')[0] + 'T14:00:00',
-                    backgroundColor: '#5BA0F2',
-                    borderColor: '#5BA0F2'
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#3b82f6',
+                    extendedProps: {
+                        description: 'Regular practice session',
+                        location: 'Main Ground'
+                    }
                 },
                 {
-                    title: 'Match Day',
+                    title: 'Equipment Maintenance',
+                    start: new Date(Date.now() + 2*24*60*60*1000).toISOString().split('T')[0] + 'T11:00:00',
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#8b5cf6',
+                    extendedProps: {
+                        description: 'Scheduled equipment check',
+                        location: 'Equipment Room'
+                    }
+                },
+                // Day 3
+                {
+                    title: 'Junior Championship Qualifier',
+                    start: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0] + 'T08:00:00',
+                    end: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0] + 'T17:00:00',
+                    backgroundColor: '#ef4444',
+                    borderColor: '#ef4444',
+                    extendedProps: {
+                        description: 'Tournament qualifying round',
+                        location: 'Ground A & B'
+                    }
+                },
+                // Day 4
+                {
+                    title: 'Finance Review Meeting',
+                    start: new Date(Date.now() + 4*24*60*60*1000).toISOString().split('T')[0] + 'T10:00:00',
+                    backgroundColor: '#f59e0b',
+                    borderColor: '#f59e0b',
+                    extendedProps: {
+                        description: 'Quarterly finance review',
+                        location: 'Conference Room'
+                    }
+                },
+                // Day 5
+                {
+                    title: 'Inter-Academy Match',
                     start: new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0] + 'T09:00:00',
-                    backgroundColor: '#FF8A50',
-                    borderColor: '#FF8A50'
+                    backgroundColor: '#dc2626',
+                    borderColor: '#dc2626',
+                    extendedProps: {
+                        description: 'Friendly match with City Academy',
+                        location: 'Main Ground'
+                    }
                 },
                 {
-                    title: 'Equipment Check',
-                    start: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0] + 'T16:00:00',
-                    backgroundColor: '#4ECDC4',
-                    borderColor: '#4ECDC4'
+                    title: 'Parent-Coach Meeting',
+                    start: new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0] + 'T16:00:00',
+                    backgroundColor: '#06b6d4',
+                    borderColor: '#06b6d4',
+                    extendedProps: {
+                        description: 'Monthly parent-coach discussion',
+                        location: 'Hall'
+                    }
+                },
+                // Day 7
+                {
+                    title: 'Facility Inspection',
+                    start: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0] + 'T11:00:00',
+                    backgroundColor: '#14b8a6',
+                    borderColor: '#14b8a6',
+                    extendedProps: {
+                        description: 'Routine facility safety check',
+                        location: 'All Grounds'
+                    }
+                },
+                // Day 8
+                {
+                    title: 'Skills Development Workshop',
+                    start: new Date(Date.now() + 8*24*60*60*1000).toISOString().split('T')[0] + 'T13:00:00',
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#8b5cf6',
+                    extendedProps: {
+                        description: 'Advanced batting techniques',
+                        location: 'Indoor Nets'
+                    }
+                },
+                // Day 10
+                {
+                    title: 'Staff Meeting',
+                    start: new Date(Date.now() + 10*24*60*60*1000).toISOString().split('T')[0] + 'T09:00:00',
+                    backgroundColor: '#7c3aed',
+                    borderColor: '#7c3aed',
+                    extendedProps: {
+                        description: 'All staff monthly meeting',
+                        location: 'Conference Room'
+                    }
+                },
+                // Day 12
+                {
+                    title: 'Medical Camp',
+                    start: new Date(Date.now() + 12*24*60*60*1000).toISOString().split('T')[0] + 'T08:00:00',
+                    end: new Date(Date.now() + 12*24*60*60*1000).toISOString().split('T')[0] + 'T14:00:00',
+                    backgroundColor: '#ec4899',
+                    borderColor: '#ec4899',
+                    extendedProps: {
+                        description: 'Free medical checkup for all players',
+                        location: 'Medical Room'
+                    }
+                },
+                // Day 15
+                {
+                    title: 'Tournament Finals',
+                    start: new Date(Date.now() + 15*24*60*60*1000).toISOString().split('T')[0] + 'T10:00:00',
+                    backgroundColor: '#dc2626',
+                    borderColor: '#dc2626',
+                    extendedProps: {
+                        description: 'Junior Championship Finals',
+                        location: 'Main Ground'
+                    }
                 }
             ],
             eventClick: function(info) {
@@ -182,18 +311,38 @@ function showListView_<?php echo $calendarId; ?>() {
 
 // Event details function
 function showEventDetails(event) {
-    const eventDetails = `
-        <div style="padding: 1rem;">
-            <h3 style="margin: 0 0 1rem 0; color: #2c3e50;">${event.title}</h3>
-            <p style="margin: 0.5rem 0; color: #5a6c7d;"><strong>Date:</strong> ${event.start.toLocaleDateString()}</p>
-            <p style="margin: 0.5rem 0; color: #5a6c7d;"><strong>Time:</strong> ${event.start.toLocaleTimeString()}</p>
-        </div>
-    `;
+    const startDate = event.start.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    const startTime = event.start.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
     
-    // Create a simple modal or alert
-    if (confirm(`Event Details:\n\nTitle: ${event.title}\nDate: ${event.start.toLocaleDateString()}\nTime: ${event.start.toLocaleTimeString()}\n\nClick OK to close.`)) {
-        // User clicked OK
+    let details = `Event: ${event.title}\n`;
+    details += `Date: ${startDate}\n`;
+    details += `Time: ${startTime}\n`;
+    
+    if (event.extendedProps && event.extendedProps.description) {
+        details += `\nDescription: ${event.extendedProps.description}\n`;
     }
+    
+    if (event.extendedProps && event.extendedProps.location) {
+        details += `Location: ${event.extendedProps.location}\n`;
+    }
+    
+    if (event.end) {
+        const endTime = event.end.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        details += `End Time: ${endTime}\n`;
+    }
+    
+    alert(details);
 }
 }
 </script>

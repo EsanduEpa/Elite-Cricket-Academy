@@ -29,7 +29,7 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#staff-management" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
                         <i class="fas fa-users-cog"></i>
                         <span>Staff Management</span>
                     </a>
@@ -50,7 +50,7 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#feedback-monitoring" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                         <i class="fas fa-comments"></i>
                         <span>Feedback Monitoring</span>
                         <span class="badge">12</span>
@@ -102,6 +102,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Flash Messages -->
+        <?php flash('event_message'); ?>
 
         <!-- Event Statistics Cards -->
         <div class="stats-grid">
@@ -157,86 +160,146 @@
         <!-- Events Sections -->
         <div class="events-sections">
             <!-- Upcoming Events -->
-            <div class="events-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-calendar-plus"></i> Upcoming Events</h3>
-                    <button class="btn btn-outline" id="viewAllUpcomingBtn">View All</button>
+            <div class="events-table-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-plus"></i> Upcoming Events</h2>
+                    <div class="event-filters">
+                        <select id="eventTypeFilter" class="filter-select">
+                            <option value="all">All Types</option>
+                            <option value="tournament">Tournament</option>
+                            <option value="training">Training</option>
+                            <option value="match">Match</option>
+                            <option value="meeting">Meeting</option>
+                        </select>
+                        <select id="eventDateFilter" class="filter-select">
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                        <button class="btn btn-outline" id="viewAllUpcomingBtn">View All</button>
+                    </div>
                 </div>
-                <div class="events-list">
-                    <?php foreach ($data['upcomingEvents'] as $event): ?>
-                    <div class="event-item" data-event-id="<?php echo $event['id']; ?>">
-                        <div class="event-date">
-                            <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
-                            <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
-                        </div>
-                        <div class="event-details">
-                            <h4 class="event-title"><?php echo $event['title']; ?></h4>
-                            <p class="event-description"><?php echo $event['description']; ?></p>
-                            <div class="event-meta">
-                                <span class="event-type <?php echo $event['event_type']; ?>">
-                                    <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
-                                    <?php echo ucfirst($event['event_type']); ?>
-                                </span>
-                                <span class="event-location">
+                <div class="events-table-wrapper">
+                    <table class="events-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event Title</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($data['upcomingEvents'] as $event): ?>
+                            <tr data-event-id="<?php echo $event['id']; ?>">
+                                <td class="date-cell">
+                                    <div class="table-date">
+                                        <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
+                                        <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
+                                        <div class="date-year"><?php echo date('Y', strtotime($event['event_date'])); ?></div>
+                                    </div>
+                                </td>
+                                <td class="title-cell">
+                                    <strong><?php echo $event['title']; ?></strong>
+                                </td>
+                                <td>
+                                    <span class="event-type-badge <?php echo $event['event_type']; ?>">
+                                        <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
+                                        <?php echo ucfirst($event['event_type']); ?>
+                                    </span>
+                                </td>
+                                <td class="location-cell">
                                     <i class="fas fa-map-marker-alt"></i>
                                     <?php echo $event['location']; ?>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="btn-action edit" onclick="editEvent(<?php echo $event['id']; ?>)">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-action delete" onclick="deleteEvent(<?php echo $event['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+                                </td>
+                                <td class="description-cell">
+                                    <?php echo $event['description']; ?>
+                                </td>
+                                <td class="actions-cell">
+                                    <button 
+    class="btn-action-table edit" 
+    onclick="editEvent(<?php echo isset($event['EventID']) ? (int)$event['EventID'] : (isset($event['id']) ? (int)$event['id'] : 0); ?>)" 
+    title="Edit"
+>
+    <i class="fas fa-edit"></i>
+</button>
+                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Past Events -->
-            <div class="events-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-history"></i> Past Events</h3>
+            <div class="events-table-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Past Events</h2>
                     <button class="btn btn-outline" id="viewAllPastBtn">View All</button>
                 </div>
-                <div class="events-list">
-                    <?php foreach ($data['pastEvents'] as $event): ?>
-                    <div class="event-item past" data-event-id="<?php echo $event['id']; ?>">
-                        <div class="event-date">
-                            <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
-                            <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
-                        </div>
-                        <div class="event-details">
-                            <h4 class="event-title"><?php echo $event['title']; ?></h4>
-                            <p class="event-description"><?php echo $event['description']; ?></p>
-                            <div class="event-meta">
-                                <span class="event-type <?php echo $event['event_type']; ?>">
-                                    <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
-                                    <?php echo ucfirst($event['event_type']); ?>
-                                </span>
-                                <span class="event-location">
+                <div class="events-table-wrapper">
+                    <table class="events-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event Title</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($data['pastEvents'] as $event): ?>
+                            <tr class="past-event" data-event-id="<?php echo $event['id']; ?>">
+                                <td class="date-cell">
+                                    <div class="table-date">
+                                        <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
+                                        <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
+                                        <div class="date-year"><?php echo date('Y', strtotime($event['event_date'])); ?></div>
+                                    </div>
+                                </td>
+                                <td class="title-cell">
+                                    <strong><?php echo $event['title']; ?></strong>
+                                </td>
+                                <td>
+                                    <span class="event-type-badge <?php echo $event['event_type']; ?>">
+                                        <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
+                                        <?php echo ucfirst($event['event_type']); ?>
+                                    </span>
+                                </td>
+                                <td class="location-cell">
                                     <i class="fas fa-map-marker-alt"></i>
                                     <?php echo $event['location']; ?>
-                                </span>
-                                <span class="event-status completed">
-                                    <i class="fas fa-check-circle"></i>
-                                    Completed
-                                </span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <button class="btn-action view" onclick="viewEvent(<?php echo $event['id']; ?>)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-action delete" onclick="deleteEvent(<?php echo $event['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+                                </td>
+                                <td class="description-cell">
+                                    <?php echo $event['description']; ?>
+                                </td>
+                                <td>
+                                    <span class="event-status-badge completed">
+                                        <i class="fas fa-check-circle"></i>
+                                        Completed
+                                    </span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="btn-action-table view" onclick="viewEvent(<?php echo $event['id']; ?>)" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -281,7 +344,7 @@
             </div>
 
             <!-- Form Content -->
-            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/create_event" method="POST">
                 <div class="wizard-content">
                     <!-- Step 1: Basic Details -->
                     <div class="step-content active" data-step="1">
@@ -303,13 +366,15 @@
                                 <label for="eventType">Event Type <span class="required">*</span></label>
                                 <select id="eventType" name="event_type" class="form-control" required>
                                     <option value="">Select Event Type</option>
-                                    <option value="tournament">Tournament</option>
-                                    <option value="training_camp">Training Camp</option>
-                                    <option value="match">Match/Game</option>
-                                    <option value="workshop">Workshop/Clinic</option>
-                                    <option value="trial">Trial/Selection</option>
-                                    <option value="meeting">Team Meeting</option>
-                                    <option value="other">Other</option>
+                                    <option value="Tournament">Tournament</option>
+                                    <option value="Training Camp">Training Camp</option>
+                                    <option value="Match">Match</option>
+                                    <option value="Workshop">Workshop</option>
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Competition">Competition</option>
+                                    <option value="Trial">Trial</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Other">Other</option>
                                 </select>
                                 <div class="error-message" id="eventTypeError">Please select an event type</div>
                             </div>
@@ -456,44 +521,6 @@
                                        placeholder="+94 77 123 4567" required>
                                 <div class="error-message" id="contactPhoneError">Please enter a valid phone number</div>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="secondaryContact">Secondary Contact Person</label>
-                            <input type="text" id="secondaryContact" name="secondary_contact" class="form-control" 
-                                   placeholder="Backup organizer (optional)">
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="secondaryEmail">Secondary Email</label>
-                                <input type="email" id="secondaryEmail" name="secondary_email" class="form-control" 
-                                       placeholder="backup@elitecricket.com">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secondaryPhone">Secondary Phone</label>
-                                <input type="tel" id="secondaryPhone" name="secondary_phone" class="form-control" 
-                                       placeholder="+94 71 987 6543">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="eventCoordinator">Event Coordinator</label>
-                            <select id="eventCoordinator" name="event_coordinator" class="form-control">
-                                <option value="">Select Coordinator</option>
-                                <option value="john_doe">John Doe (Head Coach)</option>
-                                <option value="jane_smith">Jane Smith (Academy Manager)</option>
-                                <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
-                                <option value="sarah_johnson">Sarah Johnson (Assistant Manager)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="specialRequirements">Special Requirements / Notes</label>
-                            <textarea id="specialRequirements" name="special_requirements" class="form-control" 
-                                    placeholder="Any special arrangements, equipment needs, dietary requirements, accessibility considerations, etc." 
-                                    rows="3"></textarea>
                         </div>
                     </div>
 
@@ -1108,22 +1135,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== EVENTS PAGE DEBUG ===');
-    console.log('URLROOT:', '<?php echo URLROOT; ?>');
-    console.log('CSS file path:', '<?php echo URLROOT; ?>/css/admin/create-event-wizard.css');
-    console.log('JS file path:', '<?php echo URLROOT; ?>/js/admin/create-event-wizard.js');
-    
-    // Check if modal exists
-    const modal = document.getElementById('createEventModal');
-    console.log('Modal element found:', !!modal);
-    
-    // Check if button exists
-    const button = document.getElementById('createEventBtn');
-    console.log('Button element found:', !!button);
-    
-    // Check if openCreateEventModal function exists
-    console.log('openCreateEventModal function exists:', typeof openCreateEventModal);
-    
     // Initialize calendar
     const calendarEl = document.getElementById('eventCalendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1146,28 +1157,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Updated event handlers for new wizard modal
-    const createEventBtn = document.getElementById('createEventBtn');
-    const createTournamentBtn = document.getElementById('createTournamentBtn');
+    // Note: Create Event button handler is now in create-event-wizard.js to avoid timing issues
+    // Note: Create Tournament button handler is in create-tournament-wizard.js
     
-    if (createEventBtn) {
-        createEventBtn.addEventListener('click', () => {
-            console.log('Create Event button clicked!');
-            openCreateEventModal();
-        });
-    } else {
-        console.error('Create Event button not found!');
-    }
-    
-    if (createTournamentBtn) {
-        createTournamentBtn.addEventListener('click', () => {
-            console.log('Create Tournament button clicked!');
-            openTournamentModal();
-        });
-    } else {
-        console.error('Create Tournament button not found!');
-    }
-
     // Other existing event handlers
     const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
     const viewAllPastBtn = document.getElementById('viewAllPastBtn');
@@ -1179,72 +1171,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewAllPastBtn) {
         viewAllPastBtn.addEventListener('click', () => viewAllEvents('past'));
     }
-    
-    // Debug function
-    window.debugWizard = function() {
-        console.log('=== WIZARD DEBUG INFO ===');
-        const modal = document.getElementById('createEventModal');
-        const steps = document.querySelectorAll('.step-content');
-        const activeSteps = document.querySelectorAll('.step-content.active');
-        
-        console.log('Modal element:', modal);
-        console.log('Modal classes:', modal ? modal.className : 'Not found');
-        console.log('Total steps found:', steps.length);
-        console.log('Active steps found:', activeSteps.length);
-        
-        steps.forEach((step, index) => {
-            const stepNum = step.getAttribute('data-step');
-            const isActive = step.classList.contains('active');
-            const display = window.getComputedStyle(step).display;
-            const opacity = window.getComputedStyle(step).opacity;
-            
-            console.log(`Step ${stepNum}: active=${isActive}, display=${display}, opacity=${opacity}`);
-        });
-        
-        if (window.eventWizard) {
-            console.log('Current wizard step:', window.eventWizard.currentStep);
-        } else {
-            console.log('EventWizard not initialized');
-        }
-        console.log('========================');
-    };
-    
-    // Simple modal test function
-    window.testModal = function() {
-        const modal = document.getElementById('createEventModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Modal test: Showing modal manually');
-        } else {
-            console.error('Modal test: Modal not found');
-        }
-    };
-    
-    // Test button click manually
-    window.testButton = function() {
-        const btn = document.getElementById('createEventBtn');
-        if (btn) {
-            btn.click();
-            console.log('Button test: Clicked button manually');
-        } else {
-            console.error('Button test: Button not found');
-        }
-    };
-    
-    // Tournament modal test function
-    window.testTournamentModal = function() {
-        const modal = document.getElementById('createTournamentModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Tournament modal test: Showing modal manually');
-        } else {
-            console.error('Tournament modal test: Modal not found');
-        }
-    };
 });
 
 // Legacy function for viewing all events
@@ -1261,15 +1187,20 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Legacy functions for existing events (can be updated later)
+// Note: editEvent() function is defined in events.js
+
+
 function editEvent(eventId) {
-    // Fetch event details and populate form
-    fetch(`<?php echo URLROOT; ?>/admin/get_event/${eventId}`)
-        .then(response => response.json())
-        .then(event => {
-            alert('Edit functionality will be updated to use the new wizard format');
-        });
+    if (!eventId || eventId === 0) {
+        console.error("⚠️ Invalid event ID passed to editEvent()");
+        alert("Invalid event ID. Please refresh the page and try again.");
+        return;
+    }
+
+    // Redirect to the edit page
+    window.location.href = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
 }
+
 
 function deleteEvent(eventId) {
     if (confirm('Are you sure you want to delete this event?')) {
@@ -1280,6 +1211,63 @@ function deleteEvent(eventId) {
 function viewEvent(eventId) {
     window.location.href = `<?php echo URLROOT; ?>/admin/event_details/${eventId}`;
 }
+
+// Event Filter Functions
+function filterEvents() {
+    const typeFilter = document.getElementById('eventTypeFilter').value;
+    const dateFilter = document.getElementById('eventDateFilter').value;
+    const rows = document.querySelectorAll('.events-table tbody tr');
+    
+    rows.forEach(row => {
+        let showRow = true;
+        
+        // Type filter
+        if (typeFilter !== 'all') {
+            const eventType = row.querySelector('.event-type-badge')?.textContent.trim().toLowerCase();
+            if (eventType && !eventType.includes(typeFilter.toLowerCase())) {
+                showRow = false;
+            }
+        }
+        
+        // Date filter (simplified - would need actual dates in production)
+        if (dateFilter !== 'all' && showRow) {
+            const dateText = row.querySelector('.date-cell')?.textContent || '';
+            const today = new Date();
+            
+            if (dateFilter === 'today' && !dateText.includes(today.getDate().toString())) {
+                showRow = false;
+            } else if (dateFilter === 'week') {
+                // Filter for this week
+                showRow = true; // Simplified
+            } else if (dateFilter === 'month') {
+                // Filter for this month
+                showRow = true; // Simplified
+            }
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', function() {
+    const typeFilter = document.getElementById('eventTypeFilter');
+    const dateFilter = document.getElementById('eventDateFilter');
+    
+    if (typeFilter) typeFilter.addEventListener('change', filterEvents);
+    if (dateFilter) dateFilter.addEventListener('change', filterEvents);
+    
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessage = document.getElementById('msg-flash');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.classList.add('alert-fade-out');
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 500);
+        }, 5000);
+    }
+});
 </script>
 
 <!-- FullCalendar JS -->

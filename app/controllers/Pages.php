@@ -8,7 +8,23 @@ class Pages extends Controller {
     }
 
     public function index() {
-        // You can redirect or load default content here
+        // Load home page view
+        $this->view('v_home');
+    }
+
+    public function logout() {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Destroy all session data
+        session_unset();
+        session_destroy();
+        
+        // Redirect to home page
+        header('Location: /Elite/');
+        exit();
     }
 
     public function about() {

@@ -20,6 +20,108 @@
         <p>With a track record of producing successful players who have represented their countries and played in major leagues worldwide, Elite Cricket Academy continues to be the preferred choice for serious cricket development. Join us in your journey to cricket excellence.</p>
     </section>
 
+    <!-- Featured Equipment Section -->
+    <section class="featured-equipment">
+        <div class="featured-container">
+            <h2>Premium Cricket Equipment</h2>
+            <p class="section-subtitle">Professional grade equipment trusted by champions</p>
+            <div class="equipment-grid">
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/cricket-bat-pro.svg" alt="Pro Series Cricket Bat">
+                        <div class="equipment-overlay">
+                            <span class="price">$299.99</span>
+                            <span class="rating">★★★★★ 4.8</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Pro Series Cricket Bat</h3>
+                        <p>Professional grade cricket bat made from premium English willow</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/cricket-ball-leather.svg" alt="Premium Leather Cricket Ball">
+                        <div class="equipment-overlay">
+                            <span class="price">$45.99</span>
+                            <span class="rating">★★★★★ 4.9</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Premium Leather Ball</h3>
+                        <p>Hand-stitched leather cricket ball for professional matches</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/batting-gloves.svg" alt="Professional Batting Gloves">
+                        <div class="equipment-overlay">
+                            <span class="price">$89.99</span>
+                            <span class="rating">★★★★★ 4.7</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Professional Gloves</h3>
+                        <p>Superior protection and grip for serious batsmen</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/cricket-helmet.svg" alt="Elite Cricket Helmet">
+                        <div class="equipment-overlay">
+                            <span class="price">$159.99</span>
+                            <span class="rating">★★★★★ 4.8</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Elite Cricket Helmet</h3>
+                        <p>Advanced protection helmet with superior ventilation</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/cricket-leg-pads.svg" alt="Cricket Leg Pads">
+                        <div class="equipment-overlay">
+                            <span class="price">$129.99</span>
+                            <span class="rating">★★★★★ 4.6</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Cricket Leg Pads</h3>
+                        <p>Lightweight and durable leg protection for batsmen</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+                <div class="equipment-card">
+                    <div class="equipment-image">
+                        <img src="<?php echo URLROOT; ?>/img/products/training-jersey.svg" alt="Training Jersey">
+                        <div class="equipment-overlay">
+                            <span class="price">$59.99</span>
+                            <span class="rating">★★★★★ 4.5</span>
+                        </div>
+                    </div>
+                    <div class="equipment-content">
+                        <h3>Training Jersey</h3>
+                        <p>Moisture-wicking performance jersey for training and matches</p>
+                        <button class="view-equipment-btn">View Details</button>
+                    </div>
+                </div>
+            </div>
+            <div class="shop-link-container">
+                <a href="<?php echo URLROOT; ?>/shop/accessories" class="shop-all-btn">
+                    <span>Shop All Equipment</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Programs Section -->
     <section class="programs" id="programs">
         <div class="programs-container">

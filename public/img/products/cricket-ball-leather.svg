@@ -1,0 +1,76 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ballGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#cbd5e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="ballSphere" cx="35%" cy="25%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="20%" style="stop-color:#fee2e2;stop-opacity:0.8" />
+      <stop offset="60%" style="stop-color:#dc2626;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+    </radialGradient>
+    <filter id="ballShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="rgba(0,0,0,0.2)"/>
+    </filter>
+  </defs>
+  <rect width="300" height="300" fill="url(#ballGradient)" rx="20"/>
+  
+  <!-- Cricket ball -->
+  <circle cx="150" cy="130" r="50" fill="url(#ballSphere)" filter="url(#ballShadow)"/>
+  
+  <!-- Primary seam -->
+  <path d="M 115 130 Q 150 105 185 130" stroke="#f8fafc" stroke-width="3" fill="none" opacity="0.95"/>
+  <path d="M 115 130 Q 150 155 185 130" stroke="#f8fafc" stroke-width="3" fill="none" opacity="0.95"/>
+  
+  <!-- Detailed stitching -->
+  <circle cx="120" cy="128" r="1.2" fill="#f8fafc"/>
+  <circle cx="130" cy="124" r="1.2" fill="#f8fafc"/>
+  <circle cx="140" cy="121" r="1.2" fill="#f8fafc"/>
+  <circle cx="150" cy="120" r="1.2" fill="#f8fafc"/>
+  <circle cx="160" cy="121" r="1.2" fill="#f8fafc"/>
+  <circle cx="170" cy="124" r="1.2" fill="#f8fafc"/>
+  <circle cx="180" cy="128" r="1.2" fill="#f8fafc"/>
+  
+  <circle cx="120" cy="132" r="1.2" fill="#f8fafc"/>
+  <circle cx="130" cy="136" r="1.2" fill="#f8fafc"/>
+  <circle cx="140" cy="139" r="1.2" fill="#f8fafc"/>
+  <circle cx="150" cy="140" r="1.2" fill="#f8fafc"/>
+  <circle cx="160" cy="139" r="1.2" fill="#f8fafc"/>
+  <circle cx="170" cy="136" r="1.2" fill="#f8fafc"/>
+  <circle cx="180" cy="132" r="1.2" fill="#f8fafc"/>
+  
+  <!-- Leather texture lines -->
+  <path d="M 125 115 Q 135 120 145 115" stroke="rgba(153, 27, 27, 0.3)" stroke-width="0.8" fill="none"/>
+  <path d="M 155 115 Q 165 120 175 115" stroke="rgba(153, 27, 27, 0.3)" stroke-width="0.8" fill="none"/>
+  <path d="M 125 145 Q 135 140 145 145" stroke="rgba(153, 27, 27, 0.3)" stroke-width="0.8" fill="none"/>
+  <path d="M 155 145 Q 165 140 175 145" stroke="rgba(153, 27, 27, 0.3)" stroke-width="0.8" fill="none"/>
+  
+  <!-- Professional certification mark -->
+  <circle cx="150" cy="200" r="8" fill="none" stroke="#10b981" stroke-width="2"/>
+  <text x="150" y="204" text-anchor="middle" fill="#10b981" font-family="Arial, sans-serif" font-size="8" font-weight="bold">ICC</text>
+  
+  <!-- Quality indicators -->
+  <rect x="120" y="220" width="60" height="12" fill="none" stroke="#334155" stroke-width="1" rx="2"/>
+  <text x="150" y="228" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="7" font-weight="bold">HAND STITCHED</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="70" cy="70" r="10" fill="rgba(220, 38, 38, 0.1)"/>
+  <circle cx="230" cy="230" r="12" fill="rgba(51, 65, 85, 0.1)"/>
+  <circle cx="50" cy="220" r="8" fill="rgba(16, 185, 129, 0.1)"/>
+  
+  <text x="150" y="270" text-anchor="middle" fill="#334155" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Premium Leather Ball</text>
+</svg>
+  
+  <circle cx="125" cy="132" r="1" fill="#ffffff"/>
+  <circle cx="135" cy="135" r="1" fill="#ffffff"/>
+  <circle cx="145" cy="137" r="1" fill="#ffffff"/>
+  <circle cx="155" cy="137" r="1" fill="#ffffff"/>
+  <circle cx="165" cy="135" r="1" fill="#ffffff"/>
+  <circle cx="175" cy="132" r="1" fill="#ffffff"/>
+  
+  <circle cx="200" cy="70" r="20" fill="rgba(255,255,255,0.1)"/>
+  <text x="150" y="280" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Premium Cricket Ball - $45.99</text>
+</svg>

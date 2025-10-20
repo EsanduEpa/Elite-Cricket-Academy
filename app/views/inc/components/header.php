@@ -8,20 +8,14 @@
     <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 </head>
 <body>
+<?php require_once APPROOT . '/views/inc/components/dev_mode_banner.php'; ?>
 
 <header class="header">
     <nav class="nav-container">
-        <div class="logo">Elite Cricket Academy</div>
-        
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-        </button>
-        
+        <div class="logo">Elite Cricket Accessories</div>
         <ul class="nav-menu">
             <li><a href="<?php echo URLROOT; ?>">Home</a></li>
+            <li><a href="<?php echo URLROOT; ?>/shop">Shop</a></li>
             <li><a href="<?php echo URLROOT; ?>/#programs">Programs</a></li>
             <li><a href="<?php echo URLROOT; ?>/#coaches">Coaches</a></li>
             <li><a href="<?php echo URLROOT; ?>/#facilities">Facilities</a></li>

@@ -1,0 +1,17 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="willow-batGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#D2691E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#CD853F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="url(#willow-batGradient)" rx="12"/>
+  <circle cx="80" cy="80" r="35" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="220" cy="220" r="25" fill="rgba(255,255,255,0.15)"/>
+  <text x="150" y="110" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="55">🏏</text>
+  <text x="150" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Championship</text>
+  <text x="150" y="190" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Willow Bat</text>
+  <text x="150" y="220" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">Elite Pro</text>
+  <text x="150" y="250" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">$449.99</text>
+</svg>

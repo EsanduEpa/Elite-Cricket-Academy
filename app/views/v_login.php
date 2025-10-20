@@ -55,7 +55,7 @@
                         
                         <div class="register-link">
                             <span>Don't have an account? </span>
-                            <a href="<?php echo URLROOT; ?>/register"">Register</a>
+                            <a href="<?php echo URLROOT; ?>/register">Register</a>
                         </div>
 
                         

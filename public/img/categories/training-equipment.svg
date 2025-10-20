@@ -1,0 +1,54 @@
+<svg width="250" height="280" viewBox="0 0 250 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="trainingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="280" fill="url(#trainingGradient)" rx="12"/>
+  
+  <!-- Bowling Machine -->
+  <rect x="70" y="100" width="110" height="50" fill="#ffffff" rx="8"/>
+  
+  <!-- Machine Body -->
+  <rect x="75" y="105" width="100" height="40" fill="none" stroke="#1e40af" stroke-width="2" rx="6"/>
+  
+  <!-- Wheels -->
+  <circle cx="85" cy="155" r="8" fill="#1e40af"/>
+  <circle cx="165" cy="155" r="8" fill="#1e40af"/>
+  
+  <!-- Handle -->
+  <rect x="178" y="115" width="6" height="20" fill="#1e40af" rx="3"/>
+  
+  <!-- Ball chute -->
+  <rect x="165" y="108" width="20" height="8" fill="none" stroke="#1e40af" stroke-width="2" rx="2"/>
+  
+  <!-- Cricket balls in machine -->
+  <circle cx="90" cy="120" r="4" fill="#dc2626"/>
+  <circle cx="100" cy="125" r="4" fill="#dc2626"/>
+  <circle cx="110" cy="120" r="4" fill="#dc2626"/>
+  <circle cx="120" cy="125" r="4" fill="#dc2626"/>
+  
+  <!-- Ball seams -->
+  <path d="M88 116 Q90 118 92 116 M90 124 Q90 122 90 120" stroke="white" stroke-width="0.5" fill="none"/>
+  <path d="M98 121 Q100 123 102 121 M100 129 Q100 127 100 125" stroke="white" stroke-width="0.5" fill="none"/>
+  <path d="M108 116 Q110 118 112 116 M110 124 Q110 122 110 120" stroke="white" stroke-width="0.5" fill="none"/>
+  <path d="M118 121 Q120 123 122 121 M120 129 Q120 127 120 125" stroke="white" stroke-width="0.5" fill="none"/>
+  
+  <!-- Control panel -->
+  <rect x="130" y="115" width="30" height="20" fill="none" stroke="#1e40af" stroke-width="1" rx="2"/>
+  <circle cx="138" cy="122" r="2" fill="#10b981"/>
+  <circle cx="152" cy="122" r="2" fill="#dc2626"/>
+  <rect x="142" y="128" width="8" height="2" fill="#1e40af" rx="1"/>
+  
+  <!-- Speed indicator -->
+  <text x="145" y="118" text-anchor="middle" fill="#1e40af" font-family="Arial, sans-serif" font-size="6" font-weight="bold">MPH</text>
+  
+  <circle cx="70" cy="70" r="18" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="180" cy="210" r="22" fill="rgba(255,255,255,0.1)"/>
+  
+  <text x="125" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Training</text>
+  <text x="125" y="190" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Equipment</text>
+  <text x="125" y="220" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" opacity="0.9">32 Products</text>
+</svg>
