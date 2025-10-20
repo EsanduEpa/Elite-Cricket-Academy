@@ -1135,22 +1135,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== EVENTS PAGE DEBUG ===');
-    console.log('URLROOT:', '<?php echo URLROOT; ?>');
-    console.log('CSS file path:', '<?php echo URLROOT; ?>/css/admin/create-event-wizard.css');
-    console.log('JS file path:', '<?php echo URLROOT; ?>/js/admin/create-event-wizard.js');
-    
-    // Check if modal exists
-    const modal = document.getElementById('createEventModal');
-    console.log('Modal element found:', !!modal);
-    
-    // Check if button exists
-    const button = document.getElementById('createEventBtn');
-    console.log('Button element found:', !!button);
-    
-    // Check if openCreateEventModal function exists
-    console.log('openCreateEventModal function exists:', typeof openCreateEventModal);
-    
     // Initialize calendar
     const calendarEl = document.getElementById('eventCalendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1187,72 +1171,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewAllPastBtn) {
         viewAllPastBtn.addEventListener('click', () => viewAllEvents('past'));
     }
-    
-    // Debug function
-    window.debugWizard = function() {
-        console.log('=== WIZARD DEBUG INFO ===');
-        const modal = document.getElementById('createEventModal');
-        const steps = document.querySelectorAll('.step-content');
-        const activeSteps = document.querySelectorAll('.step-content.active');
-        
-        console.log('Modal element:', modal);
-        console.log('Modal classes:', modal ? modal.className : 'Not found');
-        console.log('Total steps found:', steps.length);
-        console.log('Active steps found:', activeSteps.length);
-        
-        steps.forEach((step, index) => {
-            const stepNum = step.getAttribute('data-step');
-            const isActive = step.classList.contains('active');
-            const display = window.getComputedStyle(step).display;
-            const opacity = window.getComputedStyle(step).opacity;
-            
-            console.log(`Step ${stepNum}: active=${isActive}, display=${display}, opacity=${opacity}`);
-        });
-        
-        if (window.eventWizard) {
-            console.log('Current wizard step:', window.eventWizard.currentStep);
-        } else {
-            console.log('EventWizard not initialized');
-        }
-        console.log('========================');
-    };
-    
-    // Simple modal test function
-    window.testModal = function() {
-        const modal = document.getElementById('createEventModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Modal test: Showing modal manually');
-        } else {
-            console.error('Modal test: Modal not found');
-        }
-    };
-    
-    // Test button click manually
-    window.testButton = function() {
-        const btn = document.getElementById('createEventBtn');
-        if (btn) {
-            btn.click();
-            console.log('Button test: Clicked button manually');
-        } else {
-            console.error('Button test: Button not found');
-        }
-    };
-    
-    // Tournament modal test function
-    window.testTournamentModal = function() {
-        const modal = document.getElementById('createTournamentModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Tournament modal test: Showing modal manually');
-        } else {
-            console.error('Tournament modal test: Modal not found');
-        }
-    };
 });
 
 // Legacy function for viewing all events

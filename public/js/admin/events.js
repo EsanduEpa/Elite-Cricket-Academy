@@ -133,36 +133,7 @@ function editEvent(eventId) {
     window.location.href = `${window.location.origin}/Elite/admin/edit_event/${eventId}`;
 }
 
-
-
-function populateEditForm(event) {
-    const modal = document.getElementById('eventModal');
-    const form = document.getElementById('eventForm');
-    const title = document.getElementById('modalTitle');
-    
-    if (!modal || !form || !title) return;
-    
-    title.textContent = 'Edit Event';
-    form.action = `${window.location.origin}/Elite/admin/edit_event/${event.id}`;
-    
-    // Populate form fields
-    const fields = {
-        'eventTitle': event.title,
-        'eventType': event.event_type,
-        'eventDate': event.event_date,
-        'eventLocation': event.location,
-        'eventDescription': event.description
-    };
-    
-    Object.entries(fields).forEach(([fieldId, value]) => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.value = value || '';
-        }
-    });
-    
-    modal.style.display = 'block';
-}
+// populateEditForm() removed - was dead code (edit now uses dedicated page, not modal)
 
 function deleteEvent(eventId) {
     // Create custom confirmation modal for better UX
