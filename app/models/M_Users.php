@@ -598,5 +598,65 @@ class M_Users {
             return false;
         }
     }
+
+    // Create staff member (Admin, Coach, Trainer, ShopEmployee)
+    public function createStaff($data) {
+        $this->db->query('INSERT INTO User (
+            Name, 
+            DateOfBirth, 
+            PhoneNumber, 
+            Email, 
+            Address, 
+            School, 
+            Role, 
+            Username, 
+            PasswordHash, 
+            DateJoined, 
+            Status,
+            CreatedBy,
+            Notes
+        ) VALUES (
+            :name, 
+            :date_of_birth, 
+            :phone_number, 
+            :email, 
+            :address, 
+            :school, 
+            :role, 
+            :username, 
+            :password_hash, 
+            NOW(), 
+            :status,
+            :created_by,
+            :notes
+        )');
+        
+        // Bind values
+        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':date_of_birth', $data['dateOfBirth']);
+        $this->db->bind(':phone_number', $data['phone']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':address', $data['address']);
+        $this->db->bind(':school', $data['school'] ?? null);
+        $this->db->bind(':role', $data['role']);
+        $this->db->bind(':username', $data['username']);
+        $this->db->bind(':password_hash', $data['passwordHash']);
+        $this->db->bind(':status', $data['status'] ?? 'active');
+        $this->db->bind(':created_by', $data['createdBy'] ?? null);
+        $this->db->bind(':notes', $data['notes'] ?? null);
+
+        // Execute
+        try {
+            if($this->db->execute()) {
+                return $this->db->lastInsertId();
+            } else {
+                error_log("Database execution failed during staff creation");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Database error during staff creation: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?> 
