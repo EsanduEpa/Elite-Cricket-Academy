@@ -14,20 +14,24 @@ class M_Session {
      * @return int|false Session ID on success, false on failure
      */
     public function createSession($data) {
-        // Insert into main Session table
-        $this->db->query('INSERT INTO Session (
-            SessionType,
-            SessionMode,
-            CoachOrTrainerID,
-            Name,
-            Date,
-            StartTime,
-            EndTime,
-            Location,
-            Status,
-            MaxParticipants,
-            PricePerSession,
-            IsRecurring
+        // Enhanced logging for debugging
+        error_log('=== SESSION CREATION DEBUG START ===');
+        error_log('Input data: ' . print_r($data, true));
+        
+        // Insert into main Session table with backticks for reserved keywords
+        $this->db->query('INSERT INTO `Session` (
+            `SessionType`,
+            `SessionMode`,
+            `CoachOrTrainerID`,
+            `Name`,
+            `Date`,
+            `StartTime`,
+            `EndTime`,
+            `Location`,
+            `Status`,
+            `MaxParticipants`,
+            `PricePerSession`,
+            `IsRecurring`
         ) VALUES (
             :session_type,
             :session_mode,
@@ -43,55 +47,48 @@ class M_Session {
             :is_recurring
         )');
 
-        // Map session_type to SessionType enum
+        // Validate and map session_type to SessionType ENUM
         $sessionType = ($data['session_type'] == 'Coaching') ? 'Coaching' : 'Physical Training';
+        error_log('Mapped SessionType: ' . $sessionType);
         
-        $this->db->bind(':session_type', $sessionType);
-        $this->db->bind(':session_mode', $data['session_mode'] ?? 'Group');
-        $this->db->bind(':coach_id', $data['coach_id']);
-        $this->db->bind(':name', $data['title']);
-        $this->db->bind(':date', $data['session_date']);
-        $this->db->bind(':start_time', $data['start_time']);
-        $this->db->bind(':end_time', $data['end_time']);
-        $this->db->bind(':location', $data['location'] ?? '');
-        $this->db->bind(':status', 'active');
-        $this->db->bind(':max_participants', $data['max_participants'] ?? 10);
-        $this->db->bind(':price', $data['price'] ?? 0.00);
-        $this->db->bind(':is_recurring', $data['is_recurring'] ?? TRUE);
+        // Bind all parameters with explicit types
+        $this->db->bind(':session_type', $sessionType, PDO::PARAM_STR);
+        $this->db->bind(':session_mode', $data['session_mode'] ?? 'Group', PDO::PARAM_STR);
+        $this->db->bind(':coach_id', (int)$data['coach_id'], PDO::PARAM_INT);
+        $this->db->bind(':name', $data['title'], PDO::PARAM_STR);
+        $this->db->bind(':date', $data['session_date'], PDO::PARAM_STR);
+        $this->db->bind(':start_time', $data['start_time'], PDO::PARAM_STR);
+        $this->db->bind(':end_time', $data['end_time'], PDO::PARAM_STR);
+        $this->db->bind(':location', $data['location'] ?? '', PDO::PARAM_STR);
+        $this->db->bind(':status', 'active', PDO::PARAM_STR);
+        $this->db->bind(':max_participants', (int)($data['max_participants'] ?? 10), PDO::PARAM_INT);
+        $this->db->bind(':price', (float)($data['price'] ?? 0.00), PDO::PARAM_STR); // Use STR for DECIMAL
+        
+        // Convert boolean to integer for MySQL BOOLEAN (TINYINT)
+        $isRecurring = filter_var($data['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $this->db->bind(':is_recurring', $isRecurring ? 1 : 0, PDO::PARAM_INT);
+        
+        error_log('All parameters bound successfully');
 
+        // Execute with error handling
         if ($this->db->execute()) {
             $sessionId = $this->db->lastInsertId();
-            
-            // Insert into SessionDetails for extended info
-            $this->db->query('INSERT INTO SessionDetails (
-                SessionID,
-                FacilityType,
-                FacilityNumber,
-                RecurrencePattern,
-                RecurrenceEnd,
-                CreatedBy
-            ) VALUES (
-                :session_id,
-                :facility_type,
-                :facility_number,
-                :recurrence_pattern,
-                :recurrence_end,
-                :created_by
-            )');
-            
-            $this->db->bind(':session_id', $sessionId);
-            $this->db->bind(':facility_type', $data['facility_type'] ?? NULL);
-            $this->db->bind(':facility_number', $data['facility_number'] ?? NULL);
-            $this->db->bind(':recurrence_pattern', $data['recurrence_pattern'] ?? 'None');
-            $this->db->bind(':recurrence_end', $data['recurrence_end'] ?? NULL);
-            $this->db->bind(':created_by', $data['coach_id']);
-            
-            $this->db->execute();
+            error_log('✅ SUCCESS! Session created with ID: ' . $sessionId);
+            error_log('=== SESSION CREATION DEBUG END ===');
             
             return $sessionId;
+        } else {
+            // Log detailed error information
+            error_log('❌ FAILED! Database execute() returned false');
+            
+            // Try to get PDO error info (if your Database class exposes it)
+            if (method_exists($this->db, 'getError')) {
+                error_log('PDO Error: ' . print_r($this->db->getError(), true));
+            }
+            
+            error_log('=== SESSION CREATION DEBUG END ===');
+            return false;
         }
-        
-        return false;
     }
 
     /**

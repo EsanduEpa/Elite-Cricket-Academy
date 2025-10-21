@@ -336,24 +336,53 @@ class Coach extends Controller {
     // Create New Session (POST from wizard)
     public function create_session() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize input
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            // Get JSON input from wizard
+            $input = json_decode(file_get_contents('php://input'), true);
             
-            $data = [
-                'coach_id' => $_SESSION['user_id'] ?? 1,
-                'session_type' => trim($_POST['session_type'] ?? ''),
-                'title' => trim($_POST['title'] ?? ''),
-                'description' => trim($_POST['description'] ?? ''),
-                'facility_type' => trim($_POST['facility_type'] ?? ''),
-                'facility_number' => intval($_POST['facility_number'] ?? 0),
-                'session_date' => trim($_POST['session_date'] ?? ''),
-                'start_time' => trim($_POST['start_time'] ?? ''),
-                'end_time' => trim($_POST['end_time'] ?? ''),
-                'max_participants' => intval($_POST['max_participants'] ?? 0),
-                'recurrence_pattern' => trim($_POST['recurrence_pattern'] ?? 'None'),
-                'recurrence_end' => trim($_POST['recurrence_end'] ?? null),
-                'selected_players' => $_POST['selected_players'] ?? []
-            ];
+            // If JSON input exists (from wizard), use it; otherwise fallback to POST
+            if ($input) {
+                // Map wizard fields to model expected format
+                $data = [
+                    'coach_id' => $_SESSION['user_id'] ?? 1,
+                    'session_type' => trim($input['SessionType'] ?? ''),
+                    'session_mode' => trim($input['SessionMode'] ?? 'Group'),
+                    'title' => trim($input['Name'] ?? ''),
+                    'session_date' => trim($input['Date'] ?? ''),
+                    'start_time' => trim($input['StartTime'] ?? ''),
+                    'end_time' => trim($input['EndTime'] ?? ''),
+                    'location' => trim($input['Location'] ?? ''),
+                    'max_participants' => intval($input['MaxParticipants'] ?? 10),
+                    'price' => floatval($input['PricePerSession'] ?? 0.00),
+                    'is_recurring' => filter_var($input['IsRecurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'facility_type' => '',
+                    'facility_number' => 0,
+                    'recurrence_pattern' => 'None',
+                    'recurrence_end' => null,
+                    'selected_players' => []
+                ];
+            } else {
+                // Legacy POST format
+                $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+                
+                $data = [
+                    'coach_id' => $_SESSION['user_id'] ?? 1,
+                    'session_type' => trim($_POST['session_type'] ?? ''),
+                    'session_mode' => trim($_POST['session_mode'] ?? 'Group'),
+                    'title' => trim($_POST['title'] ?? ''),
+                    'description' => trim($_POST['description'] ?? ''),
+                    'facility_type' => trim($_POST['facility_type'] ?? ''),
+                    'facility_number' => intval($_POST['facility_number'] ?? 0),
+                    'session_date' => trim($_POST['session_date'] ?? ''),
+                    'start_time' => trim($_POST['start_time'] ?? ''),
+                    'end_time' => trim($_POST['end_time'] ?? ''),
+                    'max_participants' => intval($_POST['max_participants'] ?? 0),
+                    'price' => floatval($_POST['price'] ?? 0.00),
+                    'is_recurring' => filter_var($_POST['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'recurrence_pattern' => trim($_POST['recurrence_pattern'] ?? 'None'),
+                    'recurrence_end' => trim($_POST['recurrence_end'] ?? null),
+                    'selected_players' => $_POST['selected_players'] ?? []
+                ];
+            }
             
             // Validate required fields
             if (empty($data['session_type']) || empty($data['title']) || 
@@ -369,28 +398,35 @@ class Coach extends Controller {
             $sessionModel = $this->model('M_Session');
             
             // Create session
-            $sessionId = $sessionModel->createSession($data);
-            
-            if ($sessionId) {
-                // Add players to session if any selected
-                if (!empty($data['selected_players'])) {
-                    foreach ($data['selected_players'] as $playerId) {
-                        $sessionModel->addPlayerToSession($sessionId, $playerId);
+            try {
+                $sessionId = $sessionModel->createSession($data);
+                
+                if ($sessionId) {
+                    // Add players to session if any selected
+                    if (!empty($data['selected_players'])) {
+                        foreach ($data['selected_players'] as $playerId) {
+                            $sessionModel->addPlayerToSession($sessionId, $playerId);
+                        }
                     }
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Session created successfully',
+                        'sessionId' => $sessionId
+                    ]);
+                } else {
+                    // Get database error if available
+                    error_log('Session creation failed. Data: ' . print_r($data, true));
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to create session in database'
+                    ]);
                 }
-                
-                // Send notifications to players
-                $this->sendSessionNotifications($sessionId, 'created');
-                
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Session created successfully',
-                    'sessionId' => $sessionId
-                ]);
-            } else {
+            } catch (Exception $e) {
+                error_log('Session creation exception: ' . $e->getMessage());
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Failed to create session'
+                    'message' => 'Error: ' . $e->getMessage()
                 ]);
             }
         } else {

@@ -731,3 +731,216 @@
     }
 }
 
+/* ================================================
+   SESSIONS TABLE
+   ================================================ */
+
+.sessions-table-section {
+    margin-top: 40px;
+}
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header h2 i {
+    color: var(--primary-color);
+}
+
+.section-header p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.table-container {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    overflow: hidden;
+}
+
+.sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sessions-table thead {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(53, 122, 189, 0.1));
+}
+
+.sessions-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.sessions-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.sessions-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.05);
+    transform: translateX(4px);
+}
+
+.sessions-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #333;
+}
+
+.table-date {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.table-session-name {
+    font-weight: 600;
+}
+
+.table-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.table-badge.coaching {
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+}
+
+.table-badge.physical-training {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.table-badge.group {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+}
+
+.table-badge.private {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.table-time {
+    color: #666;
+    font-weight: 500;
+}
+
+.table-location {
+    color: #666;
+}
+
+.table-participants {
+    font-weight: 600;
+}
+
+.table-participants .current {
+    color: var(--primary-color);
+}
+
+.table-participants .max {
+    color: #999;
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.action-btn-edit {
+    background: rgba(74, 144, 226, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.action-btn-edit:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.action-btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.action-btn-delete:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive Table */
+@media (max-width: 1024px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .sessions-table {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sessions-table-section {
+        margin-top: 24px;
+    }
+    
+    .section-header h2 {
+        font-size: 20px;
+    }
+    
+    .sessions-table th,
+    .sessions-table td {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
