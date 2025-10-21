@@ -79,10 +79,17 @@ class Trainer extends Controller {
             $_SESSION['user_type'] = 'trainer';
         }
 
+        // Initialize nutrition plan model
+        $nutritionModel = $this->model('M_NutritionPlan');
+        
+        // Get trainer's nutrition plans
+        $nutritionPlans = $nutritionModel->getNutritionPlansByTrainer($_SESSION['user_id']);
+        $players = $nutritionModel->getAllPlayers();
+
         $data = [
-            'title' => 'Nutrition & Supplements',
-            'nutrition_plans' => [], // $this->trainerModel->getNutritionPlans(),
-            'supplements' => [] // $this->trainerModel->getSupplements()
+            'title' => 'Nutrition Plans',
+            'nutrition_plans' => $nutritionPlans,
+            'players' => $players
         ];
 
         $this->view('trainer/nutrition', $data);
@@ -96,13 +103,44 @@ class Trainer extends Controller {
             $_SESSION['user_type'] = 'trainer';
         }
 
+        // Initialize workout plan model
+        $workoutModel = $this->model('M_WorkoutPlan');
+        
+        // Get trainer's workout plans
+        $workoutPlans = $workoutModel->getWorkoutPlansByTrainer($_SESSION['user_id']);
+        $players = $workoutModel->getAllPlayers();
+
         $data = [
-            'title' => 'Workout Recommendations',
-            'workout_plans' => [], // $this->trainerModel->getWorkoutPlans(),
-            'exercises' => [] // $this->trainerModel->getExercises()
+            'title' => 'Workout Plans',
+            'workout_plans' => $workoutPlans,
+            'players' => $players
         ];
 
         $this->view('trainer/workout', $data);
+    }
+
+    public function supplements() {
+        // Temporary bypass for development
+        if (!isset($_SESSION['user_id'])) {
+            $_SESSION['user_id'] = 1;
+            $_SESSION['username'] = 'John Trainer';
+            $_SESSION['user_type'] = 'trainer';
+        }
+
+        // Initialize supplement plan model
+        $supplementModel = $this->model('M_SupplementPlan');
+        
+        // Get trainer's supplement plans
+        $supplementPlans = $supplementModel->getSupplementPlansByTrainer($_SESSION['user_id']);
+        $players = $supplementModel->getAllPlayers();
+
+        $data = [
+            'title' => 'Supplement Plans',
+            'supplement_plans' => $supplementPlans,
+            'players' => $players
+        ];
+
+        $this->view('trainer/supplements', $data);
     }
 
     public function medical() {
@@ -413,5 +451,107 @@ class Trainer extends Controller {
         } else {
             redirect('trainer/profile');
         }
+    }
+
+    // Add nutrition plan
+    public function addNutritionPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize model
+            $nutritionModel = $this->model('M_NutritionPlan');
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $data = [
+                'trainer_id' => $_SESSION['user_id'],
+                'player_id' => $_POST['player_id'],
+                'diet_details' => $_POST['diet_details'],
+                'duration' => $_POST['duration'],
+                'status' => 'active'
+            ];
+            
+            // Validate data
+            if (empty($data['player_id']) || empty($data['diet_details']) || empty($data['duration'])) {
+                flash('nutrition_message', 'All fields are required', 'alert alert-danger');
+            } else {
+                // Add nutrition plan
+                if ($nutritionModel->addNutritionPlan($data)) {
+                    flash('nutrition_message', 'Nutrition plan added successfully');
+                } else {
+                    flash('nutrition_message', 'Failed to add nutrition plan', 'alert alert-danger');
+                }
+            }
+        }
+        
+        redirect('trainer/nutrition');
+    }
+
+    // Add workout plan
+    public function addWorkoutPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize model
+            $workoutModel = $this->model('M_WorkoutPlan');
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $data = [
+                'trainer_id' => $_SESSION['user_id'],
+                'player_id' => $_POST['player_id'],
+                'video_url' => $_POST['video_url'],
+                'workout_details' => $_POST['workout_details'],
+                'frequency' => $_POST['frequency'],
+                'duration' => $_POST['duration'],
+                'status' => 'active'
+            ];
+            
+            // Validate data
+            if (empty($data['player_id']) || empty($data['workout_details']) || empty($data['frequency']) || empty($data['duration'])) {
+                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
+            } else {
+                // Add workout plan
+                if ($workoutModel->addWorkoutPlan($data)) {
+                    flash('workout_message', 'Workout plan added successfully');
+                } else {
+                    flash('workout_message', 'Failed to add workout plan', 'alert alert-danger');
+                }
+            }
+        }
+        
+        redirect('trainer/workout');
+    }
+
+    // Add supplement plan
+    public function addSupplementPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize model
+            $supplementModel = $this->model('M_SupplementPlan');
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $data = [
+                'trainer_id' => $_SESSION['user_id'],
+                'player_id' => $_POST['player_id'],
+                'supplement_details' => $_POST['supplement_details'],
+                'dosage' => $_POST['dosage'],
+                'duration' => $_POST['duration'],
+                'status' => 'active'
+            ];
+            
+            // Validate data
+            if (empty($data['player_id']) || empty($data['supplement_details']) || empty($data['dosage']) || empty($data['duration'])) {
+                flash('supplement_message', 'All fields are required', 'alert alert-danger');
+            } else {
+                // Add supplement plan
+                if ($supplementModel->addSupplementPlan($data)) {
+                    flash('supplement_message', 'Supplement plan added successfully');
+                } else {
+                    flash('supplement_message', 'Failed to add supplement plan', 'alert alert-danger');
+                }
+            }
+        }
+        
+        redirect('trainer/supplements');
     }
 }

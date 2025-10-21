@@ -66,12 +66,7 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
-                    </a>
-                </li>
+                
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
@@ -195,8 +190,7 @@
                         <i class="fas fa-plus"></i>
                     </div>
                     <h3>Add New Product</h3>
-                    <p>Add cricket equipment, accessories, or merchandise to your inventory</p>
-                    <a href="<?php echo URLROOT; ?>/shop/add_product" class="action-btn">Add Product</a>
+                    <a href="<?php echo URLROOT; ?>/shop/products" class="action-btn">Add Product</a>
                 </div>
                 
                
@@ -206,8 +200,7 @@
                         <i class="fas fa-prescription-bottle"></i>
                     </div>
                     <h3>Request Prescription</h3>
-                    <p>Request professional recommendations for supplements and nutrition</p>
-                    <a href="<?php echo URLROOT; ?>/shop/request_prescription" class="action-btn">Request Now</a>
+                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="action-btn">Request Now</a>
                 </div>
                 
                 <div class="action-card">
@@ -215,8 +208,7 @@
                         <i class="fas fa-building"></i>
                     </div>
                     <h3>Add Facility</h3>
-                    <p>Add new training facilities or update existing facility information</p>
-                    <a href="<?php echo URLROOT; ?>/shop/add_facility" class="action-btn">Add Facility</a>
+                    <a href="<?php echo URLROOT; ?>/shop/facilities" class="action-btn">Add Facility</a>
                 </div>
             </div>
         </div>

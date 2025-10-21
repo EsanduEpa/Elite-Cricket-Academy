@@ -67,13 +67,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
                         <i class="fas fa-building"></i>
                         <span>Facility Management</span>
@@ -81,6 +74,22 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -194,7 +203,7 @@
             </div>
             
             <div class="table-content">
-                <table id="ordersTable">
+                <table id="ordersTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Order ID</th>
@@ -209,18 +218,25 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>#ORD-2025-156</td>
                             <td>
-                                <div>
-                                    <strong>John Smith</strong><br>
-                                    <small>john@example.com</small>
-                                </div>
+                                <div class="table-cell-primary">#ORD-2025-156</div>
                             </td>
-                            <td>Oct 18, 2025<br><small>10:30 AM</small></td>
-                            <td>3 items</td>
-                            <td>₨ 12,500</td>
                             <td>
-                                <span class="status-badge status-card">Card</span>
+                                <div class="table-cell-title">John Smith</div>
+                                <div class="table-cell-details">john@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 18, 2025</div>
+                                <div class="table-cell-secondary">10:30 AM</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">3 items</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 12,500</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-card">Card</span>
                             </td>
                             <td>
                                 <select class="status-dropdown" onchange="updateOrderStatus(156, this.value)">
@@ -245,18 +261,25 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>#ORD-2025-155</td>
                             <td>
-                                <div>
-                                    <strong>Sarah Johnson</strong><br>
-                                    <small>sarah@example.com</small>
-                                </div>
+                                <div class="table-cell-primary">#ORD-2025-155</div>
                             </td>
-                            <td>Oct 17, 2025<br><small>2:15 PM</small></td>
-                            <td>2 items</td>
-                            <td>₨ 8,200</td>
                             <td>
-                                <span class="status-badge status-cash">Cash</span>
+                                <div class="table-cell-title">Sarah Johnson</div>
+                                <div class="table-cell-details">sarah@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 17, 2025</div>
+                                <div class="table-cell-secondary">2:15 PM</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">2 items</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 8,200</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-cash">Cash</span>
                             </td>
                             <td>
                                 <select class="status-dropdown" onchange="updateOrderStatus(155, this.value)">
@@ -281,18 +304,25 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>#ORD-2025-154</td>
                             <td>
-                                <div>
-                                    <strong>Mike Wilson</strong><br>
-                                    <small>mike@example.com</small>
-                                </div>
+                                <div class="table-cell-primary">#ORD-2025-154</div>
                             </td>
-                            <td>Oct 16, 2025<br><small>4:45 PM</small></td>
-                            <td>1 item</td>
-                            <td>₨ 4,500</td>
                             <td>
-                                <span class="status-badge status-online">Online</span>
+                                <div class="table-cell-title">Mike Wilson</div>
+                                <div class="table-cell-details">mike@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 16, 2025</div>
+                                <div class="table-cell-secondary">4:45 PM</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">1 item</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 4,500</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-online">Online</span>
                             </td>
                             <td>
                                 <select class="status-dropdown" onchange="updateOrderStatus(154, this.value)">
