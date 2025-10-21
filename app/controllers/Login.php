@@ -238,6 +238,80 @@ class Login extends Controller {
         redirect('login');
     }
     
+    // Forgot Password
+    public function forgot_password() {
+        // Start session if not already started
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Process form
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+            $data = [
+                'username' => trim($_POST['username']),
+                'email' => trim($_POST['email']),
+                'new_password' => trim($_POST['new_password']),
+                'confirm_password' => trim($_POST['confirm_password']),
+                'username_err' => '',
+                'email_err' => '',
+                'password_err' => ''
+            ];
+
+            // Validation
+            if(empty($data['username'])) {
+                $data['username_err'] = 'Please enter username';
+            }
+
+            if(empty($data['email'])) {
+                $data['email_err'] = 'Please enter email';
+            }
+
+            if(empty($data['new_password'])) {
+                $data['password_err'] = 'Please enter new password';
+            } elseif(strlen($data['new_password']) < 6) {
+                $data['password_err'] = 'Password must be at least 6 characters';
+            }
+
+            if($data['new_password'] != $data['confirm_password']) {
+                $data['password_err'] = 'Passwords do not match';
+            }
+
+            // Check if no errors
+            if(empty($data['username_err']) && empty($data['email_err']) && empty($data['password_err'])) {
+                // Verify user exists with matching username and email
+                $user = $this->userModel->getUserByUsernameAndEmail($data['username'], $data['email']);
+                
+                if($user) {
+                    // Hash new password
+                    $hashedPassword = password_hash($data['new_password'], PASSWORD_DEFAULT);
+                    
+                    // Update password
+                    if($this->userModel->updatePassword($user->UserID, $hashedPassword)) {
+                        // Success
+                        flash('login_message', 'Password reset successful! You can now login with your new password.', 'alert alert-success');
+                        redirect('login');
+                    } else {
+                        flash('login_message', 'Something went wrong. Please try again.', 'alert alert-danger');
+                        redirect('login');
+                    }
+                } else {
+                    // User not found or credentials don't match
+                    flash('login_message', 'Invalid username or email. Please check your credentials.', 'alert alert-danger');
+                    redirect('login');
+                }
+            } else {
+                // Show errors
+                $errorMessages = array_filter([$data['username_err'], $data['email_err'], $data['password_err']]);
+                flash('login_message', implode('<br>', $errorMessages), 'alert alert-danger');
+                redirect('login');
+            }
+        } else {
+            redirect('login');
+        }
+    }
+    
     /* ========== COMMENTED OUT: ADVANCED SESSION MANAGEMENT ==========
     
     public function createUserSession($user) {

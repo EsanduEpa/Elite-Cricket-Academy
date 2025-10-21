@@ -570,5 +570,33 @@ class M_Users {
         
         return $this->db->execute();
     }
+
+    // Get user by username and email (for password reset)
+    public function getUserByUsernameAndEmail($username, $email) {
+        $this->db->query('SELECT * FROM User WHERE Username = :username AND Email = :email');
+        $this->db->bind(':username', $username);
+        $this->db->bind(':email', $email);
+
+        $row = $this->db->single();
+
+        if($this->db->rowCount() > 0) {
+            return $row;
+        } else {
+            return false;
+        }
+    }
+
+    // Update user password
+    public function updatePassword($userId, $hashedPassword) {
+        $this->db->query('UPDATE User SET PasswordHash = :password WHERE UserID = :user_id');
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':password', $hashedPassword);
+
+        if($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 ?> 
