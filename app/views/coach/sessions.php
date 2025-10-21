@@ -55,6 +55,20 @@
                 </li>
                 
                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Health & Injury</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
                         <i class="fas fa-calendar"></i>
                         <span>Events</span>

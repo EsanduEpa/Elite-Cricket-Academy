@@ -27,6 +27,13 @@
                     </li>
                     
                     <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Sessions</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/schedules" class="nav-link" data-tooltip="Schedules">
                             <i class="fas fa-calendar-check"></i>
                             <span>Schedules</span>
@@ -34,9 +41,9 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/bookings" class="nav-link" data-tooltip="Bookings">
-                            <i class="fas fa-bookmark"></i>
-                            <span>Bookings</span>
+                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
+                            <i class="fas fa-users"></i>
+                            <span>Players</span>
                         </a>
                     </li>
                     
@@ -48,54 +55,23 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
-                            <i class="fas fa-users"></i>
-                            <span>Players</span>
-                        </a>
-                    </li>
-                    <!-- New navigation items for Coach Dashboard -->
-                    <li class="nav-item">
-                        <a href="#performance" class="nav-link nav-anchor" data-tooltip="Player Performance">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Player performance</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sessions" class="nav-link nav-anchor" data-tooltip="Sessions">
-                            <i class="fas fa-stopwatch"></i>
-                            <span>Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#teamSelection" class="nav-link nav-anchor" data-tooltip="Team Selection">
-                            <i class="fas fa-user-friends"></i>
-                            <span>Team Selection</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#health" class="nav-link nav-anchor" data-tooltip="Health & Injury">
+                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                             <i class="fas fa-heartbeat"></i>
                             <span>Health & Injury</span>
                         </a>
                     </li>
+                    
                     <li class="nav-item">
-                        <a href="#notifications" class="nav-link nav-anchor" data-tooltip="Notifications">
+                        <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
                             <i class="fas fa-bell"></i>
                             <span>Notifications</span>
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/recommendations" class="nav-link" data-tooltip="Recommendations">
-                            <i class="fas fa-lightbulb"></i>
-                            <span>Recommendations</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/medical" class="nav-link" data-tooltip="Medical Records">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Medical Records</span>
+                        <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
+                            <i class="fas fa-calendar"></i>
+                            <span>Events</span>
                         </a>
                     </li>
                 </ul>
@@ -196,16 +172,19 @@
                                 <div class="session-card">
                                     <div class="session-time"><?php echo $session['time']; ?></div>
                                     <div class="session-content">
-                                        <h4><?php echo htmlspecialchars($session['player_name']); ?></h4>
+                                        <h4><?php echo htmlspecialchars($session['session_name']); ?></h4>
+                                        <p class="participants"><i class="fas fa-users"></i> <?php echo htmlspecialchars($session['player_name']); ?></p>
                                         <div class="session-meta">
                                             <span class="type-badge <?php echo $session['session_type']; ?>">
                                                 <?php echo ucfirst($session['session_type']); ?>
                                             </span>
-                                            <span class="facility"><?php echo htmlspecialchars($session['facility']); ?></span>
+                                            <span class="facility"><?php echo htmlspecialchars($session['facility'] ?? 'TBA'); ?></span>
                                         </div>
+                                        <?php if (!empty($session['equipment'])): ?>
                                         <div class="equipment-list">
                                             <i class="fas fa-tools"></i> <?php echo htmlspecialchars($session['equipment']); ?>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -250,7 +229,8 @@
                                         <div class="date"><?php echo date('M d', strtotime($booking['date'])); ?></div>
                                     </div>
                                     <div class="booking-details">
-                                        <h3><?php echo htmlspecialchars($booking['player_name']); ?></h3>
+                                        <h3><?php echo htmlspecialchars($booking['session_name']); ?></h3>
+                                        <p class="participants-list"><i class="fas fa-users"></i> <?php echo htmlspecialchars($booking['player_name']); ?></p>
                                         <div class="session-info">
                                             <span class="session-type <?php echo $booking['session_type']; ?>">
                                                 <i class="fas <?php echo $booking['session_type'] === 'private' ? 'fa-user' : 'fa-users'; ?>"></i>
@@ -262,11 +242,13 @@
                                         </div>
                                         <div class="facility-info">
                                             <span class="facility">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility']); ?>
+                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility'] ?? 'TBA'); ?>
                                             </span>
+                                            <?php if (!empty($booking['equipment'])): ?>
                                             <span class="equipment">
                                                 <i class="fas fa-tools"></i> <?php echo htmlspecialchars($booking['equipment']); ?>
                                             </span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="booking-actions">
