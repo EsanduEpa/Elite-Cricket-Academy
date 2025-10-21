@@ -944,3 +944,52 @@
     }
 }
 
+/* ================================================
+   NOTIFICATION ANIMATIONS
+   ================================================ */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.notification {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification::before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+
+.notification-success::before {
+    content: '\f058'; /* check-circle */
+}
+
+.notification-error::before {
+    content: '\f06a'; /* exclamation-circle */
+}
+
+.notification-info::before {
+    content: '\f05a'; /* info-circle */
+}
+

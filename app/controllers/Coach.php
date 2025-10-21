@@ -510,7 +510,24 @@ class Coach extends Controller {
 
     // Get Filtered Sessions List (JSON)
     public function get_sessions_list() {
-        $coachId = $_SESSION['user_id'] ?? 1;
+        header('Content-Type: application/json');
+        
+        $coachId = $_SESSION['user_id'] ?? null;
+        
+        // Debug logging
+        error_log('=== GET SESSIONS LIST DEBUG ===');
+        error_log('Session user_id: ' . ($coachId ?? 'NOT SET'));
+        error_log('Session data: ' . print_r($_SESSION, true));
+        
+        if (!$coachId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'User not logged in',
+                'sessions' => []
+            ]);
+            return;
+        }
+        
         $filters = [
             'type' => $_GET['type'] ?? '',
             'status' => $_GET['status'] ?? '',
@@ -519,12 +536,19 @@ class Coach extends Controller {
             'search' => $_GET['search'] ?? ''
         ];
         
+        error_log('Filters: ' . print_r($filters, true));
+        
         $sessionModel = $this->model('M_Session');
         $sessions = $sessionModel->getSessionsByCoach($coachId, $filters);
         
+        error_log('Found ' . count($sessions) . ' session(s) for coach ID: ' . $coachId);
+        error_log('=== GET SESSIONS LIST END ===');
+        
         echo json_encode([
             'success' => true,
-            'sessions' => $sessions
+            'sessions' => $sessions,
+            'coachId' => $coachId,
+            'count' => count($sessions)
         ]);
     }
 
@@ -699,19 +723,65 @@ class Coach extends Controller {
     }
 
     // Delete Session
-    public function delete_session($id) {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    public function delete_session($id = null) {
+        // Handle both POST with ID in URL and JSON with ID in body
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            header('Content-Type: application/json');
+            
+            error_log('=== DELETE SESSION DEBUG START ===');
+            error_log('Session ID to delete: ' . $id);
+            error_log('User ID from session: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
+            
+            // Get ID from URL parameter or JSON body
+            if (!$id) {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $id = $input['sessionId'] ?? null;
+                error_log('ID from JSON body: ' . $id);
+            }
+            
+            if (!$id) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session ID is required'
+                ]);
+                return;
+            }
+            
             $sessionModel = $this->model('M_Session');
             
+            // Verify session exists and belongs to this coach
+            $session = $sessionModel->getSessionById($id);
+            if (!$session) {
+                error_log('Session not found: ' . $id);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session not found'
+                ]);
+                return;
+            }
+            
+            error_log('Session owner: ' . $session->CoachOrTrainerID);
+            
+            // Check if coach owns this session - use object notation
+            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
+                error_log('Unauthorized delete attempt');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Unauthorized: You can only delete your own sessions'
+                ]);
+                return;
+            }
+            
             if ($sessionModel->deleteSession($id)) {
-                // Send deletion notifications
-                $this->sendSessionNotifications($id, 'deleted');
-                
+                error_log('✅ Session deleted successfully: ' . $id);
+                error_log('=== DELETE SESSION DEBUG END ===');
                 echo json_encode([
                     'success' => true,
                     'message' => 'Session deleted successfully'
                 ]);
             } else {
+                error_log('❌ Failed to delete session: ' . $id);
+                error_log('=== DELETE SESSION DEBUG END ===');
                 echo json_encode([
                     'success' => false,
                     'message' => 'Failed to delete session'

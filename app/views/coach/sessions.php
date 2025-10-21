@@ -607,88 +607,85 @@ const calendarState = {
     currentDate: new Date(2025, 9, 21), // October 21, 2025
     viewMode: 'month', // month, week, day
     displayMode: 'calendar', // calendar, list
-    sessions: [] // Will be populated with sample data
+    sessions: [] // Will be populated from database
 };
 
-// Sample session data (replace with actual database data later)
-const sampleSessions = [
-    {
-        id: 1,
-        name: 'Batting Coaching Session',
-        sessionType: 'Coaching',
-        sessionMode: 'Group',
-        date: '2025-10-22',
-        startTime: '09:00:00',
-        endTime: '11:00:00',
-        location: 'Indoor Net 1',
-        maxParticipants: 12,
-        currentParticipants: 8,
-        status: 'active'
-    },
-    {
-        id: 2,
-        name: 'Physical Conditioning',
-        sessionType: 'Physical Training',
-        sessionMode: 'Group',
-        date: '2025-10-22',
-        startTime: '14:00:00',
-        endTime: '16:00:00',
-        location: 'Gym',
-        maxParticipants: 15,
-        currentParticipants: 12,
-        status: 'active'
-    },
-    {
-        id: 3,
-        name: 'Private Bowling Session',
-        sessionType: 'Coaching',
-        sessionMode: 'Private',
-        date: '2025-10-23',
-        startTime: '10:00:00',
-        endTime: '11:30:00',
-        location: 'Outdoor Net 2',
-        maxParticipants: 1,
-        currentParticipants: 1,
-        status: 'active'
-    },
-    {
-        id: 4,
-        name: 'Team Strategy Session',
-        sessionType: 'Coaching',
-        sessionMode: 'Group',
-        date: '2025-10-25',
-        startTime: '15:00:00',
-        endTime: '17:00:00',
-        location: 'Conference Room',
-        maxParticipants: 20,
-        currentParticipants: 18,
-        status: 'active'
-    },
-    {
-        id: 5,
-        name: 'Strength Training',
-        sessionType: 'Physical Training',
-        sessionMode: 'Group',
-        date: '2025-10-28',
-        startTime: '08:00:00',
-        endTime: '09:30:00',
-        location: 'Gym',
-        maxParticipants: 10,
-        currentParticipants: 7,
-        status: 'active'
-    }
-];
+// Note: Sample data removed - now loading from database via API
 
 // ================================================
 // INITIALIZATION
 // ================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    calendarState.sessions = sampleSessions;
-    updateStatistics();
-    renderCalendar();
-    renderSessionsTable();
+    // Load sessions from database
+    loadSessionsFromDatabase();
 });
+
+/**
+ * Load sessions from database via API
+ */
+function loadSessionsFromDatabase() {
+    console.log('Loading sessions from database...');
+    
+    fetch(`<?php echo URLROOT; ?>/coach/get_sessions_list`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('API Response:', data);
+            
+            if (data.success && data.sessions) {
+                // Map database fields to frontend format
+                calendarState.sessions = data.sessions.map(session => ({
+                    id: parseInt(session.SessionID),
+                    name: session.Name,
+                    sessionType: session.SessionType,
+                    sessionMode: session.SessionMode,
+                    date: session.Date, // Already in YYYY-MM-DD format from MySQL
+                    startTime: session.StartTime,
+                    endTime: session.EndTime,
+                    location: session.Location || 'TBA',
+                    maxParticipants: parseInt(session.MaxParticipants) || 0,
+                    currentParticipants: parseInt(session.ParticipantCount) || 0,
+                    status: session.Status,
+                    price: parseFloat(session.PricePerSession) || 0,
+                    isRecurring: session.IsRecurring == 1
+                }));
+                
+                console.log('✅ Loaded sessions:', calendarState.sessions);
+                console.log(`📊 Total: ${calendarState.sessions.length} session(s)`);
+                
+                // Initialize views
+                updateStatistics();
+                renderCalendar();
+                renderSessionsTable();
+                
+                // Show success notification if sessions loaded
+                if (calendarState.sessions.length > 0) {
+                    showNotification(`✅ Loaded ${calendarState.sessions.length} session(s)`, 'success');
+                }
+            } else {
+                console.warn('No sessions found or API error:', data);
+                calendarState.sessions = [];
+                updateStatistics();
+                renderCalendar();
+                renderSessionsTable();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading sessions:', error);
+            showNotification('⚠️ Failed to load sessions from database', 'error');
+            
+            // Initialize with empty state
+            calendarState.sessions = [];
+            updateStatistics();
+            renderCalendar();
+            renderSessionsTable();
+        });
+}
 
 // ================================================
 // STATISTICS
@@ -1051,7 +1048,7 @@ function createTableRow(session) {
                     <i class="fas fa-edit"></i>
                     Edit
                 </button>
-                <button class="action-btn action-btn-delete" onclick="deleteSession(${session.id})">
+                <button class="action-btn action-btn-delete" onclick="deleteSession(${session.id}, event)">
                     <i class="fas fa-trash-alt"></i>
                     Delete
                 </button>
@@ -1070,27 +1067,92 @@ function editSession(sessionId) {
     }
 }
 
-function deleteSession(sessionId) {
+function deleteSession(sessionId, event) {
     const session = calendarState.sessions.find(s => s.id === sessionId);
     if (session) {
         if (confirm(`Are you sure you want to delete "${session.name}"?\n\nThis action cannot be undone.`)) {
-            // Remove from sessions array
-            const index = calendarState.sessions.findIndex(s => s.id === sessionId);
-            if (index > -1) {
-                calendarState.sessions.splice(index, 1);
+            // Get the button element - check if event is passed or use the clicked element
+            let deleteBtn = null;
+            if (event && event.target) {
+                deleteBtn = event.target.closest('.action-btn-delete');
             }
             
-            // Refresh views
-            renderCalendar();
-            renderSessionsTable();
-            updateStatistics();
+            const originalText = deleteBtn ? deleteBtn.innerHTML : '';
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
             
-            alert('✅ Session deleted successfully!');
+            console.log('Deleting session:', sessionId);
             
-            // TODO: Send delete request to backend
-            // fetch(`${URLROOT}/coach/delete_session/${sessionId}`, { method: 'DELETE' })
+            // Send delete request to backend
+            fetch(`<?php echo URLROOT; ?>/coach/delete_session/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId: sessionId })
+            })
+            .then(response => {
+                console.log('Delete response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Delete response:', data);
+                if (data.success) {
+                    // Reload sessions from database
+                    showNotification('✅ Session deleted successfully!', 'success');
+                    loadSessionsFromDatabase();
+                } else {
+                    // Show error message
+                    showNotification('❌ ' + (data.message || 'Failed to delete session'), 'error');
+                    if (deleteBtn) {
+                        deleteBtn.disabled = false;
+                        deleteBtn.innerHTML = originalText;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting session:', error);
+                showNotification('❌ Network error: ' + error.message, 'error');
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = originalText;
+                }
+            });
         }
     }
+}
+
+// Notification helper function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // ================================================
@@ -1496,37 +1558,21 @@ function submitSession() {
         console.log('Response data:', data);
         if (data.success) {
             // Show success message
-            alert('✅ Session Created Successfully!\n\nSession ID: ' + data.sessionId);
+            showNotification('✅ Session Created Successfully!', 'success');
             
-            // Add to calendar with real database ID
-            const newSession = {
-                id: data.sessionId,
-                name: sessionData.Name,
-                sessionType: sessionData.SessionType,
-                sessionMode: sessionData.SessionMode,
-                date: sessionData.Date,
-                startTime: sessionData.StartTime,
-                endTime: sessionData.EndTime,
-                location: sessionData.Location,
-                maxParticipants: sessionData.MaxParticipants,
-                currentParticipants: 0,
-                status: 'active',
-                color: sessionData.SessionType === 'Coaching' ? '#4A90E2' : '#10b981'
-            };
-            
-            calendarState.sessions.push(newSession);
-            renderCalendar();
-            renderSessionsTable();
-            updateStatistics();
+            // Close wizard
             closeWizard();
+            
+            // Reload sessions from database to get the latest data
+            loadSessionsFromDatabase();
         } else {
             // Show error message
-            alert('❌ Error: ' + (data.message || 'Failed to create session'));
+            showNotification('❌ Error: ' + (data.message || 'Failed to create session'), 'error');
         }
     })
     .catch(error => {
         console.error('Error creating session:', error);
-        alert('❌ Failed to create session. Please try again.\n\nError: ' + error.message);
+        showNotification('❌ Failed to create session. Please try again.', 'error');
     });
 }
 
