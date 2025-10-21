@@ -498,6 +498,34 @@
 
 .notification.show {
     opacity: 1;
+}
+
+/* Frequency Badge Styles */
+.frequency-daily {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.frequency-weekly {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.frequency-bi-weekly {
+    background: rgba(155, 89, 182, 0.1);
+    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+.frequency-custom {
+    background: rgba(230, 126, 34, 0.1);
+    color: #e67e22;
+    border: 1px solid rgba(230, 126, 34, 0.3);
+}
+
+.notification.show {
     transform: translateX(0);
 }
 
