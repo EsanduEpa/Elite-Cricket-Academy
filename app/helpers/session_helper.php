@@ -60,10 +60,10 @@ function requireAuth($allowedRoles = []) {
         }
         
         if (!isset($_SESSION['user_id'])) {
-            // Create mock session based on the required role
-            $_SESSION['user_id'] = 999;
-            $_SESSION['user_name'] = 'Dev User';
-            $_SESSION['user_email'] = 'dev@test.com';
+            // Create mock session with REAL admin user ID (1) to avoid foreign key issues
+            $_SESSION['user_id'] = 1;  // Changed from 999 to 1 (real admin user)
+            $_SESSION['user_name'] = 'Admin User';
+            $_SESSION['user_email'] = 'admin@cricketacademy.com';
             
             // Set role based on what's being accessed
             if (!empty($allowedRoles)) {

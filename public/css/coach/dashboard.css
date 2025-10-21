@@ -1,0 +1,133 @@
+/* Coach Dashboard Styles - Elite Cricket Academy */
+/* Uses Universal Sidebar Design - No Unique Branding Colors */
+@import url('../common/sidebar.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Admin Dashboard Matching Color Palette */
+    --primary-color: #4A90E2; /* Blue - matches admin */
+    --primary-light: #5BA0F2; /* Light Blue - matches admin */
+    --primary-dark: #3A80D2;
+    --primary-glass: rgba(74, 144, 226, 0.15);
+    
+    /* Neutral Accent Palette - matches admin theme */
+    --secondary-color: #5BA0F2; /* Light Blue */
+    --accent-color: #4A90E2; /* Primary Blue */
+    --purple-color: #6B73FF; /* Soft Purple */
+    --orange-color: #FF8A50; /* Soft Orange */
+    --yellow-color: #FFD93D; /* Soft Yellow */
+    --green-color: #4ECDC4; /* Soft Teal */
+    --blue-color: #4A90E2; /* Primary Blue */
+    --success-color: #4ECDC4;
+    --warning-color: #FFD93D;
+    --error-color: #FF6B6B;
+    
+    /* Glass Effects - matches admin */
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-bg-strong: rgba(255, 255, 255, 0.95);
+    --glass-bg-primary: rgba(74, 144, 226, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    
+    /* Text Colors - matches admin */
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-light: #999;
+    --text-white: #ffffff;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Layout Structure */
+.coach-layout {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 80px;
+    box-sizing: border-box;
+}
+
+/* Coach-specific sidebar customizations */
+/* Base sidebar styles are imported from ../common/sidebar.css */
+
+/* Mobile responsive behavior */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 0 !important;
+    }
+    
+    .coach-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .coach-sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+}
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 30px;
+    background: transparent;
+    min-height: calc(100vh - 80px);
+    transition: margin-left 0.3s ease;
+    overflow-y: auto;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+.dashboard-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: fixed;
+        z-index: 1000;
+        height: calc(100vh - 80px);
+        width: 320px;
+    }
+    
+    .sidebar.mobile-active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+}

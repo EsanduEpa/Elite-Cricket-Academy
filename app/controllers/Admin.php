@@ -946,9 +946,10 @@ class Admin extends Controller {
             // Log incoming data for debugging
             error_log("=== Add Staff Request ===");
             error_log("POST data: " . print_r($_POST, true));
+            error_log("Session user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
             
-            // Sanitize POST data
-            $postData = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            // Sanitize POST data (using FILTER_SANITIZE_FULL_SPECIAL_CHARS instead of deprecated FILTER_SANITIZE_STRING)
+            $postData = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             
             if ($postData === null || $postData === false) {
                 throw new Exception('Invalid form data received');
@@ -1003,6 +1004,16 @@ class Admin extends Controller {
             $defaultPassword = 'staff123456';
             $hashedPassword = password_hash($defaultPassword, PASSWORD_DEFAULT);
             
+            // Get CreatedBy - check if user_id exists in User table, otherwise set to NULL
+            $createdBy = null;
+            if (isset($_SESSION['user_id'])) {
+                $userModel = $this->model('M_Users');
+                $existingUser = $userModel->getUserById($_SESSION['user_id']);
+                if ($existingUser) {
+                    $createdBy = $_SESSION['user_id'];
+                }
+            }
+            
             // Prepare staff data
             $staffData = [
                 'fullName' => trim($postData['fullName']),
@@ -1015,7 +1026,7 @@ class Admin extends Controller {
                 'username' => trim($postData['username']),
                 'passwordHash' => $hashedPassword,
                 'status' => 'active',
-                'createdBy' => $_SESSION['user_id'] ?? null,
+                'createdBy' => $createdBy,  // Use validated createdBy
                 'notes' => !empty($postData['notes']) ? trim($postData['notes']) : null
             ];
             
@@ -1059,6 +1070,53 @@ class Admin extends Controller {
         
         // Ensure we exit cleanly
         exit;
+    }
+
+    // Profile Management
+    public function profile() {
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'] ?? 1;
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        $data = [
+            'title' => 'My Profile - Admin',
+            'user' => $userProfile
+        ];
+        
+        $this->view('admin/profile', $data);
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data (using FILTER_SANITIZE_FULL_SPECIAL_CHARS instead of deprecated FILTER_SANITIZE_STRING)
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone' => trim($_POST['phone']),
+                'address' => trim($_POST['address'] ?? ''),
+                'date_of_birth' => $_POST['dateOfBirth'] ?? null
+            ];
+            
+            if ($userModel->updateUser($userData)) {
+                // Update session name if changed
+                $_SESSION['user_name'] = $userData['name'];
+                
+                flash('profile_message', 'Profile updated successfully!', 'alert alert-success');
+            } else {
+                flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+            }
+            
+            redirect('admin/profile');
+        }
     }
 }
 ?>

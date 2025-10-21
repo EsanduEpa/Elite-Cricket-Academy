@@ -438,19 +438,13 @@ class M_Users {
                                 tp.Experience as TrainerExperience, tp.Certifications as TrainerCertifications,
                                 
                                 -- Shop Employee Profile fields
-                                sep.Department as ShopDepartment, sep.HireDate as ShopHireDate,
-                                
-                                -- Admin Profile fields
-                                ap.AdminLevel, ap.Department as AdminDepartment, ap.AccessPermissions,
-                                ap.LastLoginIP, ap.AccountLocked, ap.LockoutExpiry, ap.TwoFactorEnabled,
-                                ap.SecurityClearance, ap.HireDate as AdminHireDate, ap.SessionTimeout
+                                sep.Department as ShopDepartment, sep.HireDate as ShopHireDate
                                 
                          FROM User u 
                          LEFT JOIN PlayerProfile pp ON u.UserID = pp.PlayerID 
                          LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID
                          LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID
                          LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID
-                         LEFT JOIN AdminProfile ap ON u.UserID = ap.AdminID
                          WHERE u.UserID = :user_id');
         
         $this->db->bind(':user_id', $userId);
