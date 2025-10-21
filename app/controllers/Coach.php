@@ -553,40 +553,84 @@ class Coach extends Controller {
     }
 
     // Update Session
-    public function edit_session($id) {
+    public function edit_session($id = null) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            header('Content-Type: application/json');
             
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!$id) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session ID is required'
+                ]);
+                return;
+            }
+            
+            error_log('=== EDIT SESSION DEBUG START ===');
+            error_log('Session ID: ' . $id);
+            error_log('Input data: ' . print_r($input, true));
+            
+            // Map input data to model format
             $data = [
-                'session_id' => $id,
-                'session_type' => trim($_POST['session_type'] ?? ''),
-                'title' => trim($_POST['title'] ?? ''),
-                'description' => trim($_POST['description'] ?? ''),
-                'facility_type' => trim($_POST['facility_type'] ?? ''),
-                'facility_number' => intval($_POST['facility_number'] ?? 0),
-                'session_date' => trim($_POST['session_date'] ?? ''),
-                'start_time' => trim($_POST['start_time'] ?? ''),
-                'end_time' => trim($_POST['end_time'] ?? ''),
-                'max_participants' => intval($_POST['max_participants'] ?? 0),
-                'status' => trim($_POST['status'] ?? 'scheduled')
+                'session_type' => trim($input['SessionType'] ?? ''),
+                'session_mode' => trim($input['SessionMode'] ?? 'Group'),
+                'title' => trim($input['Name'] ?? ''),
+                'session_date' => trim($input['Date'] ?? ''),
+                'start_time' => trim($input['StartTime'] ?? ''),
+                'end_time' => trim($input['EndTime'] ?? ''),
+                'location' => trim($input['Location'] ?? ''),
+                'max_participants' => intval($input['MaxParticipants'] ?? 10),
+                'price' => floatval($input['PricePerSession'] ?? 0.00),
+                'is_recurring' => filter_var($input['IsRecurring'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'status' => 'active'
             ];
+            
+            // Validate required fields
+            if (empty($data['session_type']) || empty($data['title']) || 
+                empty($data['session_date']) || empty($data['start_time']) || empty($data['end_time'])) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Please fill in all required fields'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (validation failed) ===');
+                return;
+            }
             
             $sessionModel = $this->model('M_Session');
             
+            // Verify session exists and belongs to this coach
+            $session = $sessionModel->getSessionById($id);
+            if (!$session) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session not found'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (not found) ===');
+                return;
+            }
+            
+            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Unauthorized: You can only edit your own sessions'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (unauthorized) ===');
+                return;
+            }
+            
             if ($sessionModel->updateSession($id, $data)) {
-                // Update participants if changed
-                if (isset($_POST['selected_players'])) {
-                    $sessionModel->updateSessionParticipants($id, $_POST['selected_players']);
-                }
-                
-                // Send update notifications
-                $this->sendSessionNotifications($id, 'updated');
-                
+                error_log('✅ Session updated successfully');
+                error_log('=== EDIT SESSION DEBUG END ===');
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Session updated successfully'
+                    'message' => 'Session updated successfully',
+                    'sessionId' => $id
                 ]);
             } else {
+                error_log('❌ Failed to update session');
+                error_log('=== EDIT SESSION DEBUG END ===');
                 echo json_encode([
                     'success' => false,
                     'message' => 'Failed to update session'

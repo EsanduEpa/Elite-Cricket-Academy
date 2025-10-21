@@ -1061,9 +1061,113 @@ function createTableRow(session) {
 
 function editSession(sessionId) {
     const session = calendarState.sessions.find(s => s.id === sessionId);
-    if (session) {
-        alert(`Edit Session: ${session.name}\n\nEdit functionality will be implemented next!\n\nSession ID: ${sessionId}`);
-        // TODO: Open wizard in edit mode with pre-filled data
+    if (!session) {
+        showNotification('❌ Session not found', 'error');
+        return;
+    }
+    
+    console.log('Editing session:', session);
+    console.log('Session data:', {
+        name: session.name,
+        date: session.date,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location
+    });
+    
+    // Set wizard to edit mode BEFORE opening
+    wizardState.isEditMode = true;
+    wizardState.editSessionId = sessionId;
+    
+    // Pre-fill form data with session values
+    wizardState.formData = {
+        sessionType: session.sessionType,
+        sessionMode: session.sessionMode,
+        name: session.name,
+        date: session.date,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location,
+        maxParticipants: session.maxParticipants,
+        pricePerSession: session.price.toFixed(2),
+        isRecurring: session.isRecurring
+    };
+    
+    // Open wizard
+    openAddSessionModal();
+    
+    // Wait for modal to be visible, then populate
+    setTimeout(() => {
+        // Update wizard title
+        const wizardTitle = document.querySelector('#sessionWizardModal h2');
+        if (wizardTitle) {
+            wizardTitle.textContent = 'Edit Session';
+        }
+        
+        // Update submit button text in Step 3
+        updateWizardButtonText();
+        
+        // Populate Step 1 (Type & Mode)
+        if (session.sessionType) {
+            const typeRadio = document.querySelector(`input[name="sessionType"][value="${session.sessionType}"]`);
+            if (typeRadio) {
+                typeRadio.checked = true;
+                selectTypeCard(session.sessionType);
+            }
+        }
+        if (session.sessionMode) {
+            const modeRadio = document.querySelector(`input[name="sessionMode"][value="${session.sessionMode}"]`);
+            if (modeRadio) {
+                modeRadio.checked = true;
+            }
+        }
+        
+        // Populate Step 2 (Details)
+        const nameField = document.getElementById('sessionName');
+        const dateField = document.getElementById('sessionDate');
+        const startTimeField = document.getElementById('startTime');
+        const endTimeField = document.getElementById('endTime');
+        const locationField = document.getElementById('location');
+        
+        if (nameField) nameField.value = session.name || '';
+        if (dateField) dateField.value = session.date || '';
+        if (startTimeField) startTimeField.value = session.startTime || '';
+        if (endTimeField) endTimeField.value = session.endTime || '';
+        if (locationField) locationField.value = session.location || '';
+        
+        console.log('Populated fields:', {
+            name: nameField?.value,
+            date: dateField?.value,
+            startTime: startTimeField?.value,
+            endTime: endTimeField?.value,
+            location: locationField?.value
+        });
+        
+        // Populate Step 3 (Settings)
+        const maxParticipantsField = document.getElementById('maxParticipants');
+        const priceField = document.getElementById('pricePerSession');
+        const recurringField = document.getElementById('isRecurring');
+        
+        if (maxParticipantsField) maxParticipantsField.value = session.maxParticipants || 10;
+        if (priceField) priceField.value = session.price || 0;
+        if (recurringField) recurringField.checked = session.isRecurring;
+        
+        // Update the summary preview if on step 3
+        if (wizardState.currentStep === 3) {
+            updateSummaryPreview();
+        }
+    }, 200);
+}
+
+// Helper function to update wizard button text based on mode
+function updateWizardButtonText() {
+    // Find the submit button in step 3
+    const step3 = document.querySelector('[data-step="3"]');
+    if (step3) {
+        const submitButton = step3.querySelector('.btn-primary');
+        if (submitButton) {
+            submitButton.textContent = wizardState.isEditMode ? 'Update Session' : 'Create Session';
+        }
     }
 }
 
@@ -1308,24 +1412,46 @@ function applyFilters() {
 let wizardState = {
     currentStep: 1,
     totalSteps: 3,
-    formData: {}
+    formData: {},
+    isEditMode: false,
+    editSessionId: null
 };
 
 function openAddSessionModal() {
     const modal = document.getElementById('sessionWizardModal');
     modal.classList.add('active');
-    resetWizard();
+    
+    // Only reset if not in edit mode
+    if (!wizardState.isEditMode) {
+        resetWizard();
+    }
 }
 
 function closeWizard() {
     const modal = document.getElementById('sessionWizardModal');
     modal.classList.remove('active');
-    setTimeout(() => resetWizard(), 300);
+    setTimeout(() => {
+        resetWizard();
+        // Reset edit mode flags
+        wizardState.isEditMode = false;
+        wizardState.editSessionId = null;
+        
+        // Reset wizard title and button
+        document.querySelector('#sessionWizardModal h2').textContent = 'Create New Session';
+        const submitBtn = document.querySelector('.wizard-footer .btn-primary');
+        if (submitBtn) {
+            submitBtn.textContent = 'Create Session';
+        }
+    }, 300);
 }
 
 function resetWizard() {
     wizardState.currentStep = 1;
-    wizardState.formData = {};
+    
+    // Only reset formData if not in edit mode
+    if (!wizardState.isEditMode) {
+        wizardState.formData = {};
+    }
     
     // Reset all form fields
     document.getElementById('wizardForm').reset();
@@ -1369,9 +1495,10 @@ function showStep(stepNumber) {
     // Update buttons
     updateButtons();
     
-    // If showing summary (step 3), populate it
+    // If showing summary (step 3), populate it and update button text
     if (stepNumber === 3) {
         populateSummary();
+        updateWizardButtonText();
     }
 }
 
@@ -1542,8 +1669,17 @@ function submitSession() {
     
     console.log('Session Data to be saved:', sessionData);
     
+    // Determine if we're creating or updating
+    const isUpdate = wizardState.isEditMode;
+    const endpoint = isUpdate 
+        ? `<?php echo URLROOT; ?>/coach/edit_session/${wizardState.editSessionId}` 
+        : '<?php echo URLROOT; ?>/coach/create_session';
+    const actionText = isUpdate ? 'update' : 'create';
+    
+    console.log(`${isUpdate ? 'Updating' : 'Creating'} session...`);
+    
     // Send to backend API
-    fetch('<?php echo URLROOT; ?>/coach/create_session', {
+    fetch(endpoint, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json'
@@ -1552,13 +1688,17 @@ function submitSession() {
     })
     .then(response => {
         console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     })
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
             // Show success message
-            showNotification('✅ Session Created Successfully!', 'success');
+            const successMsg = isUpdate ? '✅ Session Updated Successfully!' : '✅ Session Created Successfully!';
+            showNotification(successMsg, 'success');
             
             // Close wizard
             closeWizard();
@@ -1567,12 +1707,12 @@ function submitSession() {
             loadSessionsFromDatabase();
         } else {
             // Show error message
-            showNotification('❌ Error: ' + (data.message || 'Failed to create session'), 'error');
+            showNotification('❌ Error: ' + (data.message || `Failed to ${actionText} session`), 'error');
         }
     })
     .catch(error => {
-        console.error('Error creating session:', error);
-        showNotification('❌ Failed to create session. Please try again.', 'error');
+        console.error(`Error ${actionText}ing session:`, error);
+        showNotification(`❌ Failed to ${actionText} session: ` + error.message, 'error');
     });
 }
 
