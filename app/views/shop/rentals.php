@@ -67,13 +67,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
                         <i class="fas fa-building"></i>
                         <span>Facility Management</span>
@@ -81,6 +74,22 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -231,7 +240,7 @@
             </div>
             
             <div class="table-content">
-                <table id="rentalsTable">
+                <table id="rentalsTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Rental ID</th>
@@ -246,23 +255,26 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>#REN-2025-156</td>
                             <td>
-                                <div>
-                                    <strong>Professional Cricket Bat</strong><br>
-                                    <small>Category: Batting | Condition: Good</small>
-                                </div>
+                                <div class="table-cell-primary">#REN-2025-156</div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Ashen Perera</strong><br>
-                                    <small>ashen@example.com</small>
-                                </div>
+                                <div class="table-cell-title">Professional Cricket Bat</div>
+                                <div class="table-cell-details">Category: Batting | Condition: Good</div>
                             </td>
-                            <td>Oct 18, 2025<br><small>2 days</small></td>
-                            <td>₨ 800/day</td>
                             <td>
-                                <span class="status-badge status-active">Active</span>
+                                <div class="table-cell-title">Ashen Perera</div>
+                                <div class="table-cell-details">ashen@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 18, 2025</div>
+                                <div class="table-cell-secondary">2 days</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 800/day</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <span class="due-date today">Today 6:00 PM</span>
@@ -282,12 +294,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>#REN-2025-155</td>
                             <td>
-                                <div>
-                                    <strong>Bowling Machine</strong><br>
-                                    <small>Category: Training | Condition: Good</small>
-                                </div>
+                                <div class="table-cell-primary">#REN-2025-155</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-title">Bowling Machine</div>
+                                <div class="table-cell-details">Category: Training | Condition: Good</div>
                             </td>
                             <td>
                                 <div>
@@ -375,7 +387,7 @@
             </div>
             
             <div class="table-content">
-                <table id="equipmentTable">
+                <table id="equipmentTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Equipment</th>

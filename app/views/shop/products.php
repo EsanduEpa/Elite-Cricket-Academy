@@ -67,13 +67,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
                         <i class="fas fa-building"></i>
                         <span>Facility Management</span>
@@ -81,6 +74,22 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -234,7 +243,7 @@
             </div>
             
             <div class="table-content">
-                <table id="productsTable">
+                <table id="productsTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Image</th>
@@ -255,15 +264,15 @@
                                 </div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Professional Cricket Bat</strong><br>
-                                    <small>Grade A English Willow</small>
-                                </div>
+                                <div class="table-cell-title">Professional Cricket Bat</div>
+                                <div class="table-cell-details">Grade A English Willow</div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <span class="category-badge category-bats">Bats</span>
                             </td>
-                            <td>₨ 25,000</td>
+                            <td>
+                                <div class="table-cell-primary">₨ 25,000</div>
+                            </td>
                             <td>
                                 <span class="stock-level stock-medium">15 units</span>
                             </td>
@@ -273,8 +282,8 @@
                                     <small>(4.8)</small>
                                 </div>
                             </td>
-                            <td>
-                                <span class="status-badge status-active">Active</span>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -300,15 +309,15 @@
                                 </div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Premium Batting Gloves</strong><br>
-                                    <small>Leather palm with ventilation</small>
-                                </div>
+                                <div class="table-cell-title">Premium Batting Gloves</div>
+                                <div class="table-cell-details">Leather palm with ventilation</div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <span class="category-badge category-protective">Protective</span>
                             </td>
-                            <td>₨ 8,500</td>
+                            <td>
+                                <div class="table-cell-primary">₨ 8,500</div>
+                            </td>
                             <td>
                                 <span class="stock-level stock-low">3 units</span>
                             </td>
@@ -318,8 +327,8 @@
                                     <small>(4.2)</small>
                                 </div>
                             </td>
-                            <td>
-                                <span class="status-badge status-active">Active</span>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -345,15 +354,15 @@
                                 </div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Elite Cricket Helmet</strong><br>
-                                    <small>Titanium grille with comfort padding</small>
-                                </div>
+                                <div class="table-cell-title">Elite Cricket Helmet</div>
+                                <div class="table-cell-details">Titanium grille with comfort padding</div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <span class="category-badge category-protective">Protective</span>
                             </td>
-                            <td>₨ 15,200</td>
+                            <td>
+                                <div class="table-cell-primary">₨ 15,200</div>
+                            </td>
                             <td>
                                 <span class="stock-level stock-high">28 units</span>
                             </td>
@@ -363,8 +372,8 @@
                                     <small>(4.9)</small>
                                 </div>
                             </td>
-                            <td>
-                                <span class="status-badge status-active">Active</span>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <div class="action-buttons">

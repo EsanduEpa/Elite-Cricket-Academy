@@ -6,12 +6,19 @@ class Shop extends Controller {
     }
 
     public function index() {
-        // Get featured products
+        // Check if user is logged in as shop employee
+        if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'Shop') {
+            // Redirect to dashboard for shop employees
+            redirect('shop/dashboard');
+        }
+        
+        // For public users, show products page
         $data = [
-                     'category' => 'Cricket Bats',
-                'rating' => 4.5,
-                'image' => 'cricket-bat-pro.svg',
-                'stock' => 30,   'title' => 'Elite Cricket Accessories - Premium Cricket Equipment',
+            'category' => 'Cricket Bats',
+            'rating' => 4.5,
+            'image' => 'cricket-bat-pro.svg',
+            'stock' => 30,
+            'title' => 'Elite Cricket Accessories - Premium Cricket Equipment',
             'featured_products' => $this->getFeaturedProducts(),
             'categories' => $this->getCategories(),
             'all_products' => $this->getAllProducts(),
@@ -19,12 +26,117 @@ class Shop extends Controller {
             'testimonials' => $this->getTestimonials()
         ];
         
-        $this->view('shop/v_shop_home', $data);
+        $this->view('shop/products', $data);
+    }
+
+    public function dashboard() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Shop Dashboard - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'stats' => $this->getDashboardStats()
+        ];
+        
+        $this->view('shop/dashboard', $data);
+    }
+
+    public function orders() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Order Management - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'orders' => $this->getOrdersData()
+        ];
+        
+        $this->view('shop/orders', $data);
+    }
+
+    public function inventory() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Inventory Management - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'inventory' => $this->getInventoryData()
+        ];
+        
+        $this->view('shop/inventory', $data);
+    }
+
+    public function rentals() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Equipment Rentals - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'rentals' => $this->getRentalsData()
+        ];
+        
+        $this->view('shop/rentals', $data);
+    }
+
+    public function reviews() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Reviews & Feedback - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'reviews' => $this->getReviewsData()
+        ];
+        
+        $this->view('shop/reviews', $data);
+    }
+
+    public function prescriptions() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Prescriptions - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'prescriptions' => $this->getPrescriptionsData()
+        ];
+        
+        $this->view('shop/prescriptions', $data);
+    }
+
+    public function facilities() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Facility Management - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'facilities' => $this->getFacilitiesData()
+        ];
+        
+        $this->view('shop/facilities', $data);
+    }
+
+    public function products() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        $data = [
+            'title' => 'Product Management - Elite Cricket Gear',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'products' => $this->getAllProducts(),
+            'categories' => $this->getCategories()
+        ];
+        
+        $this->view('shop/products', $data);
     }
 
     public function category($categoryId = null) {
         if (!$categoryId) {
-            redirect('shop');
+            redirect('shop/dashboard');
         }
         
         $data = [
@@ -33,12 +145,12 @@ class Shop extends Controller {
             'category' => $this->shopModel->getCategoryById($categoryId)
         ];
         
-        $this->view('shop/v_category', $data);
+        $this->view('shop/products', $data);
     }
 
     public function product($productId = null) {
         if (!$productId) {
-            redirect('shop');
+            redirect('shop/dashboard');
         }
         
         $data = [
@@ -1048,6 +1160,157 @@ class Shop extends Controller {
         } else {
             redirect('shop/profile');
         }
+    }
+
+    // Helper method for dashboard statistics
+    private function getDashboardStats() {
+        return [
+            'total_orders' => 125, // Mock data - would come from database
+            'pending_orders' => 8, // Mock data - would come from database
+            'monthly_revenue' => 45000, // Mock data - would come from database
+            'total_products' => count($this->getAllProducts()),
+            'total_categories' => count($this->getCategories()),
+            'featured_products' => count($this->getFeaturedProducts()),
+            'active_deals' => count($this->getCurrentDeals()),
+            'low_stock_products' => 3, // Mock data - would come from database
+            'pending_reviews' => 5, // Mock data - would come from database
+            'active_rentals' => 12 // Mock data - would come from database
+        ];
+    }
+
+    // Helper methods for new shop management pages
+    private function getOrdersData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'customer_name' => 'John Doe',
+                'order_date' => '2024-10-20',
+                'total' => 299.99,
+                'status' => 'pending',
+                'items' => 3
+            ],
+            [
+                'id' => 2,
+                'customer_name' => 'Jane Smith',
+                'order_date' => '2024-10-19',
+                'total' => 159.99,
+                'status' => 'completed',
+                'items' => 2
+            ]
+        ];
+    }
+
+    private function getInventoryData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'name' => 'Pro Series Cricket Bat',
+                'stock' => 15,
+                'min_stock' => 5,
+                'price' => 299.99,
+                'status' => 'in_stock'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Cricket Helmet',
+                'stock' => 3,
+                'min_stock' => 5,
+                'price' => 159.99,
+                'status' => 'low_stock'
+            ]
+        ];
+    }
+
+    private function getRentalsData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'equipment' => 'Bowling Machine A',
+                'renter' => 'Youth Academy',
+                'start_date' => '2024-10-20',
+                'end_date' => '2024-10-22',
+                'status' => 'active'
+            ],
+            [
+                'id' => 2,
+                'equipment' => 'Practice Nets',
+                'renter' => 'Local Club',
+                'start_date' => '2024-10-21',
+                'end_date' => '2024-10-21',
+                'status' => 'active'
+            ]
+        ];
+    }
+
+    private function getReviewsData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'product' => 'Pro Series Cricket Bat',
+                'customer' => 'Mark Wilson',
+                'rating' => 5,
+                'comment' => 'Excellent bat, great quality!',
+                'date' => '2024-10-19',
+                'status' => 'pending'
+            ],
+            [
+                'id' => 2,
+                'product' => 'Cricket Helmet',
+                'customer' => 'Sarah Johnson',
+                'rating' => 4,
+                'comment' => 'Good protection, comfortable fit.',
+                'date' => '2024-10-18',
+                'status' => 'approved'
+            ]
+        ];
+    }
+
+    private function getPrescriptionsData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'patient' => 'Alex Chen',
+                'prescribed_by' => 'Dr. Smith',
+                'supplements' => 'Whey Protein, Creatine',
+                'date' => '2024-10-19',
+                'status' => 'active'
+            ],
+            [
+                'id' => 2,
+                'patient' => 'Emma Brown',
+                'prescribed_by' => 'Dr. Johnson',
+                'supplements' => 'Vitamin D, Calcium',
+                'date' => '2024-10-18',
+                'status' => 'completed'
+            ]
+        ];
+    }
+
+    private function getFacilitiesData() {
+        // Mock data - would come from database
+        return [
+            [
+                'id' => 1,
+                'name' => 'Main Cricket Ground',
+                'capacity' => 500,
+                'status' => 'available',
+                'booking_rate' => 2000.00,
+                'amenities' => 'Floodlights, Pavilion, Parking'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Indoor Training Center',
+                'capacity' => 50,
+                'status' => 'maintenance',
+                'booking_rate' => 1000.00,
+                'amenities' => 'AC, Nets, Equipment Storage'
+            ]
+        ];
     }
 }
 ?>

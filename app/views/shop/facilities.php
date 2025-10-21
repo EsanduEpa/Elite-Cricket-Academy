@@ -66,13 +66,6 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
-                    </a>
-                </li>
-                
                 <li class="nav-item active">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
                         <i class="fas fa-building"></i>
@@ -81,6 +74,22 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -318,7 +327,7 @@
             </div>
             
             <div class="table-content">
-                <table id="bookingsTable">
+                <table id="bookingsTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Booking ID</th>
@@ -333,24 +342,28 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>#FB-2025-892</td>
                             <td>
-                                <div>
-                                    <strong>Practice Net 2</strong><br>
-                                    <small>Outdoor Net | 8 players capacity</small>
-                                </div>
+                                <div class="table-cell-primary">#FB-2025-892</div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Ashen Perera</strong><br>
-                                    <small>ashen@example.com</small>
-                                </div>
+                                <div class="table-cell-title">Practice Net 2</div>
+                                <div class="table-cell-details">Outdoor Net | 8 players capacity</div>
                             </td>
-                            <td>2:00 PM - 3:30 PM</td>
-                            <td>1.5 hours</td>
-                            <td>₨ 3,000</td>
                             <td>
-                                <span class="booking-status status-active">Active</span>
+                                <div class="table-cell-title">Ashen Perera</div>
+                                <div class="table-cell-details">ashen@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">2:00 PM - 3:30 PM</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">1.5 hours</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 3,000</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -367,12 +380,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>#FB-2025-891</td>
                             <td>
-                                <div>
-                                    <strong>Bowling Machine Area</strong><br>
-                                    <small>Training Facility | 4 players capacity</small>
-                                </div>
+                                <div class="table-cell-primary">#FB-2025-891</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-title">Bowling Machine Area</div>
+                                <div class="table-cell-details">Training Facility | 4 players capacity</div>
                             </td>
                             <td>
                                 <div>
