@@ -423,6 +423,7 @@ class M_Users {
                                 u.Address, u.School, u.Role, u.Username, u.DateJoined, u.Status,
                                 u.RequiresPasswordChange, u.PasswordChangeDeadline, u.LastLoginAt,
                                 u.LoginAttempts, u.AccountLockedUntil, u.CreatedBy, u.Notes,
+                                u.ProfileImage,
                                 
                                 -- Player Profile fields
                                 pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, 
@@ -649,6 +650,54 @@ class M_Users {
             }
         } catch (Exception $e) {
             error_log("Database error during staff creation: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ============= PROFILE IMAGE METHODS =============
+
+    // Update user profile image
+    public function updateProfileImage($userId, $imagePath) {
+        $this->db->query('UPDATE User SET ProfileImage = :image_path WHERE UserID = :user_id');
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':image_path', $imagePath);
+        
+        try {
+            if($this->db->execute()) {
+                return true;
+            } else {
+                error_log("Database execution failed during profile image update");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Database error during profile image update: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Get user profile image path
+    public function getProfileImage($userId) {
+        $this->db->query('SELECT ProfileImage FROM User WHERE UserID = :user_id');
+        $this->db->bind(':user_id', $userId);
+        
+        $result = $this->db->single();
+        return $result ? $result->ProfileImage : null;
+    }
+
+    // Delete user profile image (set to NULL)
+    public function deleteProfileImage($userId) {
+        $this->db->query('UPDATE User SET ProfileImage = NULL WHERE UserID = :user_id');
+        $this->db->bind(':user_id', $userId);
+        
+        try {
+            if($this->db->execute()) {
+                return true;
+            } else {
+                error_log("Database execution failed during profile image deletion");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Database error during profile image deletion: " . $e->getMessage());
             return false;
         }
     }
