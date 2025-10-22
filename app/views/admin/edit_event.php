@@ -6,60 +6,332 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Event - Elite Cricket Academy</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 28px; display: flex; align-items: center; gap: 15px; }
-        .back-btn { background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        .back-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
-        .form-content { padding: 40px; }
-        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .form-section { margin-bottom: 35px; }
-        .section-title { font-size: 20px; font-weight: 600; color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0; display: flex; align-items: center; gap: 10px; }
-        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-weight: 500; color: #333; margin-bottom: 8px; font-size: 14px; }
-        .form-group label .required { color: #e74c3c; margin-left: 3px; }
-        .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.3s; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        .form-group textarea { min-height: 100px; resize: vertical; }
-        .form-group input[readonly] { background: #f8f9fa; cursor: not-allowed; }
-        .form-actions { display: flex; gap: 15px; justify-content: flex-end; padding-top: 30px; border-top: 2px solid #e0e0e0; }
-        .btn { padding: 14px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.3s; text-decoration: none; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; }
-        .event-id-badge { background: rgba(255, 255, 255, 0.2); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="header">
-        <h1>
-            <i class="fas fa-edit"></i>
-            Edit Event
-            <?php if (!empty($data['event']['EventID'])): ?>
-                <span class="event-id-badge">ID: <?= htmlspecialchars($data['event']['EventID'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-            <?php endif; ?>
-        </h1>
-        <a href="<?= URLROOT; ?>/admin/events" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Events
-        </a>
-    </div>
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<style>
+    /* Edit Event Form Specific Styles */
+    .edit-event-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .event-id-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .form-content {
+        padding: 2.5rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #4A90E2;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid rgba(74, 144, 226, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title i {
+        font-size: 1.5rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .form-group label .required {
+        color: #e74c3c;
+        margin-left: 3px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.3s;
+        background: #f8f9fa;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        background: white;
+    }
+    
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .form-group input[readonly] {
+        background: #e9ecef;
+        cursor: not-allowed;
+        color: #6c757d;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 2rem;
+        border-top: 3px solid rgba(74, 144, 226, 0.1);
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 14px 30px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.2);
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+    }
+    
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+    }
+    
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+    }
+    
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+    
+    .alert i {
+        font-size: 1.2rem;
+    }
+</style>
 
-    <div class="form-content">
+<!-- Admin Dashboard Layout -->
+<div class="admin-layout">
+    <!-- Left Sidebar Panel -->
+    <div class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <div class="admin-logo">
+                <i class="fas fa-user-shield"></i>
+                <h3>Admin Dashboard</h3>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard Overview</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Staff Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Player Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item active">
+                    <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events & Tournaments</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
+                        <i class="fas fa-comments"></i>
+                        <span>Feedback Monitoring</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Finance Management</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Admin Profile -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
+            <div class="profile-role">Super Administrator</div>
+            <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content" id="mainContent">
+        <div class="edit-event-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>
+                    <i class="fas fa-edit"></i>
+                    Edit Event
+                    <?php if (!empty($data['event']['EventID'])): ?>
+                        <span class="event-id-badge">ID: <?= htmlspecialchars($data['event']['EventID'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+                    <?php endif; ?>
+                </h1>
+                <a href="<?= URLROOT; ?>/admin/events" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Events
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="form-card">
+                <div class="form-content">
         <?php flash('event_message'); ?>
 
         <?php if (!empty($data['event'])): ?>
@@ -273,13 +545,31 @@ if (isset($data['event'])) {
                 </div>
             </form>
         <?php else: ?>
-            <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Event data not found.</div>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                Event data not found.
+            </div>
         <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
 console.log('Edit Event Page Loaded');
+
+// Sidebar toggle functionality
+const sidebarToggle = document.getElementById('sidebarToggle');
+const adminSidebar = document.getElementById('adminSidebar');
+const mainContent = document.getElementById('mainContent');
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+        adminSidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+}
 
 // Log event data to console
 <?php if (!empty($data['event'])): ?>
@@ -292,11 +582,6 @@ console.log('Status:', '<?= htmlspecialchars($event['Status'] ?? 'N/A', ENT_QUOT
 console.log('Location:', '<?= htmlspecialchars($event['Location'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 console.log('Start Date:', '<?= htmlspecialchars($event['StartDate'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 console.log('End Date:', '<?= htmlspecialchars($event['EndDate'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Max Participants:', '<?= htmlspecialchars($event['MaxParticipants'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Registration Fee:', '<?= htmlspecialchars($event['RegistrationFee'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Primary Contact:', '<?= htmlspecialchars($event['PrimaryContact'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Contact Email:', '<?= htmlspecialchars($event['ContactEmail'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Contact Phone:', '<?= htmlspecialchars($event['ContactPhone'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 <?php else: ?>
 console.error('No event data available');
 <?php endif; ?>
@@ -313,19 +598,21 @@ if (form) {
         const endDateVal = document.getElementById('EndDate_date').value;
         const endTimeVal = document.getElementById('EndTime').value;
         
-        const startDateTime = new Date(startDateVal + ' ' + startTimeVal);
-        const endDateTime = new Date(endDateVal + ' ' + endTimeVal);
-        
-        if (endDateTime <= startDateTime) {
-            e.preventDefault();
-            alert('⚠️ End date/time must be after start date/time');
-            console.error('Date validation failed: End date must be after start date');
-            return false;
+        if (startDateVal && startTimeVal && endDateVal && endTimeVal) {
+            const startDateTime = new Date(startDateVal + ' ' + startTimeVal);
+            const endDateTime = new Date(endDateVal + ' ' + endTimeVal);
+            
+            if (endDateTime <= startDateTime) {
+                e.preventDefault();
+                alert('⚠️ End date/time must be after start date/time');
+                console.error('Date validation failed: End date must be after start date');
+                return false;
+            }
         }
         
         console.log('Form validation passed');
     });
 }
 </script>
-</body>
-</html>
+
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
