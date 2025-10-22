@@ -337,6 +337,45 @@ class Event {
         return $result ? (int)$result->total : 0;
     }
 
+    // Auto-update event statuses based on current date/time
+    public function updateEventStatuses() {
+        // Update events to "completed" if EndDate has passed
+        $this->db->query('UPDATE Event 
+            SET Status = "completed" 
+            WHERE CONCAT(EndDate, " ", IFNULL(TIME(EndDate), "23:59:59")) < NOW() 
+            AND Status NOT IN ("completed", "cancelled")');
+        
+        try {
+            $this->db->execute();
+            error_log("Event statuses updated successfully");
+            return true;
+        } catch (Exception $e) {
+            error_log("Event status update error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Check if event can be deleted (must be older than 6 months after end date)
+    public function canDeleteEvent($id) {
+        $this->db->query('SELECT EndDate 
+            FROM Event 
+            WHERE EventID = :id');
+        $this->db->bind(':id', $id);
+        $result = $this->db->single();
+        
+        if (!$result || !$result->EndDate) {
+            return false;
+        }
+        
+        $endDate = new DateTime($result->EndDate);
+        $sixMonthsLater = clone $endDate;
+        $sixMonthsLater->modify('+6 months');
+        $now = new DateTime();
+        
+        // Can delete if current date is 6 months after end date
+        return $now >= $sixMonthsLater;
+    }
+
     // Create new event - REAL DATABASE VERSION
     public function createEvent($data) {
         // Prepare the SQL statement with all fields from the updated Event table

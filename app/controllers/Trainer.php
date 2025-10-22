@@ -514,6 +514,24 @@ class Trainer extends Controller {
                 $errors[] = 'Invalid email format';
             }
             
+            // Validate date of birth if provided
+            if (!empty($_POST['dateOfBirth'])) {
+                $dob = new DateTime($_POST['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if ($age < 16) {
+                    $errors[] = 'You must be at least 16 years old';
+                } elseif ($age > 100) {
+                    $errors[] = 'Please enter a valid date of birth';
+                } elseif ($dob > $today) {
+                    $errors[] = 'Date of birth cannot be in the future';
+                } else {
+                    // Add valid date of birth to userData
+                    $userData['date_of_birth'] = $_POST['dateOfBirth'];
+                }
+            }
+            
             if (empty($errors)) {
                 if ($userModel->updateUser($userData) && $userModel->updateTrainerProfile($trainerData)) {
                     // Update session data

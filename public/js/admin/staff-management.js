@@ -1,6 +1,32 @@
 // Staff Management JavaScript - Elite Cricket Academy
 console.log('✅ staff-management.js loaded successfully!');
 
+// Date of Birth Validation Function
+function validateDateOfBirth(dateOfBirth) {
+    if (!dateOfBirth) {
+        return 'Please enter date of birth';
+    }
+    
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
+        ? age - 1 : age;
+    
+    if (birthDate > today) {
+        return 'Date of birth cannot be in the future';
+    } else if (adjustedAge < 16) {
+        return 'Staff member must be at least 16 years old';
+    } else if (adjustedAge > 100) {
+        return 'Please enter a valid date of birth';
+    }
+    
+    return null; // Valid
+}
+
 // Sample staff data (no database connection) - COMMENTED OUT - Using PHP/Database instead
 let staffMembers = [];
 
@@ -360,6 +386,36 @@ function initializeModals() {
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', handleDeleteStaff);
     }
+    
+    // Add real-time date of birth validation
+    const dobField = document.getElementById('dateOfBirth');
+    if (dobField) {
+        dobField.addEventListener('change', function() {
+            const validationError = validateDateOfBirth(this.value);
+            const errorDisplay = this.parentElement.querySelector('.validation-error') || createErrorElement(this.parentElement);
+            
+            if (validationError) {
+                this.style.borderColor = '#ef4444';
+                errorDisplay.textContent = validationError;
+                errorDisplay.style.display = 'block';
+            } else {
+                this.style.borderColor = '';
+                errorDisplay.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Helper function to create error display element
+function createErrorElement(parent) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'validation-error';
+    errorDiv.style.color = '#ef4444';
+    errorDiv.style.fontSize = '0.85rem';
+    errorDiv.style.marginTop = '0.25rem';
+    errorDiv.style.display = 'none';
+    parent.appendChild(errorDiv);
+    return errorDiv;
 }
 
 // Wizard Functions
@@ -476,6 +532,21 @@ function updateReviewSection() {
 // Handle Add Staff
 function handleAddStaff(e) {
     e.preventDefault();
+    
+    // Validate date of birth before submission
+    const dobField = document.getElementById('dateOfBirth');
+    if (dobField && dobField.value) {
+        const validationError = validateDateOfBirth(dobField.value);
+        if (validationError) {
+            showNotification(validationError, 'error');
+            dobField.style.borderColor = '#ef4444';
+            dobField.focus();
+            setTimeout(() => {
+                dobField.style.borderColor = '';
+            }, 3000);
+            return;
+        }
+    }
     
     const formData = new FormData(e.target);
     
@@ -597,6 +668,21 @@ function handleAddStaff(e) {
 // Handle Edit Staff
 function handleEditStaff(e) {
     e.preventDefault();
+    
+    // Validate date of birth if present in edit form
+    const dobField = e.target.querySelector('#editDateOfBirth');
+    if (dobField && dobField.value) {
+        const validationError = validateDateOfBirth(dobField.value);
+        if (validationError) {
+            showNotification(validationError, 'error');
+            dobField.style.borderColor = '#ef4444';
+            dobField.focus();
+            setTimeout(() => {
+                dobField.style.borderColor = '';
+            }, 3000);
+            return;
+        }
+    }
     
     const formData = new FormData(e.target);
     const staffId = parseInt(formData.get('staffId'));

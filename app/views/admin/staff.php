@@ -335,7 +335,8 @@
                                     <label for="dateOfBirth">
                                         <i class="fas fa-birthday-cake"></i> Date of Birth <span class="required">*</span>
                                     </label>
-                                    <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+                                    <input type="date" id="dateOfBirth" name="dateOfBirth" max="<?php echo date('Y-m-d'); ?>" required>
+                                    <small class="form-hint" style="display: block; font-size: 0.8rem; color: #666; margin-top: 0.25rem; font-style: italic;">Staff member must be at least 16 years old</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="school">

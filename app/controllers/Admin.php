@@ -14,6 +14,10 @@ class Admin extends Controller {
     }
     
     public function dashboard() {
+        // Auto-update event statuses on dashboard load
+        $eventModel = $this->model('Event');
+        $eventModel->updateEventStatuses();
+        
         // Hardcoded sample data for interface demonstration
         $data = [
             'title' => 'Academy Management Dashboard - Elite Cricket Academy',
@@ -209,9 +213,21 @@ class Admin extends Controller {
         try {
             $eventModel = $this->model('Event');
             
+            // Auto-update event statuses before displaying
+            $eventModel->updateEventStatuses();
+            
             // Get events from database
             $upcomingEvents = $eventModel->getUpcomingEvents(10);
             $pastEvents = $eventModel->getPastEvents(10);
+            
+            // Add delete permission info to each event
+            foreach ($upcomingEvents as &$event) {
+                $event['can_delete'] = false; // Upcoming events cannot be deleted
+            }
+            
+            foreach ($pastEvents as &$event) {
+                $event['can_delete'] = $eventModel->canDeleteEvent($event['id']);
+            }
             
             // Calculate stats from database
             $totalEvents = $eventModel->getTotalEvents();
@@ -518,6 +534,14 @@ class Admin extends Controller {
 
     public function delete_event($id) {
         $eventModel = $this->model('Event');
+        
+        // Check if event can be deleted (6 months after end date)
+        if (!$eventModel->canDeleteEvent($id)) {
+            flash('event_message', 'This event cannot be deleted yet. Events can only be deleted 6 months after they have ended.', 'alert alert-warning');
+            redirect('admin/events');
+            return;
+        }
+        
         $result = $eventModel->deleteEvent($id);
         
         if ($result) {
@@ -1038,6 +1062,39 @@ class Admin extends Controller {
                     'message' => 'Missing required fields: ' . implode(', ', $missingFields)
                 ]);
                 return;
+            }
+            
+            // Validate date of birth
+            if (!empty($postData['dateOfBirth'])) {
+                $dob = new DateTime($postData['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if ($age < 16) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Staff member must be at least 16 years old'
+                    ]);
+                    return;
+                } elseif ($age > 100) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Please enter a valid date of birth'
+                    ]);
+                    return;
+                } elseif ($dob > $today) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Date of birth cannot be in the future'
+                    ]);
+                    return;
+                }
             }
             
             // Load user model
