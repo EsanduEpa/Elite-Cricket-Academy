@@ -122,11 +122,12 @@
                 <div class="shop-filters">
                     <select class="filter-select" id="category-filter">
                         <option value="all">All Categories</option>
-                        <option value="bats">Cricket Bats</option>
-                        <option value="protective">Protective Gear</option>
-                        <option value="footwear">Footwear</option>
-                        <option value="clothing">Clothing</option>
+                        <option value="batting">Batting</option>
+                        <option value="protective">Protective</option>
+                        <option value="merchandise">Merchandise</option>
                         <option value="accessories">Accessories</option>
+                        <option value="bowling">Bowling</option>
+                        <option value="training">Training</option>
                     </select>
                     <select class="filter-select" id="brand-filter">
                         <option value="all">All Brands</option>
@@ -147,205 +148,109 @@
             </div>
             
             <div class="products-grid" id="products-grid">
-                <!-- Cricket Bats -->
-                <div class="product-card" data-category="bats" data-brand="gray-nicolls" data-price="450">
-                    <div class="discount-badge">15% OFF</div>
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/bat-pro.jpg" alt="Professional Cricket Bat" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Bat'" />
+                <?php if (!empty($data['products'])): ?>
+                    <?php foreach ($data['products'] as $product): ?>
+                        <div class="product-card" 
+                             data-category="<?php echo strtolower($product->Category ?? ''); ?>" 
+                             data-brand="<?php echo strtolower($product->Brand ?? ''); ?>" 
+                             data-price="<?php echo $product->Price ?? 0; ?>"
+                             data-product-id="<?php echo $product->ProductID; ?>">
+                            
+                            <?php if (isset($product->Discount) && $product->Discount > 0): ?>
+                                <div class="discount-badge"><?php echo $product->Discount; ?>% OFF</div>
+                            <?php endif; ?>
+                            
+                            <div class="product-image">
+                                <?php 
+                                $imagePath = !empty($product->ProductImage) 
+                                    ? URLROOT . '/' . $product->ProductImage 
+                                    : 'https://via.placeholder.com/300x200?text=' . urlencode($product->Name ?? 'Product');
+                                ?>
+                                <img src="<?php echo $imagePath; ?>" 
+                                     alt="<?php echo htmlspecialchars($product->Name ?? 'Product'); ?>" 
+                                     onerror="this.src='https://via.placeholder.com/300x200?text=<?php echo urlencode($product->Name ?? 'Product'); ?>'" />
+                            </div>
+                            
+                            <div class="product-info">
+                                <?php if (!empty($product->Brand)): ?>
+                                    <div class="product-brand"><?php echo htmlspecialchars($product->Brand); ?></div>
+                                <?php endif; ?>
+                                
+                                <h3 class="product-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
+                                
+                                <?php if (!empty($product->Description)): ?>
+                                    <p class="product-description"><?php echo htmlspecialchars(substr($product->Description, 0, 100)) . (strlen($product->Description) > 100 ? '...' : ''); ?></p>
+                                <?php endif; ?>
+                                
+                                <div class="product-rating">
+                                    <?php 
+                                    $rating = $product->Rating ?? 4;
+                                    for ($i = 1; $i <= 5; $i++): 
+                                    ?>
+                                        <i class="fas fa-star <?php echo $i <= $rating ? 'active' : ''; ?>"></i>
+                                    <?php endfor; ?>
+                                    <span class="rating-text">(<?php echo $product->Reviews ?? 0; ?> reviews)</span>
+                                </div>
+                                
+                                <?php if (!empty($product->Category)): ?>
+                                    <div class="product-features">
+                                        <span class="feature-tag"><?php echo htmlspecialchars($product->Category); ?></span>
+                                        <?php if (!empty($product->Brand)): ?>
+                                            <span class="feature-tag"><?php echo htmlspecialchars($product->Brand); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($product->StockQuantity > 10): ?>
+                                            <span class="feature-tag">In Stock</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="product-price">
+                                    <?php if (isset($product->Discount) && $product->Discount > 0): 
+                                        $originalPrice = $product->Price / (1 - $product->Discount / 100);
+                                    ?>
+                                        <span class="price-original">₹<?php echo number_format($originalPrice, 2); ?></span>
+                                        <span class="price-discounted">₹<?php echo number_format($product->Price, 2); ?></span>
+                                    <?php else: ?>
+                                        <span class="price-current">₹<?php echo number_format($product->Price ?? 0, 2); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="product-stock">
+                                    <?php if ($product->StockQuantity > 0): ?>
+                                        ✓ In Stock (<?php echo $product->StockQuantity; ?> available)
+                                    <?php else: ?>
+                                        ✗ Out of Stock
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="product-actions">
+                                    <button class="btn btn-view" 
+                                            onclick="viewProductFromDB(<?php echo $product->ProductID; ?>)">
+                                        View Details
+                                    </button>
+                                    <?php if ($product->StockQuantity > 0): ?>
+                                        <button class="btn btn-cart add-to-cart" 
+                                                data-product-id="<?php echo $product->ProductID; ?>" 
+                                                data-name="<?php echo htmlspecialchars($product->Name); ?>" 
+                                                data-price="<?php echo $product->Price; ?>" 
+                                                data-image="<?php echo $imagePath; ?>">
+                                            Add to Cart
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-cart" disabled>Out of Stock</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-products">
+                        <i class="fas fa-shopping-bag" style="font-size: 48px; color: #ccc; margin-bottom: 1rem;"></i>
+                        <h3>No Products Available</h3>
+                        <p>Check back soon for new products!</p>
                     </div>
-                    <div class="product-info">
-                        <div class="product-brand">Gray-Nicolls</div>
-                        <h3 class="product-title">Powerbow 6X Pro Cricket Bat</h3>
-                        <p class="product-description">Premium English willow bat with advanced edge profile and massive hitting zone</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <span class="rating-text">(24 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">English Willow</span>
-                            <span class="feature-tag">Professional Grade</span>
-                            <span class="feature-tag">Lightweight</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-original">₹529.99</span>
-                            <span class="price-discounted">₹450.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (3 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('bat-pro')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="bat-pro" data-name="Powerbow 6X Pro Cricket Bat" data-price="450" data-image="<?php echo URLROOT; ?>/img/products/bat-pro.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
 
-                <div class="product-card" data-category="bats" data-brand="kookaburra" data-price="320">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/bat-kahuna.jpg" alt="Kahuna Cricket Bat" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Bat'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Kookaburra</div>
-                        <h3 class="product-title">Kahuna 4.0 Cricket Bat</h3>
-                        <p class="product-description">Premium Kashmir willow bat with enhanced sweet spot and exceptional balance</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(18 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Kashmir Willow</span>
-                            <span class="feature-tag">Balanced</span>
-                            <span class="feature-tag">Youth Friendly</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">₹320.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (5 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('bat-kahuna')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="bat-kahuna" data-name="Kahuna 4.0 Cricket Bat" data-price="320" data-image="<?php echo URLROOT; ?>/img/products/bat-kahuna.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Protective Gear -->
-                <div class="product-card" data-category="protective" data-brand="kookaburra" data-price="180">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/pads-pro.jpg" alt="Cricket Pads" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Pads'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Kookaburra</div>
-                        <h3 class="product-title">Pro 2.0 Batting Pads</h3>
-                        <p class="product-description">Lightweight batting pads with superior protection and comfort for long innings</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(15 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Lightweight</span>
-                            <span class="feature-tag">Adjustable</span>
-                            <span class="feature-tag">High Protection</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">₹180.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (8 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('pads-pro')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="pads-pro" data-name="Pro 2.0 Batting Pads" data-price="180" data-image="<?php echo URLROOT; ?>/img/products/pads-pro.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="protective" data-brand="gray-nicolls" data-price="85">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/helmet-atomic.jpg" alt="Cricket Helmet" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Helmet'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Gray-Nicolls</div>
-                        <h3 class="product-title">Atomic Cricket Helmet</h3>
-                        <p class="product-description">Advanced protection helmet with titanium grille and superior ventilation system</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <span class="rating-text">(32 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Titanium Grille</span>
-                            <span class="feature-tag">Ventilated</span>
-                            <span class="feature-tag">Adjustable</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">₹85.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (12 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('helmet-atomic')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="helmet-atomic" data-name="Atomic Cricket Helmet" data-price="85" data-image="<?php echo URLROOT; ?>/img/products/helmet-atomic.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footwear -->
-                <div class="product-card" data-category="footwear" data-brand="new-balance" data-price="160">
-                    <div class="discount-badge">20% OFF</div>
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/spikes-tc.jpg" alt="Cricket Spikes" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Spikes'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">New Balance</div>
-                        <h3 class="product-title">TC 4040v5 Cricket Spikes</h3>
-                        <p class="product-description">Professional cricket spikes with superior grip and all-day comfort</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(27 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Metal Spikes</span>
-                            <span class="feature-tag">Breathable</span>
-                            <span class="feature-tag">Lightweight</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-original">₹200.00</span>
-                            <span class="price-discounted">₹160.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (6 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('spikes-tc')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="spikes-tc" data-name="TC 4040v5 Cricket Spikes" data-price="160" data-image="<?php echo URLROOT; ?>/img/products/spikes-tc.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Clothing -->
-                <div class="product-card" data-category="clothing" data-brand="new-balance" data-price="45">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/jersey-team.jpg" alt="Team Jersey" onerror="this.src='https://via.placeholder.com/300x200?text=Team+Jersey'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">New Balance</div>
-                        <h3 class="product-title">Elite Academy Team Jersey</h3>
-                        <p class="product-description">Official team jersey with moisture-wicking fabric and professional fit</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(41 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Moisture-Wicking</span>
-                            <span class="feature-tag">Breathable</span>
-                            <span class="feature-tag">Official Design</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">₹45.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (20 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('jersey-team')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="jersey-team" data-name="Elite Academy Team Jersey" data-price="45" data-image="<?php echo URLROOT; ?>/img/products/jersey-team.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -679,7 +584,76 @@ const products = {
 let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
 let currentProduct = null;
 
-// Product Details Modal Functions
+// View product from database
+function viewProductFromDB(productId) {
+    // Fetch product data from server
+    fetch(`<?php echo URLROOT; ?>/shop/getProduct?id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.product) {
+                const product = data.product;
+                currentProduct = product;
+                
+                // Populate modal with product data
+                const imagePath = product.ProductImage 
+                    ? '<?php echo URLROOT; ?>/' + product.ProductImage 
+                    : 'https://via.placeholder.com/400x300?text=' + encodeURIComponent(product.Name);
+                
+                document.getElementById('productDetailImage').src = imagePath;
+                document.getElementById('productDetailID').textContent = product.ProductID;
+                document.getElementById('productDetailName').textContent = product.Name;
+                document.getElementById('productDetailSKU').textContent = product.SKU || 'N/A';
+                document.getElementById('productDetailCategory').textContent = product.Category;
+                document.getElementById('productDetailBrand').textContent = product.Brand || 'N/A';
+                document.getElementById('productDetailPrice').textContent = parseFloat(product.Price).toFixed(2);
+                document.getElementById('productDetailStock').textContent = product.StockQuantity;
+                document.getElementById('productDetailDescription').textContent = product.Description || 'No description available';
+                document.getElementById('productDetailWeight').textContent = product.Weight ? product.Weight + ' kg' : 'Not specified';
+                document.getElementById('productDetailDimensions').textContent = product.Dimensions || 'Not specified';
+                document.getElementById('productDetailStatusText').textContent = product.Status ? product.Status.charAt(0).toUpperCase() + product.Status.slice(1) : 'Active';
+                document.getElementById('productDetailAddedDate').textContent = product.AddedDate ? new Date(product.AddedDate).toLocaleDateString() : 'N/A';
+                document.getElementById('productDetailUpdatedBy').textContent = product.UpdatedBy || 'System';
+                document.getElementById('productDetailProductID').textContent = product.ProductID;
+                
+                // Set status badge
+                const statusBadge = document.getElementById('productDetailStatus');
+                statusBadge.textContent = product.Status ? product.Status.charAt(0).toUpperCase() + product.Status.slice(1) : 'Active';
+                statusBadge.className = 'status-badge status-' + (product.Status || 'active');
+                
+                // Update quantity max based on stock
+                const quantityInput = document.getElementById('productQuantity');
+                quantityInput.max = product.StockQuantity;
+                quantityInput.value = 1;
+                
+                // Update features list (basic features from category and brand)
+                const featuresList = document.getElementById('productFeaturesList');
+                featuresList.innerHTML = '';
+                const features = [
+                    product.Category + ' Equipment',
+                    product.Brand ? 'Brand: ' + product.Brand : 'Quality Product',
+                    'Available Stock: ' + product.StockQuantity,
+                    product.Weight ? 'Weight: ' + product.Weight + ' kg' : 'Lightweight Design'
+                ];
+                features.forEach(feature => {
+                    const li = document.createElement('li');
+                    li.textContent = feature;
+                    featuresList.appendChild(li);
+                });
+                
+                // Show modal
+                document.getElementById('productDetailsModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                showNotification('Product not found', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load product data', 'error');
+        });
+}
+
+// Product Details Modal Functions (old, keeping for compatibility)
 function viewProduct(productId) {
     const product = products[productId];
     if (!product) {
@@ -845,14 +819,29 @@ window.addEventListener('click', function(event) {
 document.addEventListener('DOMContentLoaded', function() {
     updateCartCount();
     
-    // Add event listeners for existing add to cart buttons
+    // Add event listeners for add to cart buttons (both old and new format)
     document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product');
-            const product = products[productId];
-            if (product) {
-                addToCart(product);
-                showNotification(`${product.Name} added to cart!`, 'success');
+            // Check if it's a database product (has data-product-id)
+            const productId = this.getAttribute('data-product-id');
+            if (productId) {
+                // Database product - use attributes
+                const productData = {
+                    ProductID: parseInt(productId),
+                    Name: this.getAttribute('data-name'),
+                    Price: parseFloat(this.getAttribute('data-price')),
+                    image: this.getAttribute('data-image')
+                };
+                addToCart(productData);
+                showNotification(`${productData.Name} added to cart!`, 'success');
+            } else {
+                // Old format product
+                const oldProductId = this.getAttribute('data-product');
+                const product = products[oldProductId];
+                if (product) {
+                    addToCart(product);
+                    showNotification(`${product.Name} added to cart!`, 'success');
+                }
             }
         });
     });

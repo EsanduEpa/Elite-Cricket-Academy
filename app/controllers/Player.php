@@ -3,6 +3,7 @@ class Player extends Controller {
     
     private $userModel;
     private $medicalModel;
+    private $productModel;
     
     public function __construct() {
         // Check authentication for all player pages
@@ -10,6 +11,7 @@ class Player extends Controller {
         // Database disabled for UI testing
         // $this->userModel = $this->model('M_Users');
         // $this->medicalModel = $this->model('M_Medical');
+        $this->productModel = $this->model('M_Product');
     }
     
     private function requireLogin() {
@@ -856,64 +858,14 @@ class Player extends Controller {
 
     // Shopping System Methods
     private function getAvailableProducts() {
-        return [
-            [
-                'id' => 1,
-                'name' => 'Professional Cricket Bat',
-                'description' => 'Premium English Willow cricket bat with professional finish',
-                'price' => 18500.00,
-                'category' => 'Bats',
-                'image' => 'cricket-bat-pro.jpg',
-                'rating' => 4.8,
-                'reviews' => 25,
-                'stock' => 15,
-                'brand' => 'Elite Sports',
-                'features' => ['English Willow', 'Professional Grade', 'Free Grip Tape'],
-                'discount' => 15
-            ],
-            [
-                'id' => 2,
-                'name' => 'Protective Gear Set',
-                'description' => 'Complete protection set including helmet, pads, and gloves',
-                'price' => 12500.00,
-                'category' => 'Protection',
-                'image' => 'protective-gear-set.jpg',
-                'rating' => 4.6,
-                'reviews' => 18,
-                'stock' => 8,
-                'brand' => 'SafeGuard',
-                'features' => ['Complete Set', 'Professional Grade', 'Lightweight'],
-                'discount' => 10
-            ],
-            [
-                'id' => 3,
-                'name' => 'Cricket Ball Set (6 pieces)',
-                'description' => 'Professional leather cricket balls for training and matches',
-                'price' => 2500.00,
-                'category' => 'Balls',
-                'image' => 'cricket-balls.jpg',
-                'rating' => 4.7,
-                'reviews' => 32,
-                'stock' => 25,
-                'brand' => 'Elite Sports',
-                'features' => ['Leather Construction', 'Match Quality', '6 Piece Set'],
-                'discount' => 0
-            ],
-            [
-                'id' => 4,
-                'name' => 'Elite Training Kit',
-                'description' => 'Complete training kit with jersey, shorts, and accessories',
-                'price' => 4500.00,
-                'category' => 'Apparel',
-                'image' => 'training-kit.jpg',
-                'rating' => 4.5,
-                'reviews' => 15,
-                'stock' => 20,
-                'brand' => 'Elite Academy',
-                'features' => ['Moisture Wicking', 'Breathable Fabric', 'Academy Logo'],
-                'discount' => 5
-            ]
-        ];
+        // Fetch products from database where status is 'active'
+        if ($this->productModel) {
+            $products = $this->productModel->getProductsByStatus('active');
+            return $products ? $products : [];
+        }
+        
+        // Fallback to empty array if model not available
+        return [];
     }
 
     private function getRentalEquipment() {
