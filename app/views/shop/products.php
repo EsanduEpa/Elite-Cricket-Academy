@@ -455,30 +455,31 @@
                             <h4>Basic Information</h4>
                             <div class="form-group">
                                 <label for="productName">Product Name</label>
-                                <input type="text" id="productName" name="productName" required>
+                                <input type="text" id="productName" name="name" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="productDescription">Description</label>
-                                <textarea id="productDescription" name="productDescription" rows="3"></textarea>
+                                <textarea id="productDescription" name="description" rows="3"></textarea>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="productCategory">Category</label>
-                                    <select id="productCategory" name="productCategory" required>
+                                    <select id="productCategory" name="category" required>
                                         <option value="">Select Category</option>
-                                        <option value="bats">Cricket Bats</option>
-                                        <option value="protective">Protective Gear</option>
-                                        <option value="clothing">Clothing</option>
-                                        <option value="accessories">Accessories</option>
-                                        <option value="balls">Cricket Balls</option>
+                                        <option value="Batting">Cricket Bats</option>
+                                        <option value="Protective">Protective Gear</option>
+                                        <option value="Merchandise">Clothing</option>
+                                        <option value="Accessories">Accessories</option>
+                                        <option value="Bowling">Cricket Balls</option>
+                                        <option value="Training">Training Equipment</option>
                                     </select>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label for="productBrand">Brand</label>
-                                    <input type="text" id="productBrand" name="productBrand">
+                                    <input type="text" id="productBrand" name="brand">
                                 </div>
                             </div>
                         </div>
@@ -488,24 +489,40 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="productPrice">Price (₨)</label>
-                                    <input type="number" id="productPrice" name="productPrice" step="0.01" required>
+                                    <input type="number" id="productPrice" name="price" step="0.01" required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="productCost">Cost Price (₨)</label>
-                                    <input type="number" id="productCost" name="productCost" step="0.01">
+                                    <label for="productSKU">SKU (Optional)</label>
+                                    <input type="text" id="productSKU" name="sku">
                                 </div>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="productStock">Stock Quantity</label>
-                                    <input type="number" id="productStock" name="productStock" min="0" required>
+                                    <input type="number" id="productStock" name="stock" min="0" required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="productMinStock">Minimum Stock Alert</label>
-                                    <input type="number" id="productMinStock" name="productMinStock" min="0">
+                                    <label for="productStatus">Status</label>
+                                    <select id="productStatus" name="status">
+                                        <option value="active">Active</option>
+                                        <option value="discontinued">Discontinued</option>
+                                        <option value="out_of_stock">Out of Stock</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="productWeight">Weight (kg)</label>
+                                    <input type="number" id="productWeight" name="weight" step="0.001">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="productDimensions">Dimensions</label>
+                                    <input type="text" id="productDimensions" name="dimensions" placeholder="L x W x H">
                                 </div>
                             </div>
                         </div>
@@ -529,188 +546,6 @@
         </div>
     </main>
 </div>
-
-<!-- JavaScript -->
-<script>
-let currentProductId = null;
-
-// Category filter functionality
-document.querySelectorAll('.filter-tab').forEach(tab => {
-    tab.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        filterProductsByCategory(this.dataset.category);
-    });
-});
-
-// Search functionality
-document.getElementById('productSearch').addEventListener('input', function() {
-    filterProducts(this.value);
-});
-
-// Sort functionality
-document.getElementById('sortFilter').addEventListener('change', function() {
-    sortProducts(this.value);
-});
-
-function filterProductsByCategory(category) {
-    console.log('Filtering by category:', category);
-    const rows = document.querySelectorAll('#productsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (category === 'all') {
-            row.style.display = '';
-        } else {
-            const categoryCell = row.querySelector('.category-badge');
-            const categoryClass = `category-${category}`;
-            if (categoryCell && categoryCell.classList.contains(categoryClass)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        }
-    });
-}
-
-function filterProducts(searchTerm) {
-    const table = document.getElementById('productsTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm.toLowerCase())) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    }
-}
-
-function sortProducts(sortBy) {
-    console.log('Sorting by:', sortBy);
-    // Implementation would sort the table rows
-    showNotification(`Products sorted by ${sortBy}`, 'info');
-}
-
-// Product management functions
-function openAddProductModal() {
-    currentProductId = null;
-    document.getElementById('modalTitle').textContent = 'Add New Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('productModal').style.display = 'block';
-}
-
-function editProduct(productId) {
-    currentProductId = productId;
-    document.getElementById('modalTitle').textContent = 'Edit Product';
-    // Load product data
-    document.getElementById('productName').value = 'Professional Cricket Bat';
-    document.getElementById('productDescription').value = 'Grade A English Willow cricket bat';
-    document.getElementById('productCategory').value = 'bats';
-    document.getElementById('productBrand').value = 'Gray-Nicolls';
-    document.getElementById('productPrice').value = '25000';
-    document.getElementById('productCost').value = '18000';
-    document.getElementById('productStock').value = '15';
-    document.getElementById('productMinStock').value = '5';
-    
-    document.getElementById('productModal').style.display = 'block';
-}
-
-function viewProduct(productId) {
-    console.log('Viewing product:', productId);
-    // Implementation would show product details
-    showNotification(`Viewing product #${productId}`, 'info');
-}
-
-function duplicateProduct(productId) {
-    console.log('Duplicating product:', productId);
-    showNotification(`Product #${productId} duplicated successfully`, 'success');
-}
-
-function deleteProduct(productId) {
-    if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-        console.log('Deleting product:', productId);
-        showNotification(`Product #${productId} deleted successfully`, 'success');
-        // Remove row from table
-        event.target.closest('tr').remove();
-    }
-}
-
-function closeProductModal() {
-    document.getElementById('productModal').style.display = 'none';
-    currentProductId = null;
-}
-
-// Action card functions
-function importProducts() {
-    console.log('Import products');
-    showNotification('Product import feature will be available soon', 'info');
-}
-
-function manageCategories() {
-    console.log('Manage categories');
-    showNotification('Category management opened', 'info');
-}
-
-function bulkPriceUpdate() {
-    console.log('Bulk price update');
-    showNotification('Bulk price update feature will be available soon', 'info');
-}
-
-function exportProducts() {
-    console.log('Exporting products');
-    showNotification('Products exported successfully', 'success');
-}
-
-// Form submission
-document.getElementById('productForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const action = currentProductId ? 'update' : 'create';
-    
-    console.log(`${action} product:`, Object.fromEntries(formData));
-    
-    showNotification(`Product ${action}d successfully`, 'success');
-    closeProductModal();
-    
-    // If it's a new product, add row to table
-    if (!currentProductId) {
-        // Add new row logic here
-    }
-});
-
-// Image upload preview
-document.getElementById('productImages').addEventListener('change', function(e) {
-    const files = e.target.files;
-    console.log('Selected files:', files.length);
-    showNotification(`${files.length} image(s) selected`, 'info');
-});
-
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#4ECDC4' : type === 'error' ? '#FF6B6B' : '#4A90E2'};
-        color: white;
-        border-radius: 8px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-</script>
 
 <style>
 /* Category badges */
@@ -878,4 +713,5 @@ function showNotification(message, type) {
 </style>
 
 <script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/shop/products.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

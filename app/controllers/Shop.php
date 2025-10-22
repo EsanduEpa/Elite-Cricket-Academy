@@ -1,8 +1,11 @@
 <?php
 class Shop extends Controller {
+    private $shopModel;
+    private $productModel;
     
     public function __construct() {
         $this->shopModel = $this->model('M_Shop');
+        $this->productModel = $this->model('M_Product');
     }
 
     public function index() {
@@ -124,11 +127,15 @@ class Shop extends Controller {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
+        // Get product statistics
+        $stats = $this->productModel->getProductStats();
+        
         $data = [
             'title' => 'Product Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'products' => $this->getAllProducts(),
-            'categories' => $this->getCategories()
+            'products' => $this->productModel->getAllProducts(),
+            'categories' => $this->getCategories(),
+            'stats' => $stats
         ];
         
         $this->view('shop/products', $data);
@@ -1439,6 +1446,272 @@ class Shop extends Controller {
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+    }
+
+    // Upload Product Image
+    public function uploadProductImage() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['productImage'])) {
+            $productId = $_POST['productId'] ?? null;
+            
+            if (!$productId) {
+                echo json_encode(['success' => false, 'message' => 'Product ID is required']);
+                return;
+            }
+            
+            $file = $_FILES['productImage'];
+            
+            // Validate file type
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!in_array($file['type'], $allowedTypes)) {
+                echo json_encode(['success' => false, 'message' => 'Only JPG, JPEG, and PNG images are allowed']);
+                return;
+            }
+            
+            // Validate file size (5MB for product images)
+            $maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            if ($file['size'] > $maxSize) {
+                echo json_encode(['success' => false, 'message' => 'Image size must be less than 5MB']);
+                return;
+            }
+            
+            // Create unique filename
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'product_' . $productId . '_' . time() . '.' . $extension;
+            
+            // Get project root and set upload path
+            $projectRoot = dirname(APPROOT);
+            $uploadDir = $projectRoot . '/public/uploads/shop_product/';
+            $uploadPath = $uploadDir . $filename;
+            $relativePath = 'uploads/shop_product/' . $filename;
+            
+            // Ensure directory exists
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0775, true);
+            }
+            
+            // Delete old image if exists
+            $productModel = $this->model('M_Product');
+            $oldImage = $productModel->getProductImage($productId);
+            if ($oldImage) {
+                $oldImagePath = $projectRoot . '/public/' . $oldImage;
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+            
+            // Move uploaded file
+            if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                // Update database
+                if ($productModel->updateProductImage($productId, $relativePath)) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Product image uploaded successfully',
+                        'image_url' => URLROOT . '/' . $relativePath
+                    ]);
+                } else {
+                    unlink($uploadPath);
+                    echo json_encode(['success' => false, 'message' => 'Failed to update product image in database']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to move uploaded file']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request or no file uploaded']);
+        }
+    }
+
+    // Delete Product Image
+    public function deleteProductImage() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $productId = $_POST['productId'] ?? null;
+            
+            if (!$productId) {
+                echo json_encode(['success' => false, 'message' => 'Product ID is required']);
+                return;
+            }
+            
+            try {
+                $productModel = $this->model('M_Product');
+                $imagePath = $productModel->getProductImage($productId);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                return;
+            }
+            
+            if ($imagePath) {
+                $projectRoot = dirname(APPROOT);
+                $fullPath = $projectRoot . '/public/' . $imagePath;
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+                
+                if ($productModel->deleteProductImage($productId)) {
+                    echo json_encode(['success' => true, 'message' => 'Product image deleted successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to delete image from database']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No product image found']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    // Add CRUD operations for products
+    public function addProduct() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = [
+                'name' => trim($_POST['name'] ?? ''),
+                'description' => trim($_POST['description'] ?? ''),
+                'category' => trim($_POST['category'] ?? ''),
+                'brand' => trim($_POST['brand'] ?? ''),
+                'price' => floatval($_POST['price'] ?? 0),
+                'stock' => intval($_POST['stock'] ?? 0),
+                'status' => $_POST['status'] ?? 'active',
+                'sku' => !empty(trim($_POST['sku'] ?? '')) ? trim($_POST['sku']) : null,
+                'weight' => !empty($_POST['weight']) ? floatval($_POST['weight']) : null,
+                'dimensions' => !empty(trim($_POST['dimensions'] ?? '')) ? trim($_POST['dimensions']) : null,
+                'image' => null
+            ];
+            
+            // Validate required fields
+            if (empty($data['name']) || empty($data['category']) || $data['price'] <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
+                return;
+            }
+            
+            try {
+                $productModel = $this->model('M_Product');
+                $productId = $productModel->createProduct($data);
+                
+                if ($productId) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Product added successfully',
+                        'productId' => $productId
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to add product to database']);
+                }
+            } catch (Exception $e) {
+                error_log('Error adding product: ' . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    public function updateProductData() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $productId = intval($_POST['productId'] ?? 0);
+            
+            if ($productId <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Invalid product ID']);
+                return;
+            }
+            
+            $data = [
+                'name' => trim($_POST['name'] ?? ''),
+                'description' => trim($_POST['description'] ?? ''),
+                'category' => trim($_POST['category'] ?? ''),
+                'brand' => trim($_POST['brand'] ?? ''),
+                'price' => floatval($_POST['price'] ?? 0),
+                'stock' => intval($_POST['stock'] ?? 0),
+                'status' => $_POST['status'] ?? 'active',
+                'sku' => !empty(trim($_POST['sku'] ?? '')) ? trim($_POST['sku']) : null,
+                'weight' => !empty($_POST['weight']) ? floatval($_POST['weight']) : null,
+                'dimensions' => !empty(trim($_POST['dimensions'] ?? '')) ? trim($_POST['dimensions']) : null
+            ];
+            
+            // Validate required fields
+            if (empty($data['name']) || empty($data['category']) || $data['price'] <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
+                return;
+            }
+            
+            $productModel = $this->model('M_Product');
+            
+            if ($productModel->updateProduct($productId, $data)) {
+                echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update product']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    public function deleteProductData() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $productId = intval($_POST['productId'] ?? 0);
+            
+            if ($productId <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Invalid product ID']);
+                return;
+            }
+            
+            $productModel = $this->model('M_Product');
+            
+            // Delete product image first
+            $imagePath = $productModel->getProductImage($productId);
+            if ($imagePath) {
+                $projectRoot = dirname(APPROOT);
+                $fullPath = $projectRoot . '/public/' . $imagePath;
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+            }
+            
+            // Delete product from database
+            if ($productModel->deleteProduct($productId)) {
+                echo json_encode(['success' => true, 'message' => 'Product deleted successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete product']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    public function getProduct() {
+        header('Content-Type: application/json');
+        
+        $productId = intval($_GET['id'] ?? 0);
+        
+        if ($productId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid product ID']);
+            return;
+        }
+        
+        $productModel = $this->model('M_Product');
+        $product = $productModel->getProductById($productId);
+        
+        if ($product) {
+            echo json_encode(['success' => true, 'product' => $product]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Product not found']);
+        }
+    }
+
+    public function getProducts() {
+        header('Content-Type: application/json');
+        
+        $productModel = $this->model('M_Product');
+        $products = $productModel->getAllProducts();
+        
+        echo json_encode(['success' => true, 'products' => $products]);
     }
 }
 ?>

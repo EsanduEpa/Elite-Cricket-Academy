@@ -1060,3 +1060,478 @@ textarea.form-control {
         font-size: 3rem;
     }
 }
+
+/* Product Management Specific Styles */
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    transition: all 0.3s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.1);
+    border-color: #4A90E2;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.product-image-upload {
+    position: relative;
+    display: inline-block;
+}
+
+.product-image-preview {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 3px dashed rgba(74, 144, 226, 0.3);
+    background: rgba(74, 144, 226, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.product-image-preview:hover {
+    border-color: #4A90E2;
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.product-image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-image-placeholder {
+    text-align: center;
+    color: #4A90E2;
+    font-size: 2rem;
+}
+
+.product-image-placeholder i {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.product-image-placeholder span {
+    display: block;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.category-bats {
+    background: linear-gradient(45deg, #FF8A50, #FFB366);
+    color: white;
+}
+
+.category-protective {
+    background: linear-gradient(45deg, #4ECDC4, #5EDDD4);
+    color: white;
+}
+
+.category-clothing {
+    background: linear-gradient(45deg, #6B73FF, #8B83FF);
+    color: white;
+}
+
+.category-accessories {
+    background: linear-gradient(45deg, #FF6B6B, #FF8787);
+    color: white;
+}
+
+.category-training {
+    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+    color: white;
+}
+
+.category-merchandise {
+    background: linear-gradient(45deg, #A55EEA, #BF7FFF);
+    color: white;
+}
+
+.category-bowling {
+    background: linear-gradient(45deg, #2ECC71, #3FE688);
+    color: white;
+}
+
+.stock-level {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-high {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.4);
+}
+
+.stock-medium {
+    background: rgba(255, 159, 67, 0.2);
+    color: #ff9f43;
+    border: 1px solid rgba(255, 159, 67, 0.4);
+}
+
+.stock-low {
+    background: rgba(255, 107, 107, 0.2);
+    color: #FF6B6B;
+    border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+}
+
+.rating .stars {
+    color: #FFD700;
+    letter-spacing: 2px;
+}
+
+.rating small {
+    color: #666;
+    font-size: 12px;
+}
+
+/* Modal Improvements */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+    margin: 2% auto;
+    padding: 0;
+    border: 1px solid rgba(74, 144, 226, 0.2);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 900px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideDown 0.3s ease-out;
+}
+
+@keyframes modalSlideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+}
+
+.modal-header .close {
+    color: white;
+    font-size: 2rem;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-header .close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: calc(90vh - 150px);
+    overflow-y: auto;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(74, 144, 226, 0.05);
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(74, 144, 226, 0.3);
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 144, 226, 0.5);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-section h4 {
+    color: #4A90E2;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    outline: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #4A90E2;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 2px solid rgba(74, 144, 226, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.modal-footer .btn {
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+/* Large Modal */
+.large-modal {
+    max-width: 1200px;
+}
+
+/* Notification/Toast Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification.success {
+    border-left: 4px solid #2ed573;
+}
+
+.notification.error {
+    border-left: 4px solid #FF6B6B;
+}
+
+.notification.warning {
+    border-left: 4px solid #FF8A50;
+}
+
+.notification.info {
+    border-left: 4px solid #4A90E2;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+}
+
+.notification.success .notification-icon {
+    color: #2ed573;
+}
+
+.notification.error .notification-icon {
+    color: #FF6B6B;
+}
+
+.notification.warning .notification-icon {
+    color: #FF8A50;
+}
+
+.notification.info .notification-icon {
+    color: #4A90E2;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #333;
+}
+
+.notification-message {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(74, 144, 226, 0.2);
+    border-top-color: #4A90E2;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Improved Action Buttons */
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.btn-delete-small {
+    background: linear-gradient(45deg, #FF6B6B, #FF8787);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-delete-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
