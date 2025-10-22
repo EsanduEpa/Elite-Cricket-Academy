@@ -90,6 +90,43 @@ if (!isset($data['user']) || !is_object($data['user'])) {
 
             <?php flash('profile_message'); ?>
 
+            <!-- Profile Image Section -->
+            <div class="profile-image-section">
+                <div class="image-container">
+                    <div class="profile-image-wrapper" title="Click to upload new photo">
+                        <?php 
+                        $profileImage = $data['user']->ProfileImage ?? null;
+                        $imageUrl = $profileImage ? URLROOT . '/' . $profileImage : URLROOT . '/images/default-avatar.png';
+                        ?>
+                        <img src="<?php echo $imageUrl; ?>" 
+                             alt="Profile Image" 
+                             id="profileImagePreview" 
+                             class="profile-image"
+                             onerror="this.src='<?php echo URLROOT; ?>/images/default-avatar.png'">
+                        <div class="image-overlay">
+                            <i class="fas fa-camera"></i>
+                            <span>Click to Upload</span>
+                        </div>
+                    </div>
+                    <div class="image-actions">
+                        <input type="file" 
+                               id="profileImageInput" 
+                               accept="image/jpeg,image/jpg,image/png" 
+                               style="display: none;">
+                        <?php if ($profileImage): ?>
+                        <button type="button" id="deleteImageBtn" class="btn-delete-small">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                    <div id="imageValidationInfo" class="image-info" style="display: none;">
+                        <p><i class="fas fa-info-circle"></i> Accepted formats: JPG, JPEG, PNG</p>
+                        <p><i class="fas fa-exclamation-circle"></i> Maximum size: 2MB</p>
+                    </div>
+                    <div id="uploadMessage" class="upload-message"></div>
+                </div>
+            </div>
+
             <!-- Profile Form -->
             <div class="profile-form">
                 <form action="<?php echo URLROOT; ?>/trainer/updateProfile" method="POST" id="profileForm">
@@ -194,4 +231,5 @@ if (!isset($data['user']) || !is_object($data['user'])) {
     </div>
 
 <script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/profile-image.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
