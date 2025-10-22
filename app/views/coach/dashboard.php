@@ -27,23 +27,16 @@
                     </li>
                     
                     <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Sessions</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/schedules" class="nav-link" data-tooltip="Schedules">
                             <i class="fas fa-calendar-check"></i>
                             <span>Schedules</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/bookings" class="nav-link" data-tooltip="Bookings">
-                            <i class="fas fa-bookmark"></i>
-                            <span>Bookings</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
-                            <i class="fas fa-trophy"></i>
-                            <span>Tournaments</span>
                         </a>
                     </li>
                     
@@ -55,16 +48,30 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/recommendations" class="nav-link" data-tooltip="Recommendations">
-                            <i class="fas fa-lightbulb"></i>
-                            <span>Recommendations</span>
+                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
+                            <i class="fas fa-trophy"></i>
+                            <span>Tournaments</span>
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/medical" class="nav-link" data-tooltip="Medical Records">
+                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                             <i class="fas fa-heartbeat"></i>
-                            <span>Medical Records</span>
+                            <span>Health & Injury</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
+                            <i class="fas fa-calendar"></i>
+                            <span>Events</span>
                         </a>
                     </li>
                 </ul>
@@ -165,16 +172,19 @@
                                 <div class="session-card">
                                     <div class="session-time"><?php echo $session['time']; ?></div>
                                     <div class="session-content">
-                                        <h4><?php echo htmlspecialchars($session['player_name']); ?></h4>
+                                        <h4><?php echo htmlspecialchars($session['session_name']); ?></h4>
+                                        <p class="participants"><i class="fas fa-users"></i> <?php echo htmlspecialchars($session['player_name']); ?></p>
                                         <div class="session-meta">
                                             <span class="type-badge <?php echo $session['session_type']; ?>">
                                                 <?php echo ucfirst($session['session_type']); ?>
                                             </span>
-                                            <span class="facility"><?php echo htmlspecialchars($session['facility']); ?></span>
+                                            <span class="facility"><?php echo htmlspecialchars($session['facility'] ?? 'TBA'); ?></span>
                                         </div>
+                                        <?php if (!empty($session['equipment'])): ?>
                                         <div class="equipment-list">
                                             <i class="fas fa-tools"></i> <?php echo htmlspecialchars($session['equipment']); ?>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -219,7 +229,8 @@
                                         <div class="date"><?php echo date('M d', strtotime($booking['date'])); ?></div>
                                     </div>
                                     <div class="booking-details">
-                                        <h3><?php echo htmlspecialchars($booking['player_name']); ?></h3>
+                                        <h3><?php echo htmlspecialchars($booking['session_name']); ?></h3>
+                                        <p class="participants-list"><i class="fas fa-users"></i> <?php echo htmlspecialchars($booking['player_name']); ?></p>
                                         <div class="session-info">
                                             <span class="session-type <?php echo $booking['session_type']; ?>">
                                                 <i class="fas <?php echo $booking['session_type'] === 'private' ? 'fa-user' : 'fa-users'; ?>"></i>
@@ -231,11 +242,13 @@
                                         </div>
                                         <div class="facility-info">
                                             <span class="facility">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility']); ?>
+                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility'] ?? 'TBA'); ?>
                                             </span>
+                                            <?php if (!empty($booking['equipment'])): ?>
                                             <span class="equipment">
                                                 <i class="fas fa-tools"></i> <?php echo htmlspecialchars($booking['equipment']); ?>
                                             </span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="booking-actions">
@@ -255,6 +268,74 @@
                                 <p>Schedule new sessions to see them here</p>
                             </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Analytics Section -->
+            <div class="analytics-section">
+                <div class="section-header full-width">
+                    <h2><i class="fas fa-chart-area"></i> Analytics & Player Insights</h2>
+                    <p class="muted">Interactive, data-driven charts help you monitor player progress, attendance trends, and health status. Use the filters to focus on specific players, date ranges, or teams.</p>
+                </div>
+
+                <div class="analytics-grid">
+                    <!-- Player Performance Chart -->
+                    <div class="analytics-card" id="performance">
+                        <div class="card-header">
+                            <h3>Player Performance</h3>
+                            <div class="controls">
+                                <select id="performancePlayerSelect"></select>
+                                <select id="performanceRangeSelect">
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last 12 months</option>
+                                </select>
+                                <button class="btn small" id="performanceToggleType">Toggle Line/Bar</button>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="performanceChart" aria-label="Player performance over time"></canvas>
+                        </div>
+                        <div class="card-footer muted">Tip: Click a legend item to show/hide series. Hover for exact values.</div>
+                    </div>
+
+                    <!-- Attendance Chart -->
+                    <div class="analytics-card" id="sessions">
+                        <div class="card-header">
+                            <h3>Attendance & Session Participation</h3>
+                            <div class="controls">
+                                <select id="attendanceTeamSelect"></select>
+                                <select id="attendanceRangeSelect">
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last 12 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="attendanceChart" aria-label="Attendance per session"></canvas>
+                        </div>
+                        <div class="card-footer muted">Monthly totals shown as bars. Use filters to compare squads or individuals.</div>
+                    </div>
+
+                    <!-- Health Status Pie Chart -->
+                    <div class="analytics-card" id="health">
+                        <div class="card-header">
+                            <h3>Health & Injury Overview</h3>
+                            <div class="controls">
+                                <select id="healthFilterSelect">
+                                    <option value="all">All Players</option>
+                                    <option value="fit">Fit</option>
+                                    <option value="under_observation">Under Observation</option>
+                                    <option value="injured">Injured</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="healthChart" aria-label="Health status distribution"></canvas>
+                        </div>
+                        <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
                     </div>
                 </div>
             </div>
@@ -319,6 +400,12 @@
 
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        // Expose server-side dashboard data to client-side scripts
+        window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Coach Dashboard JavaScript -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>

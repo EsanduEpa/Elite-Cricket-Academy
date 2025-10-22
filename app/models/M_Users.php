@@ -438,19 +438,13 @@ class M_Users {
                                 tp.Experience as TrainerExperience, tp.Certifications as TrainerCertifications,
                                 
                                 -- Shop Employee Profile fields
-                                sep.Department as ShopDepartment, sep.HireDate as ShopHireDate,
-                                
-                                -- Admin Profile fields
-                                ap.AdminLevel, ap.Department as AdminDepartment, ap.AccessPermissions,
-                                ap.LastLoginIP, ap.AccountLocked, ap.LockoutExpiry, ap.TwoFactorEnabled,
-                                ap.SecurityClearance, ap.HireDate as AdminHireDate, ap.SessionTimeout
+                                sep.Department as ShopDepartment, sep.HireDate as ShopHireDate
                                 
                          FROM User u 
                          LEFT JOIN PlayerProfile pp ON u.UserID = pp.PlayerID 
                          LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID
                          LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID
                          LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID
-                         LEFT JOIN AdminProfile ap ON u.UserID = ap.AdminID
                          WHERE u.UserID = :user_id');
         
         $this->db->bind(':user_id', $userId);
@@ -569,6 +563,94 @@ class M_Users {
         $this->db->bind(':security_clearance', $data['security_clearance'] ?? 'Level1');
         
         return $this->db->execute();
+    }
+
+    // Get user by username and email (for password reset)
+    public function getUserByUsernameAndEmail($username, $email) {
+        $this->db->query('SELECT * FROM User WHERE Username = :username AND Email = :email');
+        $this->db->bind(':username', $username);
+        $this->db->bind(':email', $email);
+
+        $row = $this->db->single();
+
+        if($this->db->rowCount() > 0) {
+            return $row;
+        } else {
+            return false;
+        }
+    }
+
+    // Update user password
+    public function updatePassword($userId, $hashedPassword) {
+        $this->db->query('UPDATE User SET PasswordHash = :password WHERE UserID = :user_id');
+        $this->db->bind(':user_id', $userId);
+        $this->db->bind(':password', $hashedPassword);
+
+        if($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Create staff member (Admin, Coach, Trainer, ShopEmployee)
+    public function createStaff($data) {
+        $this->db->query('INSERT INTO User (
+            Name, 
+            DateOfBirth, 
+            PhoneNumber, 
+            Email, 
+            Address, 
+            School, 
+            Role, 
+            Username, 
+            PasswordHash, 
+            DateJoined, 
+            Status,
+            CreatedBy,
+            Notes
+        ) VALUES (
+            :name, 
+            :date_of_birth, 
+            :phone_number, 
+            :email, 
+            :address, 
+            :school, 
+            :role, 
+            :username, 
+            :password_hash, 
+            NOW(), 
+            :status,
+            :created_by,
+            :notes
+        )');
+        
+        // Bind values
+        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':date_of_birth', $data['dateOfBirth']);
+        $this->db->bind(':phone_number', $data['phone']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':address', $data['address']);
+        $this->db->bind(':school', $data['school'] ?? null);
+        $this->db->bind(':role', $data['role']);
+        $this->db->bind(':username', $data['username']);
+        $this->db->bind(':password_hash', $data['passwordHash']);
+        $this->db->bind(':status', $data['status'] ?? 'active');
+        $this->db->bind(':created_by', $data['createdBy'] ?? null);
+        $this->db->bind(':notes', $data['notes'] ?? null);
+
+        // Execute
+        try {
+            if($this->db->execute()) {
+                return $this->db->lastInsertId();
+            } else {
+                error_log("Database execution failed during staff creation");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Database error during staff creation: " . $e->getMessage());
+            return false;
+        }
     }
 }
 ?> 

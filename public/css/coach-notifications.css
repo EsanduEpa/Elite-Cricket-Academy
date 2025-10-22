@@ -1,0 +1,430 @@
+/* Coach Notifications Page Styles */
+
+.notifications-content {
+    padding: 2rem;
+}
+
+/* Notification Filters */
+.notification-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #e0e0e0;
+    background: white;
+    color: #7f8c8d;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-tab:hover {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.filter-tab.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.tab-count {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Notifications List */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    border-left: 4px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.notification-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateX(4px);
+}
+
+.notification-card.unread {
+    background: #f8f9fa;
+    border-left-color: #3498db;
+}
+
+.notification-card.high-priority {
+    border-left-color: #e74c3c;
+}
+
+.notification-card.sessions {
+    border-left-color: #3498db;
+}
+
+.notification-card.injuries {
+    border-left-color: #e74c3c;
+}
+
+.notification-card.tournaments {
+    border-left-color: #f39c12;
+}
+
+.notification-card.messages {
+    border-left-color: #9b59b6;
+}
+
+.notification-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.notification-icon.sessions {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.notification-icon.injuries {
+    background: #ffebee;
+    color: #e74c3c;
+}
+
+.notification-icon.tournaments {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.notification-icon.messages {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.notification-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.notification-time {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    white-space: nowrap;
+}
+
+.notification-message {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+.notification-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.notification-type-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.notification-type-badge.sessions {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.notification-type-badge.injuries {
+    background: #ffebee;
+    color: #e74c3c;
+}
+
+.notification-type-badge.tournaments {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.notification-type-badge.messages {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.priority-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #ffebee;
+    color: #e74c3c;
+}
+
+.notification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-mark-read,
+.btn-delete-notification {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-mark-read {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.btn-mark-read:hover {
+    background: #2e7d32;
+    color: white;
+}
+
+.btn-delete-notification {
+    background: #ffebee;
+    color: #e74c3c;
+}
+
+.btn-delete-notification:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.unread-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12px;
+    height: 12px;
+    background: #3498db;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Empty State */
+.empty-notifications {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.empty-notifications i {
+    font-size: 5rem;
+    color: #bdc3c7;
+    margin-bottom: 1.5rem;
+}
+
+.empty-notifications h3 {
+    font-size: 1.5rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.empty-notifications p {
+    color: #95a5a6;
+}
+
+/* Notification Details Modal */
+.notification-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.notification-details-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border-radius: 8px;
+}
+
+.notification-icon-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: rgba(255,255,255,0.2);
+}
+
+.notification-details-info {
+    flex: 1;
+}
+
+.notification-timestamp {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.notification-details-body {
+    padding: 1rem;
+    line-height: 1.8;
+    color: #2c3e50;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid #ecf0f1;
+}
+
+/* Notification Badge in Sidebar */
+.notification-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+}
+
+.notification-count {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-secondary {
+    padding: 0.6rem 1.2rem;
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: #d5dbdb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .notification-card {
+        flex-direction: column;
+    }
+    
+    .notification-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+    
+    .unread-indicator {
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+    
+    .filter-tabs {
+        width: 100%;
+    }
+    
+    .filter-tab {
+        flex: 1;
+        justify-content: center;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .tab-count {
+        display: none;
+    }
+}

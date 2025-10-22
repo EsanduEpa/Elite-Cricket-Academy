@@ -1,0 +1,995 @@
+/* ================================================
+   SESSION MANAGEMENT - COACH DASHBOARD THEME
+   Consistent with Coach Dashboard Blue Theme
+   ================================================ */
+
+/* Import Common Sidebar Styles */
+@import url('../common/sidebar.css');
+
+/* Use Coach Dashboard Variables */
+:root {
+    /* Primary Blue Theme - Matching Coach Dashboard */
+    --primary-color: #4A90E2;
+    --primary-dark: #357ABD;
+    --primary-light: #5BA0F2;
+    
+    /* Supporting Colors */
+    --secondary-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    
+    /* Backgrounds - Matching Glassmorphism */
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.25);
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    /* Text Colors */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    
+    /* Border and Shadows */
+    --border-color: rgba(255, 255, 255, 0.18);
+    --shadow-sm: 0 2px 8px rgba(31, 38, 135, 0.15);
+    --shadow-md: 0 8px 32px rgba(31, 38, 135, 0.37);
+    --shadow-lg: 0 15px 40px rgba(31, 38, 135, 0.5);
+    
+    /* Border Radius */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 20px;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Header Actions Buttons */
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+    background: white;
+    color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Statistics Cards - Glassmorphism Style */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-icon.blue { 
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); 
+    color: white; 
+}
+
+.stat-icon.green { 
+    background: linear-gradient(135deg, var(--secondary-color), #059669); 
+    color: white; 
+}
+
+.stat-icon.orange { 
+    background: linear-gradient(135deg, var(--warning-color), #d97706); 
+    color: white; 
+}
+
+.stat-icon.purple { 
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed); 
+    color: white; 
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Filters Section - Glassmorphism */
+.filters-section {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-primary);
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* View Tabs */
+.view-tabs {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    background: rgba(74, 144, 226, 0.1);
+    color: var(--primary-color);
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* ================================================
+   CUSTOM CALENDAR STYLES - GLASSMORPHISM
+   ================================================ */
+
+.calendar-container {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 24px;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.calendar-nav button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    color: var(--primary-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-nav button:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 200px;
+    text-align: center;
+}
+
+.calendar-view-switcher {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.view-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all var(--transition-base);
+}
+
+.view-btn.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Month View Calendar Grid */
+.calendar-month {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.calendar-day-header {
+    background: rgba(74, 144, 226, 0.15);
+    backdrop-filter: blur(5px);
+    padding: 16px 8px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
+    min-height: 120px;
+    padding: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.calendar-day:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: scale(1.02);
+}
+
+.calendar-day.other-month {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-muted);
+}
+
+.calendar-day.today {
+    background: rgba(74, 144, 226, 0.15);
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.calendar-day.has-sessions {
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.calendar-day.other-month .day-number {
+    color: var(--text-muted);
+}
+
+.calendar-day.today .day-number {
+    background: var(--primary-color);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Session Events on Calendar */
+.calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.calendar-event {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-event:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.calendar-event.coaching {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.calendar-event.physical-training {
+    background: linear-gradient(135deg, var(--secondary-color), #059669);
+}
+
+.event-time {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* Week View */
+.calendar-week {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    gap: 1px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.week-time-label {
+    background: rgba(74, 144, 226, 0.15);
+    backdrop-filter: blur(5px);
+    padding: 16px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-right: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.week-day-column {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
+    min-height: 600px;
+    position: relative;
+}
+
+.week-day-header {
+    background: rgba(74, 144, 226, 0.15);
+    backdrop-filter: blur(5px);
+    padding: 12px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--primary-color);
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+/* Day View */
+.calendar-day-view {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.day-view-timeline {
+    background: rgba(74, 144, 226, 0.15);
+    backdrop-filter: blur(5px);
+    border-right: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.day-view-content {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
+    min-height: 800px;
+    position: relative;
+}
+
+.timeline-slot {
+    height: 60px;
+    padding: 8px;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* List View */
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.list-session-card {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+}
+
+.list-session-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.session-date-badge {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    min-width: 80px;
+}
+
+.session-day {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.session-month {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.session-details {
+    flex: 1;
+}
+
+.session-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.session-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.meta-item i {
+    color: var(--primary-color);
+}
+
+.session-type-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.session-type-badge.coaching {
+    background: rgba(74, 144, 226, 0.15);
+    color: var(--primary-color);
+}
+
+.session-type-badge.physical-training {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--secondary-color);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: rgba(74, 144, 226, 0.3);
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-5%, -5%) scale(1.1); }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .calendar-month {
+        font-size: 12px;
+    }
+    
+    .calendar-day {
+        min-height: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 16px;
+    }
+    
+    .coach-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .coach-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .calendar-month {
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        min-height: 80px;
+        padding: 4px;
+    }
+    
+    .day-number {
+        font-size: 12px;
+    }
+    
+    .calendar-event {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+    
+    .list-session-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* ================================================
+   SESSIONS TABLE
+   ================================================ */
+
+.sessions-table-section {
+    margin-top: 40px;
+}
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header h2 i {
+    color: var(--primary-color);
+}
+
+.section-header p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.table-container {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    overflow: hidden;
+}
+
+.sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sessions-table thead {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(53, 122, 189, 0.1));
+}
+
+.sessions-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.sessions-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.sessions-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.05);
+    transform: translateX(4px);
+}
+
+.sessions-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #333;
+}
+
+.table-date {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.table-session-name {
+    font-weight: 600;
+}
+
+.table-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.table-badge.coaching {
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+}
+
+.table-badge.physical-training {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.table-badge.group {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+}
+
+.table-badge.private {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.table-time {
+    color: #666;
+    font-weight: 500;
+}
+
+.table-location {
+    color: #666;
+}
+
+.table-participants {
+    font-weight: 600;
+}
+
+.table-participants .current {
+    color: var(--primary-color);
+}
+
+.table-participants .max {
+    color: #999;
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.action-btn-edit {
+    background: rgba(74, 144, 226, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.action-btn-edit:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.action-btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.action-btn-delete:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive Table */
+@media (max-width: 1024px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .sessions-table {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sessions-table-section {
+        margin-top: 24px;
+    }
+    
+    .section-header h2 {
+        font-size: 20px;
+    }
+    
+    .sessions-table th,
+    .sessions-table td {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* ================================================
+   NOTIFICATION ANIMATIONS
+   ================================================ */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.notification {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification::before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+
+.notification-success::before {
+    content: '\f058'; /* check-circle */
+}
+
+.notification-error::before {
+    content: '\f06a'; /* exclamation-circle */
+}
+
+.notification-info::before {
+    content: '\f05a'; /* info-circle */
+}
+

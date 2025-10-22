@@ -714,32 +714,28 @@ function validateWizardStep(step) {
 
 function updateReviewSection() {
     // Personal Information
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
+    const fullName = document.getElementById('fullName').value;
     const dob = document.getElementById('dateOfBirth').value;
-    const nationality = document.getElementById('nationality').value;
+    const school = document.getElementById('school').value;
     
-    document.getElementById('reviewFullName').textContent = `${firstName} ${lastName}` || '-';
+    document.getElementById('reviewFullName').textContent = fullName || '-';
     document.getElementById('reviewDOB').textContent = dob ? new Date(dob).toLocaleDateString() : '-';
-    document.getElementById('reviewNationality').textContent = nationality || '-';
+    document.getElementById('reviewSchool').textContent = school || '-';
     
     // Contact Information
     document.getElementById('reviewEmail').textContent = document.getElementById('email').value || '-';
     document.getElementById('reviewPhone').textContent = document.getElementById('phone').value || '-';
-    document.getElementById('reviewEmergency').textContent = document.getElementById('emergencyContact').value || '-';
     document.getElementById('reviewAddress').textContent = document.getElementById('address').value || '-';
     
-    // Role & Position
+    // Login Information
+    document.getElementById('reviewUsername').textContent = document.getElementById('username').value || '-';
+    
+    // Role & Notes
     const roleSelect = document.getElementById('role');
     const roleText = roleSelect.options[roleSelect.selectedIndex]?.text || '-';
-    const joinDate = document.getElementById('joinDate').value;
-    const experience = document.getElementById('experience').value;
     
     document.getElementById('reviewRole').textContent = roleText;
-    document.getElementById('reviewJoinDate').textContent = joinDate ? new Date(joinDate).toLocaleDateString() : '-';
-    document.getElementById('reviewSpecialization').textContent = document.getElementById('specialization').value || '-';
-    document.getElementById('reviewExperience').textContent = experience ? `${experience} years` : '-';
-    document.getElementById('reviewQualifications').textContent = document.getElementById('qualifications').value || '-';
+    document.getElementById('reviewNotes').textContent = document.getElementById('notes').value || '-';
 }
 
 // Handle Add Staff
@@ -747,35 +743,120 @@ function handleAddStaff(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const newStaff = {
-        id: staffMembers.length + 1,
-        firstName: formData.get('firstName'),
-        lastName: formData.get('lastName'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        role: formData.get('role'),
-        specialization: formData.get('specialization') || 'General',
-        joinDate: formData.get('joinDate'),
-        status: 'active',
-        address: formData.get('address') || 'Not provided',
-        dateOfBirth: formData.get('dateOfBirth') || null,
-        nationality: formData.get('nationality') || 'Not specified',
-        emergencyContact: formData.get('emergencyContact') || null,
-        qualifications: formData.get('qualifications') || null,
-        experience: formData.get('experience') || null
-    };
     
-    staffMembers.push(newStaff);
-    filteredStaff = [...staffMembers];
+    // Debug: Log form data
+    console.log('=== Submitting Staff Data ===');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
     
-    // Show success message
-    showNotification('Staff member added successfully!', 'success', formData.get('sendEmail'));
+    // Construct URL - using URLROOT from config
+    const url = '/Elite/admin/add_staff';
+    console.log('Request URL:', url);
     
-    // Close modal and refresh table
-    document.getElementById('addStaffModal').classList.remove('active');
-    goToWizardStep(1); // Reset wizard
-    renderStaffTable();
-    updateStats();
+    // Show loading state
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.textContent : '';
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adding Staff...';
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('=== Response Received ===');
+        console.log('  Status:', response.status, response.statusText);
+        console.log('  Content-Type:', response.headers.get("content-type"));
+        
+        // Check response status
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Check content type
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            // Response is not JSON - log it and show error
+            return response.text().then(text => {
+                console.error('=== Non-JSON Response ===');
+                console.error('Raw response (first 1000 chars):', text.substring(0, 1000));
+                console.error('Full response logged above ^');
+                throw new Error('Server returned HTML instead of JSON. Check PHP errors.');
+            });
+        }
+        
+        // Parse JSON
+        return response.json();
+    })
+    .then(data => {
+        console.log('=== Parsed JSON Response ===');
+        console.log(data);
+        
+        // Re-enable button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+        
+        // Check for success
+        if (data.success || data.status === 'success') {
+            console.log('✅ Staff member added successfully!');
+            
+            // Add to local array for immediate display
+            const newStaff = {
+                id: data.userId || data.data?.id,
+                fullName: formData.get('fullName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                role: formData.get('role'),
+                username: formData.get('username'),
+                password: 'staff123456', // Default password
+                status: 'active',
+                address: formData.get('address') || 'Not provided',
+                dateOfBirth: formData.get('dateOfBirth') || null,
+                school: formData.get('school') || 'Not specified',
+                notes: formData.get('notes') || null
+            };
+            
+            staffMembers.push(newStaff);
+            filteredStaff = [...staffMembers];
+            
+            // Show success message
+            showNotification(data.message || 'Staff member added successfully!', 'success');
+            
+            // Close modal and refresh table
+            document.getElementById('addStaffModal').classList.remove('active');
+            goToWizardStep(1); // Reset wizard
+            e.target.reset(); // Clear form
+            renderStaffTable();
+            updateStats();
+        } else {
+            // Show error message from server
+            console.warn('⚠️ Server returned error:', data.message);
+            showNotification(data.message || 'Failed to add staff member', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('=== Error Adding Staff ===');
+        console.error('Error type:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Full error:', error);
+        
+        // Re-enable button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+        
+        // Show user-friendly error
+        const errorMessage = error.message.includes('JSON') 
+            ? 'Server error: Please check the console for details.'
+            : error.message;
+        showNotification(`Error: ${errorMessage}`, 'error');
+    });
 }
 
 // Handle Edit Staff

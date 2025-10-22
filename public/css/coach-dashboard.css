@@ -1,8 +1,68 @@
-/* Coach Dashboard Styles - Elite Cricket Academy */
-/* Uses Universal Sidebar Design - No Unique Branding Colors */
+/* ====================================================================
+   COACH DASHBOARD - ELITE CRICKET ACADEMY
+   Consistent with Admin Dashboard Theme - Blue Color Scheme
+   ==================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('common/sidebar.css');
 
-/* Ensure header is fixed */
+/* ============ ROOT VARIABLES - MATCHING ADMIN THEME ============ */
+:root {
+    /* Primary Blue Theme - Consistent with Admin */
+    --primary-color: #4A90E2;
+    --primary-dark: #357ABD;
+    --primary-light: #5BA0F2;
+    
+    /* Supporting Colors */
+    --secondary-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    
+    /* Backgrounds - Matching Admin Glassmorphism */
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.25);
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    /* Text Colors */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    
+    /* Border and Shadows - Matching Admin */
+    --border-color: rgba(255, 255, 255, 0.18);
+    --shadow-sm: 0 2px 8px rgba(31, 38, 135, 0.15);
+    --shadow-md: 0 8px 32px rgba(31, 38, 135, 0.37);
+    --shadow-lg: 0 15px 40px rgba(31, 38, 135, 0.5);
+    
+    /* Border Radius */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 20px;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ============ BASE LAYOUT ============ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Arial', sans-serif;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .header {
     position: fixed;
     top: 0;
@@ -10,11 +70,12 @@
     right: 0;
     z-index: 1001;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Ensure header navigation stays horizontal */
 .header .nav-menu {
     display: flex !important;
     flex-direction: row !important;
@@ -27,61 +88,93 @@
     width: auto !important;
 }
 
-/* Base Layout */
 .coach-layout {
     display: flex;
     min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    font-family: 'Arial', sans-serif;
-    padding-top: 80px; /* Account for fixed header */
+    padding-top: 80px;
 }
 
-/* Coach-specific sidebar customizations can be added here */
-/* Base sidebar styles are imported from common/sidebar.css */
-
-/* Main Content Area */
 .main-content {
     flex: 1;
     margin-left: 280px;
     padding: 30px;
-    background: transparent;
     min-height: calc(100vh - 80px);
-    transition: margin-left 0.3s ease;
+    transition: margin-left var(--transition-base);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
-/* Dashboard Header */
+
+
+/* ============ DASHBOARD HEADER - BLUE GRADIENT ============ */
 .dashboard-header {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-lg);
+    color: white;
+    position: relative;
+    overflow: hidden;
 }
 
-.dashboard-header h1 {
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: pulse 15s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left h1 {
     font-size: 32px;
     font-weight: 700;
-    color: #333;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 8px;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.dashboard-header p {
-    color: #666;
+.header-left p {
     font-size: 16px;
-    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
 }
 
-/* Coach Stats Overview */
-.coach-stats {
+.coach-type-badge {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ============ QUICK STATS - UNIFIED BLUE THEME ============ */
+.quick-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
 .stat-card {
@@ -89,280 +182,828 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 25px;
-    text-align: center;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
 }
 
 .stat-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(31, 38, 135, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(74, 144, 226, 0.4);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 }
 
 .stat-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: #4A90E2;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
 
 .stat-value {
     font-size: 36px;
-    font-weight: bold;
-    color: #333;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
     margin-bottom: 8px;
 }
 
 .stat-label {
-    color: #666;
     font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============ CONTENT GRID ============ */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* ============ TODAY'S SESSIONS - BLUE THEME ============ */
+.todays-sessions {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-md);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h2 i {
+    color: var(--primary-color);
+    font-size: 22px;
+}
+
+.section-header.full-width {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.section-header p.muted {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+.session-summary {
+    display: flex;
+    gap: 16px;
+}
+
+.session-summary span {
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.private-count {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.normal-count {
+    background: linear-gradient(135deg, var(--secondary-color), #14b894);
+    color: white;
+}
+
+.sessions-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.session-timeline-item {
+    display: flex;
+    gap: 20px;
+    position: relative;
+    padding-left: 40px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 16px;
+    top: 24px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+.session-timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 40px;
+    width: 2px;
+    height: calc(100% + 16px);
+    background: linear-gradient(180deg, var(--primary-light), transparent);
+}
+
+.session-card {
+    flex: 1;
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    border-left: 4px solid transparent;
+}
+
+.session-card:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.session-timeline-item.private .session-card {
+    border-left-color: var(--primary-color);
+}
+
+.session-timeline-item.normal .session-card {
+    border-left-color: var(--secondary-color);
+}
+
+.session-time {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.session-content h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.session-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.type-badge.private {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.type-badge.normal {
+    background: linear-gradient(135deg, var(--secondary-color), #14b894);
+    color: white;
+}
+
+.facility {
+    color: var(--text-secondary);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.equipment-list {
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.no-sessions-today {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.no-sessions-today i {
+    font-size: 48px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.no-sessions-today p {
+    font-size: 16px;
+}
+
+/* ============ SECONDARY CONTENT GRID ============ */
+.secondary-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* ============ CALENDAR SECTION ============ */
+.calendar-section {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+}
+
+#trainingCalendar {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    min-height: 500px;
+}
+
+/* ============ BOOKINGS SECTION ============ */
+.bookings-section {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-controls select {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.filter-controls select:hover {
+    border-color: var(--primary-color);
+}
+
+.bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.bookings-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bookings-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.bookings-list::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+.booking-item {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    border-left: 4px solid transparent;
+}
+
+.booking-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.booking-item.private-session {
+    border-left-color: var(--primary-color);
+}
+
+.booking-item.normal-session {
+    border-left-color: var(--secondary-color);
+}
+
+.booking-time {
+    text-align: center;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    min-width: 80px;
+}
+
+.booking-time .time {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.booking-time .date {
+    font-size: 12px;
+    color: var(--text-secondary);
     font-weight: 600;
     text-transform: uppercase;
 }
 
-/* Students Management */
-.students-section {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+.booking-details {
+    flex: 1;
 }
 
-.students-section h3 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 20px;
+.booking-details h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.session-info, .facility-info {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.session-info span, .facility-info span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.session-type {
+    padding: 4px 10px;
+    border-radius: 50px;
     font-weight: 600;
 }
 
-.students-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+.session-type.private {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
 }
 
-.student-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 15px;
+.session-type.normal {
+    background: linear-gradient(135deg, var(--secondary-color), #14b894);
+    color: white;
+}
+
+.booking-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.no-bookings {
     text-align: center;
-    transition: all 0.3s ease;
+    padding: 60px 20px;
+    color: var(--text-secondary);
 }
 
-.student-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+.no-bookings i {
+    font-size: 48px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
 }
 
-.student-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-    color: white;
+.no-bookings h3 {
     font-size: 18px;
+    margin-bottom: 8px;
 }
 
-.student-name {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 5px;
-}
-
-.student-level {
-    color: #666;
-    font-size: 12px;
-}
-
-/* Schedule Calendar */
-.schedule-section {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-}
-
-.schedule-section h3 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.calendar-container {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 20px;
-    min-height: 400px;
-}
-
-/* Training Plans */
-.training-plans {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-}
-
-.training-plans h3 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.plan-item {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-}
-
-.plan-item:hover {
-    background: rgba(74, 144, 226, 0.1);
-    transform: translateX(5px);
-}
-
-.plan-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin-right: 15px;
-}
-
-.plan-content h4 {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 3px;
-}
-
-.plan-content p {
-    color: #666;
+.no-bookings p {
     font-size: 14px;
 }
 
-/* Quick Actions */
-.quick-actions {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+
+/* ============ ANALYTICS SECTION ============ */
+.analytics-section {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-lg);
 }
 
-.quick-actions h3 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.action-buttons {
+.analytics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 24px;
+}
+
+.analytics-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+}
+
+.analytics-card:hover {
+    box-shadow: var(--shadow-xl);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.controls select,
+.controls button {
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.controls select:hover,
+.controls button:hover {
+    border-color: var(--primary-color);
+}
+
+.controls button {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.controls button:hover {
+    background: var(--primary-dark);
+}
+
+.card-body {
+    position: relative;
+}
+
+.chart-container {
+    width: 100%;
+    height: 300px;
+    position: relative;
+}
+
+.chart-container canvas {
+    max-height: 300px;
+}
+
+.card-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.muted {
+    color: var(--text-muted);
+}
+
+/* ============ BOTTOM SECTION ============ */
+.bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.quick-actions-card,
+.player-summary-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
 }
 
 .action-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 15px 20px;
-    background: rgba(74, 144, 226, 0.1);
-    color: #4A90E2;
-    text-decoration: none;
-    border-radius: 25px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid rgba(74, 144, 226, 0.3);
-    backdrop-filter: blur(5px);
     gap: 10px;
-}
-
-.action-btn:hover {
-    background: #4A90E2;
-    color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--shadow-sm);
 }
 
 .action-btn i {
     font-size: 18px;
 }
 
-/* Responsive Design */
+.action-btn.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.action-btn.secondary {
+    background: linear-gradient(135deg, #357ABD, #4A90E2);
+    color: white;
+}
+
+.action-btn.success {
+    background: linear-gradient(135deg, var(--secondary-color), #14b894);
+    color: white;
+}
+
+.action-btn.warning {
+    background: linear-gradient(135deg, var(--warning-color), #fbbf24);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Player Stats */
+.player-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.player-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+}
+
+.player-stat-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+}
+
+.player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.player-info {
+    flex: 1;
+}
+
+.player-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.player-info .position {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.performance-rating {
+    flex-shrink: 0;
+}
+
+.rating-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* ============ RESPONSIVE DESIGN ============ */
+@media (max-width: 1400px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1200px) {
+    .secondary-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bottom-section {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 1024px) {
     .main-content {
         margin-left: 0;
-        padding: 20px;
+        padding: 24px;
     }
     
-    .coach-stats {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-    
-    .action-buttons {
-        grid-template-columns: 1fr;
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 768px) {
     .main-content {
-        padding: 15px;
+        padding: 16px;
     }
     
     .dashboard-header {
-        padding: 20px;
+        padding: 24px;
+        flex-direction: column;
+        align-items: flex-start;
     }
     
-    .dashboard-header h1 {
+    .header-content h1 {
         font-size: 24px;
     }
     
-    .coach-stats {
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .quick-stats {
         grid-template-columns: 1fr;
     }
     
-    .students-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .session-timeline-item {
+        padding-left: 32px;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        height: 250px;
     }
 }
 
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.6s ease-out;
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .session-summary {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .booking-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .booking-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
 
+/* ============ ANIMATIONS ============ */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -372,4 +1013,78 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+/* ============ UTILITY CLASSES ============ */
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mt-16 {
+    margin-top: 16px;
+}
+
+.mb-16 {
+    margin-bottom: 16px;
+}
+
+.p-16 {
+    padding: 16px;
+}
+
+.btn.small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* ============ SCROLLBAR STYLING ============ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* ============ DARK MODE SUPPORT (OPTIONAL) ============ */
+@media (prefers-color-scheme: dark) {
+    /* Add dark mode styles if needed */
 }

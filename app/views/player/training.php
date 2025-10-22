@@ -278,6 +278,36 @@
                 </div>
             </div>
 
+            <!-- Training & Match Calendar -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Training & Match Calendar</h3>
+                    <div class="calendar-controls">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="month"><i class="fas fa-calendar"></i> Month</button>
+                            <button class="view-btn" data-view="week"><i class="fas fa-calendar-week"></i> Week</button>
+                            <button class="view-btn" data-view="day"><i class="fas fa-calendar-day"></i> Day</button>
+                        </div>
+                        <div class="calendar-nav">
+                            <button id="todayBtn" class="calendar-btn today-btn" title="Go to Today"><i class="fas fa-calendar-check"></i></button>
+                            <button id="prevPeriod" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
+                            <span id="currentPeriod"></span>
+                            <button id="nextPeriod" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div id="calendarContent" class="calendar-content">
+                    <div id="monthView" class="calendar-grid"></div>
+                    <div id="weekView" class="week-view" style="display: none;"></div>
+                    <div id="dayView" class="day-view" style="display: none;"></div>
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-dot training"></span> Training Sessions</div>
+                    <div class="legend-item"><span class="legend-dot match"></span> Matches</div>
+                    <div class="legend-item"><span class="legend-dot fitness"></span> Fitness</div>
+                </div>
+            </div>
+
             <!-- Quick Actions -->
             <div class="quick-actions">
                 <h3>Training Actions</h3>

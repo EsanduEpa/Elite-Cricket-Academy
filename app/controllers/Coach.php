@@ -11,121 +11,73 @@ class Coach extends Controller {
     }
     
     public function dashboard() {
-        // Hardcoded sample data for coach dashboard demonstration
+        $coachId = $_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        
+        // Get coach's sessions
+        $allSessions = $sessionModel->getSessionsByCoach($coachId);
+        
+        // Filter today's sessions
+        $today = date('Y-m-d');
+        $todaySessions = array_filter($allSessions, function($session) use ($today) {
+            return $session->Date == $today && $session->Status == 'active';
+        });
+        
+        // Filter upcoming sessions (next 7 days)
+        $nextWeek = date('Y-m-d', strtotime('+7 days'));
+        $upcomingSessions = array_filter($allSessions, function($session) use ($today, $nextWeek) {
+            return $session->Date >= $today && $session->Date <= $nextWeek && $session->Status == 'active';
+        });
+        
+        // Sort upcoming sessions by date and time
+        usort($upcomingSessions, function($a, $b) {
+            $dateCompare = strcmp($a->Date, $b->Date);
+            if ($dateCompare !== 0) return $dateCompare;
+            return strcmp($a->StartTime, $b->StartTime);
+        });
+        
+        // Format upcoming bookings for the view
+        $upcomingBookings = array_map(function($session) use ($sessionModel) {
+            $participants = $sessionModel->getSessionParticipants($session->SessionID);
+            $participantNames = array_map(function($p) { return $p->PlayerName; }, $participants);
+            
+            return [
+                'id' => $session->SessionID,
+                'player_name' => !empty($participantNames) ? implode(', ', $participantNames) : 'No participants yet',
+                'session_name' => $session->Name,
+                'session_type' => strtolower($session->SessionMode),
+                'date' => $session->Date,
+                'time' => date('H:i', strtotime($session->StartTime)),
+                'start_time' => $session->StartTime,
+                'end_time' => $session->EndTime,
+                'duration' => $this->calculateDuration($session->StartTime, $session->EndTime),
+                'facility' => $session->Location ?? 'TBA',
+                'equipment' => '', // No equipment field in current schema
+                'max_participants' => $session->MaxParticipants,
+                'current_participants' => count($participants),
+                'price' => $session->PricePerSession
+            ];
+        }, array_slice($upcomingSessions, 0, 5));
+        
+        // Calculate statistics
+        $totalSessions = count($allSessions);
+        $todaySessionsCount = count($todaySessions);
+        $privateSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Private'; }));
+        $groupSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Group'; }));
+        
         $data = [
             'title' => 'Coach Dashboard - Elite Cricket Academy',
-            'coachName' => 'Michael Johnson',
-            'coachType' => 'Batting Coach', // or 'Bowling Coach'
-            'coachId' => 'COACH_001',
-            'totalSessions' => 15,
-            'todaySessions' => 3,
-            'privateSessions' => 2,
-            'normalSessions' => 1,
-            'upcomingBookings' => [
-                [
-                    'id' => 1,
-                    'player_name' => 'Alex Smith',
-                    'session_type' => 'private',
-                    'date' => '2025-09-06',
-                    'time' => '09:00',
-                    'duration' => '2 hours',
-                    'facility' => 'Practice Net 1',
-                    'equipment' => 'Bowling Machine, Side Wickets'
-                ],
-                [
-                    'id' => 2,
-                    'player_name' => 'Sarah Wilson',
-                    'session_type' => 'private',
-                    'date' => '2025-09-06',
-                    'time' => '11:30',
-                    'duration' => '2 hours',
-                    'facility' => 'Practice Net 2',
-                    'equipment' => 'Batting Tee, Cones'
-                ],
-                [
-                    'id' => 3,
-                    'player_name' => 'Group Training (U-16)',
-                    'session_type' => 'normal',
-                    'date' => '2025-09-06',
-                    'time' => '15:00',
-                    'duration' => '2 hours',
-                    'facility' => 'Main Ground',
-                    'equipment' => 'Bowling Machine, Wickets'
-                ],
-                [
-                    'id' => 4,
-                    'player_name' => 'Emma Davis',
-                    'session_type' => 'private',
-                    'date' => '2025-09-07',
-                    'time' => '08:00',
-                    'duration' => '2 hours',
-                    'facility' => 'Practice Net 3',
-                    'equipment' => 'Side Wickets, Bowling Machine'
-                ],
-                [
-                    'id' => 5,
-                    'player_name' => 'Junior Squad Training',
-                    'session_type' => 'normal',
-                    'date' => '2025-09-07',
-                    'time' => '16:00',
-                    'duration' => '2 hours',
-                    'facility' => 'Main Ground',
-                    'equipment' => 'Full Training Setup'
-                ]
-            ],
-            'weeklySchedule' => [
-                [
-                    'day' => 'Monday',
-                    'sessions' => [
-                        ['time' => '09:00-11:00', 'type' => 'Private - John Doe', 'facility' => 'Net 1'],
-                        ['time' => '15:00-17:00', 'type' => 'Group Training', 'facility' => 'Main Ground']
-                    ]
-                ],
-                [
-                    'day' => 'Tuesday',
-                    'sessions' => [
-                        ['time' => '08:00-10:00', 'type' => 'Private - Lisa Chen', 'facility' => 'Net 2'],
-                        ['time' => '11:00-13:00', 'type' => 'Private - Mark Wilson', 'facility' => 'Net 1'],
-                        ['time' => '16:00-18:00', 'type' => 'Squad Training', 'facility' => 'Main Ground']
-                    ]
-                ],
-                [
-                    'day' => 'Wednesday',
-                    'sessions' => [
-                        ['time' => '09:30-11:30', 'type' => 'Private - Emma Taylor', 'facility' => 'Net 3'],
-                        ['time' => '14:00-16:00', 'type' => 'Technique Session', 'facility' => 'Indoor Nets']
-                    ]
-                ]
-            ],
-            'playerProfiles' => [
-                [
-                    'id' => 1,
-                    'name' => 'Alex Smith',
-                    'age' => 16,
-                    'position' => 'Batsman',
-                    'sessions_completed' => 24,
-                    'performance_rating' => 8.5,
-                    'last_session' => '2025-09-04'
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Sarah Wilson',
-                    'age' => 14,
-                    'position' => 'All-rounder',
-                    'sessions_completed' => 18,
-                    'performance_rating' => 7.8,
-                    'last_session' => '2025-09-03'
-                ],
-                [
-                    'id' => 3,
-                    'name' => 'Emma Davis',
-                    'age' => 15,
-                    'position' => 'Bowler',
-                    'sessions_completed' => 31,
-                    'performance_rating' => 9.1,
-                    'last_session' => '2025-09-05'
-                ]
-            ],
+            'coachName' => $_SESSION['user_name'] ?? 'Coach',
+            'coachType' => 'Coach',
+            'coachId' => 'COACH_' . str_pad($coachId, 3, '0', STR_PAD_LEFT),
+            'totalSessions' => $totalSessions,
+            'todaySessions' => $todaySessionsCount,
+            'privateSessions' => $privateSessions,
+            'normalSessions' => $groupSessions,
+            'upcomingBookings' => $upcomingBookings,
+            'allSessions' => $allSessions,
+            'weeklySchedule' => $this->generateWeeklySchedule($upcomingSessions),
+            'playerProfiles' => [], // Keep empty for now
             'tournaments' => [
                 [
                     'id' => 1,
@@ -224,6 +176,41 @@ class Coach extends Controller {
         ];
         $this->view('coach/medical', $data);
     }
+    
+    public function health() {
+        $data = [
+            'title' => 'Health & Injury Monitoring - Elite Cricket Academy'
+        ];
+        $this->view('coach/health', $data);
+    }
+    
+    public function notifications() {
+        $data = [
+            'title' => 'Notifications - Elite Cricket Academy'
+        ];
+        $this->view('coach/notifications', $data);
+    }
+    
+    public function communication() {
+        $data = [
+            'title' => 'Communication & Feedback - Elite Cricket Academy'
+        ];
+        $this->view('coach/communication', $data);
+    }
+    
+    public function reports() {
+        $data = [
+            'title' => 'Reports & Analytics - Elite Cricket Academy'
+        ];
+        $this->view('coach/reports', $data);
+    }
+    
+    public function requests() {
+        $data = [
+            'title' => 'Requests & Approvals - Elite Cricket Academy'
+        ];
+        $this->view('coach/requests', $data);
+    }
 
     // Profile Management
     public function profile() {
@@ -318,6 +305,619 @@ class Coach extends Controller {
         } else {
             redirect('coach/profile');
         }
+    }
+
+    // ==================== SESSION MANAGEMENT ====================
+    
+    // Display Sessions & Schedule Management Page
+    public function sessions() {
+        $data = [
+            'title' => 'Session & Schedule Management - Elite Cricket Academy',
+            'coachName' => $_SESSION['user_name'] ?? 'Coach',
+            'coachId' => $_SESSION['user_id'] ?? 1
+        ];
+        
+        $this->view('coach/sessions', $data);
+    }
+
+    // Create New Session (POST from wizard)
+    public function create_session() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Get JSON input from wizard
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // If JSON input exists (from wizard), use it; otherwise fallback to POST
+            if ($input) {
+                // Map wizard fields to model expected format
+                $data = [
+                    'coach_id' => $_SESSION['user_id'] ?? 1,
+                    'session_type' => trim($input['SessionType'] ?? ''),
+                    'session_mode' => trim($input['SessionMode'] ?? 'Group'),
+                    'title' => trim($input['Name'] ?? ''),
+                    'session_date' => trim($input['Date'] ?? ''),
+                    'start_time' => trim($input['StartTime'] ?? ''),
+                    'end_time' => trim($input['EndTime'] ?? ''),
+                    'location' => trim($input['Location'] ?? ''),
+                    'max_participants' => intval($input['MaxParticipants'] ?? 10),
+                    'price' => floatval($input['PricePerSession'] ?? 0.00),
+                    'is_recurring' => filter_var($input['IsRecurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'facility_type' => '',
+                    'facility_number' => 0,
+                    'recurrence_pattern' => 'None',
+                    'recurrence_end' => null,
+                    'selected_players' => []
+                ];
+            } else {
+                // Legacy POST format
+                $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+                
+                $data = [
+                    'coach_id' => $_SESSION['user_id'] ?? 1,
+                    'session_type' => trim($_POST['session_type'] ?? ''),
+                    'session_mode' => trim($_POST['session_mode'] ?? 'Group'),
+                    'title' => trim($_POST['title'] ?? ''),
+                    'description' => trim($_POST['description'] ?? ''),
+                    'facility_type' => trim($_POST['facility_type'] ?? ''),
+                    'facility_number' => intval($_POST['facility_number'] ?? 0),
+                    'session_date' => trim($_POST['session_date'] ?? ''),
+                    'start_time' => trim($_POST['start_time'] ?? ''),
+                    'end_time' => trim($_POST['end_time'] ?? ''),
+                    'max_participants' => intval($_POST['max_participants'] ?? 0),
+                    'price' => floatval($_POST['price'] ?? 0.00),
+                    'is_recurring' => filter_var($_POST['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'recurrence_pattern' => trim($_POST['recurrence_pattern'] ?? 'None'),
+                    'recurrence_end' => trim($_POST['recurrence_end'] ?? null),
+                    'selected_players' => $_POST['selected_players'] ?? []
+                ];
+            }
+            
+            // Validate required fields
+            if (empty($data['session_type']) || empty($data['title']) || 
+                empty($data['session_date']) || empty($data['start_time']) || empty($data['end_time'])) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Please fill in all required fields'
+                ]);
+                return;
+            }
+            
+            // Load model
+            $sessionModel = $this->model('M_Session');
+            
+            // Create session
+            try {
+                $sessionId = $sessionModel->createSession($data);
+                
+                if ($sessionId) {
+                    // Add players to session if any selected
+                    if (!empty($data['selected_players'])) {
+                        foreach ($data['selected_players'] as $playerId) {
+                            $sessionModel->addPlayerToSession($sessionId, $playerId);
+                        }
+                    }
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Session created successfully',
+                        'sessionId' => $sessionId
+                    ]);
+                } else {
+                    // Get database error if available
+                    error_log('Session creation failed. Data: ' . print_r($data, true));
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to create session in database'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log('Session creation exception: ' . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Get Session by ID (JSON)
+    public function get_session($id) {
+        $sessionModel = $this->model('M_Session');
+        $session = $sessionModel->getSessionById($id);
+        
+        if ($session) {
+            // Get participants
+            $participants = $sessionModel->getSessionParticipants($id);
+            $session['participants'] = $participants;
+            
+            echo json_encode([
+                'success' => true,
+                'session' => $session
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Session not found'
+            ]);
+        }
+    }
+
+    // Get Calendar Sessions (JSON for FullCalendar)
+    public function get_calendar_sessions() {
+        $coachId = $_SESSION['user_id'] ?? 1;
+        $start = $_GET['start'] ?? null;
+        $end = $_GET['end'] ?? null;
+        
+        $sessionModel = $this->model('M_Session');
+        $sessions = $sessionModel->getCalendarSessions($coachId, $start, $end);
+        
+        // Format for FullCalendar
+        $events = [];
+        foreach ($sessions as $session) {
+            $color = $this->getSessionColor($session['SessionType']);
+            
+            $events[] = [
+                'id' => $session['SessionID'],
+                'title' => $session['Title'],
+                'start' => $session['SessionDate'] . 'T' . $session['StartTime'],
+                'end' => $session['SessionDate'] . 'T' . $session['EndTime'],
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'extendedProps' => [
+                    'type' => $session['SessionType'],
+                    'facility' => $session['FacilityType'] . ' ' . $session['FacilityNumber'],
+                    'status' => $session['Status'],
+                    'participants' => $session['ParticipantCount'] ?? 0,
+                    'maxParticipants' => $session['MaxParticipants']
+                ]
+            ];
+        }
+        
+        echo json_encode($events);
+    }
+
+    // Get Session Statistics (JSON)
+    public function get_session_stats() {
+        $coachId = $_SESSION['user_id'] ?? 1;
+        $sessionModel = $this->model('M_Session');
+        
+        $stats = [
+            'today' => $sessionModel->getTodaySessions($coachId),
+            'thisWeek' => $sessionModel->getThisWeekSessions($coachId),
+            'total' => $sessionModel->getTotalSessions($coachId),
+            'attendance' => $sessionModel->getAverageAttendance($coachId)
+        ];
+        
+        echo json_encode([
+            'success' => true,
+            'stats' => $stats
+        ]);
+    }
+
+    // Get Filtered Sessions List (JSON)
+    public function get_sessions_list() {
+        header('Content-Type: application/json');
+        
+        $coachId = $_SESSION['user_id'] ?? null;
+        
+        // Debug logging
+        error_log('=== GET SESSIONS LIST DEBUG ===');
+        error_log('Session user_id: ' . ($coachId ?? 'NOT SET'));
+        error_log('Session data: ' . print_r($_SESSION, true));
+        
+        if (!$coachId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'User not logged in',
+                'sessions' => []
+            ]);
+            return;
+        }
+        
+        $filters = [
+            'type' => $_GET['type'] ?? '',
+            'status' => $_GET['status'] ?? '',
+            'dateFrom' => $_GET['dateFrom'] ?? '',
+            'dateTo' => $_GET['dateTo'] ?? '',
+            'search' => $_GET['search'] ?? ''
+        ];
+        
+        error_log('Filters: ' . print_r($filters, true));
+        
+        $sessionModel = $this->model('M_Session');
+        $sessions = $sessionModel->getSessionsByCoach($coachId, $filters);
+        
+        error_log('Found ' . count($sessions) . ' session(s) for coach ID: ' . $coachId);
+        error_log('=== GET SESSIONS LIST END ===');
+        
+        echo json_encode([
+            'success' => true,
+            'sessions' => $sessions,
+            'coachId' => $coachId,
+            'count' => count($sessions)
+        ]);
+    }
+
+    // Update Session
+    public function edit_session($id = null) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            header('Content-Type: application/json');
+            
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!$id) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session ID is required'
+                ]);
+                return;
+            }
+            
+            error_log('=== EDIT SESSION DEBUG START ===');
+            error_log('Session ID: ' . $id);
+            error_log('Input data: ' . print_r($input, true));
+            
+            // Map input data to model format
+            $data = [
+                'session_type' => trim($input['SessionType'] ?? ''),
+                'session_mode' => trim($input['SessionMode'] ?? 'Group'),
+                'title' => trim($input['Name'] ?? ''),
+                'session_date' => trim($input['Date'] ?? ''),
+                'start_time' => trim($input['StartTime'] ?? ''),
+                'end_time' => trim($input['EndTime'] ?? ''),
+                'location' => trim($input['Location'] ?? ''),
+                'max_participants' => intval($input['MaxParticipants'] ?? 10),
+                'price' => floatval($input['PricePerSession'] ?? 0.00),
+                'is_recurring' => filter_var($input['IsRecurring'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'status' => 'active'
+            ];
+            
+            // Validate required fields
+            if (empty($data['session_type']) || empty($data['title']) || 
+                empty($data['session_date']) || empty($data['start_time']) || empty($data['end_time'])) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Please fill in all required fields'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (validation failed) ===');
+                return;
+            }
+            
+            $sessionModel = $this->model('M_Session');
+            
+            // Verify session exists and belongs to this coach
+            $session = $sessionModel->getSessionById($id);
+            if (!$session) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session not found'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (not found) ===');
+                return;
+            }
+            
+            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Unauthorized: You can only edit your own sessions'
+                ]);
+                error_log('=== EDIT SESSION DEBUG END (unauthorized) ===');
+                return;
+            }
+            
+            if ($sessionModel->updateSession($id, $data)) {
+                error_log('✅ Session updated successfully');
+                error_log('=== EDIT SESSION DEBUG END ===');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Session updated successfully',
+                    'sessionId' => $id
+                ]);
+            } else {
+                error_log('❌ Failed to update session');
+                error_log('=== EDIT SESSION DEBUG END ===');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to update session'
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Cancel Session
+    public function cancel_session($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $reason = trim($_POST['reason'] ?? 'No reason provided');
+            
+            $sessionModel = $this->model('M_Session');
+            
+            if ($sessionModel->cancelSession($id, $reason)) {
+                // Send cancellation notifications
+                $this->sendSessionNotifications($id, 'cancelled', $reason);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Session cancelled successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to cancel session'
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Reschedule Session
+    public function reschedule_session($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $newDate = trim($_POST['new_date'] ?? '');
+            $newStartTime = trim($_POST['new_start_time'] ?? '');
+            $newEndTime = trim($_POST['new_end_time'] ?? '');
+            
+            if (empty($newDate) || empty($newStartTime) || empty($newEndTime)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Please provide new date and time'
+                ]);
+                return;
+            }
+            
+            $sessionModel = $this->model('M_Session');
+            
+            $data = [
+                'session_date' => $newDate,
+                'start_time' => $newStartTime,
+                'end_time' => $newEndTime
+            ];
+            
+            if ($sessionModel->rescheduleSession($id, $data)) {
+                // Send reschedule notifications
+                $this->sendSessionNotifications($id, 'rescheduled');
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Session rescheduled successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to reschedule session'
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Mark Attendance
+    public function mark_attendance() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $sessionId = intval($_POST['session_id'] ?? 0);
+            $attendanceData = $_POST['attendance'] ?? [];
+            
+            if (empty($sessionId) || empty($attendanceData)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid attendance data'
+                ]);
+                return;
+            }
+            
+            $sessionModel = $this->model('M_Session');
+            $success = true;
+            
+            foreach ($attendanceData as $playerId => $data) {
+                $result = $sessionModel->markAttendance([
+                    'session_id' => $sessionId,
+                    'player_id' => $playerId,
+                    'status' => $data['status'],
+                    'notes' => $data['notes'] ?? ''
+                ]);
+                
+                if (!$result) {
+                    $success = false;
+                }
+            }
+            
+            if ($success) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Attendance marked successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to mark some attendance records'
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Get Session Attendance (JSON)
+    public function get_session_attendance($sessionId) {
+        $sessionModel = $this->model('M_Session');
+        $attendance = $sessionModel->getSessionAttendance($sessionId);
+        
+        echo json_encode([
+            'success' => true,
+            'attendance' => $attendance
+        ]);
+    }
+
+    // Delete Session
+    public function delete_session($id = null) {
+        // Handle both POST with ID in URL and JSON with ID in body
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            header('Content-Type: application/json');
+            
+            error_log('=== DELETE SESSION DEBUG START ===');
+            error_log('Session ID to delete: ' . $id);
+            error_log('User ID from session: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
+            
+            // Get ID from URL parameter or JSON body
+            if (!$id) {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $id = $input['sessionId'] ?? null;
+                error_log('ID from JSON body: ' . $id);
+            }
+            
+            if (!$id) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session ID is required'
+                ]);
+                return;
+            }
+            
+            $sessionModel = $this->model('M_Session');
+            
+            // Verify session exists and belongs to this coach
+            $session = $sessionModel->getSessionById($id);
+            if (!$session) {
+                error_log('Session not found: ' . $id);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Session not found'
+                ]);
+                return;
+            }
+            
+            error_log('Session owner: ' . $session->CoachOrTrainerID);
+            
+            // Check if coach owns this session - use object notation
+            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
+                error_log('Unauthorized delete attempt');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Unauthorized: You can only delete your own sessions'
+                ]);
+                return;
+            }
+            
+            if ($sessionModel->deleteSession($id)) {
+                error_log('✅ Session deleted successfully: ' . $id);
+                error_log('=== DELETE SESSION DEBUG END ===');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Session deleted successfully'
+                ]);
+            } else {
+                error_log('❌ Failed to delete session: ' . $id);
+                error_log('=== DELETE SESSION DEBUG END ===');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to delete session'
+                ]);
+            }
+        } else {
+            redirect('coach/sessions');
+        }
+    }
+
+    // Helper: Send Session Notifications
+    private function sendSessionNotifications($sessionId, $action, $reason = '') {
+        $sessionModel = $this->model('M_Session');
+        $session = $sessionModel->getSessionById($sessionId);
+        $participants = $sessionModel->getSessionParticipants($sessionId);
+        
+        if (!$session || empty($participants)) {
+            return false;
+        }
+        
+        // Prepare notification message
+        $messages = [
+            'created' => "New session '{$session['Title']}' has been scheduled for {$session['SessionDate']} at {$session['StartTime']}",
+            'updated' => "Session '{$session['Title']}' has been updated. Please check the details.",
+            'cancelled' => "Session '{$session['Title']}' scheduled for {$session['SessionDate']} has been cancelled." . ($reason ? " Reason: $reason" : ""),
+            'rescheduled' => "Session '{$session['Title']}' has been rescheduled to {$session['SessionDate']} at {$session['StartTime']}",
+            'deleted' => "Session '{$session['Title']}' has been removed from the schedule."
+        ];
+        
+        $message = $messages[$action] ?? 'Session notification';
+        
+        // Send notifications to each participant
+        // TODO: Implement actual notification system (email, SMS, in-app)
+        // For now, just log the notification
+        foreach ($participants as $participant) {
+            error_log("Notification to Player {$participant['PlayerID']}: $message");
+            // Future: Send email, SMS, or create in-app notification
+        }
+        
+        return true;
+    }
+
+    // Helper: Get Session Color by Type
+    private function getSessionColor($type) {
+        $colors = [
+            'Batting' => '#4A90E2',
+            'Bowling' => '#50C878',
+            'Strategy' => '#9B59B6',
+            'Fielding' => '#F39C12',
+            'Fitness' => '#E74C3C'
+        ];
+        
+        return $colors[$type] ?? '#4A90E2';
+    }
+    
+    // Helper: Calculate duration between two times
+    private function calculateDuration($startTime, $endTime) {
+        $start = strtotime($startTime);
+        $end = strtotime($endTime);
+        $diff = $end - $start;
+        
+        $hours = floor($diff / 3600);
+        $minutes = floor(($diff % 3600) / 60);
+        
+        if ($hours > 0 && $minutes > 0) {
+            return "$hours hours $minutes mins";
+        } elseif ($hours > 0) {
+            return "$hours hours";
+        } else {
+            return "$minutes mins";
+        }
+    }
+    
+    // Helper: Generate weekly schedule from sessions
+    private function generateWeeklySchedule($sessions) {
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $schedule = [];
+        
+        foreach ($days as $day) {
+            $daySchedule = [
+                'day' => $day,
+                'sessions' => []
+            ];
+            
+            foreach ($sessions as $session) {
+                $sessionDayOfWeek = date('l', strtotime($session->Date));
+                
+                if ($sessionDayOfWeek === $day) {
+                    $startTime = date('H:i', strtotime($session->StartTime));
+                    $endTime = date('H:i', strtotime($session->EndTime));
+                    
+                    $daySchedule['sessions'][] = [
+                        'time' => "$startTime-$endTime",
+                        'type' => $session->SessionMode . ' - ' . $session->Name,
+                        'facility' => $session->Location
+                    ];
+                }
+            }
+            
+            if (!empty($daySchedule['sessions'])) {
+                $schedule[] = $daySchedule;
+            }
+        }
+        
+        return $schedule;
     }
 }
 ?>

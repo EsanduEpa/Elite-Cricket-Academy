@@ -34,7 +34,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#player-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                             <i class="fas fa-user-graduate"></i>
                             <span>Player Management</span>
                         </a>
@@ -52,6 +52,13 @@
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
                             <span class="badge">12</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
                         </a>
                     </li>
                     
@@ -286,36 +293,27 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="firstName">
-                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
-                                    </label>
-                                    <input type="text" id="firstName" name="firstName" required 
-                                           placeholder="Enter first name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="lastName">
-                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
-                                    </label>
-                                    <input type="text" id="lastName" name="lastName" required
-                                           placeholder="Enter last name">
-                                </div>
+                            <div class="form-group">
+                                <label for="fullName">
+                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="fullName" name="fullName" required 
+                                       placeholder="Enter full name">
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="dateOfBirth">
-                                        <i class="fas fa-birthday-cake"></i> Date of Birth
+                                        <i class="fas fa-birthday-cake"></i> Date of Birth <span class="required">*</span>
                                     </label>
-                                    <input type="date" id="dateOfBirth" name="dateOfBirth">
+                                    <input type="date" id="dateOfBirth" name="dateOfBirth" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nationality">
-                                        <i class="fas fa-flag"></i> Nationality
+                                    <label for="school">
+                                        <i class="fas fa-school"></i> School/Institution
                                     </label>
-                                    <input type="text" id="nationality" name="nationality" 
-                                           placeholder="e.g., Sri Lankan">
+                                    <input type="text" id="school" name="school" 
+                                           placeholder="e.g., Royal College, University of Colombo">
                                 </div>
                             </div>
                         </div>
@@ -329,24 +327,15 @@
                                 </label>
                                 <input type="email" id="email" name="email" required
                                        placeholder="staff@example.com">
-                                <small>This will be used for login credentials</small>
+                                <small>This will be used for login and communication</small>
                             </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="phone">
-                                        <i class="fas fa-phone"></i> Phone Number <span class="required">*</span>
-                                    </label>
-                                    <input type="tel" id="phone" name="phone" required
-                                           placeholder="+94 XX XXX XXXX">
-                                </div>
-                                <div class="form-group">
-                                    <label for="emergencyContact">
-                                        <i class="fas fa-phone-square"></i> Emergency Contact
-                                    </label>
-                                    <input type="tel" id="emergencyContact" name="emergencyContact"
-                                           placeholder="+94 XX XXX XXXX">
-                                </div>
+                            <div class="form-group">
+                                <label for="phone">
+                                    <i class="fas fa-phone"></i> Phone Number <span class="required">*</span>
+                                </label>
+                                <input type="tel" id="phone" name="phone" required
+                                       placeholder="+94 77 123 4567">
                             </div>
 
                             <div class="form-group">
@@ -358,54 +347,47 @@
                             </div>
                         </div>
 
+                        <!-- Login Credentials -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-key"></i> Login Credentials</h4>
+                            <div class="form-group">
+                                <label for="username">
+                                    <i class="fas fa-user-circle"></i> Username <span class="required">*</span>
+                                </label>
+                                <input type="text" id="username" name="username" required
+                                       placeholder="Enter username for login">
+                                <small>Username must be unique</small>
+                            </div>
+
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <p><strong>Default Password:</strong> The system will set the default password as <code>staff123456</code>. The staff member should change this upon first login.</p>
+                            </div>
+                        </div>
+
                         <!-- Role & Position -->
                         <div class="form-section">
                             <h4><i class="fas fa-user-tag"></i> Role & Position</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="role">
-                                        <i class="fas fa-user-tag"></i> Role <span class="required">*</span>
-                                    </label>
-                                    <select id="role" name="role" required>
-                                        <option value="">Select Role</option>
-                                        <option value="coach">Coach</option>
-                                        <option value="head_coach">Head Coach</option>
-                                        <option value="trainer">Trainer</option>
-                                        <option value="admin">Administrator</option>
-                                        <option value="shopkeeper">Shop Staff</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="joinDate">
-                                        <i class="fas fa-calendar"></i> Join Date <span class="required">*</span>
-                                    </label>
-                                    <input type="date" id="joinDate" name="joinDate" required>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="specialization">
-                                        <i class="fas fa-certificate"></i> Specialization
-                                    </label>
-                                    <input type="text" id="specialization" name="specialization" 
-                                           placeholder="e.g., Batting Coach, Fitness Trainer">
-                                </div>
-                                <div class="form-group">
-                                    <label for="experience">
-                                        <i class="fas fa-award"></i> Years of Experience
-                                    </label>
-                                    <input type="number" id="experience" name="experience" min="0"
-                                           placeholder="Enter years">
-                                </div>
+                            <div class="form-group">
+                                <label for="role">
+                                    <i class="fas fa-user-tag"></i> Role <span class="required">*</span>
+                                </label>
+                                <select id="role" name="role" required>
+                                    <option value="">Select Role</option>
+                                    <option value="Coach">Coach</option>
+                                    <option value="Trainer">Trainer</option>
+                                    <option value="Admin">Administrator</option>
+                                    <option value="ShopEmployee">Shop Employee</option>
+                                </select>
+                                <small>Select the primary role for this staff member</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="qualifications">
-                                    <i class="fas fa-graduation-cap"></i> Qualifications
+                                <label for="notes">
+                                    <i class="fas fa-sticky-note"></i> Notes (Optional)
                                 </label>
-                                <textarea id="qualifications" name="qualifications" rows="2"
-                                          placeholder="List relevant certifications"></textarea>
+                                <textarea id="notes" name="notes" rows="2"
+                                          placeholder="Any additional notes about this staff member"></textarea>
                             </div>
                         </div>
                     </div>
@@ -427,8 +409,8 @@
                                     <span class="review-value" id="reviewDOB">-</span>
                                 </div>
                                 <div class="review-item">
-                                    <span class="review-label">Nationality:</span>
-                                    <span class="review-value" id="reviewNationality">-</span>
+                                    <span class="review-label">School/Institution:</span>
+                                    <span class="review-value" id="reviewSchool">-</span>
                                 </div>
                             </div>
                         </div>
@@ -444,13 +426,23 @@
                                     <span class="review-label">Phone:</span>
                                     <span class="review-value" id="reviewPhone">-</span>
                                 </div>
-                                <div class="review-item">
-                                    <span class="review-label">Emergency Contact:</span>
-                                    <span class="review-value" id="reviewEmergency">-</span>
-                                </div>
                                 <div class="review-item full-width">
                                     <span class="review-label">Address:</span>
                                     <span class="review-value" id="reviewAddress">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h4><i class="fas fa-key"></i> Login Credentials</h4>
+                            <div class="review-grid">
+                                <div class="review-item">
+                                    <span class="review-label">Username:</span>
+                                    <span class="review-value" id="reviewUsername">-</span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="review-label">Default Password:</span>
+                                    <span class="review-value"><code>staff123456</code></span>
                                 </div>
                             </div>
                         </div>
@@ -462,21 +454,9 @@
                                     <span class="review-label">Role:</span>
                                     <span class="review-value" id="reviewRole">-</span>
                                 </div>
-                                <div class="review-item">
-                                    <span class="review-label">Join Date:</span>
-                                    <span class="review-value" id="reviewJoinDate">-</span>
-                                </div>
-                                <div class="review-item">
-                                    <span class="review-label">Specialization:</span>
-                                    <span class="review-value" id="reviewSpecialization">-</span>
-                                </div>
-                                <div class="review-item">
-                                    <span class="review-label">Experience:</span>
-                                    <span class="review-value" id="reviewExperience">-</span>
-                                </div>
                                 <div class="review-item full-width">
-                                    <span class="review-label">Qualifications:</span>
-                                    <span class="review-value" id="reviewQualifications">-</span>
+                                    <span class="review-label">Notes:</span>
+                                    <span class="review-value" id="reviewNotes">-</span>
                                 </div>
                             </div>
                         </div>
@@ -490,7 +470,7 @@
 
                         <div class="info-box">
                             <i class="fas fa-info-circle"></i>
-                            <p>A system-generated password will be created and sent to the staff member's email address. They can change it upon first login.</p>
+                            <p>The default password <code>staff123456</code> will be set. The staff member should change this password upon first login. If "Send via email" is checked, the credentials will be emailed to the staff member.</p>
                         </div>
                     </div>
 

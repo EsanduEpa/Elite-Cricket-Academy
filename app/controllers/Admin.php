@@ -925,5 +925,227 @@ class Admin extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid request']);
         }
     }
+
+    // Add new staff member
+    public function add_staff() {
+        // CRITICAL: Start output buffering FIRST to catch any PHP errors/warnings
+        ob_start();
+        
+        // Disable error display for this endpoint (log only)
+        ini_set('display_errors', 0);
+        
+        try {
+            // Set JSON header
+            header('Content-Type: application/json; charset=utf-8');
+            
+            // Only accept POST requests
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Invalid request method. POST required.');
+            }
+            
+            // Log incoming data for debugging
+            error_log("=== Add Staff Request ===");
+            error_log("POST data: " . print_r($_POST, true));
+            error_log("Session user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+            
+            // Sanitize POST data (using FILTER_SANITIZE_FULL_SPECIAL_CHARS instead of deprecated FILTER_SANITIZE_STRING)
+            $postData = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            
+            if ($postData === null || $postData === false) {
+                throw new Exception('Invalid form data received');
+            }
+            
+            // Validate required fields
+            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'address', 'username', 'role'];
+            $missingFields = [];
+            
+            foreach ($requiredFields as $field) {
+                if (empty($postData[$field])) {
+                    $missingFields[] = $field;
+                }
+            }
+            
+            if (!empty($missingFields)) {
+                ob_end_clean(); // Clear buffer
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Missing required fields: ' . implode(', ', $missingFields)
+                ]);
+                return;
+            }
+            
+            // Load user model
+            $userModel = $this->model('M_Users');
+            
+            // Check if username already exists
+            if ($userModel->findUserByUsername($postData['username'])) {
+                ob_end_clean(); // Clear buffer
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Username already exists. Please choose a different username.'
+                ]);
+                return;
+            }
+            
+            // Check if email already exists
+            if ($userModel->findUserByEmail($postData['email'])) {
+                ob_end_clean(); // Clear buffer
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Email already exists. Please use a different email.'
+                ]);
+                return;
+            }
+            
+            // Hash the default password
+            $defaultPassword = 'staff123456';
+            $hashedPassword = password_hash($defaultPassword, PASSWORD_DEFAULT);
+            
+            // Get CreatedBy - check if user_id exists in User table, otherwise set to NULL
+            $createdBy = null;
+            if (isset($_SESSION['user_id'])) {
+                $userModel = $this->model('M_Users');
+                $existingUser = $userModel->getUserById($_SESSION['user_id']);
+                if ($existingUser) {
+                    $createdBy = $_SESSION['user_id'];
+                }
+            }
+            
+            // Prepare staff data
+            $staffData = [
+                'fullName' => trim($postData['fullName']),
+                'dateOfBirth' => $postData['dateOfBirth'],
+                'phone' => trim($postData['phone']),
+                'email' => trim($postData['email']),
+                'address' => trim($postData['address']),
+                'school' => !empty($postData['school']) ? trim($postData['school']) : null,
+                'role' => $postData['role'],
+                'username' => trim($postData['username']),
+                'passwordHash' => $hashedPassword,
+                'status' => 'active',
+                'createdBy' => $createdBy,  // Use validated createdBy
+                'notes' => !empty($postData['notes']) ? trim($postData['notes']) : null
+            ];
+            
+            // Create staff member
+            $userId = $userModel->createStaff($staffData);
+            
+            if ($userId) {
+                error_log("✅ Staff member created successfully with ID: $userId");
+                ob_end_clean(); // Clear any accumulated output
+                echo json_encode([
+                    'status' => 'success',
+                    'success' => true, 
+                    'message' => 'Staff member added successfully! Default password: staff123456',
+                    'userId' => $userId,
+                    'data' => [
+                        'id' => $userId,
+                        'username' => $postData['username'],
+                        'name' => $postData['fullName'],
+                        'role' => $postData['role']
+                    ]
+                ]);
+            } else {
+                throw new Exception('Failed to create staff member in database');
+            }
+            
+        } catch (Exception $e) {
+            // Log the full error
+            error_log("❌ Staff creation error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            // Clear any output buffer
+            ob_end_clean();
+            
+            // Return clean JSON error
+            echo json_encode([
+                'status' => 'error',
+                'success' => false, 
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+        
+        // Ensure we exit cleanly
+        exit;
+    }
+
+    // Player Management
+    public function players() {
+        $data = [
+            'title' => 'Player Management - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/players', $data);
+    }
+
+    // Player Statistics
+    public function player_statistics($playerId = null) {
+        // In production, fetch real player data by ID
+        $data = [
+            'title' => 'Player Statistics - Elite Cricket Academy',
+            'playerId' => $playerId
+        ];
+        
+        $this->view('admin/player_statistics', $data);
+    }
+
+    // Reports
+    public function reports() {
+        $data = [
+            'title' => 'Reports - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/reports', $data);
+    }
+
+    // Profile Management
+    public function profile() {
+        // Get comprehensive user profile data
+        $userModel = $this->model('M_Users');
+        $userId = $_SESSION['user_id'] ?? 1;
+        $userProfile = $userModel->getUserWithProfile($userId);
+        
+        $data = [
+            'title' => 'My Profile - Admin',
+            'user' => $userProfile
+        ];
+        
+        $this->view('admin/profile', $data);
+    }
+
+    // Update Profile
+    public function updateProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data (using FILTER_SANITIZE_FULL_SPECIAL_CHARS instead of deprecated FILTER_SANITIZE_STRING)
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            
+            $userModel = $this->model('M_Users');
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            // Update basic user info
+            $userData = [
+                'user_id' => $userId,
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'phone' => trim($_POST['phone']),
+                'address' => trim($_POST['address'] ?? ''),
+                'date_of_birth' => $_POST['dateOfBirth'] ?? null
+            ];
+            
+            if ($userModel->updateUser($userData)) {
+                // Update session name if changed
+                $_SESSION['user_name'] = $userData['name'];
+                
+                flash('profile_message', 'Profile updated successfully!', 'alert alert-success');
+            } else {
+                flash('profile_message', 'Failed to update profile', 'alert alert-danger');
+            }
+            
+            redirect('admin/profile');
+        }
+    }
 }
 ?>
