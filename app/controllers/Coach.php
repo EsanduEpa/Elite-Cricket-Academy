@@ -1135,6 +1135,19 @@ class Coach extends Controller {
                 return;
             }
             
+            // Validate if session can be deleted (must be in the past)
+            $sessionDateTime = new DateTime($session->Date . ' ' . $session->EndTime);
+            $now = new DateTime();
+            
+            if ($sessionDateTime > $now) {
+                error_log('Cannot delete future session');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Cannot delete upcoming sessions. Only past sessions can be deleted.'
+                ]);
+                return;
+            }
+            
             if ($sessionModel->deleteSession($id)) {
                 error_log('✅ Session deleted successfully: ' . $id);
                 error_log('=== DELETE SESSION DEBUG END ===');
