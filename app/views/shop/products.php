@@ -454,18 +454,20 @@
                         <div class="form-section">
                             <h4>Basic Information</h4>
                             <div class="form-group">
-                                <label for="productName">Product Name</label>
-                                <input type="text" id="productName" name="name" required>
+                                <label for="productName">Product Name <span class="required">*</span></label>
+                                <input type="text" id="productName" name="name" required maxlength="255">
+                                <span class="field-error" id="nameError"></span>
                             </div>
                             
                             <div class="form-group">
                                 <label for="productDescription">Description</label>
-                                <textarea id="productDescription" name="description" rows="3"></textarea>
+                                <textarea id="productDescription" name="description" rows="3" maxlength="1000"></textarea>
+                                <span class="field-error" id="descriptionError"></span>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="productCategory">Category</label>
+                                    <label for="productCategory">Category <span class="required">*</span></label>
                                     <select id="productCategory" name="category" required>
                                         <option value="">Select Category</option>
                                         <option value="Batting">Cricket Bats</option>
@@ -475,11 +477,13 @@
                                         <option value="Bowling">Cricket Balls</option>
                                         <option value="Training">Training Equipment</option>
                                     </select>
+                                    <span class="field-error" id="categoryError"></span>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label for="productBrand">Brand</label>
-                                    <input type="text" id="productBrand" name="brand">
+                                    <input type="text" id="productBrand" name="brand" maxlength="100">
+                                    <span class="field-error" id="brandError"></span>
                                 </div>
                             </div>
                         </div>
@@ -488,20 +492,17 @@
                             <h4>Pricing & Inventory</h4>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="productPrice">Price (₨)</label>
-                                    <input type="number" id="productPrice" name="price" step="0.01" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="productSKU">SKU (Optional)</label>
-                                    <input type="text" id="productSKU" name="sku">
+                                    <label for="productPrice">Price (₨) <span class="required">*</span></label>
+                                    <input type="number" id="productPrice" name="price" step="0.01" min="0.01" required>
+                                    <span class="field-error" id="priceError"></span>
                                 </div>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="productStock">Stock Quantity</label>
+                                    <label for="productStock">Stock Quantity <span class="required">*</span></label>
                                     <input type="number" id="productStock" name="stock" min="0" required>
+                                    <span class="field-error" id="stockError"></span>
                                 </div>
                                 
                                 <div class="form-group">
@@ -639,6 +640,11 @@
     font-weight: 500;
 }
 
+.form-group label .required {
+    color: #e74c3c;
+    margin-left: 3px;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -656,6 +662,114 @@
 .form-group textarea:focus {
     border-color: #4A90E2;
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.05) !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.form-group input.error:focus,
+.form-group select.error:focus,
+.form-group textarea.error:focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.field-error {
+    display: block;
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    min-height: 1.2em;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    background: rgba(231, 76, 60, 0.1);
+    border-radius: 5px;
+    border-left: 3px solid #e74c3c;
+}
+
+/* Filter Tabs Styles */
+.filter-section {
+    margin-bottom: 2rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.filter-tab {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 25px;
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
+.filter-tab:hover {
+    background: rgba(74, 144, 226, 0.15);
+    border-color: #4A90E2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    border-color: #4A90E2;
+    box-shadow: 0 5px 20px rgba(74, 144, 226, 0.3);
+}
+
+.filter-tab.active i {
+    color: white;
+}
+
+.filter-tab i {
+    font-size: 1rem;
+    color: #4A90E2;
+    transition: all 0.3s ease;
+}
+
+/* Read-only field styles */
+.form-group input[readonly],
+.form-group select[disabled] {
+    background: #e9ecef !important;
+    cursor: not-allowed !important;
+    color: #6c757d !important;
+    opacity: 0.7;
+    border-color: rgba(108, 117, 125, 0.3) !important;
+}
+
+.form-group label.readonly-label {
+    color: #6c757d;
+}
+
+.form-group label.readonly-label::after {
+    content: " 🔒";
+    font-size: 0.9em;
 }
 
 /* Image upload area */
