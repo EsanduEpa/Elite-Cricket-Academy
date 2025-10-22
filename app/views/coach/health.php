@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css?v=<?php echo time(); ?>">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/injury-reports.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach/health.css">
 
 <!-- Coach Dashboard Layout -->
 <div class="coach-layout">
@@ -71,115 +71,227 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="mainContent">
-        <!-- Dashboard Header -->
+    <div class="main-content">
+        <!-- Page Header -->
         <div class="dashboard-header">
             <div class="header-content">
-                <div class="header-text">
-                    <h1><i class="fas fa-heartbeat"></i> Player Health & Injury Reports</h1>
-                    <p>Review and verify player injury reports and medical records</p>
+                <div class="header-left">
+                    <h1>
+                        <i class="fas fa-heartbeat"></i>
+                        Health & Injury Monitoring
+                    </h1>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Monitor player health status and injury reports</p>
                 </div>
             </div>
         </div>
 
-        <!-- Medical Reports Table -->
-        <div class="schedule-card">
-            <div class="card-header">
-                <div class="header-content">
-                    <h2><i class="fas fa-notes-medical"></i> Medical Reports</h2>
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon recovering">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Currently Injured</h3>
+                    <div class="stat-number">5</div>
+                    <p class="stat-description">Players recovering</p>
                 </div>
             </div>
-            <div class="card-content">
-                <table class="dashboard-table" id="medicalReportsTable">
+            
+            <div class="stat-card">
+                <div class="stat-icon recovered">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Recovered</h3>
+                    <div class="stat-number">3</div>
+                    <p class="stat-description">Back to training</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon severe">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Severe Cases</h3>
+                    <div class="stat-number">2</div>
+                    <p class="stat-description">Requires attention</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Pending Review</h3>
+                    <div class="stat-number">1</div>
+                    <p class="stat-description">Awaiting verification</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Injury Reports Table -->
+        <div class="health-card">
+            <div class="card-header">
+                <h3><i class="fas fa-notes-medical"></i> Injury Reports</h3>
+                <div class="header-actions">
+                    <select class="filter-select" id="severityFilter">
+                        <option value="all">All Severities</option>
+                        <option value="mild">Mild</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="severe">Severe</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="recovering">Recovering</option>
+                        <option value="recovered">Recovered</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="health-table">
                     <thead>
                         <tr>
-                            <th>Injury Date</th>
-                            <th>Player</th>
-                            <th>Injury Details</th>
-                            <th>Diagnosis</th>
-                            <th>At Academy</th>
-                            <th>Rest Days</th>
-                            <th>Receipt</th>
-                            <th>Recovery Status</th>
-                            <th>Verify Status</th>
+                            <th>Player Name</th>
+                            <th>Injury Type</th>
+                            <th>Description</th>
+                            <th>Severity</th>
+                            <th>Date Reported</th>
+                            <th>Status</th>
+                            <th>Recovery Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($data['medical_records'])): ?>
-                            <?php foreach ($data['medical_records'] as $record): ?>
-                                <tr data-record-id="<?php echo $record->RecordID; ?>">
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">
-                                            <?php echo date('M d, Y', strtotime($record->InjuryDate)); ?>
-                                        </div>
-                                        <div class="table-cell-secondary">Reported: <?php echo date('M d', strtotime($record->ReportedDate)); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <?php echo htmlspecialchars($record->player_name ?? 'Unknown'); ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-details">
-                                            <?php echo htmlspecialchars($record->InjuryDetails); ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-details">
-                                            <?php echo htmlspecialchars($record->Diagnosis); ?>
-                                        </div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <?php if ($record->HappenedAtAcademy == 'yes'): ?>
-                                            <span class="table-badge" style="background-color: #ffc107; color: #333;">
-                                                <i class="fas fa-school"></i> Yes
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="table-badge" style="background-color: #6c757d; color: white;">
-                                                <i class="fas fa-home"></i> No
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary"><?php echo intval($record->RestDaysNeeded); ?></div>
-                                        <div class="table-cell-secondary">days</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <?php if (!empty($record->DiagnosisReceiptURL)): ?>
-                                            <?php 
-                                                // Remove 'public/' prefix if exists for correct URL
-                                                $receiptPath = str_replace('public/', '', $record->DiagnosisReceiptURL);
-                                            ?>
-                                            <a href="<?php echo URLROOT . '/' . $receiptPath; ?>" target="_blank" class="btn-sm" style="background: #17a2b8;">
-                                                <i class="fas fa-file-alt"></i> View
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="table-cell-secondary">-</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
-                                            <?php echo htmlspecialchars($record->RecoveryStatus); ?>
-                                        </span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge verify-status-<?php echo strtolower($record->verifyStatus); ?>">
-                                            <?php echo htmlspecialchars($record->verifyStatus); ?>
-                                        </span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <button class="action-btn verify-btn" onclick="openVerifyModal(<?php echo $record->RecordID; ?>, '<?php echo htmlspecialchars($record->player_name ?? 'Unknown'); ?>', '<?php echo addslashes($record->InjuryDetails); ?>')">
-                                            <i class="fas fa-check-circle"></i> Verify
-                                        </button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" style="text-align:center; color:#888;">No medical reports found.</td>
-                            </tr>
-                        <?php endif; ?>
+                        <?php 
+                        // Dummy data - not from database
+                        $injuries = [
+                            [
+                                'id' => 1,
+                                'player' => 'Sandun Akalanka',
+                                'type' => 'Muscle Strain',
+                                'description' => 'Hamstring strain during batting practice',
+                                'severity' => 'moderate',
+                                'date' => '2025-10-15',
+                                'status' => 'recovering',
+                                'recovery_date' => '2025-10-25',
+                                'treatment' => 'Rest for 5 days, physiotherapy sessions, ice therapy'
+                            ],
+                            [
+                                'id' => 2,
+                                'player' => 'Kavindu Perera',
+                                'type' => 'Ankle Sprain',
+                                'description' => 'Ankle sprain while fielding',
+                                'severity' => 'mild',
+                                'date' => '2025-10-18',
+                                'status' => 'recovering',
+                                'recovery_date' => '2025-10-23',
+                                'treatment' => 'RICE protocol, ankle support'
+                            ],
+                            [
+                                'id' => 3,
+                                'player' => 'Ravindu Silva',
+                                'type' => 'Finger Fracture',
+                                'description' => 'Finger fracture while catching',
+                                'severity' => 'severe',
+                                'date' => '2025-09-28',
+                                'status' => 'recovered',
+                                'recovery_date' => '2025-10-28',
+                                'treatment' => 'Splint for 4 weeks, follow-up X-ray'
+                            ],
+                            [
+                                'id' => 4,
+                                'player' => 'Tharaka Wickramasinghe',
+                                'type' => 'Thigh Bruise',
+                                'description' => 'Thigh bruise from impact',
+                                'severity' => 'mild',
+                                'date' => '2025-10-20',
+                                'status' => 'recovering',
+                                'recovery_date' => '2025-10-24',
+                                'treatment' => 'Ice application, pain relief medication'
+                            ],
+                            [
+                                'id' => 5,
+                                'player' => 'Dilshan Nanayakkara',
+                                'type' => 'Concussion',
+                                'description' => 'Head impact during match',
+                                'severity' => 'severe',
+                                'date' => '2025-10-12',
+                                'status' => 'recovering',
+                                'recovery_date' => '2025-10-26',
+                                'treatment' => 'Complete rest, concussion protocol, no contact sports'
+                            ],
+                            [
+                                'id' => 6,
+                                'player' => 'Nimal Fernando',
+                                'type' => 'Back Strain',
+                                'description' => 'Lower back strain during bowling',
+                                'severity' => 'moderate',
+                                'date' => '2025-10-10',
+                                'status' => 'recovered',
+                                'recovery_date' => '2025-10-20',
+                                'treatment' => 'Physiotherapy, core strengthening exercises'
+                            ],
+                            [
+                                'id' => 7,
+                                'player' => 'Chamika Jayasinghe',
+                                'type' => 'Hand Cut',
+                                'description' => 'Deep cut on hand from equipment',
+                                'severity' => 'mild',
+                                'date' => '2025-10-19',
+                                'status' => 'recovering',
+                                'recovery_date' => '2025-10-25',
+                                'treatment' => 'Cleaned and bandaged, antibiotics prescribed'
+                            ],
+                            [
+                                'id' => 8,
+                                'player' => 'Asanka Bandara',
+                                'type' => 'Shoulder Dislocation',
+                                'description' => 'Shoulder dislocation while diving',
+                                'severity' => 'severe',
+                                'date' => '2025-09-25',
+                                'status' => 'recovered',
+                                'recovery_date' => '2025-11-01',
+                                'treatment' => 'Shoulder relocated, sling for 3 weeks, physiotherapy'
+                            ]
+                        ];
+                        
+                        foreach ($injuries as $injury): 
+                            $severityClass = $injury['severity'];
+                            $statusClass = $injury['status'];
+                        ?>
+                        <tr data-severity="<?php echo $severityClass; ?>" data-status="<?php echo $statusClass; ?>">
+                            <td>
+                                <div class="player-info">
+                                    <i class="fas fa-user-circle"></i>
+                                    <strong><?php echo $injury['player']; ?></strong>
+                                </div>
+                            </td>
+                            <td><?php echo $injury['type']; ?></td>
+                            <td class="injury-desc"><?php echo $injury['description']; ?></td>
+                            <td>
+                                <span class="severity-badge <?php echo $severityClass; ?>">
+                                    <?php echo ucfirst($severityClass); ?>
+                                </span>
+                            </td>
+                            <td><?php echo date('M d, Y', strtotime($injury['date'])); ?></td>
+                            <td>
+                                <span class="status-badge <?php echo $statusClass; ?>">
+                                    <i class="fas fa-<?php echo $statusClass === 'recovered' ? 'check-circle' : 'spinner'; ?>"></i>
+                                    <?php echo ucfirst($statusClass); ?>
+                                </span>
+                            </td>
+                            <td><?php echo date('M d, Y', strtotime($injury['recovery_date'])); ?></td>
+                            <td>
+                                <button class="btn-action view" onclick="viewDetails(<?php echo $injury['id']; ?>)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -187,275 +299,111 @@
     </div>
 </div>
 
-<!-- Verify Modal -->
-<div id="verifyModal" class="modal" style="display: none;">
+<!-- Injury Details Modal -->
+<div class="modal" id="injuryModal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-check-circle"></i> Verify Medical Report</h3>
-            <span class="close" onclick="closeVerifyModal()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="verify_record_id">
-            <div class="form-group">
-                <label><strong>Player:</strong></label>
-                <p id="verify_player_name"></p>
-            </div>
-            <div class="form-group">
-                <label><strong>Injury Details:</strong></label>
-                <p id="verify_injury_details"></p>
-            </div>
-            <div class="form-group">
-                <label for="verify_status">Verification Status:</label>
-                <select id="verify_status" class="form-control" required>
-                    <option value="">-- Select Status --</option>
-                    <option value="verified">Verified</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="pending">Pending</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="verify_comments">Comments (Optional):</label>
-                <textarea id="verify_comments" class="form-control" rows="3" placeholder="Add any verification notes..."></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeVerifyModal()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="submitVerification()">
-                <i class="fas fa-save"></i> Update Status
+            <h3><i class="fas fa-notes-medical"></i> Injury Details</h3>
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
             </button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Details will be loaded here -->
         </div>
     </div>
 </div>
 
-<style>
-/* Modal Styles */
-.modal {
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 0;
-    border: 1px solid #888;
-    width: 600px;
-    max-width: 90%;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.modal-header {
-    padding: 20px;
-    background-color: #4A90E2;
-    color: white;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 20px;
-}
-
-.close {
-    color: white;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 20px;
-}
-
-.close:hover,
-.close:focus {
-    color: #ddd;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.modal-footer {
-    padding: 15px 20px;
-    background-color: #f1f1f1;
-    border-radius: 0 0 8px 8px;
-    text-align: right;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #333;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #4A90E2;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background-color: #4A90E2;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #357ABD;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    margin-right: 10px;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-.verify-status-verified {
-    background-color: #28a745;
-    color: white;
-}
-
-.verify-status-rejected {
-    background-color: #dc3545;
-    color: white;
-}
-
-.verify-status-pending {
-    background-color: #ffc107;
-    color: #333;
-}
-
-.action-btn {
-    padding: 8px 16px;
-    background-color: #4A90E2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-    background-color: #357ABD;
-}
-</style>
-
 <script>
-// Open verify modal
-function openVerifyModal(recordId, playerName, injuryDetails) {
-    document.getElementById('verify_record_id').value = recordId;
-    document.getElementById('verify_player_name').textContent = playerName;
-    document.getElementById('verify_injury_details').textContent = injuryDetails;
-    document.getElementById('verify_status').value = '';
-    document.getElementById('verify_comments').value = '';
-    document.getElementById('verifyModal').style.display = 'block';
-}
+// Filter functionality
+document.getElementById('severityFilter').addEventListener('change', function() {
+    filterTable();
+});
 
-// Close verify modal
-function closeVerifyModal() {
-    document.getElementById('verifyModal').style.display = 'none';
-}
+document.getElementById('statusFilter').addEventListener('change', function() {
+    filterTable();
+});
 
-// Submit verification
-function submitVerification() {
-    const recordId = document.getElementById('verify_record_id').value;
-    const verifyStatus = document.getElementById('verify_status').value;
-    const verifyComments = document.getElementById('verify_comments').value;
-
-    console.log('Submitting verification:', { recordId, verifyStatus, verifyComments });
-
-    if (!verifyStatus) {
-        alert('Please select a verification status');
-        return;
-    }
-
-    if (!recordId) {
-        alert('Invalid record ID');
-        return;
-    }
-
-    // Send AJAX request to coach controller
-    fetch('<?php echo URLROOT; ?>/coach/updateVerifyStatus', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `record_id=${recordId}&verify_status=${verifyStatus}&verify_comments=${encodeURIComponent(verifyComments)}`
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            alert('Verification status updated successfully!');
-            
-            // Update the table row
-            const row = document.querySelector(`tr[data-record-id="${recordId}"]`);
-            if (row) {
-                const statusCell = row.querySelector('td:nth-child(6) span');
-                if (statusCell) {
-                    statusCell.className = `table-badge verify-status-${verifyStatus.toLowerCase()}`;
-                    statusCell.textContent = verifyStatus;
-                }
-            }
-            
-            closeVerifyModal();
+function filterTable() {
+    const severityFilter = document.getElementById('severityFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.health-table tbody tr');
+    
+    rows.forEach(row => {
+        const severity = row.getAttribute('data-severity');
+        const status = row.getAttribute('data-status');
+        
+        const severityMatch = severityFilter === 'all' || severity === severityFilter;
+        const statusMatch = statusFilter === 'all' || status === statusFilter;
+        
+        if (severityMatch && statusMatch) {
+            row.style.display = '';
         } else {
-            alert('Error: ' + (data.message || 'Unknown error occurred'));
-            console.error('Server error:', data);
+            row.style.display = 'none';
         }
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        alert('An error occurred while updating the verification status. Check console for details.');
     });
+}
+
+// View details function
+function viewDetails(id) {
+    const injuries = <?php echo json_encode($injuries); ?>;
+    const injury = injuries.find(i => i.id === id);
+    
+    if (injury) {
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="injury-details">
+                <div class="detail-row">
+                    <strong>Player:</strong>
+                    <span>${injury.player}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Injury Type:</strong>
+                    <span>${injury.type}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Description:</strong>
+                    <span>${injury.description}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Severity:</strong>
+                    <span class="severity-badge ${injury.severity}">${injury.severity}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Date Reported:</strong>
+                    <span>${new Date(injury.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Status:</strong>
+                    <span class="status-badge ${injury.status}">${injury.status}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Expected Recovery:</strong>
+                    <span>${new Date(injury.recovery_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Treatment Plan:</strong>
+                    <span>${injury.treatment}</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('injuryModal').style.display = 'flex';
+    }
+}
+
+function closeModal() {
+    document.getElementById('injuryModal').style.display = 'none';
 }
 
 // Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = document.getElementById('verifyModal');
-    if (event.target == modal) {
-        closeVerifyModal();
+    const modal = document.getElementById('injuryModal');
+    if (event.target === modal) {
+        closeModal();
     }
 }
 
-// Sidebar Toggle Functionality
+// Sidebar Toggle
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('coachSidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -465,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             
-            // Update toggle icon
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
                 icon.classList.remove('fa-angle-left');

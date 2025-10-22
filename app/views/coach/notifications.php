@@ -79,7 +79,7 @@
                         <h1>
                             <i class="fas fa-bell"></i>
                             Notifications
-                            <span class="notification-count" id="headerNotificationCount">(0)</span>
+                            <span class="notification-count" id="headerNotificationCount">(<?php echo $data['unread_count']; ?>)</span>
                         </h1>
                         <p style="margin: 0; opacity: 0.9; font-size: 14px;">Stay updated with important alerts and messages</p>
                     </div>
@@ -103,11 +103,11 @@
                     <div class="filter-tabs">
                         <button class="filter-tab active" data-filter="all">
                             <i class="fas fa-list"></i>
-                            All <span class="tab-count" id="allCount">(0)</span>
+                            All <span class="tab-count" id="allCount">(<?php echo count($data['notifications']); ?>)</span>
                         </button>
                         <button class="filter-tab" data-filter="unread">
                             <i class="fas fa-envelope"></i>
-                            Unread <span class="tab-count" id="unreadCount">(0)</span>
+                            Unread <span class="tab-count" id="unreadCount">(<?php echo $data['unread_count']; ?>)</span>
                         </button>
                         <button class="filter-tab" data-filter="sessions">
                             <i class="fas fa-calendar"></i>
@@ -137,11 +137,62 @@
 
                 <!-- Notifications List -->
                 <div class="notifications-list" id="notificationsList">
-                    <!-- Notifications will be loaded here via JavaScript -->
+                    <?php 
+                    if (!empty($data['notifications'])):
+                        foreach ($data['notifications'] as $notification): 
+                            // Determine icon based on type
+                            $iconMap = [
+                                'session' => 'calendar-alt',
+                                'injury' => 'heartbeat',
+                                'event' => 'calendar-check',
+                                'player' => 'user',
+                                'system' => 'cog'
+                            ];
+                            $icon = $iconMap[$notification->type] ?? 'bell';
+                            
+                            // Determine priority class
+                            $priorityClass = $notification->priority ?? 'low';
+                            $readClass = $notification->is_read ? 'read' : 'unread';
+                    ?>
+                    <div class="notification-item <?php echo $readClass; ?> priority-<?php echo $priorityClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>">
+                        <div class="notification-icon <?php echo $notification->type; ?>">
+                            <i class="fas fa-<?php echo $icon; ?>"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-header">
+                                <h4><?php echo htmlspecialchars($notification->title); ?></h4>
+                                <span class="notification-time"><?php echo $notification->time; ?></span>
+                            </div>
+                            <p class="notification-message"><?php echo htmlspecialchars($notification->message); ?></p>
+                            <?php if ($notification->priority === 'urgent'): ?>
+                            <span class="priority-badge urgent">
+                                <i class="fas fa-exclamation-triangle"></i> Urgent
+                            </span>
+                            <?php elseif ($notification->priority === 'high'): ?>
+                            <span class="priority-badge high">
+                                <i class="fas fa-exclamation-circle"></i> High Priority
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notification-actions">
+                            <?php if (!$notification->is_read): ?>
+                            <button class="btn-mark-read" onclick="markAsRead(<?php echo $notification->id; ?>)">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <?php endif; ?>
+                            <button class="btn-delete" onclick="deleteNotification(<?php echo $notification->id; ?>)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <?php 
+                        endforeach;
+                    endif;
+                    ?>
                 </div>
 
                 <!-- Empty State -->
-                <div class="empty-notifications" id="emptyState" style="display: none;">
+                <div class="empty-notifications" id="emptyState" style="display: <?php echo empty($data['notifications']) ? 'block' : 'none'; ?>;">
                     <i class="fas fa-bell-slash"></i>
                     <h3>No notifications</h3>
                     <p>You're all caught up!</p>

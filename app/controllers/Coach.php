@@ -178,15 +178,152 @@ class Coach extends Controller {
     }
     
     public function health() {
-        // Get medical records for all players
-        $medicalModel = $this->model('M_Medical');
-        $medicalRecords = $medicalModel->getAllMedicalRecords();
+        // Use only dummy data - not connected to database
+        $medicalRecords = [
+            (object)[
+                'RecordID' => 1,
+                'PlayerID' => 101,
+                'PlayerName' => 'Sandun Akalanka',
+                'InjuryType' => 'Muscle Strain',
+                'InjuryDescription' => 'Hamstring strain during batting practice',
+                'DateReported' => '2025-10-15',
+                'Severity' => 'moderate',
+                'TreatmentPlan' => 'Rest for 5 days, physiotherapy sessions, ice therapy',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-10-25',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Dr. Silva',
+                'VerifyComments' => 'Recovery progressing well'
+            ],
+            (object)[
+                'RecordID' => 2,
+                'PlayerID' => 102,
+                'PlayerName' => 'Kavindu Perera',
+                'InjuryType' => 'Sprain',
+                'InjuryDescription' => 'Ankle sprain while fielding',
+                'DateReported' => '2025-10-18',
+                'Severity' => 'mild',
+                'TreatmentPlan' => 'RICE protocol, ankle support',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-10-23',
+                'VerifyStatus' => 'pending',
+                'VerifiedBy' => null,
+                'VerifyComments' => null
+            ],
+            (object)[
+                'RecordID' => 3,
+                'PlayerID' => 103,
+                'PlayerName' => 'Ravindu Silva',
+                'InjuryType' => 'Fracture',
+                'InjuryDescription' => 'Finger fracture while catching',
+                'DateReported' => '2025-09-28',
+                'Severity' => 'severe',
+                'TreatmentPlan' => 'Splint for 4 weeks, follow-up X-ray',
+                'RecoveryStatus' => 'recovered',
+                'ExpectedRecoveryDate' => '2025-10-28',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Dr. Fernando',
+                'VerifyComments' => 'Fully recovered, cleared to play'
+            ],
+            (object)[
+                'RecordID' => 4,
+                'PlayerID' => 104,
+                'PlayerName' => 'Tharaka Wickramasinghe',
+                'InjuryType' => 'Bruise',
+                'InjuryDescription' => 'Thigh bruise from impact',
+                'DateReported' => '2025-10-20',
+                'Severity' => 'mild',
+                'TreatmentPlan' => 'Ice application, pain relief medication',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-10-24',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Nurse Perera',
+                'VerifyComments' => 'Minor injury, monitoring progress'
+            ],
+            (object)[
+                'RecordID' => 5,
+                'PlayerID' => 105,
+                'PlayerName' => 'Dilshan Nanayakkara',
+                'InjuryType' => 'Concussion',
+                'InjuryDescription' => 'Head impact during match',
+                'DateReported' => '2025-10-12',
+                'Severity' => 'severe',
+                'TreatmentPlan' => 'Complete rest, concussion protocol, no contact sports for 2 weeks',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-10-26',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Dr. Silva',
+                'VerifyComments' => 'Under observation, rest essential'
+            ],
+            (object)[
+                'RecordID' => 6,
+                'PlayerID' => 106,
+                'PlayerName' => 'Nimal Fernando',
+                'InjuryType' => 'Muscle Strain',
+                'InjuryDescription' => 'Lower back strain during bowling',
+                'DateReported' => '2025-10-10',
+                'Severity' => 'moderate',
+                'TreatmentPlan' => 'Physiotherapy, core strengthening exercises',
+                'RecoveryStatus' => 'recovered',
+                'ExpectedRecoveryDate' => '2025-10-20',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Physiotherapist Kumar',
+                'VerifyComments' => 'Cleared for full training'
+            ],
+            (object)[
+                'RecordID' => 7,
+                'PlayerID' => 107,
+                'PlayerName' => 'Chamika Jayasinghe',
+                'InjuryType' => 'Cut/Wound',
+                'InjuryDescription' => 'Deep cut on hand from equipment',
+                'DateReported' => '2025-10-19',
+                'Severity' => 'mild',
+                'TreatmentPlan' => 'Cleaned and bandaged, antibiotics prescribed',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-10-25',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Nurse Perera',
+                'VerifyComments' => 'Healing well, keep clean'
+            ],
+            (object)[
+                'RecordID' => 8,
+                'PlayerID' => 108,
+                'PlayerName' => 'Asanka Bandara',
+                'InjuryType' => 'Dislocation',
+                'InjuryDescription' => 'Shoulder dislocation while diving',
+                'DateReported' => '2025-09-25',
+                'Severity' => 'severe',
+                'TreatmentPlan' => 'Shoulder relocated, sling for 3 weeks, physiotherapy',
+                'RecoveryStatus' => 'recovering',
+                'ExpectedRecoveryDate' => '2025-11-01',
+                'VerifyStatus' => 'verified',
+                'VerifiedBy' => 'Dr. Fernando',
+                'VerifyComments' => 'Good progress, continue physio'
+            ]
+        ];
 
         $data = [
             'title' => 'Health & Injury Monitoring - Elite Cricket Academy',
             'medical_records' => $medicalRecords
         ];
         $this->view('coach/health', $data);
+    }
+    
+    public function events() {
+        // Get event model
+        $eventModel = $this->model('Event');
+        
+        // Get upcoming and past events
+        $upcomingEvents = $eventModel->getUpcomingEvents(50);
+        $pastEvents = $eventModel->getPastEvents(50);
+        
+        $data = [
+            'title' => 'Events & Tournaments - Coach Dashboard',
+            'upcoming_events' => $upcomingEvents,
+            'past_events' => $pastEvents
+        ];
+        
+        $this->view('coach/events', $data);
     }
     
     // Update verification status for medical records
@@ -251,8 +388,119 @@ class Coach extends Controller {
     }
     
     public function notifications() {
+        // Dummy notification data
+        $notifications = [
+            (object)[
+                'id' => 1,
+                'type' => 'session',
+                'title' => 'Upcoming Session Reminder',
+                'message' => 'You have a batting training session scheduled tomorrow at 10:00 AM with 12 players',
+                'time' => '2 hours ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-2 hours')),
+                'is_read' => false,
+                'priority' => 'high'
+            ],
+            (object)[
+                'id' => 2,
+                'type' => 'injury',
+                'title' => 'New Injury Report',
+                'message' => 'Kavindu Perera reported an ankle sprain. Medical attention required.',
+                'time' => '5 hours ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-5 hours')),
+                'is_read' => false,
+                'priority' => 'urgent'
+            ],
+            (object)[
+                'id' => 3,
+                'type' => 'event',
+                'title' => 'Tournament Registration Open',
+                'message' => 'Junior Cricket Championship registration is now open. Deadline: Oct 30, 2025',
+                'time' => '1 day ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                'is_read' => true,
+                'priority' => 'medium'
+            ],
+            (object)[
+                'id' => 4,
+                'type' => 'player',
+                'title' => 'Player Performance Update',
+                'message' => 'Sandun Akalanka has achieved 90% attendance this month. Excellent progress!',
+                'time' => '1 day ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                'is_read' => true,
+                'priority' => 'low'
+            ],
+            (object)[
+                'id' => 5,
+                'type' => 'session',
+                'title' => 'Session Cancelled',
+                'message' => 'Evening bowling session on Oct 23 has been cancelled due to weather conditions',
+                'time' => '2 days ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-2 days')),
+                'is_read' => true,
+                'priority' => 'high'
+            ],
+            (object)[
+                'id' => 6,
+                'type' => 'system',
+                'title' => 'System Maintenance',
+                'message' => 'The academy management system will undergo maintenance on Oct 25 from 2:00 AM to 4:00 AM',
+                'time' => '3 days ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-3 days')),
+                'is_read' => true,
+                'priority' => 'medium'
+            ],
+            (object)[
+                'id' => 7,
+                'type' => 'injury',
+                'title' => 'Recovery Update',
+                'message' => 'Ravindu Silva has been cleared for full training after finger fracture recovery',
+                'time' => '3 days ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-3 days')),
+                'is_read' => true,
+                'priority' => 'medium'
+            ],
+            (object)[
+                'id' => 8,
+                'type' => 'event',
+                'title' => 'New Training Workshop',
+                'message' => 'Advanced Batting Techniques workshop scheduled for Nov 5, 2025. Limited slots available.',
+                'time' => '4 days ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-4 days')),
+                'is_read' => true,
+                'priority' => 'medium'
+            ],
+            (object)[
+                'id' => 9,
+                'type' => 'player',
+                'title' => 'New Player Registration',
+                'message' => '3 new players have been assigned to your training group',
+                'time' => '5 days ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-5 days')),
+                'is_read' => true,
+                'priority' => 'low'
+            ],
+            (object)[
+                'id' => 10,
+                'type' => 'session',
+                'title' => 'Session Feedback Pending',
+                'message' => 'Please submit feedback for the batting session conducted on Oct 17',
+                'time' => '1 week ago',
+                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 week')),
+                'is_read' => true,
+                'priority' => 'low'
+            ]
+        ];
+        
+        // Calculate unread count
+        $unreadCount = count(array_filter($notifications, function($n) {
+            return !$n->is_read;
+        }));
+        
         $data = [
-            'title' => 'Notifications - Elite Cricket Academy'
+            'title' => 'Notifications - Elite Cricket Academy',
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount
         ];
         $this->view('coach/notifications', $data);
     }
