@@ -1072,6 +1072,35 @@ class Admin extends Controller {
         exit;
     }
 
+    // Player Management
+    public function players() {
+        $data = [
+            'title' => 'Player Management - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/players', $data);
+    }
+
+    // Player Statistics
+    public function player_statistics($playerId = null) {
+        // In production, fetch real player data by ID
+        $data = [
+            'title' => 'Player Statistics - Elite Cricket Academy',
+            'playerId' => $playerId
+        ];
+        
+        $this->view('admin/player_statistics', $data);
+    }
+
+    // Reports
+    public function reports() {
+        $data = [
+            'title' => 'Reports - Elite Cricket Academy'
+        ];
+        
+        $this->view('admin/reports', $data);
+    }
+
     // Profile Management
     public function profile() {
         // Get comprehensive user profile data

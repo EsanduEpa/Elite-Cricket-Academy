@@ -33,7 +33,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#player-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                             <i class="fas fa-user-graduate"></i>
                             <span>Player Management</span>
                         </a>
@@ -51,6 +51,13 @@
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
                             <span class="badge">12</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
                         </a>
                     </li>
                     
