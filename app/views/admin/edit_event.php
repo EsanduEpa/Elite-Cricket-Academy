@@ -6,10 +6,22 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
+<<<<<<< HEAD
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <style>
     /* Edit Event Form Specific Styles */
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Elite Cricket Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Edit Event Form Specific Styles */
+>>>>>>> admin
     .edit-event-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -228,6 +240,13 @@ if (isset($data['event'])) {
         font-size: 1.2rem;
     }
 </style>
+<<<<<<< HEAD
+=======
+    </style>
+</head>
+<body>
+
+>>>>>>> admin
 
 <!-- Admin Dashboard Layout -->
 <div class="admin-layout">
