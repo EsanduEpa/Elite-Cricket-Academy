@@ -33,7 +33,19 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         const birthDate = new Date(formData.dateOfBirth);
         const today = new Date();
         const age = today.getFullYear() - birthDate.getFullYear();
-        if (age < 5 || age > 100) {
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        // Adjust age if birthday hasn't occurred this year
+        const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
+            ? age - 1 : age;
+        
+        if (birthDate > today) {
+            showError('dateOfBirth', 'Date of birth cannot be in the future');
+            isValid = false;
+        } else if (adjustedAge < 5) {
+            showError('dateOfBirth', 'You must be at least 5 years old to register');
+            isValid = false;
+        } else if (adjustedAge > 100) {
             showError('dateOfBirth', 'Please enter a valid date of birth');
             isValid = false;
         }
@@ -50,9 +62,16 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         isValid = false;
     }
     
-    const phoneRegex = /^[+]?[\d\s\-\(\)]{10,}$/;
-    if (!phoneRegex.test(formData.contactNumber)) {
-        showError('contactNumber', 'Please enter a valid contact number');
+    // Enhanced phone number validation
+    const phoneDigitsOnly = formData.contactNumber.replace(/[^0-9]/g, '');
+    if (phoneDigitsOnly.length < 10) {
+        showError('contactNumber', 'Contact number must be at least 10 digits');
+        isValid = false;
+    } else if (!(/^[0-9+\-\s()]+$/.test(formData.contactNumber))) {
+        showError('contactNumber', 'Please enter a valid phone number (digits, +, -, spaces, or parentheses only)');
+        isValid = false;
+    } else if (phoneDigitsOnly.length > 15) {
+        showError('contactNumber', 'Contact number cannot exceed 15 digits');
         isValid = false;
     }
     
@@ -66,9 +85,30 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         isValid = false;
     }
     
+    // Enhanced password validation
     if (formData.password.length < 8) {
         showError('password', 'Password must be at least 8 characters long');
         isValid = false;
+    } else {
+        const passwordErrors = [];
+        
+        if (!/[A-Z]/.test(formData.password)) {
+            passwordErrors.push('one uppercase letter');
+        }
+        if (!/[a-z]/.test(formData.password)) {
+            passwordErrors.push('one lowercase letter');
+        }
+        if (!/[0-9]/.test(formData.password)) {
+            passwordErrors.push('one number');
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+            passwordErrors.push('one special character (!@#$%^&*(),.?":{}|<>)');
+        }
+        
+        if (passwordErrors.length > 0) {
+            showError('password', 'Password must contain at least ' + passwordErrors.join(', '));
+            isValid = false;
+        }
     }
     
     if (formData.password !== formData.confirmPassword) {
@@ -135,6 +175,90 @@ document.getElementById('confirmPassword').addEventListener('input', function() 
     } else if (password === confirmPassword && confirmPassword.length >= 8) {
         document.getElementById('confirmPassword').parentElement.classList.remove('error');
         const errorElement = document.querySelector('#confirmPassword + .error-message');
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
+    }
+});
+
+// Real-time password strength validation
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    
+    if (password.length > 0 && password.length < 8) {
+        showError('password', 'Password must be at least 8 characters long');
+    } else if (password.length >= 8) {
+        const passwordErrors = [];
+        
+        if (!/[A-Z]/.test(password)) {
+            passwordErrors.push('one uppercase letter');
+        }
+        if (!/[a-z]/.test(password)) {
+            passwordErrors.push('one lowercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+            passwordErrors.push('one number');
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            passwordErrors.push('one special character');
+        }
+        
+        if (passwordErrors.length > 0) {
+            showError('password', 'Password needs: ' + passwordErrors.join(', '));
+        } else {
+            // Password is strong
+            document.getElementById('password').parentElement.classList.remove('error');
+            const errorElement = document.querySelector('#password + .error-message');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+        }
+    }
+});
+
+// Real-time phone number validation
+document.getElementById('contactNumber').addEventListener('input', function() {
+    const phone = this.value;
+    const phoneDigitsOnly = phone.replace(/[^0-9]/g, '');
+    
+    if (phone.length > 0) {
+        if (phoneDigitsOnly.length < 10) {
+            showError('contactNumber', 'Contact number must be at least 10 digits');
+        } else if (!(/^[0-9+\-\s()]+$/.test(phone))) {
+            showError('contactNumber', 'Only digits, +, -, spaces, or parentheses allowed');
+        } else if (phoneDigitsOnly.length > 15) {
+            showError('contactNumber', 'Contact number cannot exceed 15 digits');
+        } else {
+            // Valid phone number
+            document.getElementById('contactNumber').parentElement.classList.remove('error');
+            const errorElement = document.querySelector('#contactNumber + .error-message');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+        }
+    }
+});
+
+// Real-time date of birth validation
+document.getElementById('dateOfBirth').addEventListener('change', function() {
+    const birthDate = new Date(this.value);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
+        ? age - 1 : age;
+    
+    if (birthDate > today) {
+        showError('dateOfBirth', 'Date of birth cannot be in the future');
+    } else if (adjustedAge < 5) {
+        showError('dateOfBirth', 'You must be at least 5 years old to register');
+    } else if (adjustedAge > 100) {
+        showError('dateOfBirth', 'Please enter a valid date of birth');
+    } else {
+        // Valid date
+        document.getElementById('dateOfBirth').parentElement.classList.remove('error');
+        const errorElement = document.querySelector('#dateOfBirth + .error-message');
         if (errorElement) {
             errorElement.style.display = 'none';
         }

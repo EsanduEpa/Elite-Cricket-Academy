@@ -233,9 +233,7 @@
 >
     <i class="fas fa-edit"></i>
 </button>
-                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <!-- No delete button for upcoming events -->
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -299,9 +297,18 @@
                                     <button class="btn-action-table view" onclick="viewEvent(<?php echo $event['id']; ?>)" title="View">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <?php if (!empty($event['can_delete'])): ?>
+                                        <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn-action-table delete disabled" 
+                                                title="Can only delete events 6 months after end date" 
+                                                style="opacity: 0.5; cursor: not-allowed;" 
+                                                disabled>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -1194,19 +1201,7 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Note: editEvent() function is defined in events.js
-
-
-function editEvent(eventId) {
-    if (!eventId || eventId === 0) {
-        console.error("⚠️ Invalid event ID passed to editEvent()");
-        alert("Invalid event ID. Please refresh the page and try again.");
-        return;
-    }
-
-    // Redirect to the edit page
-    window.location.href = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
-}
+// Note: editEvent() function and edit wizard functionality is now in events.js
 
 
 function deleteEvent(eventId) {

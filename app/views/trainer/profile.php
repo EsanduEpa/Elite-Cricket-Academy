@@ -158,7 +158,9 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                                 <div class="form-group">
                                     <label for="dateOfBirth"><i class="fas fa-calendar"></i> Date of Birth</label>
                                     <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" 
-                                           value="<?php echo htmlspecialchars($data['user']->DateOfBirth ?? ''); ?>">
+                                           value="<?php echo htmlspecialchars($data['user']->DateOfBirth ?? ''); ?>"
+                                           max="<?php echo date('Y-m-d'); ?>">
+                                    <small class="form-hint" style="display: block; font-size: 0.8rem; color: #666; margin-top: 0.25rem; font-style: italic;">Must be at least 16 years old</small>
                                 </div>
                             </div>
                             
@@ -231,4 +233,72 @@ if (!isset($data['user']) || !is_object($data['user'])) {
 
 <script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>
 <script src="<?php echo URLROOT; ?>/js/common/profile-image.js"></script>
+<script>
+// Date of Birth Validation
+function validateDateOfBirth(dateOfBirth) {
+    if (!dateOfBirth) return null;
+    
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
+        ? age - 1 : age;
+    
+    if (birthDate > today) {
+        return 'Date of birth cannot be in the future';
+    } else if (adjustedAge < 16) {
+        return 'You must be at least 16 years old';
+    } else if (adjustedAge > 100) {
+        return 'Please enter a valid date of birth';
+    }
+    
+    return null;
+}
+
+// Add real-time validation to date of birth field
+document.addEventListener('DOMContentLoaded', function() {
+    const dobField = document.getElementById('dateOfBirth');
+    if (dobField) {
+        dobField.addEventListener('change', function() {
+            const error = validateDateOfBirth(this.value);
+            const existingError = this.parentElement.querySelector('.dob-error');
+            
+            if (error) {
+                this.style.borderColor = '#ef4444';
+                if (!existingError) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'dob-error';
+                    errorDiv.style.color = '#ef4444';
+                    errorDiv.style.fontSize = '0.85rem';
+                    errorDiv.style.marginTop = '0.25rem';
+                    errorDiv.textContent = error;
+                    this.parentElement.appendChild(errorDiv);
+                } else {
+                    existingError.textContent = error;
+                }
+            } else {
+                this.style.borderColor = '';
+                if (existingError) {
+                    existingError.remove();
+                }
+            }
+        });
+        
+        // Validate on form submission
+        const profileForm = dobField.closest('form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                const error = validateDateOfBirth(dobField.value);
+                if (error) {
+                    e.preventDefault();
+                    alert(error);
+                    dobField.focus();
+                }
+            });
+        }
+    }
+});
+</script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

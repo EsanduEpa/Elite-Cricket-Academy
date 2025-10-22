@@ -124,16 +124,19 @@ function openCreateModal(type = '', date = '') {
 }
 
 
-function editEvent(eventId) {
-    if (!eventId) {
-        alert("⚠️ Invalid event ID");
+// Make editEvent globally accessible - redirects to edit page
+window.editEvent = function(eventId) {
+    if (!eventId || eventId === 0) {
+        console.error("⚠️ Invalid event ID passed to editEvent()");
+        alert("Invalid event ID. Please refresh the page and try again.");
         return;
     }
-    // Redirect to edit page - construct URL from current location
+    
+    // Redirect to the edit page
     window.location.href = `${window.location.origin}/Elite/admin/edit_event/${eventId}`;
-}
+};
 
-// populateEditForm() removed - was dead code (edit now uses dedicated page, not modal)
+// populateEditForm() removed - edit now uses dedicated page, not modal
 
 function deleteEvent(eventId) {
     // Create custom confirmation modal for better UX

@@ -6,6 +6,7 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
+<<<<<<< HEAD
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <style>
@@ -228,6 +229,65 @@ if (isset($data['event'])) {
         font-size: 1.2rem;
     }
 </style>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Elite Cricket Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 28px; display: flex; align-items: center; gap: 15px; }
+        .back-btn { background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+        .form-content { padding: 40px; }
+        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .form-section { margin-bottom: 35px; }
+        .section-title { font-size: 20px; font-weight: 600; color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0; display: flex; align-items: center; gap: 10px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 500; color: #333; margin-bottom: 8px; font-size: 14px; }
+        .form-group label .required { color: #e74c3c; margin-left: 3px; }
+        .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input[readonly] { background: #f8f9fa; cursor: not-allowed; }
+        .form-actions { display: flex; gap: 15px; justify-content: flex-end; padding-top: 30px; border-top: 2px solid #e0e0e0; }
+        .btn { padding: 14px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.3s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .event-id-badge { background: rgba(255, 255, 255, 0.2); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; }
+        .info-box h3 { color: #1976d2; font-size: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: #555; font-size: 14px; margin: 5px 0; }
+        .info-box .readonly-indicator { color: #f59e0b; font-weight: 600; }
+        .info-box .editable-indicator { color: #10b981; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>
+            <i class="fas fa-edit"></i>
+            Edit Event
+            <?php if (!empty($data['event']['EventID'])): ?>
+                <span class="event-id-badge">ID: <?= htmlspecialchars($data['event']['EventID'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+            <?php endif; ?>
+        </h1>
+        <a href="<?= URLROOT; ?>/admin/events" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Events
+        </a>
+    </div>
+>>>>>>> admin
 
 <!-- Admin Dashboard Layout -->
 <div class="admin-layout">
@@ -334,6 +394,13 @@ if (isset($data['event'])) {
                 <div class="form-content">
         <?php flash('event_message'); ?>
 
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Edit Permissions</h3>
+            <p><span class="readonly-indicator">🔒 READ-ONLY:</span> Event Type, Category (cannot be changed after creation)</p>
+            <p><span class="editable-indicator">✏️ EDITABLE:</span> Event Name, Description, Status, Dates, Location, Registration Details, Contact Info</p>
+        </div>
+
         <?php if (!empty($data['event'])): ?>
             <?php 
                 $event = $data['event'];
@@ -393,33 +460,17 @@ if (isset($data['event'])) {
                             <input type="text" id="Name" name="Name" value="<?= htmlspecialchars($event['Name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="Type">Event Type <span class="required">*</span></label>
+                            <label for="Type">Event Type <span class="required">*</span> <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $type = $event['Type'] ?? ''; ?>
-                            <select id="Type" name="Type" required>
-                                <option value="">Select Type</option>
-                                <?php 
-                                    $types = ['Training Camp','Workshop','Seminar','Competition','Tournament','Match','Trial','Meeting','Other'];
-                                    foreach($types as $t): ?>
-                                        <option value="<?= $t; ?>" <?= ($type === $t) ? 'selected' : ''; ?>><?= $t; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Type" name="Type" value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="Category">Category</label>
+                            <label for="Category">Category <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $category = $event['Category'] ?? ''; ?>
-                            <select id="Category" name="Category">
-                                <option value="">Select Category</option>
-                                <?php 
-                                    $categories = ['junior','senior','youth','professional','recreational','academy'];
-                                    foreach($categories as $c): ?>
-                                        <option value="<?= $c; ?>" <?= ($category === $c) ? 'selected' : ''; ?>>
-                                            <?= ucfirst($c); ?>
-                                        </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Category" name="Category" value="<?= htmlspecialchars(ucfirst($category), ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
 
                         <div class="form-group">

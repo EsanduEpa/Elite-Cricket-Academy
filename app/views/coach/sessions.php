@@ -1039,6 +1039,27 @@ function createTableRow(session) {
     const typeClass = session.sessionType.toLowerCase().replace(' ', '-');
     const modeClass = session.sessionMode.toLowerCase();
     
+    // Check if session is in the past (can be deleted)
+    const sessionEndDateTime = new Date(`${session.date} ${session.endTime}`);
+    const now = new Date();
+    const canDelete = sessionEndDateTime < now;
+    
+    // Build delete button HTML conditionally
+    const deleteButtonHTML = canDelete ? `
+        <button class="action-btn action-btn-delete" onclick="deleteSession(${session.id}, event)">
+            <i class="fas fa-trash-alt"></i>
+            Delete
+        </button>
+    ` : `
+        <button class="action-btn action-btn-delete disabled" 
+                title="Only past sessions can be deleted" 
+                style="opacity: 0.5; cursor: not-allowed;" 
+                disabled>
+            <i class="fas fa-trash-alt"></i>
+            Delete
+        </button>
+    `;
+    
     tr.innerHTML = `
         <td class="table-date">${formattedDate}</td>
         <td class="table-session-name">${session.name}</td>
@@ -1055,10 +1076,7 @@ function createTableRow(session) {
                     <i class="fas fa-edit"></i>
                     Edit
                 </button>
-                <button class="action-btn action-btn-delete" onclick="deleteSession(${session.id}, event)">
-                    <i class="fas fa-trash-alt"></i>
-                    Delete
-                </button>
+                ${deleteButtonHTML}
             </div>
         </td>
     `;
@@ -1114,9 +1132,38 @@ function editSession(sessionId) {
         // Update submit button text in Step 3
         updateWizardButtonText();
         
+        // Make Step 1 fields READ-ONLY (Session Type & Mode cannot be changed)
+        const typeRadios = document.querySelectorAll('input[name="sessionType"]');
+        const modeRadios = document.querySelectorAll('input[name="sessionMode"]');
+        const typeCards = document.querySelectorAll('.type-card');
+        
+        typeRadios.forEach(radio => {
+            radio.disabled = true;
+            if (radio.closest('.type-card')) {
+                radio.closest('.type-card').style.opacity = '0.6';
+                radio.closest('.type-card').style.cursor = 'not-allowed';
+                radio.closest('.type-card').onclick = null;
+            }
+        });
+        
+        modeRadios.forEach(radio => {
+            radio.disabled = true;
+            if (radio.closest('.radio-option')) {
+                radio.closest('.radio-option').style.opacity = '0.6';
+                radio.closest('.radio-option').style.cursor = 'not-allowed';
+            }
+        });
+        
+        // Add read-only indicator to Step 1
+        const step1Header = document.querySelector('#step1 .step-header p');
+        if (step1Header) {
+            step1Header.innerHTML = '<span style="color: #f59e0b; font-weight: 600;">⚠️ Session Type and Mode cannot be changed</span>';
+        }
+        
         // Populate Step 1 (Type & Mode)
         if (session.sessionType) {
             const typeRadio = document.querySelector(`input[name="sessionType"][value="${session.sessionType}"]`);
+
             if (typeRadio) {
                 typeRadio.checked = true;
                 selectTypeCard(session.sessionType);
@@ -1181,6 +1228,15 @@ function updateWizardButtonText() {
 function deleteSession(sessionId, event) {
     const session = calendarState.sessions.find(s => s.id === sessionId);
     if (session) {
+        // Check if session is in the past
+        const sessionEndDateTime = new Date(`${session.date} ${session.endTime}`);
+        const now = new Date();
+        
+        if (sessionEndDateTime > now) {
+            showNotification('❌ Cannot delete upcoming sessions. Only past sessions can be deleted.', 'error');
+            return;
+        }
+        
         if (confirm(`Are you sure you want to delete "${session.name}"?\n\nThis action cannot be undone.`)) {
             // Get the button element - check if event is passed or use the clicked element
             let deleteBtn = null;
@@ -1388,10 +1444,6 @@ function getWeekStart(date) {
 // MODAL FUNCTIONS (Placeholders)
 // ================================================
 
-function openAddSessionModal(date = null) {
-    alert(`Add Session Modal\n${date ? 'Pre-selected date: ' + date : 'No date selected'}\n\nModal implementation coming next!`);
-}
-
 function viewSessionDetails(session) {
     alert(`Session Details\n\nName: ${session.name}\nType: ${session.sessionType}\nMode: ${session.sessionMode}\nDate: ${session.date}\nTime: ${formatTime(session.startTime)} - ${formatTime(session.endTime)}\nLocation: ${session.location}\nParticipants: ${session.currentParticipants}/${session.maxParticipants}\n\nDetailed modal coming next!`);
 }
@@ -1431,6 +1483,42 @@ function openAddSessionModal() {
     // Only reset if not in edit mode
     if (!wizardState.isEditMode) {
         resetWizard();
+        
+        // Ensure all fields are enabled for new session creation
+        setTimeout(() => {
+            // Re-enable Session Type radio buttons
+            const typeRadios = document.querySelectorAll('input[name="sessionType"]');
+            const typeCards = document.querySelectorAll('.type-card');
+            
+            typeRadios.forEach(radio => {
+                radio.disabled = false;
+                if (radio.closest('.type-card')) {
+                    radio.closest('.type-card').style.opacity = '1';
+                    radio.closest('.type-card').style.cursor = 'pointer';
+                    // Restore onclick handler
+                    const card = radio.closest('.type-card');
+                    card.onclick = function() {
+                        selectTypeCard(radio.value);
+                    };
+                }
+            });
+            
+            // Re-enable Session Mode radio buttons
+            const modeRadios = document.querySelectorAll('input[name="sessionMode"]');
+            modeRadios.forEach(radio => {
+                radio.disabled = false;
+                if (radio.closest('.radio-option')) {
+                    radio.closest('.radio-option').style.opacity = '1';
+                    radio.closest('.radio-option').style.cursor = 'pointer';
+                }
+            });
+            
+            // Reset Step 1 header text
+            const step1Header = document.querySelector('#step1 .step-header p');
+            if (step1Header) {
+                step1Header.textContent = 'Choose the type and mode for your session';
+            }
+        }, 50);
     }
 }
 
@@ -1448,6 +1536,35 @@ function closeWizard() {
         const submitBtn = document.querySelector('.wizard-footer .btn-primary');
         if (submitBtn) {
             submitBtn.textContent = 'Create Session';
+        }
+        
+        // Re-enable all fields when closing
+        const typeRadios = document.querySelectorAll('input[name="sessionType"]');
+        typeRadios.forEach(radio => {
+            radio.disabled = false;
+            if (radio.closest('.type-card')) {
+                radio.closest('.type-card').style.opacity = '1';
+                radio.closest('.type-card').style.cursor = 'pointer';
+                const card = radio.closest('.type-card');
+                card.onclick = function() {
+                    selectTypeCard(radio.value);
+                };
+            }
+        });
+        
+        const modeRadios = document.querySelectorAll('input[name="sessionMode"]');
+        modeRadios.forEach(radio => {
+            radio.disabled = false;
+            if (radio.closest('.radio-option')) {
+                radio.closest('.radio-option').style.opacity = '1';
+                radio.closest('.radio-option').style.cursor = 'pointer';
+            }
+        });
+        
+        // Reset Step 1 header text
+        const step1Header = document.querySelector('#step1 .step-header p');
+        if (step1Header) {
+            step1Header.textContent = 'Choose the type and mode for your session';
         }
     }, 300);
 }
@@ -1563,13 +1680,13 @@ function validateStep(stepNumber) {
         const sessionMode = document.querySelector('input[name="sessionMode"]:checked');
         
         if (!sessionType) {
-            errors.push('⚠️ Please select a session type');
-            highlightError(document.querySelector('.session-type-options'));
+            const typeContainer = document.querySelector('.session-type-cards');
+            highlightError(typeContainer, 'Please select a session type');
             isValid = false;
         }
         if (!sessionMode) {
-            errors.push('⚠️ Please select a session mode');
-            highlightError(document.querySelector('.session-mode-options'));
+            const modeContainer = document.querySelector('.radio-group');
+            highlightError(modeContainer, 'Please select a session mode');
             isValid = false;
         }
     } else if (stepNumber === 2) {
@@ -1591,23 +1708,19 @@ function validateStep(stepNumber) {
         
         // Session name validation
         if (!name) {
-            errors.push('⚠️ Session name is required');
-            highlightError(nameField);
+            highlightError(nameField, 'Session name is required');
             isValid = false;
         } else if (name.length < 3) {
-            errors.push('⚠️ Session name must be at least 3 characters');
-            highlightError(nameField);
+            highlightError(nameField, 'Session name must be at least 3 characters');
             isValid = false;
         } else if (name.length > 100) {
-            errors.push('⚠️ Session name must not exceed 100 characters');
-            highlightError(nameField);
+            highlightError(nameField, 'Session name must not exceed 100 characters');
             isValid = false;
         }
         
         // Date validation
         if (!date) {
-            errors.push('⚠️ Session date is required');
-            highlightError(dateField);
+            highlightError(dateField, 'Session date is required');
             isValid = false;
         } else {
             const selectedDate = new Date(date);
@@ -1615,29 +1728,25 @@ function validateStep(stepNumber) {
             today.setHours(0, 0, 0, 0);
             
             if (selectedDate < today) {
-                errors.push('⚠️ Session date cannot be in the past');
-                highlightError(dateField);
+                highlightError(dateField, 'Session date cannot be in the past');
                 isValid = false;
             }
         }
         
         // Time validation
         if (!startTime) {
-            errors.push('⚠️ Start time is required');
-            highlightError(startTimeField);
+            highlightError(startTimeField, 'Start time is required');
             isValid = false;
         }
         
         if (!endTime) {
-            errors.push('⚠️ End time is required');
-            highlightError(endTimeField);
+            highlightError(endTimeField, 'End time is required');
             isValid = false;
         }
         
         if (startTime && endTime && startTime >= endTime) {
-            errors.push('⚠️ End time must be after start time');
-            highlightError(startTimeField);
-            highlightError(endTimeField);
+            highlightError(startTimeField, 'End time must be after start time');
+            highlightError(endTimeField, 'End time must be after start time');
             isValid = false;
         }
         
@@ -1648,49 +1757,41 @@ function validateStep(stepNumber) {
             const durationMinutes = (end - start) / (1000 * 60);
             
             if (durationMinutes < 30) {
-                errors.push('⚠️ Session must be at least 30 minutes long');
-                highlightError(startTimeField);
-                highlightError(endTimeField);
+                highlightError(startTimeField, 'Session must be at least 30 minutes long');
+                highlightError(endTimeField, 'Session must be at least 30 minutes long');
                 isValid = false;
             }
         }
         
         // Location validation
         if (!location) {
-            errors.push('⚠️ Location is required');
-            highlightError(locationField);
+            highlightError(locationField, 'Location is required');
             isValid = false;
         } else if (location.length < 3) {
-            errors.push('⚠️ Location must be at least 3 characters');
-            highlightError(locationField);
+            highlightError(locationField, 'Location must be at least 3 characters');
             isValid = false;
         }
         
         // Max participants validation
         if (!maxParticipants || maxParticipants < 1) {
-            errors.push('⚠️ Maximum participants must be at least 1');
-            highlightError(maxParticipantsField);
+            highlightError(maxParticipantsField, 'Maximum participants must be at least 1');
             isValid = false;
         } else if (maxParticipants > 100) {
-            errors.push('⚠️ Maximum participants cannot exceed 100');
-            highlightError(maxParticipantsField);
+            highlightError(maxParticipantsField, 'Maximum participants cannot exceed 100');
             isValid = false;
         }
         
         // Price validation (if provided)
         if (price && (isNaN(price) || parseFloat(price) < 0)) {
-            errors.push('⚠️ Price must be a valid positive number');
-            highlightError(priceField);
+            highlightError(priceField, 'Price must be a valid positive number');
             isValid = false;
         } else if (price && parseFloat(price) > 50000) {
-            errors.push('⚠️ Price cannot exceed Rs. 50,000');
-            highlightError(priceField);
+            highlightError(priceField, 'Price cannot exceed Rs. 50,000');
             isValid = false;
         }
     }
     
     if (!isValid) {
-        showValidationErrors(errors);
         // Scroll to first error
         const firstError = document.querySelector('.error');
         if (firstError) {
@@ -1701,59 +1802,42 @@ function validateStep(stepNumber) {
     return isValid;
 }
 
-// Helper function to highlight error fields
-function highlightError(element) {
+// Helper function to show validation errors under fields
+function showValidationErrors(errors) {
+    // Don't show popup - errors are already shown under fields via highlightError
+    // Just log for debugging
+    console.log('Validation errors:', errors);
+}
+
+// Enhanced highlightError to show message under field
+function highlightError(element, message) {
     if (element) {
         element.classList.add('error');
+        element.style.borderColor = '#ef4444';
+        
+        // Remove existing error message if any
+        const existingError = element.parentElement.querySelector('.field-error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add error message under the field if message is provided
+        if (message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error-message';
+            errorDiv.style.color = '#ef4444';
+            errorDiv.style.fontSize = '0.85rem';
+            errorDiv.style.marginTop = '0.25rem';
+            errorDiv.style.display = 'flex';
+            errorDiv.style.alignItems = 'center';
+            errorDiv.style.gap = '0.25rem';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            element.parentElement.appendChild(errorDiv);
+        }
     }
 }
 
-// Helper function to show validation errors
-function showValidationErrors(errors) {
-    const errorHtml = errors.map(err => `<div style="margin: 5px 0;">${err}</div>`).join('');
-    
-    const errorModal = document.createElement('div');
-    errorModal.className = 'validation-error-popup';
-    errorModal.innerHTML = `
-        <div class="error-popup-content">
-            <div class="error-popup-header">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Please fix the following errors:</span>
-            </div>
-            <div class="error-popup-body">
-                ${errorHtml}
-            </div>
-            <button class="error-popup-close" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i> Close
-            </button>
-        </div>
-    `;
-    
-    // Add styling
-    errorModal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10000;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        max-width: 500px;
-        animation: slideIn 0.3s ease;
-    `;
-    
-    document.body.appendChild(errorModal);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (errorModal.parentElement) {
-            errorModal.remove();
-        }
-    }, 5000);
-}
-
+// Form submission handler
 function saveStepData(stepNumber) {
     if (stepNumber === 1) {
         wizardState.formData.sessionType = document.querySelector('input[name="sessionType"]:checked').value;
@@ -1910,16 +1994,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const field = document.getElementById(fieldId);
         if (field) {
             field.addEventListener('input', function() {
+                // Clear error styling
                 this.classList.remove('error');
-                this.classList.add('success');
-            });
-            
-            field.addEventListener('blur', function() {
-                if (this.value.trim() !== '') {
-                    this.classList.remove('error');
-                    this.classList.add('success');
-                } else {
-                    this.classList.remove('success');
+                this.style.borderColor = '';
+                
+                // Remove error message below field
+                const errorMsg = this.parentElement.querySelector('.field-error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
                 }
             });
         }
@@ -1931,18 +2013,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     sessionTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            const container = document.querySelector('.session-type-options');
+            const container = document.querySelector('.session-type-cards');
             if (container) {
                 container.classList.remove('error');
+                container.style.borderColor = '';
+                
+                // Remove error message
+                const errorMsg = container.parentElement.querySelector('.field-error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
             }
         });
     });
     
     sessionModeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            const container = document.querySelector('.session-mode-options');
+            const container = document.querySelector('.radio-group');
             if (container) {
                 container.classList.remove('error');
+                container.style.borderColor = '';
+                
+                // Remove error message
+                const errorMsg = container.parentElement.querySelector('.field-error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
             }
         });
     });
