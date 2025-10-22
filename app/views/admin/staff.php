@@ -112,11 +112,8 @@
                             <i class="fas fa-chalkboard-teacher"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>12</h3>
+                            <h3><?php echo $data['staff_stats']->total_coaches ?? 0; ?></h3>
                             <p>Total Coaches</p>
-                            <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 2 this month
-                            </span>
                         </div>
                     </div>
 
@@ -125,11 +122,8 @@
                             <i class="fas fa-dumbbell"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>5</h3>
+                            <h3><?php echo $data['staff_stats']->total_trainers ?? 0; ?></h3>
                             <p>Trainers</p>
-                            <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 1 this month
-                            </span>
                         </div>
                     </div>
 
@@ -138,11 +132,8 @@
                             <i class="fas fa-user-shield"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>3</h3>
-                            <p>Administrators</p>
-                            <span class="stat-change neutral">
-                                <i class="fas fa-minus"></i> No change
-                            </span>
+                            <h3><?php echo $data['staff_stats']->active_staff ?? 0; ?></h3>
+                            <p>Active Staff</p>
                         </div>
                     </div>
 
@@ -151,11 +142,8 @@
                             <i class="fas fa-store"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>2</h3>
+                            <h3><?php echo $data['staff_stats']->total_shop_employees ?? 0; ?></h3>
                             <p>Shop Staff</p>
-                            <span class="stat-change neutral">
-                                <i class="fas fa-minus"></i> No change
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -228,7 +216,44 @@
                             </tr>
                         </thead>
                         <tbody id="staffTableBody">
-                            <!-- Staff rows will be dynamically inserted here -->
+                            <?php if (!empty($data['staff_members'])): ?>
+                                <?php foreach ($data['staff_members'] as $staff): ?>
+                            <tr>
+                                <td><input type="checkbox" class="staff-checkbox"></td>
+                                <td>
+                                    <div class="staff-info">
+                                        <h4><?php echo htmlspecialchars($staff->Name); ?></h4>
+                                        <p><?php echo htmlspecialchars($staff->Department ?? $staff->Role); ?></p>
+                                    </div>
+                                </td>
+                                <td><span class="role-badge <?php echo strtolower($staff->Role); ?>"><?php echo htmlspecialchars($staff->Role); ?></span></td>
+                                <td><?php echo htmlspecialchars($staff->Email); ?></td>
+                                <td><?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($staff->DateJoined)); ?></td>
+                                <td><span class="status-badge <?php echo strtolower($staff->Status); ?>"><?php echo ucfirst($staff->Status); ?></span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px;">
+                                    <i class="fas fa-users" style="font-size: 48px; color: #ddd; margin-bottom: 10px;"></i>
+                                    <p style="color: #999;">No staff members found</p>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -236,7 +261,11 @@
                 <!-- Pagination -->
                 <div class="pagination-section">
                     <div class="pagination-info">
-                        Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="totalStaff">22</span> staff members
+                        <?php 
+                        $totalStaff = !empty($data['staff_members']) ? count($data['staff_members']) : 0;
+                        $showingEnd = min(10, $totalStaff);
+                        ?>
+                        Showing <span id="showingStart">1</span> to <span id="showingEnd"><?php echo $showingEnd; ?></span> of <span id="totalStaff"><?php echo $totalStaff; ?></span> staff members
                     </div>
                     <div class="pagination-controls">
                         <button class="pagination-btn" id="prevPage">

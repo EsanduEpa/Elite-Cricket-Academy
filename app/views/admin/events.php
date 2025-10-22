@@ -1194,19 +1194,7 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Note: editEvent() function is defined in events.js
-
-
-function editEvent(eventId) {
-    if (!eventId || eventId === 0) {
-        console.error("⚠️ Invalid event ID passed to editEvent()");
-        alert("Invalid event ID. Please refresh the page and try again.");
-        return;
-    }
-
-    // Redirect to the edit page
-    window.location.href = `<?php echo URLROOT; ?>/admin/edit_event/${eventId}`;
-}
+// Note: editEvent() function and edit wizard functionality is now in events.js
 
 
 function deleteEvent(eventId) {

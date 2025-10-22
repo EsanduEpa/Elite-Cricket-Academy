@@ -188,8 +188,17 @@ class Admin extends Controller {
 
     // Staff Management
     public function staff() {
+        // Get user model
+        $userModel = $this->model('M_Users');
+        
+        // Get staff members from database
+        $staffMembers = $userModel->getStaffMembers();
+        $staffStats = $userModel->getStaffStats();
+        
         $data = [
-            'title' => 'Staff Management - Elite Cricket Academy'
+            'title' => 'Staff Management - Elite Cricket Academy',
+            'staff_members' => $staffMembers,
+            'staff_stats' => $staffStats
         ];
         
         $this->view('admin/staff', $data);
@@ -531,7 +540,63 @@ class Admin extends Controller {
         header('Content-Type: application/json');
         $eventModel = $this->model('Event');
         $event = $eventModel->getEventById($id);
-        echo json_encode($event);
+        
+        if ($event) {
+            // Add proper field mapping for the frontend
+            $event['EventName'] = $event['Name'] ?? '';
+            $event['EventType'] = $event['Type'] ?? '';
+            $event['EventDate'] = $event['StartDate'] ?? '';
+            $event['EventTime'] = isset($event['StartDate']) ? date('H:i', strtotime($event['StartDate'])) : '';
+            $event['RegistrationDeadline'] = $event['RegistrationEnd'] ?? '';
+            
+            echo json_encode([
+                'success' => true,
+                'event' => $event
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Event not found'
+            ]);
+        }
+    }
+
+    public function update_event($id) {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $eventModel = $this->model('Event');
+            
+            // Prepare data for update - only allow certain fields to be edited
+            $data = [
+                'EventID' => $id,
+                'EventName' => trim($_POST['event_name']),
+                'Description' => trim($_POST['description']),
+                'Location' => trim($_POST['location']),
+                'EventDate' => $_POST['event_date'],
+                'EventTime' => $_POST['event_time'],
+                'RegistrationDeadline' => $_POST['registration_deadline'],
+                'MaxParticipants' => $_POST['max_participants']
+            ];
+            
+            // Call model method to update
+            if ($eventModel->updateEvent($data)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Event updated successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to update event'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid request method'
+            ]);
+        }
     }
 
     public function finance() {
