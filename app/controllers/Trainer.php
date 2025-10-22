@@ -605,4 +605,132 @@ class Trainer extends Controller {
         
         redirect('trainer/supplements');
     }
+
+    // Upload/Update Profile Image
+    public function uploadProfileImage() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (!isset($_FILES['profile_image']) || $_FILES['profile_image']['error'] === UPLOAD_ERR_NO_FILE) {
+                echo json_encode(['success' => false, 'message' => 'No file was uploaded']);
+                return;
+            }
+            
+            $file = $_FILES['profile_image'];
+            
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                $errorMessages = [
+                    UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize in php.ini',
+                    UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE in HTML form',
+                    UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+                    UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                    UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                    UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload'
+                ];
+                $message = $errorMessages[$file['error']] ?? 'Unknown upload error occurred';
+                echo json_encode(['success' => false, 'message' => $message]);
+                return;
+            }
+            
+            $maxFileSize = 2 * 1024 * 1024;
+            if ($file['size'] > $maxFileSize) {
+                echo json_encode(['success' => false, 'message' => 'File size must be less than 2MB']);
+                return;
+            }
+            
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            $fileType = mime_content_type($file['tmp_name']);
+            
+            if (!in_array($fileType, $allowedTypes)) {
+                echo json_encode(['success' => false, 'message' => 'Only JPG, JPEG, and PNG files are allowed']);
+                return;
+            }
+            
+            $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $userId = $_SESSION['user_id'] ?? 1;
+            $newFileName = 'profile_' . $userId . '_' . time() . '.' . $fileExtension;
+            
+            $projectRoot = dirname(APPROOT);
+            $uploadDir = $projectRoot . '/public/uploads/profile_images/';
+            
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0755, true)) {
+                    echo json_encode(['success' => false, 'message' => 'Failed to create upload directory']);
+                    return;
+                }
+            }
+            
+            $uploadPath = $uploadDir . $newFileName;
+            
+            try {
+                $userModel = $this->model('M_Users');
+                $oldImage = $userModel->getProfileImage($userId);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                return;
+            }
+            
+            if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                $relativePath = 'uploads/profile_images/' . $newFileName;
+                
+                if ($userModel->updateProfileImage($userId, $relativePath)) {
+                    if ($oldImage) {
+                        $oldImagePath = $projectRoot . '/public/' . $oldImage;
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath);
+                        }
+                    }
+                    
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Profile image updated successfully',
+                        'image_url' => URLROOT . '/' . $relativePath
+                    ]);
+                } else {
+                    unlink($uploadPath);
+                    echo json_encode(['success' => false, 'message' => 'Failed to update profile image in database']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to move uploaded file']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    // Delete Profile Image
+    public function deleteProfileImage() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $userId = $_SESSION['user_id'] ?? 1;
+            
+            try {
+                $userModel = $this->model('M_Users');
+                $imagePath = $userModel->getProfileImage($userId);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                return;
+            }
+            
+            if ($imagePath) {
+                $projectRoot = dirname(APPROOT);
+                $fullPath = $projectRoot . '/public/' . $imagePath;
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+                
+                if ($userModel->deleteProfileImage($userId)) {
+                    echo json_encode(['success' => true, 'message' => 'Profile image deleted successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to delete image from database']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No profile image found']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
 }
