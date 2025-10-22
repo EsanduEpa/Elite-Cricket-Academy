@@ -98,17 +98,17 @@ class Trainer extends Controller {
     public function workout() {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
+            $_SESSION['user_id'] = 10; // Changed to match existing data
             $_SESSION['username'] = 'John Trainer';
             $_SESSION['user_type'] = 'trainer';
         }
 
-        // Initialize workout plan model
-        $workoutModel = $this->model('M_WorkoutPlan');
+        // Initialize trainer model
+        $trainerModel = $this->model('M_Trainer');
         
         // Get trainer's workout plans
-        $workoutPlans = $workoutModel->getWorkoutPlansByTrainer($_SESSION['user_id']);
-        $players = $workoutModel->getAllPlayers();
+        $workoutPlans = $trainerModel->getWorkoutPlans();
+        $players = $trainerModel->getAllPlayers();
 
         $data = [
             'title' => 'Workout Plans',
@@ -117,6 +117,92 @@ class Trainer extends Controller {
         ];
 
         $this->view('trainer/workout', $data);
+    }
+
+    // Add workout plan
+    public function addWorkoutPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize trainer model
+            $trainerModel = $this->model('M_Trainer');
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $data = [
+                'trainer_id' => $_SESSION['user_id'] ?? 10, // Use 10 as default for testing
+                'workoutname' => trim($_POST['workoutname']),
+                'frequency' => $_POST['frequency'],
+                'duration' => (int)$_POST['duration']
+            ];
+            
+            // Validate data
+            if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
+                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
+            } else if ($data['duration'] < 15 || $data['duration'] > 180) {
+                flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else {
+                // Add workout plan
+                if ($trainerModel->addWorkoutPlan($data)) {
+                    flash('workout_message', 'Workout plan added successfully', 'alert alert-success');
+                } else {
+                    flash('workout_message', 'Failed to add workout plan', 'alert alert-danger');
+                }
+            }
+        }
+        
+        redirect('trainer/workout');
+    }
+
+    // Update workout plan
+    public function updateWorkoutPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Initialize trainer model
+            $trainerModel = $this->model('M_Trainer');
+            
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            $data = [
+                'plan_id' => (int)$_POST['plan_id'],
+                'trainer_id' => $_SESSION['user_id'] ?? 10, // Use 10 as default for testing
+                'workoutname' => trim($_POST['workoutname']),
+                'frequency' => $_POST['frequency'],
+                'duration' => (int)$_POST['duration']
+            ];
+            
+            // Validate data
+            if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
+                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
+            } else if ($data['duration'] < 15 || $data['duration'] > 180) {
+                flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else {
+                // Update workout plan
+                if ($trainerModel->updateWorkoutPlan($data)) {
+                    flash('workout_message', 'Workout plan updated successfully', 'alert alert-success');
+                } else {
+                    flash('workout_message', 'Failed to update workout plan', 'alert alert-danger');
+                }
+            }
+        }
+        
+        redirect('trainer/workout');
+    }
+
+    // Delete workout plan
+    public function deleteWorkoutPlan() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $trainerModel = $this->model('M_Trainer');
+            $plan_id = (int)$_POST['plan_id'];
+            $trainer_id = $_SESSION['user_id'] ?? 10; // Use 10 as default for testing
+            
+            if ($trainerModel->deleteWorkoutPlan($plan_id, $trainer_id)) {
+                flash('workout_message', 'Workout plan deleted successfully', 'alert alert-success');
+            } else {
+                flash('workout_message', 'Failed to delete workout plan', 'alert alert-danger');
+            }
+        }
+        
+        redirect('trainer/workout');
     }
 
     public function supplements() {
@@ -484,41 +570,6 @@ class Trainer extends Controller {
         }
         
         redirect('trainer/nutrition');
-    }
-
-    // Add workout plan
-    public function addWorkoutPlan() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Initialize model
-            $workoutModel = $this->model('M_WorkoutPlan');
-            
-            // Sanitize POST data
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            
-            $data = [
-                'trainer_id' => $_SESSION['user_id'],
-                'player_id' => $_POST['player_id'],
-                'video_url' => $_POST['video_url'],
-                'workout_details' => $_POST['workout_details'],
-                'frequency' => $_POST['frequency'],
-                'duration' => $_POST['duration'],
-                'status' => 'active'
-            ];
-            
-            // Validate data
-            if (empty($data['player_id']) || empty($data['workout_details']) || empty($data['frequency']) || empty($data['duration'])) {
-                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
-            } else {
-                // Add workout plan
-                if ($workoutModel->addWorkoutPlan($data)) {
-                    flash('workout_message', 'Workout plan added successfully');
-                } else {
-                    flash('workout_message', 'Failed to add workout plan', 'alert alert-danger');
-                }
-            }
-        }
-        
-        redirect('trainer/workout');
     }
 
     // Add supplement plan

@@ -1080,6 +1080,15 @@ class Player extends Controller {
         $this->view('player/checkout', $data);
     }
 
+    public function payment() {
+        $data = [
+            'title' => 'Payment Portal',
+            'player' => $this->getPlayerData()
+        ];
+        
+        $this->view('player/payment', $data);
+    }
+
     private function getCartItems() {
         // Mock cart data - in real implementation, this would come from session/database
         return [

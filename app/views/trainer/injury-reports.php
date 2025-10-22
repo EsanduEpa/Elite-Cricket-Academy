@@ -16,10 +16,11 @@
             </button>
         </div>
 
+        
         <nav class="sidebar-nav">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link active">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
@@ -28,44 +29,39 @@
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
                         <i class="fas fa-calendar-check"></i>
-                        <span>Player Bookings</span>
+                        <span>Schedule & Bookings</span>
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/exercises" class="nav-link">
-                        <i class="fas fa-running"></i>
-                        <span>Common Exercises</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i>
-                        <span>Supplement Recommendations</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="nav-link">
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
                         <i class="fas fa-user-injured"></i>
                         <span>Injury Reports</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout-plans" class="nav-link">
-                        <i class="fas fa-dumbbell"></i>
-                        <span>Individual Workouts</span>
+                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Supplement plans</span>
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/schedules" class="nav-link">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Training Schedules</span>
+                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/nutients" class="nav-link">
+                        <i class="fas fa-capsules"></i>
+                        <span>Nutrition plans</span>
                     </a>
                 </li>
+              
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/workouts" class="nav-link">
+                        <i class="fas fa-dumbbell"></i>
+                        <span>Workout plans</span>
+                    </a>
+                </li>
+                
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/reports" class="nav-link">
@@ -232,52 +228,13 @@
                                         <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
                                             <?php echo ucfirst($record->RecoveryStatus); ?>
                                         </span>
-                                        <div class="status-indicator">
-                                            <?php
-                                            $statusIcon = '';
-                                            switch(strtolower($record->RecoveryStatus)) {
-                                                case 'ongoing':
-                                                    $statusIcon = '<i class="fas fa-exclamation-circle text-warning"></i>';
-                                                    break;
-                                                case 'recovering':
-                                                    $statusIcon = '<i class="fas fa-healing text-info"></i>';
-                                                    break;
-                                                case 'recovered':
-                                                    $statusIcon = '<i class="fas fa-check-circle text-success"></i>';
-                                                    break;
-                                                case 'chronic':
-                                                    $statusIcon = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-                                                    break;
-                                                default:
-                                                    $statusIcon = '<i class="fas fa-question-circle text-muted"></i>';
-                                            }
-                                            echo $statusIcon;
-                                            ?>
-                                        </div>
+                                       
                                     </td>
                                     <td>
                                         <span class="table-badge verify-<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>">
                                             <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
                                         </span>
-                                        <div class="status-indicator">
-                                            <?php
-                                            $verifyIcon = '';
-                                            switch(strtolower($record->verifyStatus ?? 'pending')) {
-                                                case 'pending':
-                                                    $verifyIcon = '<i class="fas fa-clock text-warning"></i>';
-                                                    break;
-                                                case 'verified':
-                                                    $verifyIcon = '<i class="fas fa-check-circle text-success"></i>';
-                                                    break;
-                                                case 'rejected':
-                                                    $verifyIcon = '<i class="fas fa-times-circle text-danger"></i>';
-                                                    break;
-                                                default:
-                                                    $verifyIcon = '<i class="fas fa-question-circle text-muted"></i>';
-                                            }
-                                            echo $verifyIcon;
-                                            ?>
-                                        </div>
+                                        
                                     </td>
                                     <td>
                                         <div class="table-cell-title"><?php echo htmlspecialchars($record->reported_by_name ?? 'Self'); ?></div>
@@ -291,9 +248,7 @@
                                             <button class="btn-sm btn-success" onclick="updateVerifyStatus(<?php echo $record->RecordID; ?>, '<?php echo $record->verifyStatus ?? 'pending'; ?>')" title="Update Verify Status">
                                                 <i class="fas fa-check-double"></i> Verify
                                             </button>
-                                            <button class="btn-sm btn-info" onclick="addTrainerNote(<?php echo $record->RecordID; ?>)" title="Add Trainer Note">
-                                                <i class="fas fa-sticky-note"></i> Note
-                                            </button>
+                                            
                                         </div>
                                     </td>
                                 </tr>
@@ -373,45 +328,6 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeFullRecordModal()">Close</button>
         </div>
-    </div>
-</div>
-
-<!-- Add Trainer Note Modal -->
-<div id="trainerNoteModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-sticky-note"></i> Add Trainer Note</h3>
-            <span class="close" onclick="closeTrainerNoteModal()">&times;</span>
-        </div>
-        <form id="trainerNoteForm">
-            <div class="modal-body">
-                <input type="hidden" id="noteRecordId" name="record_id">
-                
-                <div class="form-group">
-                    <label for="trainerNote">Trainer Observation/Note *</label>
-                    <textarea id="trainerNote" name="trainer_note" class="form-control" rows="4" required 
-                            placeholder="Add your professional observation, training recommendations, or notes about this medical record..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="trainingRecommendation">Training Recommendation</label>
-                    <select id="trainingRecommendation" name="training_recommendation" class="form-control">
-                        <option value="">Select recommendation...</option>
-                        <option value="full-activity">Full Activity - No Restrictions</option>
-                        <option value="modified-training">Modified Training Required</option>
-                        <option value="light-activity">Light Activity Only</option>
-                        <option value="rest-required">Rest Required</option>
-                        <option value="medical-clearance">Medical Clearance Needed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeTrainerNoteModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Note
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -536,11 +452,7 @@
         document.getElementById('fullRecordModal').style.display = 'none';
     }
 
-    // Add trainer note
-    function addTrainerNote(recordId) {
-        document.getElementById('noteRecordId').value = recordId;
-        document.getElementById('trainerNoteModal').style.display = 'block';
-    }
+    
 
     function closeTrainerNoteModal() {
         document.getElementById('trainerNoteModal').style.display = 'none';

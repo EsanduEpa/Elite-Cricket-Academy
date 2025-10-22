@@ -499,6 +499,7 @@ CREATE TABLE Product (
     SKU VARCHAR(100) UNIQUE COMMENT 'Stock Keeping Unit',
     Weight DECIMAL(8,3) COMMENT 'Product weight in kg',
     Dimensions VARCHAR(100) COMMENT 'Length x Width x Height',
+     ImageURL VARCHAR(255) COMMENT 'Path or URL of product image', 
     AddedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     UpdatedBy INT NULL COMMENT 'Shop employee who last updated',
     
@@ -582,25 +583,88 @@ CREATE TABLE ProductOrderItem (
 -- =============================================================================
 
 -- Academy events and training camps
+USE cricket_academy;
+
+-- Step 1: Drop the old Event table (will also drop foreign keys)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS Event;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Step 2: Create the new enhanced Event table
 CREATE TABLE Event (
     EventID INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
-    Type ENUM('Training Camp', 'Workshop', 'Seminar', 'Competition', 'Other'),
-    Description TEXT,
-    StartDate DATE NOT NULL,
-    EndDate DATE NOT NULL,
-    Location VARCHAR(255),
-    OrganizedBy INT NOT NULL,
-    Status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
-    MaxParticipants INT,
     
-    FOREIGN KEY (OrganizedBy) REFERENCES User(UserID) ON DELETE CASCADE ON UPDATE CASCADE,
+    -- Enhanced Type field with more options
+    Type ENUM(
+        'Training Camp', 
+        'Workshop', 
+        'Seminar', 
+        'Competition', 
+        'Tournament', 
+        'Match', 
+        'Trial', 
+        'Meeting', 
+        'Other'
+    ) DEFAULT NULL,
+    
+    -- NEW: Category field for event classification
+    Category ENUM(
+        'junior', 
+        'senior', 
+        'youth', 
+        'professional', 
+        'recreational', 
+        'academy'
+    ) DEFAULT NULL,
+    
+    Description TEXT,
+    
+    -- Changed from DATE to DATETIME for better scheduling
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    
+    Location VARCHAR(255),
+    
+    -- Enhanced Status field with more states
+    Status ENUM(
+        'upcoming', 
+        'registration_open', 
+        'registration_closed', 
+        'ongoing', 
+        'completed', 
+        'cancelled'
+    ) DEFAULT 'upcoming',
+    
+    -- NEW: Registration management fields
+    RegistrationStart DATETIME DEFAULT NULL,
+    RegistrationEnd DATETIME DEFAULT NULL,
+    
+    -- NEW: Contact information fields
+    PrimaryContact VARCHAR(255) DEFAULT NULL,
+    ContactEmail VARCHAR(255) DEFAULT NULL,
+    ContactPhone VARCHAR(20) DEFAULT NULL,
+    
+    -- NEW: Participant management
+    MaxParticipants INT DEFAULT NULL,
+    RegistrationFee DECIMAL(10,2) DEFAULT 0.00,
+    
+    -- Indexes for performance
     INDEX idx_start_date (StartDate),
     INDEX idx_status (Status),
-    INDEX idx_organizer (OrganizedBy)
-) ENGINE=InnoDB COMMENT='Academy events and training camps';
+    INDEX idx_category (Category),
+    INDEX idx_registration_start (RegistrationStart),
+    INDEX idx_registration_end (RegistrationEnd),
+    INDEX idx_contact_email (ContactEmail)
+    
+) ENGINE=InnoDB 
+DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_unicode_ci 
+COMMENT='Academy events and training camps';
 
--- Player enrollment in events
+-- Step 3: Recreate EventEnrollment table with proper foreign key
+DROP TABLE IF EXISTS EventEnrollment;
+
 CREATE TABLE EventEnrollment (
     EnrollmentID INT AUTO_INCREMENT PRIMARY KEY,
     EventID INT NOT NULL,
@@ -608,12 +672,17 @@ CREATE TABLE EventEnrollment (
     EnrollmentDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     Status ENUM('enrolled', 'attended', 'cancelled') DEFAULT 'enrolled',
     
-    FOREIGN KEY (EventID) REFERENCES Event(EventID) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (EventID) REFERENCES Event(EventID) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
     UNIQUE KEY unique_event_enrollment (EventID, PlayerID),
     INDEX idx_player_enrollment (PlayerID),
     INDEX idx_status (Status)
 ) ENGINE=InnoDB COMMENT='Player enrollment in events';
+
 
 -- Cricket tournaments
 CREATE TABLE Tournament (
@@ -803,7 +872,7 @@ CREATE TABLE CoachingSession (
 CREATE TABLE NutritionPlan (
     PlanID INT AUTO_INCREMENT PRIMARY KEY,
     TrainerID INT NOT NULL,
-    PlayerID INT NOT NULL,
+   
     DietDetails TEXT NOT NULL,
     Duration INT COMMENT 'Duration in days',
     CreatedDate DATE DEFAULT (CURRENT_DATE),
@@ -815,31 +884,45 @@ CREATE TABLE NutritionPlan (
     INDEX idx_player_nutrition (PlayerID),
     INDEX idx_status (Status)
 ) ENGINE=InnoDB COMMENT='Customized nutrition plans for players';
-
+CREATE TABLE NutritionPlan_Player (
+    PlanID INT NOT NULL,
+    PlayerID INT NOT NULL,
+    AssignedDate DATE DEFAULT (CURRENT_DATE),
+    PRIMARY KEY (PlanID, PlayerID),
+    FOREIGN KEY (PlanID) REFERENCES NutritionPlan(PlanID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
 -- Customized workout plans for players
 CREATE TABLE WorkoutPlan (
     PlanID INT AUTO_INCREMENT PRIMARY KEY,
     TrainerID INT NOT NULL,
-    PlayerID INT NOT NULL,
-    VideoUrl TEXT,
-    WorkoutDetails TEXT NOT NULL,
-    Frequency ENUM('Daily', 'Weekly', 'Bi-weekly', 'Custom'),
+    workoutname varchar(255),
+    frequency ENUM('Daily', 'Weekly', 'Bi-weekly'),
     Duration INT COMMENT 'Duration in days',
     CreatedDate DATE DEFAULT (CURRENT_DATE),
-    Status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
     
-    FOREIGN KEY (TrainerID) REFERENCES TrainerProfile(TrainerID) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX idx_trainer_workout (TrainerID),
-    INDEX idx_player_workout (PlayerID),
-    INDEX idx_status (Status)
+    FOREIGN KEY (TrainerID) REFERENCES TrainerProfile(TrainerID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_trainer_workout (TrainerID)
 ) ENGINE=InnoDB COMMENT='Customized workout plans for players';
 
+CREATE TABLE WorkoutPlan_Player (
+    PlanID INT NOT NULL,
+    PlayerID INT NOT NULL,
+    AssignedDate DATE DEFAULT (CURRENT_DATE),
+    PRIMARY KEY (PlanID, PlayerID),
+    FOREIGN KEY (PlanID) REFERENCES WorkoutPlan(PlanID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
 -- Supplement recommendations for players
 CREATE TABLE SupplementPlan (
     PlanID INT AUTO_INCREMENT PRIMARY KEY,
     TrainerID INT NOT NULL,
-    PlayerID INT NOT NULL,
+   
     SupplementDetails TEXT NOT NULL,
     Dosage VARCHAR(255),
     Duration INT COMMENT 'Duration in days',
@@ -852,7 +935,16 @@ CREATE TABLE SupplementPlan (
     INDEX idx_player_supplement (PlayerID),
     INDEX idx_status (Status)
 ) ENGINE=InnoDB COMMENT='Supplement recommendations for players';
-
+CREATE TABLE Supplement_Player (
+    PlanID INT NOT NULL,
+    PlayerID INT NOT NULL,
+    AssignedDate DATE DEFAULT (CURRENT_DATE),
+    PRIMARY KEY (PlanID, PlayerID),
+    FOREIGN KEY (PlanID) REFERENCES SupplementPlan(PlanID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
 -- =============================================================================
 -- SECTION 10: MEDICAL RECORDS
 -- =============================================================================
