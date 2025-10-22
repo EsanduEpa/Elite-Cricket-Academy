@@ -6,7 +6,6 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,124 +50,7 @@ if (isset($data['event'])) {
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>
-            <i class="fas fa-edit"></i>
-            Edit Event
-            <?php if (!empty($data['event']['EventID'])): ?>
-                <span class="event-id-badge">ID: <?= htmlspecialchars($data['event']['EventID'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-            <?php endif; ?>
-        </h1>
-        <a href="<?= URLROOT; ?>/admin/events" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Events
-        </a>
-    </div>
 
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-    /* Edit Event Form Specific Styles */
-    .edit-event-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .page-header {
-        background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .page-header h1 {
-        margin: 0;
-        font-size: 2rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .event-id-badge {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 500;
-    }
-    
-    .back-btn {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s;
-        font-weight: 600;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .back-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    .form-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
-    
-    .form-content {
-        padding: 2.5rem;
-    }
-    
-    .form-section {
-        margin-bottom: 2.5rem;
-    }
-    
-    .section-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #4A90E2;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 3px solid rgba(74, 144, 226, 0.2);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .section-title i {
-        font-size: 1.5rem;
-    }
-    
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-group {
-        display: flex;
-        flex-direction: column;
-     }
-    
- 
 
 <!-- Admin Dashboard Layout -->
 <div class="admin-layout">
