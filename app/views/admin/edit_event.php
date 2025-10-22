@@ -42,6 +42,11 @@ if (isset($data['event'])) {
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; }
         .event-id-badge { background: rgba(255, 255, 255, 0.2); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px 20px; margin-bottom: 25px; border-radius: 8px; }
+        .info-box h3 { color: #1976d2; font-size: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .info-box p { color: #555; font-size: 14px; margin: 5px 0; }
+        .info-box .readonly-indicator { color: #f59e0b; font-weight: 600; }
+        .info-box .editable-indicator { color: #10b981; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -61,6 +66,13 @@ if (isset($data['event'])) {
 
     <div class="form-content">
         <?php flash('event_message'); ?>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Edit Permissions</h3>
+            <p><span class="readonly-indicator">🔒 READ-ONLY:</span> Event Type, Category (cannot be changed after creation)</p>
+            <p><span class="editable-indicator">✏️ EDITABLE:</span> Event Name, Description, Status, Dates, Location, Registration Details, Contact Info</p>
+        </div>
 
         <?php if (!empty($data['event'])): ?>
             <?php 
@@ -121,33 +133,17 @@ if (isset($data['event'])) {
                             <input type="text" id="Name" name="Name" value="<?= htmlspecialchars($event['Name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="Type">Event Type <span class="required">*</span></label>
+                            <label for="Type">Event Type <span class="required">*</span> <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $type = $event['Type'] ?? ''; ?>
-                            <select id="Type" name="Type" required>
-                                <option value="">Select Type</option>
-                                <?php 
-                                    $types = ['Training Camp','Workshop','Seminar','Competition','Tournament','Match','Trial','Meeting','Other'];
-                                    foreach($types as $t): ?>
-                                        <option value="<?= $t; ?>" <?= ($type === $t) ? 'selected' : ''; ?>><?= $t; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Type" name="Type" value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="Category">Category</label>
+                            <label for="Category">Category <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $category = $event['Category'] ?? ''; ?>
-                            <select id="Category" name="Category">
-                                <option value="">Select Category</option>
-                                <?php 
-                                    $categories = ['junior','senior','youth','professional','recreational','academy'];
-                                    foreach($categories as $c): ?>
-                                        <option value="<?= $c; ?>" <?= ($category === $c) ? 'selected' : ''; ?>>
-                                            <?= ucfirst($c); ?>
-                                        </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Category" name="Category" value="<?= htmlspecialchars(ucfirst($category), ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
 
                         <div class="form-group">
