@@ -22,23 +22,53 @@ if (!isset($data['user']) || !is_object($data['user'])) {
             
             <!-- Navigation Menu -->
             <nav class="sidebar-nav">
-                <ul class="nav-list">
+                <ul class="nav-menu">
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
                             <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
+                            <span>Dashboard Overview</span>
                         </a>
                     </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Staff Management</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Player Management</span>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
                             <i class="fas fa-calendar-alt"></i>
-                            <span>Events Management</span>
+                            <span>Events & Tournaments</span>
                         </a>
                     </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
+                            <i class="fas fa-comments"></i>
+                            <span>Feedback Monitoring</span>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Finance Management</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
                         </a>
                     </li>
                 </ul>

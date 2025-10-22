@@ -333,6 +333,75 @@
             </div>
 
             <!-- Tournament Actions -->
+            <!-- Academy Events Table -->
+            <div class="schedule-card upcoming-schedule">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-calendar"></i> Academy Events</h2>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($data['academyEvents'])): ?>
+                                <?php foreach ($data['academyEvents'] as $event): ?>
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary">
+                                                <?php echo date('M d', strtotime($event['event_date'])); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">
+                                                <?php echo date('l', strtotime($event['event_date'])); ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <?php echo htmlspecialchars($event['title']); ?>
+                                            </div>
+                                            <div class="table-cell-details">
+                                                <?php echo htmlspecialchars($event['description']); ?>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge">
+                                                <?php echo htmlspecialchars($event['Type']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <?php echo htmlspecialchars($event['location']); ?>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge status-<?php echo strtolower($event['Status']); ?>">
+                                                <?php echo htmlspecialchars($event['Status']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <button class="action-btn" onclick="alert('Event details coming soon!')">
+                                                <i class="fas fa-info-circle"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" style="text-align:center; color:#888;">No upcoming academy events found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Tournament Actions -->
             <div class="quick-actions">
                 <h3>Tournament Actions</h3>
                 <div class="action-buttons">

@@ -32,7 +32,12 @@ class Player extends Controller {
     // Main dashboard
     public function index() {
         $playerData = $this->getPlayerData();
-        
+        $sessionModel = $this->model('M_Session');
+        $coachSessions = [];
+        if (isset($playerData['id'])) {
+            $coachSessions = $sessionModel->getUpcomingSessionsForPlayer($playerData['id']);
+        }
+
         $data = [
             'title' => 'Player Dashboard - ' . $playerData['name'],
             'player' => $playerData,
@@ -41,9 +46,10 @@ class Player extends Controller {
             'upcomingBookings' => $this->getUpcomingBookings(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats()
+            'performanceStats' => $this->getPerformanceStats(),
+            'coachSessions' => $coachSessions
         ];
-        
+
         $this->view('player/dashboard', $data);
     }
     
@@ -216,12 +222,41 @@ class Player extends Controller {
             $playerId = $playerData['id'];
             $reportedBy = $playerData['id']; // Player reporting their own record
             
+            // Handle file upload for diagnosis receipt
+            $diagnosisReceiptURL = null;
+            if (isset($_FILES['diagnosis_receipt']) && $_FILES['diagnosis_receipt']['error'] == 0) {
+                $uploadDir = 'public/uploads/medical_receipts/';
+                
+                // Create directory if it doesn't exist
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                // Generate unique filename
+                $fileExtension = pathinfo($_FILES['diagnosis_receipt']['name'], PATHINFO_EXTENSION);
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+                
+                if (in_array(strtolower($fileExtension), $allowedExtensions)) {
+                    $fileName = 'receipt_' . $playerId . '_' . time() . '.' . $fileExtension;
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['diagnosis_receipt']['tmp_name'], $targetPath)) {
+                        // Store path without 'public/' prefix for web access
+                        $diagnosisReceiptURL = 'uploads/medical_receipts/' . $fileName;
+                    }
+                }
+            }
+            
             $data = [
                 'player_id' => $playerId,
                 'injury_details' => trim($_POST['injury_details']),
                 'diagnosis' => trim($_POST['diagnosis']),
-                'treatment_given' => trim($_POST['treatment_given']),
+                'treatment_given' => trim($_POST['treatment_given']) ?: '',
                 'recovery_status' => $_POST['recovery_status'],
+                'injury_date' => $_POST['injury_date'],
+                'happened_at_academy' => $_POST['happened_at_academy'] ?? 'no',
+                'rest_days_needed' => intval($_POST['rest_days_needed']) ?: 0,
+                'diagnosis_receipt_url' => $diagnosisReceiptURL,
                 'reported_date' => $_POST['reported_date'],
                 'reported_by' => $reportedBy
             ];
@@ -234,8 +269,11 @@ class Player extends Controller {
             if (empty($data['diagnosis'])) {
                 $errors[] = 'Diagnosis is required';
             }
+            if (empty($data['injury_date'])) {
+                $errors[] = 'Injury date is required';
+            }
             if (empty($data['reported_date'])) {
-                $errors[] = 'Date is required';
+                $errors[] = 'Reported date is required';
             }
             
             if (empty($errors)) {
@@ -718,13 +756,16 @@ class Player extends Controller {
     
     // Tournaments
     public function tournaments() {
+        $eventModel = $this->model('Event');
+        $academyEvents = $eventModel->getUpcomingEvents(20); // fetch up to 20 upcoming events
         $data = [
             'title' => 'Tournaments',
             'player' => $this->getPlayerData(),
             'upcomingTournaments' => $this->getUpcomingTournaments(),
             'enrolledTournaments' => $this->getEnrolledTournaments(),
             'completedTournaments' => $this->getCompletedTournaments(),
-            'tournamentStats' => $this->getTournamentStats()
+            'tournamentStats' => $this->getTournamentStats(),
+            'academyEvents' => $academyEvents
         ];
         $this->view('player/tournaments', $data);
     }

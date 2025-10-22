@@ -156,7 +156,7 @@
             <div class="schedule-card upcoming-schedule">
                 <div class="card-header">
                     <div class="header-content">
-                        <h2><i class="fas fa-calendar-alt"></i> Upcoming Sessions</h2>
+                        <h2><i class="fas fa-calendar-alt"></i> Upcoming private Sessions</h2>
                         <div class="header-filters">
                             <select class="form-control filter-select" id="session-type-filter" onchange="filterSessions()">
                                 <option value="all">All Sessions</option>

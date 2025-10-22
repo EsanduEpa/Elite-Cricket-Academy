@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt URL Test</title>
+</head>
+<body>
+    <h1>Receipt URL Test</h1>
+    <p>Click the links below to test if file access works:</p>
+    
+    <h2>Test File (Should Work)</h2>
+    <a href="http://localhost/Elite/uploads/medical_receipts/test_receipt.txt" target="_blank">
+        Test Receipt TXT
+    </a>
+    
+    <h2>Your Actual File (From Database)</h2>
+    <a href="http://localhost/Elite/uploads/medical_receipts/receipt_15_1761138553.png" target="_blank">
+        Receipt PNG (This might not exist)
+    </a>
+    
+    <hr>
+    <h2>File Upload Issue</h2>
+    <p>The file <code>receipt_15_1761138553.png</code> doesn't exist on the server.</p>
+    <p>This means the file upload failed when you added the medical record.</p>
+    
+    <h3>Possible Causes:</h3>
+    <ul>
+        <li>File upload size limit exceeded</li>
+        <li>Incorrect file permissions on upload directory</li>
+        <li>PHP upload settings too restrictive</li>
+        <li>Form didn't have enctype="multipart/form-data"</li>
+    </ul>
+</body>
+</html>

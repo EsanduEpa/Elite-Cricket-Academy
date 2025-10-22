@@ -401,13 +401,15 @@
                         <table class="dashboard-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
+                                    <th>Injury Date</th>
                                     <th>Injury Details</th>
                                     <th>Diagnosis</th>
                                     <th>Treatment</th>
+                                    <th>At Academy</th>
+                                    <th>Rest Days</th>
+                                    <th>Receipt</th>
                                     <th>Recovery Status</th>
                                     <th>Verify Status</th>
-                                    <th>Reported By</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -415,8 +417,8 @@
                                 <?php foreach($data['medicalRecords'] as $record): ?>
                                 <tr>
                                     <td>
-                                        <div class="table-cell-primary"><?php echo date('M d', strtotime($record->ReportedDate)); ?></div>
-                                        <div class="table-cell-secondary"><?php echo date('Y', strtotime($record->ReportedDate)); ?></div>
+                                        <div class="table-cell-primary"><?php echo date('M d, Y', strtotime($record->InjuryDate)); ?></div>
+                                        <div class="table-cell-secondary">Reported: <?php echo date('M d', strtotime($record->ReportedDate)); ?></div>
                                     </td>
                                     <td>
                                         <div class="table-cell-title"><?php echo htmlspecialchars($record->InjuryDetails); ?></div>
@@ -425,7 +427,35 @@
                                         <div class="table-cell-title"><?php echo htmlspecialchars($record->Diagnosis); ?></div>
                                     </td>
                                     <td>
-                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->TreatmentGiven); ?></div>
+                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->TreatmentGiven ?: 'N/A'); ?></div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <?php if ($record->HappenedAtAcademy == 'yes'): ?>
+                                            <span class="table-badge" style="background-color: #ffc107; color: #333;">
+                                                <i class="fas fa-school"></i> Yes
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="table-badge" style="background-color: #6c757d; color: white;">
+                                                <i class="fas fa-home"></i> No
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary"><?php echo intval($record->RestDaysNeeded); ?></div>
+                                        <div class="table-cell-secondary">days</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <?php if (!empty($record->DiagnosisReceiptURL)): ?>
+                                            <?php 
+                                                // Remove 'public/' prefix if exists for correct URL
+                                                $receiptPath = str_replace('public/', '', $record->DiagnosisReceiptURL);
+                                            ?>
+                                            <a href="<?php echo URLROOT . '/' . $receiptPath; ?>" target="_blank" class="btn-sm" style="background: #17a2b8;">
+                                                <i class="fas fa-file-alt"></i> View
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="table-cell-secondary">-</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
@@ -436,11 +466,6 @@
                                         <span class="table-badge verify-<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>">
                                             <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
                                         </span>
-                                        
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->reported_by_name ?? 'Self'); ?></div>
-                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->reported_by_role ?? 'Player'); ?></div>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
@@ -571,16 +596,39 @@
 
     <!-- Add Medical Record Modal -->
     <div id="addMedicalModal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <h3><i class="fas fa-notes-medical"></i> Add Medical Record</h3>
                 <span class="close" onclick="closeAddMedicalModal()">&times;</span>
             </div>
-            <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord">
+            <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord" enctype="multipart/form-data">
                 <div class="modal-body">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label for="injury_date">Injury Date *</label>
+                            <input type="date" id="injury_date" name="injury_date" class="form-control" required max="<?php echo date('Y-m-d'); ?>">
+                            <small class="form-text">When did the injury occur?</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reported_date">Reported Date *</label>
+                            <input type="date" id="reported_date" name="reported_date" class="form-control" required max="<?php echo date('Y-m-d'); ?>">
+                            <small class="form-text">When are you reporting this?</small>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label for="reported_date">Date of Incident/Checkup *</label>
-                        <input type="date" id="reported_date" name="reported_date" class="form-control" required max="<?php echo date('Y-m-d'); ?>">
+                        <label>Did the injury happen at the academy? *</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                                <input type="radio" name="happened_at_academy" value="yes" style="margin-right: 5px;" required>
+                                <span>Yes</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                                <input type="radio" name="happened_at_academy" value="no" style="margin-right: 5px;" checked>
+                                <span>No</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -601,15 +649,29 @@
                                 placeholder="Treatment provided, medications, therapy, etc..."></textarea>
                     </div>
                     
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label for="rest_days_needed">Estimated Rest Days Needed</label>
+                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control" min="0" value="0" placeholder="e.g. 7">
+                            <small class="form-text">Number of days rest required</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="recovery_status">Recovery Status *</label>
+                            <select id="recovery_status" name="recovery_status" class="form-control" required>
+                                <option value="">Select status...</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="recovering">Recovering</option>
+                                <option value="recovered">Fully Recovered</option>
+                                <option value="chronic">Chronic Condition</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label for="recovery_status">Recovery Status *</label>
-                        <select id="recovery_status" name="recovery_status" class="form-control" required>
-                            <option value="">Select status...</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="recovering">Recovering</option>
-                            <option value="recovered">Fully Recovered</option>
-                            <option value="chronic">Chronic Condition</option>
-                        </select>
+                        <label for="diagnosis_receipt">Diagnosis Receipt/Document (Optional)</label>
+                        <input type="file" id="diagnosis_receipt" name="diagnosis_receipt" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                        <small class="form-text">Upload medical receipt, prescription, or diagnosis document (JPG, PNG, PDF, DOC - Max 5MB)</small>
                     </div>
                 </div>
                 <div class="modal-footer">

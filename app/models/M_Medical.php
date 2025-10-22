@@ -15,7 +15,7 @@ class M_Medical {
             FROM PlayerMedicalRecord pmr 
             LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
             WHERE pmr.PlayerID = :player_id 
-            ORDER BY pmr.ReportedDate DESC');
+            ORDER BY pmr.InjuryDate DESC, pmr.ReportedDate DESC');
         
         $this->db->bind(':player_id', $playerId);
         
@@ -30,6 +30,10 @@ class M_Medical {
             Diagnosis, 
             TreatmentGiven, 
             RecoveryStatus, 
+            InjuryDate,
+            HappenedAtAcademy,
+            RestDaysNeeded,
+            DiagnosisReceiptURL,
             ReportedDate, 
             ReportedBy
         ) VALUES (
@@ -38,6 +42,10 @@ class M_Medical {
             :diagnosis, 
             :treatment_given, 
             :recovery_status, 
+            :injury_date,
+            :happened_at_academy,
+            :rest_days_needed,
+            :diagnosis_receipt_url,
             :reported_date, 
             :reported_by
         )');
@@ -48,6 +56,10 @@ class M_Medical {
         $this->db->bind(':diagnosis', $data['diagnosis']);
         $this->db->bind(':treatment_given', $data['treatment_given']);
         $this->db->bind(':recovery_status', $data['recovery_status']);
+        $this->db->bind(':injury_date', $data['injury_date']);
+        $this->db->bind(':happened_at_academy', $data['happened_at_academy']);
+        $this->db->bind(':rest_days_needed', $data['rest_days_needed']);
+        $this->db->bind(':diagnosis_receipt_url', $data['diagnosis_receipt_url']);
         $this->db->bind(':reported_date', $data['reported_date']);
         $this->db->bind(':reported_by', $data['reported_by']);
         
@@ -115,23 +127,48 @@ class M_Medical {
             FROM PlayerMedicalRecord pmr 
             LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
             LEFT JOIN User p ON pmr.PlayerID = p.UserID
-            ORDER BY pmr.ReportedDate DESC');
+            ORDER BY pmr.InjuryDate DESC, pmr.ReportedDate DESC');
         
         return $this->db->resultSet();
     }
     
     // Update verification status for a medical record
     public function updateVerifyStatus($recordId, $verifyStatus, $comments = '') {
+        error_log("=== M_Medical::updateVerifyStatus called ===");
+        error_log("Record ID: $recordId, Status: $verifyStatus, Comments: $comments");
+        
+        // First check if record exists
+        $this->db->query('SELECT RecordID, verifyStatus FROM PlayerMedicalRecord WHERE RecordID = :record_id');
+        $this->db->bind(':record_id', $recordId, PDO::PARAM_INT);
+        $existing = $this->db->single();
+        
+        if (!$existing) {
+            error_log("ERROR: Record ID $recordId not found in database");
+            return false;
+        }
+        
+        error_log("Record found. Current status: " . $existing->verifyStatus);
+        
+        // Now update the record
         $this->db->query('UPDATE PlayerMedicalRecord SET 
             verifyStatus = :verify_status
             WHERE RecordID = :record_id');
         
         // Bind values
-        $this->db->bind(':record_id', $recordId);
-        $this->db->bind(':verify_status', $verifyStatus);
+        $this->db->bind(':record_id', $recordId, PDO::PARAM_INT);
+        $this->db->bind(':verify_status', $verifyStatus, PDO::PARAM_STR);
+        
+        error_log("SQL query prepared and parameters bound");
         
         // Execute
-        return $this->db->execute();
+        $result = $this->db->execute();
+        error_log("Execute result: " . ($result ? 'SUCCESS' : 'FAILED'));
+        
+        // Check how many rows were affected
+        $rowCount = $this->db->rowCount();
+        error_log("Rows affected: $rowCount");
+        
+        return $result;
     }
 }
 ?>
