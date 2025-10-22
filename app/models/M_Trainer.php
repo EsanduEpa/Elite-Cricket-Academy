@@ -159,11 +159,23 @@ class M_Trainer {
     }
 
     // Workout Management
-    public function getWorkoutPlans() {
-        $this->db->query('SELECT wp.*, p.name as player_name 
-                         FROM workout_plans wp 
-                         LEFT JOIN players p ON wp.player_id = p.id 
-                         ORDER BY wp.created_at DESC');
+    public function getWorkoutPlans($trainer_id = null) {
+        if (!$trainer_id) {
+            $trainer_id = $_SESSION['user_id'] ?? 1;
+        }
+        
+        $this->db->query('SELECT 
+            wp.PlanID,
+            wp.TrainerID,
+            wp.workoutname,
+            wp.frequency,
+            wp.Duration,
+            wp.CreatedDate
+        FROM WorkoutPlan wp 
+        WHERE wp.TrainerID = :trainer_id
+        ORDER BY wp.CreatedDate DESC');
+        
+        $this->db->bind(':trainer_id', $trainer_id);
         return $this->db->resultSet();
     }
 
@@ -173,20 +185,57 @@ class M_Trainer {
     }
 
     public function addWorkoutPlan($data) {
-        $this->db->query('INSERT INTO workout_plans 
-                         (player_id, trainer_id, plan_name, description, exercises, duration, difficulty_level, notes) 
-                         VALUES (:player_id, :trainer_id, :plan_name, :description, :exercises, :duration, :difficulty_level, :notes)');
+        $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration) 
+            VALUES (:trainer_id, :workoutname, :frequency, :duration)');
         
-        $this->db->bind(':player_id', $data['player_id']);
         $this->db->bind(':trainer_id', $data['trainer_id']);
-        $this->db->bind(':plan_name', $data['plan_name']);
-        $this->db->bind(':description', $data['description']);
-        $this->db->bind(':exercises', $data['exercises']);
+        $this->db->bind(':workoutname', $data['workoutname']);
+        $this->db->bind(':frequency', $data['frequency']);
         $this->db->bind(':duration', $data['duration']);
-        $this->db->bind(':difficulty_level', $data['difficulty_level']);
-        $this->db->bind(':notes', $data['notes']);
-
+        
         return $this->db->execute();
+    }
+
+    // Update workout plan
+    public function updateWorkoutPlan($data) {
+        $this->db->query('UPDATE WorkoutPlan 
+            SET workoutname = :workoutname, 
+                frequency = :frequency, 
+                Duration = :duration 
+            WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
+        
+        $this->db->bind(':plan_id', $data['plan_id']);
+        $this->db->bind(':trainer_id', $data['trainer_id']);
+        $this->db->bind(':workoutname', $data['workoutname']);
+        $this->db->bind(':frequency', $data['frequency']);
+        $this->db->bind(':duration', $data['duration']);
+        
+        return $this->db->execute();
+    }
+
+    // Delete workout plan
+    public function deleteWorkoutPlan($plan_id, $trainer_id) {
+        $this->db->query('DELETE FROM WorkoutPlan 
+            WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
+        
+        $this->db->bind(':plan_id', $plan_id);
+        $this->db->bind(':trainer_id', $trainer_id);
+        
+        return $this->db->execute();
+    }
+
+    // Get single workout plan by ID
+    public function getWorkoutPlanById($plan_id) {
+        $this->db->query('SELECT * FROM WorkoutPlan WHERE PlanID = :plan_id');
+        $this->db->bind(':plan_id', $plan_id);
+        
+        return $this->db->single();
+    }
+
+    // Get all players for dropdown
+    public function getAllPlayers() {
+        $this->db->query('SELECT PlayerID, Name FROM PlayerProfile ORDER BY Name');
+        return $this->db->resultSet();
     }
 
     // Medical Records
@@ -241,11 +290,6 @@ class M_Trainer {
                          WHERE ts.trainer_id = :trainer_id OR p.assigned_trainer = :trainer_id
                          ORDER BY p.name ASC');
         $this->db->bind(':trainer_id', $trainer_id);
-        return $this->db->resultSet();
-    }
-
-    public function getAllPlayers() {
-        $this->db->query('SELECT * FROM players ORDER BY name ASC');
         return $this->db->resultSet();
     }
 

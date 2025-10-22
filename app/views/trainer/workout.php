@@ -1,380 +1,311 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/injury-reports.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
+<!-- Mobile-specific meta tags -->
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
-<!-- Trainer Layout -->
-<div class="trainer-layout">
-    <!-- Trainer Sidebar -->
-    <div class="trainer-sidebar" id="trainerSidebar">
-        <div class="sidebar-header">
-            <div class="trainer-logo">
-                <i class="fas fa-dumbbell"></i>
-                <h3>Trainer Dashboard</h3>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Player Bookings</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                        <i class="fas fa-user-injured"></i>
-                        <span>Injury Reports</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i>
-                        <span>Supplement Plans</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                        <i class="fas fa-dumbbell"></i>
-                        <span>Workout Plans</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                        <i class="fas fa-apple-alt"></i>
-                        <span>Nutrition Plans</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        
-        <!-- Trainer Profile Section -->
-        <div class="profile-section">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
-            <div class="profile-role">Physical Trainer</div>
-            <a href="<?php echo URLROOT; ?>/trainer/profile" class="action-btn" style="margin-top: 10px;">
-                <i class="fas fa-user-cog"></i> Profile
-            </a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="main-content">
-        <!-- Page Header -->
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-dumbbell"></i> Workout Plans</h1>
-                <p>Create and manage customized workout plans for your players</p>
-            </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo count($data['workout_plans']); ?></span>
-                    <span class="stat-label">Total Plans</span>
+    <!-- Trainer Layout -->
+    <div class="player-layout">
+        <!-- Left Sidebar Panel -->
+        <div class="trainer-sidebar" id="trainerSidebar">
+            <div class="sidebar-header">
+                <div class="trainer-logo">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Trainer Dashboard</h3>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number">
-                        <?php 
-                        $activePlans = 0;
-                        foreach($data['workout_plans'] as $plan) {
-                            if($plan->Status === 'active') {
-                                $activePlans++;
-                            }
-                        }
-                        echo $activePlans;
-                        ?>
-                    </span>
-                    <span class="stat-label">Active Plans</span>
-                </div>
-            </div>
-        </div>
-
-        <?php flash('workout_message'); ?>
-
-        <!-- Workout Plans Table -->
-        <div class="schedule-card">
-            <div class="card-header">
-                <div class="header-content">
-                    <h2><i class="fas fa-dumbbell"></i> My Workout Plans</h2>
-                </div>
-                <button class="btn btn-primary" onclick="openAddWorkoutPlanModal()">
-                    <i class="fas fa-plus"></i> Add Workout Plan
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
-            <div class="card-content">
-                <?php if (!empty($data['workout_plans'])): ?>
-                    <div class="table-responsive">
-                        <table class="dashboard-table" id="workoutPlansTable">
-                            <thead>
-                                <tr>
-                                    <th>Created Date</th>
-                                    <th>Player Name</th>
-                                    <th>Workout Details</th>
-                                    <th>Frequency</th>
-                                    <th>Duration</th>
-                                    <th>Video URL</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach($data['workout_plans'] as $plan): ?>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo date('M d', strtotime($plan->CreatedDate)); ?></div>
-                                        <div class="table-cell-secondary"><?php echo date('Y', strtotime($plan->CreatedDate)); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="player-info">
-                                            <div class="player-avatar">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div class="player-details">
-                                                <div class="table-cell-title"><?php echo htmlspecialchars($plan->player_name ?? 'Unknown Player'); ?></div>
-                                                <div class="table-cell-secondary"><?php echo htmlspecialchars($plan->player_email ?? ''); ?></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <?php 
-                                            $details = htmlspecialchars($plan->WorkoutDetails);
-                                            echo strlen($details) > 100 ? substr($details, 0, 100) . '...' : $details; 
-                                            ?>
-                                        </div>
-                                        <?php if(strlen($plan->WorkoutDetails) > 100): ?>
-                                            <button class="btn-link" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'workout')">
-                                                <i class="fas fa-expand-alt"></i> View Full
-                                            </button>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge frequency-<?php echo strtolower($plan->Frequency); ?>">
-                                            <?php echo ucfirst($plan->Frequency); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo $plan->Duration; ?> days</div>
-                                    </td>
-                                    <td>
-                                        <?php if(!empty($plan->VideoUrl)): ?>
-                                            <a href="<?php echo htmlspecialchars($plan->VideoUrl); ?>" target="_blank" class="btn-link">
-                                                <i class="fas fa-play-circle"></i> Watch Video
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="table-cell-secondary">No video</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-<?php echo strtolower($plan->Status); ?>">
-                                            <?php echo ucfirst($plan->Status); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-sm btn-primary" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'workout')" title="View Details">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn-sm btn-secondary" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'workout')" title="Edit Plan">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <div class="empty-icon">
+
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Schedule & Bookings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
                             <i class="fas fa-dumbbell"></i>
-                        </div>
-                        <h3>No Workout Plans Found</h3>
-                        <p>You haven't created any workout plans yet. Click the "Add Workout Plan" button above to create your first plan.</p>
+                            <span>Workout Plans</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
+                            <i class="fas fa-apple-alt"></i>
+                            <span>Nutrition Plans</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
+                            <i class="fas fa-capsules"></i>
+                            <span>Supplements</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
+                            <i class="fas fa-user-injured"></i>
+                            <span>Injury Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Profile Section -->
+            <div class="trainer-profile">
+                <div class="trainer-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'John Trainer'; ?></div>
+                <div class="trainer-role">Fitness Trainer</div>
+                <div class="profile-actions">
+                    <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
+                        <i class="fas fa-user-cog"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content" id="mainContent">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1><i class="fas fa-dumbbell"></i> Workout Plans Management</h1>
+                        <p>Create, manage, and track workout plans for your trainees</p>
                     </div>
-                <?php endif; ?>
+                    <div class="header-actions">
+                        <button class="btn btn-training" onclick="openAddModal()">
+                            <i class="fas fa-plus"></i>Add New Plan
+                        </button>
+                        <button class="btn btn-refresh" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <div class="current-time"><?php echo date('H:i'); ?></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <?php flash('workout_message'); ?>
+
+            <!-- Workout Plans Table Card -->
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-dumbbell"></i> Your Workout Plans</h2>
+                        <div class="table-controls" style="display: flex; gap: 15px; align-items: center;">
+                            <div style="position: relative;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                                <input type="text" id="searchInput" placeholder="Search plans..." style="padding: 8px 12px 8px 35px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; background: rgba(255,255,255,0.2); color: white; font-size: 13px;">
+                            </div>
+                            <select id="frequencyFilter" style="padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; background: rgba(255,255,255,0.2); color: white; font-size: 13px;">
+                                <option value="">All Frequencies</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-weekly">Bi-weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Plan ID</th>
+                                <th>Workout Details</th>
+                                <th>Frequency</th>
+                                <th>Duration & Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($data['workout_plans'])): ?>
+                                <?php foreach ($data['workout_plans'] as $plan): ?>
+                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>">
+                                        <td>
+                                            <div class="table-cell-primary">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title"><?php echo htmlspecialchars($plan->workoutname); ?></div>
+                                            <div class="table-cell-details">
+                                                <i class="fas fa-user-tie"></i>
+                                                Trainer Plan
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-badge <?php 
+                                                if($plan->frequency == 'Daily') echo 'status-active';
+                                                elseif($plan->frequency == 'Weekly') echo 'status-upcoming';
+                                                else echo '';
+                                            ?>">
+                                                <?php echo $plan->frequency; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-primary"><?php echo $plan->Duration; ?> mins</div>
+                                            <div class="table-cell-secondary"><?php echo date('M d, Y', strtotime($plan->CreatedDate)); ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="profile-actions">
+                                                <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background: rgba(46, 213, 115, 0.1); color: #2ed573; border-color: rgba(46, 213, 115, 0.3);">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="profile-btn" onclick="editPlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>', '<?php echo $plan->frequency; ?>', '<?php echo $plan->Duration; ?>')" title="Edit Plan" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3);">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px 20px;">
+                                        <div style="color: #666; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                            <i class="fas fa-dumbbell" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
+                                            <h3 style="color: #4A90E2; margin-bottom: 8px;">No workout plans found</h3>
+                                            <p style="margin-bottom: 20px;">Start by creating your first workout plan!</p>
+                                            <button class="btn btn-training" onclick="openAddModal()">
+                                                <i class="fas fa-plus"></i>Add Workout Plan
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add Workout Plan Modal -->
-<div id="addWorkoutPlanModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-dumbbell"></i> Add Workout Plan</h3>
-            <span class="close" onclick="closeAddWorkoutPlanModal()">&times;</span>
+    <!-- Add/Edit Workout Plan Modal -->
+    <div id="workoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2);">
+                <h2 id="modalTitle"><i class="fas fa-dumbbell"></i> Add New Workout Plan</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="workoutForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="planId" name="plan_id">
+                    <input type="hidden" name="trainer_id" value="<?php echo $_SESSION['user_id'] ?? 10; ?>">
+                    
+                    <div class="form-group">
+                        <label for="workoutname" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-dumbbell" style="color: #4A90E2; margin-right: 8px;"></i>
+                            Workout Name <span style="color: #ff6b6b;">*</span>
+                        </label>
+                        <input type="text" id="workoutname" name="workoutname" required 
+                               style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
+                               placeholder="Enter workout plan name">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="frequency" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-calendar-alt" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Frequency <span style="color: #ff6b6b;">*</span>
+                            </label>
+                            <select id="frequency" name="frequency" required 
+                                    style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                                <option value="">Select Frequency</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-weekly">Bi-weekly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-clock" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Duration (minutes) <span style="color: #ff6b6b;">*</span>
+                            </label>
+                            <input type="number" id="duration" name="duration" min="15" max="180" required 
+                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                                   placeholder="15-180 minutes">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="closeModal()" style="background: #e5e7eb; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitBtn" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-save"></i>Save Plan
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" action="<?php echo URLROOT; ?>/trainer/addWorkoutPlan">
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+                <h2><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="player_id">Select Player *</label>
-                    <select id="player_id" name="player_id" class="form-control" required>
-                        <option value="">Choose a player...</option>
-                        <?php foreach($data['players'] as $player): ?>
-                            <option value="<?php echo $player->UserID; ?>">
-                                <?php echo htmlspecialchars($player->name); ?> (<?php echo htmlspecialchars($player->email); ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="workout_details">Workout Details *</label>
-                    <textarea id="workout_details" name="workout_details" class="form-control" rows="6" required 
-                            placeholder="Provide detailed workout plan including exercises, sets, reps, rest periods, instructions, etc..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="frequency">Frequency *</label>
-                    <select id="frequency" name="frequency" class="form-control" required>
-                        <option value="">Select frequency...</option>
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Bi-weekly">Bi-weekly</option>
-                        <option value="Custom">Custom</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="duration">Duration (Days) *</label>
-                    <input type="number" id="duration" name="duration" class="form-control" required min="1" max="365" 
-                           placeholder="Enter duration in days (e.g., 30)">
-                </div>
-                
-                <div class="form-group">
-                    <label for="video_url">Video URL (Optional)</label>
-                    <input type="url" id="video_url" name="video_url" class="form-control" 
-                           placeholder="https://youtube.com/watch?v=... or other video URL">
-                </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Workout Plan Guidelines:</strong>
-                    <ul style="margin-top: 5px; margin-bottom: 0;">
-                        <li>Include specific exercises with sets and reps</li>
-                        <li>Mention rest periods between sets</li>
-                        <li>Consider player's fitness level and goals</li>
-                        <li>Provide progression guidelines</li>
-                    </ul>
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 15px;"></i>
+                    <p style="margin-bottom: 10px; color: #374151;">Are you sure you want to delete the workout plan "<span id="deletePlanName" style="font-weight: 600; color: #4A90E2;"></span>"?</p>
+                    <p style="color: #ff6b6b; font-weight: 600; font-size: 14px;">This action cannot be undone.</p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeAddWorkoutPlanModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Create Plan
+            <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeDeleteModal()" style="background: #e5e7eb; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Cancel
+                </button>
+                <form id="deleteForm" method="POST" action="<?php echo URLROOT; ?>/trainer/deleteWorkoutPlan" style="display: inline;">
+                    <input type="hidden" id="deletePlanId" name="plan_id">
+                    <button type="submit" style="background: #ff6b6b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-trash"></i>Delete Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Plan Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2);">
+                <h2><i class="fas fa-eye"></i> Workout Plan Details</h2>
+                <span class="close" onclick="closeViewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="planDetails">
+                    <!-- Plan details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="closeViewModal()" style="background: #4A90E2; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Close
                 </button>
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- View Plan Details Modal -->
-<div id="viewPlanModal" class="modal" style="display: none;">
-    <div class="modal-content large">
-        <div class="modal-header">
-            <h3><i class="fas fa-eye"></i> Plan Details</h3>
-            <span class="close" onclick="closeViewPlanModal()">&times;</span>
-        </div>
-        <div class="modal-body" id="viewPlanContent">
-            <!-- Content will be populated by JavaScript -->
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeViewPlanModal()">Close</button>
         </div>
     </div>
-</div>
 
-<script>
-    // Add Workout Plan Modal Functions
-    function openAddWorkoutPlanModal() {
-        document.getElementById('addWorkoutPlanModal').style.display = 'block';
-    }
+    <script src="<?php echo URLROOT; ?>/js/trainer/workout.js"></script>
 
-    function closeAddWorkoutPlanModal() {
-        document.getElementById('addWorkoutPlanModal').style.display = 'none';
-        document.getElementById('addWorkoutPlanModal').querySelector('form').reset();
-    }
-
-    // View plan details
-    function viewPlanDetails(planId, type) {
-        const modal = document.getElementById('viewPlanModal');
-        const content = document.getElementById('viewPlanContent');
-        
-        content.innerHTML = `
-            <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i> Loading plan details...
-            </div>
-        `;
-        
-        modal.style.display = 'block';
-        
-        // In a real implementation, this would fetch details via AJAX
-        setTimeout(() => {
-            content.innerHTML = `
-                <div class="plan-details">
-                    <p><strong>Plan ID:</strong> ${planId}</p>
-                    <p><strong>Type:</strong> ${type}</p>
-                    <p><em>Full plan details would be loaded here via AJAX...</em></p>
-                </div>
-            `;
-        }, 1000);
-    }
-
-    function closeViewPlanModal() {
-        document.getElementById('viewPlanModal').style.display = 'none';
-    }
-
-    // Edit plan
-    function editPlan(planId, type) {
-        alert(`Edit ${type} plan ${planId} - Feature coming soon!`);
-    }
-
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const addModal = document.getElementById('addWorkoutPlanModal');
-        const viewModal = document.getElementById('viewPlanModal');
-        
-        if (event.target === addModal) {
-            closeAddWorkoutPlanModal();
-        }
-        if (event.target === viewModal) {
-            closeViewPlanModal();
-        }
-    }
-
-    // Initialize Universal Sidebar for trainer
-    document.addEventListener('DOMContentLoaded', function() {
-        new UniversalSidebar({
-            sidebarId: 'trainerSidebar',
-            toggleId: 'sidebarToggle',
-            mainContentId: 'mainContent',
-            sidebarClass: 'trainer-sidebar'
-        });
-    });
-</script>
-
-<script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>
-<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
-</body>
-</html>
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

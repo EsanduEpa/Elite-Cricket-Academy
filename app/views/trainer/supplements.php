@@ -1,363 +1,435 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/injury-reports.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
+<!-- Mobile-specific meta tags -->
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 
-<!-- Trainer Layout -->
-<div class="trainer-layout">
-    <!-- Trainer Sidebar -->
-    <div class="trainer-sidebar" id="trainerSidebar">
-        <div class="sidebar-header">
-            <div class="trainer-logo">
-                <i class="fas fa-capsules"></i>
-                <h3>Trainer Dashboard</h3>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Player Bookings</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                        <i class="fas fa-user-injured"></i>
-                        <span>Injury Reports</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i>
-                        <span>Supplement Plans</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                        <i class="fas fa-dumbbell"></i>
-                        <span>Workout Plans</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                        <i class="fas fa-apple-alt"></i>
-                        <span>Nutrition Plans</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        
-        <!-- Trainer Profile Section -->
-        <div class="profile-section">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
-            <div class="profile-role">Physical Trainer</div>
-            <a href="<?php echo URLROOT; ?>/trainer/profile" class="action-btn" style="margin-top: 10px;">
-                <i class="fas fa-user-cog"></i> Profile
-            </a>
-            <a href="<?php echo URLROOT; ?>/trainer/logout" class="action-btn" style="margin-top: 8px;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="main-content">
-        <!-- Page Header -->
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-capsules"></i> Supplement Plans</h1>
-                <p>Create and manage customized supplement plans for your players</p>
-            </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo count($data['supplement_plans']); ?></span>
-                    <span class="stat-label">Total Plans</span>
+    <!-- Trainer Layout -->
+    <div class="player-layout">
+        <!-- Left Sidebar Panel -->
+        <div class="trainer-sidebar" id="trainerSidebar">
+            <div class="sidebar-header">
+                <div class="trainer-logo">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Trainer Dashboard</h3>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number">
-                        <?php 
-                        $activePlans = 0;
-                        foreach($data['supplement_plans'] as $plan) {
-                            if($plan->Status === 'active') {
-                                $activePlans++;
-                            }
-                        }
-                        echo $activePlans;
-                        ?>
-                    </span>
-                    <span class="stat-label">Active Plans</span>
-                </div>
-            </div>
-        </div>
-
-        <?php flash('supplement_message'); ?>
-
-        <!-- Supplement Plans Table -->
-        <div class="schedule-card">
-            <div class="card-header">
-                <div class="header-content">
-                    <h2><i class="fas fa-capsules"></i> My Supplement Plans</h2>
-                </div>
-                <button class="btn btn-primary" onclick="openAddSupplementPlanModal()">
-                    <i class="fas fa-plus"></i> Add Supplement Plan
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
-            <div class="card-content">
-                <?php if (!empty($data['supplement_plans'])): ?>
-                    <div class="table-responsive">
-                        <table class="dashboard-table" id="supplementPlansTable">
-                            <thead>
-                                <tr>
-                                    <th>Created Date</th>
-                                    <th>Player Name</th>
-                                    <th>Supplement Details</th>
-                                    <th>Dosage</th>
-                                    <th>Duration</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach($data['supplement_plans'] as $plan): ?>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo date('M d', strtotime($plan->CreatedDate)); ?></div>
-                                        <div class="table-cell-secondary"><?php echo date('Y', strtotime($plan->CreatedDate)); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="player-info">
-                                            <div class="player-avatar">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div class="player-details">
-                                                <div class="table-cell-title"><?php echo htmlspecialchars($plan->player_name ?? 'Unknown Player'); ?></div>
-                                                <div class="table-cell-secondary"><?php echo htmlspecialchars($plan->player_email ?? ''); ?></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <?php 
-                                            $details = htmlspecialchars($plan->SupplementDetails);
-                                            echo strlen($details) > 100 ? substr($details, 0, 100) . '...' : $details; 
-                                            ?>
-                                        </div>
-                                        <?php if(strlen($plan->SupplementDetails) > 100): ?>
-                                            <button class="btn-link" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'supplement')">
-                                                <i class="fas fa-expand-alt"></i> View Full
-                                            </button>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo htmlspecialchars($plan->Dosage); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo $plan->Duration; ?> days</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-<?php echo strtolower($plan->Status); ?>">
-                                            <?php echo ucfirst($plan->Status); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-sm btn-primary" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'supplement')" title="View Details">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn-sm btn-secondary" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'supplement')" title="Edit Plan">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <div class="empty-icon">
+
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Schedule & Bookings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Workout Plans</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
+                            <i class="fas fa-apple-alt"></i>
+                            <span>Nutrition Plans</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
                             <i class="fas fa-capsules"></i>
-                        </div>
-                        <h3>No Supplement Plans Found</h3>
-                        <p>You haven't created any supplement plans yet. Click the "Add Supplement Plan" button above to create your first plan.</p>
+                            <span>Supplements</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
+                            <i class="fas fa-user-injured"></i>
+                            <span>Injury Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Profile Section -->
+            <div class="trainer-profile">
+                <div class="trainer-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'John Trainer'; ?></div>
+                <div class="trainer-role">Fitness Trainer</div>
+                <div class="profile-actions">
+                    <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
+                        <i class="fas fa-user-cog"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content" id="mainContent">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1><i class="fas fa-capsules"></i> Supplement Plans Management</h1>
+                        <p>Create and manage customized supplement plans for your trainees</p>
                     </div>
-                <?php endif; ?>
+                    <div class="header-actions">
+                        <button class="btn btn-training" onclick="openAddSupplementPlanModal()">
+                            <i class="fas fa-plus"></i>Add New Plan
+                        </button>
+                        <button class="btn btn-refresh" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <div class="current-time"><?php echo date('H:i'); ?></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <?php flash('supplement_message'); ?>
+
+            <!-- Supplement Plans Table Card -->
+            <div class="schedule-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-capsules"></i> Your Supplement Plans</h2>
+                        <div class="table-controls" style="display: flex; gap: 15px; align-items: center;">
+                            <div style="position: relative;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                                <input type="text" id="searchInput" placeholder="Search plans..." style="padding: 8px 12px 8px 35px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; background: rgba(255,255,255,0.2); color: white; font-size: 13px;">
+                            </div>
+                            <select id="statusFilter" style="padding: 8px 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; background: rgba(255,255,255,0.2); color: white; font-size: 13px;">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Plan ID</th>
+                                <th>Player Details</th>
+                                <th>Supplement Info</th>
+                                <th>Dosage & Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($data['supplement_plans'])): ?>
+                                <?php foreach($data['supplement_plans'] as $plan): ?>
+                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>">
+                                        <td>
+                                            <div class="table-cell-primary">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
+                                            <div class="table-cell-secondary"><?php echo date('M d, Y', strtotime($plan->CreatedDate)); ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title"><?php echo htmlspecialchars($plan->player_name ?? 'Unknown Player'); ?></div>
+                                            <div class="table-cell-details">
+                                                <i class="fas fa-user"></i>
+                                                <?php echo htmlspecialchars($plan->player_email ?? 'No email'); ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <?php 
+                                                $details = htmlspecialchars($plan->SupplementDetails);
+                                                echo strlen($details) > 50 ? substr($details, 0, 50) . '...' : $details; 
+                                                ?>
+                                            </div>
+                                            <div class="table-badge <?php 
+                                                if($plan->Status == 'active') echo 'status-active';
+                                                elseif($plan->Status == 'inactive') echo 'status-upcoming';
+                                                else echo '';
+                                            ?>">
+                                                <?php echo ucfirst($plan->Status); ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-primary"><?php echo htmlspecialchars($plan->Dosage); ?></div>
+                                            <div class="table-cell-secondary"><?php echo $plan->Duration; ?> days</div>
+                                        </td>
+                                        <td>
+                                            <div class="profile-actions">
+                                                <button class="profile-btn" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'supplement')" title="View Details" style="background: rgba(46, 213, 115, 0.1); color: #2ed573; border-color: rgba(46, 213, 115, 0.3);">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="profile-btn" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'supplement')" title="Edit Plan" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3);">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, 'supplement')" title="Delete Plan" style="background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px 20px;">
+                                        <div style="color: #666; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                            <i class="fas fa-capsules" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
+                                            <h3 style="color: #4A90E2; margin-bottom: 8px;">No supplement plans found</h3>
+                                            <p style="margin-bottom: 20px;">Start by creating your first supplement plan!</p>
+                                            <button class="btn btn-training" onclick="openAddSupplementPlanModal()">
+                                                <i class="fas fa-plus"></i>Add Supplement Plan
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add Supplement Plan Modal -->
-<div id="addSupplementPlanModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-capsules"></i> Add Supplement Plan</h3>
-            <span class="close" onclick="closeAddSupplementPlanModal()">&times;</span>
+    <!-- Add Supplement Plan Modal -->
+    <div id="addSupplementPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2);">
+                <h2><i class="fas fa-capsules"></i> Add New Supplement Plan</h2>
+                <span class="close" onclick="closeAddSupplementPlanModal()">&times;</span>
+            </div>
+            <form method="POST" action="<?php echo URLROOT; ?>/trainer/addSupplementPlan">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="player_id" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-user" style="color: #4A90E2; margin-right: 8px;"></i>
+                            Select Player <span style="color: #ff6b6b;">*</span>
+                        </label>
+                        <select id="player_id" name="player_id" required 
+                                style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                            <option value="">Choose a player...</option>
+                            <?php if (!empty($data['players'])): ?>
+                                <?php foreach($data['players'] as $player): ?>
+                                    <option value="<?php echo $player->UserID; ?>">
+                                        <?php echo htmlspecialchars($player->name); ?> (<?php echo htmlspecialchars($player->email); ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="supplement_details" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-capsules" style="color: #4A90E2; margin-right: 8px;"></i>
+                            Supplement Details <span style="color: #ff6b6b;">*</span>
+                        </label>
+                        <textarea id="supplement_details" name="supplement_details" rows="4" required 
+                                style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"
+                                placeholder="Provide detailed supplement plan including supplement names, purposes, instructions, timing, precautions, etc..."></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="dosage" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-pills" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Dosage <span style="color: #ff6b6b;">*</span>
+                            </label>
+                            <input type="text" id="dosage" name="dosage" required 
+                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                                   placeholder="e.g., 2 tablets daily, 500mg twice daily">
+                        </div>
+                        <div class="form-group">
+                            <label for="duration" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-calendar-alt" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Duration (Days) <span style="color: #ff6b6b;">*</span>
+                            </label>
+                            <input type="number" id="duration" name="duration" required min="1" max="365" 
+                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                                   placeholder="Enter duration in days">
+                        </div>
+                    </div>
+                    
+                    <div style="background: #e0f2fe; border: 1px solid #81d4fa; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <i class="fas fa-info-circle" style="color: #0277bd; margin-top: 2px;"></i>
+                            <div>
+                                <strong style="color: #0277bd;">Supplement Plan Guidelines:</strong>
+                                <ul style="margin: 8px 0 0 0; color: #0277bd; font-size: 13px;">
+                                    <li>Include specific supplement names and brands</li>
+                                    <li>Specify exact dosage and timing</li>
+                                    <li>Consider player's dietary restrictions</li>
+                                    <li>Include any precautions or side effects</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="closeAddSupplementPlanModal()" style="background: #e5e7eb; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-save"></i>Create Plan
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" action="<?php echo URLROOT; ?>/trainer/addSupplementPlan">
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="player_id">Select Player *</label>
-                    <select id="player_id" name="player_id" class="form-control" required>
-                        <option value="">Choose a player...</option>
-                        <?php foreach($data['players'] as $player): ?>
-                            <option value="<?php echo $player->UserID; ?>">
-                                <?php echo htmlspecialchars($player->name); ?> (<?php echo htmlspecialchars($player->email); ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="supplement_details">Supplement Details *</label>
-                    <textarea id="supplement_details" name="supplement_details" class="form-control" rows="6" required 
-                            placeholder="Provide detailed supplement plan including supplement names, purposes, instructions, timing, precautions, etc..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="dosage">Dosage *</label>
-                    <input type="text" id="dosage" name="dosage" class="form-control" required 
-                           placeholder="e.g., 2 tablets daily, 1 scoop with water, 500mg twice daily">
-                </div>
-                
-                <div class="form-group">
-                    <label for="duration">Duration (Days) *</label>
-                    <input type="number" id="duration" name="duration" class="form-control" required min="1" max="365" 
-                           placeholder="Enter duration in days (e.g., 30)">
-                </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Supplement Plan Guidelines:</strong>
-                    <ul style="margin-top: 5px; margin-bottom: 0;">
-                        <li>Include specific supplement names and brands</li>
-                        <li>Specify exact dosage and timing</li>
-                        <li>Consider player's dietary restrictions</li>
-                        <li>Include any precautions or side effects</li>
-                        <li>Mention interactions with food or other supplements</li>
-                    </ul>
-                </div>
+    </div>
 
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Important:</strong> Always ensure supplements are safe and legal for competitive sports. Consider consulting with a sports nutritionist or medical professional.
+    <!-- View Plan Details Modal -->
+    <div id="viewPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #5BA0F2);">
+                <h2><i class="fas fa-eye"></i> Supplement Plan Details</h2>
+                <span class="close" onclick="closeViewPlanModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="viewPlanContent">
+                    <!-- Content will be populated by JavaScript -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeAddSupplementPlanModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Create Plan
+            <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="closeViewPlanModal()" style="background: #4A90E2; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Close
                 </button>
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- View Plan Details Modal -->
-<div id="viewPlanModal" class="modal" style="display: none;">
-    <div class="modal-content large">
-        <div class="modal-header">
-            <h3><i class="fas fa-eye"></i> Plan Details</h3>
-            <span class="close" onclick="closeViewPlanModal()">&times;</span>
-        </div>
-        <div class="modal-body" id="viewPlanContent">
-            <!-- Content will be populated by JavaScript -->
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeViewPlanModal()">Close</button>
         </div>
     </div>
-</div>
 
-<script>
-    // Add Supplement Plan Modal Functions
-    function openAddSupplementPlanModal() {
-        document.getElementById('addSupplementPlanModal').style.display = 'block';
-    }
+    <script>
+        // Add Supplement Plan Modal Functions
+        function openAddSupplementPlanModal() {
+            const modal = document.getElementById('addSupplementPlanModal');
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
 
-    function closeAddSupplementPlanModal() {
-        document.getElementById('addSupplementPlanModal').style.display = 'none';
-        document.getElementById('addSupplementPlanModal').querySelector('form').reset();
-    }
+        function closeAddSupplementPlanModal() {
+            const modal = document.getElementById('addSupplementPlanModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.querySelector('form').reset();
+            }, 300);
+        }
 
-    // View plan details
-    function viewPlanDetails(planId, type) {
-        const modal = document.getElementById('viewPlanModal');
-        const content = document.getElementById('viewPlanContent');
-        
-        content.innerHTML = `
-            <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i> Loading plan details...
-            </div>
-        `;
-        
-        modal.style.display = 'block';
-        
-        // In a real implementation, this would fetch details via AJAX
-        setTimeout(() => {
+        // View plan details
+        function viewPlanDetails(planId, type) {
+            const modal = document.getElementById('viewPlanModal');
+            const content = document.getElementById('viewPlanContent');
+            
             content.innerHTML = `
-                <div class="plan-details">
-                    <p><strong>Plan ID:</strong> ${planId}</p>
-                    <p><strong>Type:</strong> ${type}</p>
-                    <p><em>Full plan details would be loaded here via AJAX...</em></p>
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #4A90E2; margin-bottom: 15px;"></i>
+                    <p>Loading plan details...</p>
                 </div>
             `;
-        }, 1000);
-    }
-
-    function closeViewPlanModal() {
-        document.getElementById('viewPlanModal').style.display = 'none';
-    }
-
-    // Edit plan
-    function editPlan(planId, type) {
-        alert(`Edit ${type} plan ${planId} - Feature coming soon!`);
-    }
-
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const addModal = document.getElementById('addSupplementPlanModal');
-        const viewModal = document.getElementById('viewPlanModal');
-        
-        if (event.target === addModal) {
-            closeAddSupplementPlanModal();
+            
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+            
+            // In a real implementation, this would fetch details via AJAX
+            setTimeout(() => {
+                content.innerHTML = `
+                    <div style="display: grid; gap: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                            <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-hashtag" style="color: #4A90E2;"></i>Plan ID:
+                            </label>
+                            <span style="font-family: 'Courier New', monospace; background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                #${String(planId).padStart(4, '0')}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                            <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-capsules" style="color: #4A90E2;"></i>Plan Type:
+                            </label>
+                            <span style="font-weight: 600; color: #1f2937; font-size: 16px; text-transform: capitalize;">${type}</span>
+                        </div>
+                        <div style="padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                            <p style="color: #666; margin: 0; font-style: italic;">Full plan details would be loaded here via AJAX in a real implementation...</p>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
         }
-        if (event.target === viewModal) {
-            closeViewPlanModal();
-        }
-    }
 
-    // Initialize Universal Sidebar for trainer
-    document.addEventListener('DOMContentLoaded', function() {
-        new UniversalSidebar({
-            sidebarId: 'trainerSidebar',
-            toggleId: 'sidebarToggle',
-            mainContentId: 'mainContent',
-            sidebarClass: 'trainer-sidebar'
+        function closeViewPlanModal() {
+            const modal = document.getElementById('viewPlanModal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        // Edit plan
+        function editPlan(planId, type) {
+            alert(`Edit ${type} plan ${planId} - Feature coming soon!`);
+        }
+
+        // Delete plan
+        function deletePlan(planId, type) {
+            if (confirm(`Are you sure you want to delete this ${type} plan?`)) {
+                alert(`Delete ${type} plan ${planId} - Feature coming soon!`);
+            }
+        }
+
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', filterTable);
+            }
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterTable);
+            }
         });
-    });
-</script>
 
-<script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>
-<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
-</body>
-</html>
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
+            
+            tableRows.forEach(row => {
+                if (row.querySelector('[colspan]')) return; // Skip no-data row
+                
+                const playerName = row.querySelector('.table-cell-title')?.textContent.toLowerCase() || '';
+                const status = row.querySelector('.table-badge')?.textContent.toLowerCase() || '';
+                
+                const matchesSearch = playerName.includes(searchTerm);
+                const matchesStatus = !statusFilter || status.includes(statusFilter);
+                
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+            });
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const addModal = document.getElementById('addSupplementPlanModal');
+            const viewModal = document.getElementById('viewPlanModal');
+            
+            if (event.target === addModal) {
+                closeAddSupplementPlanModal();
+            }
+            if (event.target === viewModal) {
+                closeViewPlanModal();
+            }
+        }
+    </script>
+
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
