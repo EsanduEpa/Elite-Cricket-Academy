@@ -118,14 +118,16 @@
                
             </div>
 
-            <!-- Today's Training -->
-            <div class="schedule-card today-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-day"></i> Today's Training</h2>
-                        <span class="date-display"><?php echo date('M j, Y'); ?></span>
+            <!-- Today's Training and Weekly Schedule - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Today's Training -->
+                <div class="schedule-card today-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-calendar-day"></i> Today's Training</h2>
+                            <span class="date-display"><?php echo date('M j'); ?></span>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -171,13 +173,13 @@
                 </div>
             </div>
 
-            <!-- This Week's Schedule -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-week"></i> This Week's Schedule</h2>
+                <!-- This Week's Schedule -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-calendar-week"></i> This Week's Schedule</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -275,6 +277,7 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 

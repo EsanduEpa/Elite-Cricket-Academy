@@ -113,13 +113,15 @@
                 </div>
             </div> -->
 
-            <!-- Recent Payments -->
-            <div id="recent-payments" class="schedule-card recent-payments">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-history"></i> Recent Payments</h2>
+            <!-- Recent Payments and Upcoming Payments - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Recent Payments -->
+                <div id="recent-payments" class="schedule-card recent-payments">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-history"></i> Recent Payments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -225,13 +227,13 @@
                 </div>
             </div>
 
-            <!-- Upcoming Payments -->
-            <div class="schedule-card upcoming-payments">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-plus"></i> Upcoming Payments</h2>
+                <!-- Upcoming Payments -->
+                <div class="schedule-card upcoming-payments">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-calendar-plus"></i> Upcoming Payments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -305,6 +307,7 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 

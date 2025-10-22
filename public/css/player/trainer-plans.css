@@ -1,7 +1,25 @@
 /* Trainer Plans Page - Uses Standard Dashboard Components */
 /* Import base dashboard styles */
 @import url('dashboard.css');
-@import url('medical.css');
+
+/* Enhanced stat cards for trainer plans */
+.stats-grid .stat-card {
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-grid .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stats-grid .stat-card .stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
 
 /* Header actions styling */
 .btn-back {

@@ -1,4 +1,6 @@
 /* Shopping Cart Styles */
+@import url('dashboard.css');
+
 /* Reset and Base Styles */
 * {
     margin: 0;

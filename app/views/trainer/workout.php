@@ -129,9 +129,15 @@
                         <thead>
                             <tr>
                                 <th>Plan ID</th>
-                                <th>Workout Details</th>
+                                <th>Workout Name</th>
                                 <th>Frequency</th>
-                                <th>Duration & Date</th>
+                                <th>Intensity</th>
+                                <th>Duration (min)</th>
+                                <th>Duration (days)</th>
+                                <th>Video Link</th>
+                                <th>Benefits</th>
+                                <th>Not Suitable For</th>
+                                <th>Created Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -140,34 +146,110 @@
                                 <?php foreach ($data['workout_plans'] as $plan): ?>
                                     <tr data-plan-id="<?php echo $plan->PlanID; ?>">
                                         <td>
-                                            <div class="table-cell-primary">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
+                                            <div class="table-cell-primary plan-id">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
                                         </td>
                                         <td>
-                                            <div class="table-cell-title"><?php echo htmlspecialchars($plan->workoutname); ?></div>
-                                            <div class="table-cell-details">
-                                                <i class="fas fa-user-tie"></i>
-                                                Trainer Plan
+                                            <div class="table-cell-title plan-name">
+                                                <strong><?php echo htmlspecialchars($plan->workoutname); ?></strong>
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="table-badge <?php 
-                                                if($plan->frequency == 'Daily') echo 'status-active';
-                                                elseif($plan->frequency == 'Weekly') echo 'status-upcoming';
-                                                else echo '';
-                                            ?>">
-                                                <?php echo $plan->frequency; ?>
+                                            <span class="table-badge frequency-badge" style="
+                                                <?php 
+                                                    $freqColors = [
+                                                        'Daily' => 'background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);',
+                                                        'Weekly' => 'background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3);',
+                                                        'Bi-weekly' => 'background: rgba(74, 144, 226, 0.1); color: #4A90E2; border: 1px solid rgba(74, 144, 226, 0.3);'
+                                                    ];
+                                                    echo $freqColors[$plan->frequency] ?? $freqColors['Weekly'];
+                                                ?>
+                                            ">
+                                                <?php echo htmlspecialchars($plan->frequency); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($plan->Intensity)): ?>
+                                                <span class="table-badge intensity-badge" style="
+                                                    <?php 
+                                                        $intensityColors = [
+                                                            'High' => 'background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3);',
+                                                            'Moderate' => 'background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3);',
+                                                            'Low' => 'background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);'
+                                                        ];
+                                                        echo $intensityColors[$plan->Intensity] ?? $intensityColors['Moderate'];
+                                                    ?>
+                                                ">
+                                                    <?php echo htmlspecialchars($plan->Intensity); ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="color: #999;">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-primary">
+                                                <i class="fas fa-clock"></i> <?php echo $plan->Duration; ?> mins
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="table-cell-primary"><?php echo $plan->Duration; ?> mins</div>
-                                            <div class="table-cell-secondary"><?php echo date('M d, Y', strtotime($plan->CreatedDate)); ?></div>
+                                            <?php if (!empty($plan->durationdays)): ?>
+                                                <div class="table-cell-primary">
+                                                    <i class="fas fa-calendar-week"></i> <?php echo $plan->durationdays; ?> days
+                                                </div>
+                                            <?php else: ?>
+                                                <span style="color: #999;">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($plan->VideoLink)): ?>
+                                                <a href="<?php echo htmlspecialchars($plan->VideoLink); ?>" target="_blank" 
+                                                   class="table-badge" 
+                                                   style="background: rgba(255, 59, 48, 0.1); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer;">
+                                                    <i class="fas fa-video"></i> Watch
+                                                </a>
+                                            <?php else: ?>
+                                                <span style="color: #999;">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($plan->Benefits)): ?>
+                                                <div style="font-size: 12px; color: #666; line-height: 1.4; max-width: 200px;">
+                                                    <?php echo htmlspecialchars(substr($plan->Benefits, 0, 60)) . (strlen($plan->Benefits) > 60 ? '...' : ''); ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span style="color: #999;">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($plan->NotSuitableFor)): ?>
+                                                <div style="font-size: 12px; color: #ff6b6b; line-height: 1.4; max-width: 200px;">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <?php echo htmlspecialchars(substr($plan->NotSuitableFor, 0, 60)) . (strlen($plan->NotSuitableFor) > 60 ? '...' : ''); ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span style="color: #999;">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-secondary">
+                                                <i class="fas fa-calendar-plus"></i>
+                                                <?php echo date('M d, Y', strtotime($plan->CreatedDate)); ?>
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="profile-actions">
                                                 <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background: rgba(46, 213, 115, 0.1); color: #2ed573; border-color: rgba(46, 213, 115, 0.3);">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="profile-btn" onclick="editPlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>', '<?php echo $plan->frequency; ?>', '<?php echo $plan->Duration; ?>')" title="Edit Plan" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3);">
+                                                <button class="profile-btn" onclick='editPlan(<?php echo $plan->PlanID; ?>, <?php echo htmlspecialchars(json_encode([
+                                                    'workoutname' => $plan->workoutname,
+                                                    'frequency' => $plan->frequency,
+                                                    'duration' => $plan->Duration,
+                                                    'durationdays' => $plan->durationdays ?? '',
+                                                    'videolink' => $plan->VideoLink ?? '',
+                                                    'intensity' => $plan->Intensity ?? 'Moderate',
+                                                    'notsuitablefor' => $plan->NotSuitableFor ?? '',
+                                                    'benefits' => $plan->Benefits ?? ''
+                                                ]), ENT_QUOTES, 'UTF-8'); ?>)' title="Edit Plan" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3);">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
@@ -179,7 +261,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 40px 20px;">
+                                    <td colspan="11" style="text-align: center; padding: 40px 20px;">
                                         <div style="color: #666; display: flex; flex-direction: column; align-items: center; gap: 15px;">
                                             <i class="fas fa-dumbbell" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
                                             <h3 style="color: #4A90E2; margin-bottom: 8px;">No workout plans found</h3>
@@ -216,8 +298,12 @@
                             Workout Name <span style="color: #ff6b6b;">*</span>
                         </label>
                         <input type="text" id="workoutname" name="workoutname" required 
+                               minlength="3" maxlength="255"
                                style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
-                               placeholder="Enter workout plan name">
+                               placeholder="Enter workout plan name (3-255 characters)">
+                        <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                            <span id="workoutname-counter">0</span>/255 characters
+                        </small>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -242,6 +328,77 @@
                             <input type="number" id="duration" name="duration" min="15" max="180" required 
                                    style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
                                    placeholder="15-180 minutes">
+                        <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                            Session length per workout
+                        </small>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
+                        <div class="form-group">
+                            <label for="durationdays" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-calendar-week" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Duration (days)
+                            </label>
+                            <input type="number" id="durationdays" name="durationdays" min="1" max="365" 
+                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                                   placeholder="1-365 days">
+                            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                Total program duration
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="intensity" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-tachometer-alt" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Intensity Level
+                            </label>
+                            <select id="intensity" name="intensity" 
+                                    style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                                <option value="Low">Low</option>
+                                <option value="Moderate" selected>Moderate</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="videolink" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                                <i class="fas fa-video" style="color: #4A90E2; margin-right: 8px;"></i>
+                                Video Link
+                            </label>
+                            <input type="url" id="videolink" name="videolink"
+                                   pattern="https?://.+"
+                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                                   placeholder="https://example.com/video">
+                            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                Must start with http:// or https://
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="benefits" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-star" style="color: #4A90E2; margin-right: 8px;"></i>
+                            Key Benefits
+                        </label>
+                        <textarea id="benefits" name="benefits" rows="3" maxlength="1000"
+                                  style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"
+                                  placeholder="List the key benefits of this workout (max 1000 characters)" oninput="updateCharCount('benefits')"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <small style="color: #666; font-size: 11px;">Health and fitness benefits</small>
+                            <span id="benefits-counter" style="color: #666; font-size: 11px; font-weight: 500;">0/1000 characters</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="notsuitablefor" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; margin-right: 8px;"></i>
+                            Not Suitable For
+                        </label>
+                        <textarea id="notsuitablefor" name="notsuitablefor" rows="2" maxlength="1000"
+                                  style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"
+                                  placeholder="E.g., people with knee injuries, pregnant women (max 1000 characters)" oninput="updateCharCount('notsuitablefor')"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <small style="color: #666; font-size: 11px;">Contraindications and warnings</small>
+                            <span id="notsuitablefor-counter" style="color: #666; font-size: 11px; font-weight: 500;">0/1000 characters</span>
                         </div>
                     </div>
                 </div>

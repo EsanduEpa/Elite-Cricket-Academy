@@ -170,6 +170,11 @@ class M_Trainer {
             wp.workoutname,
             wp.frequency,
             wp.Duration,
+            wp.durationdays,
+            wp.VideoLink,
+            wp.Intensity,
+            wp.NotSuitableFor,
+            wp.Benefits,
             wp.CreatedDate
         FROM WorkoutPlan wp 
         WHERE wp.TrainerID = :trainer_id
@@ -189,13 +194,18 @@ class M_Trainer {
             error_log("=== M_Trainer::addWorkoutPlan() ===");
             error_log("Data received: " . print_r($data, true));
             
-            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration) 
-                VALUES (:trainer_id, :workoutname, :frequency, :duration)');
+            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration, durationdays, VideoLink, Intensity, NotSuitableFor, Benefits) 
+                VALUES (:trainer_id, :workoutname, :frequency, :duration, :durationdays, :videolink, :intensity, :notsuitablefor, :benefits)');
             
             $this->db->bind(':trainer_id', $data['trainer_id']);
             $this->db->bind(':workoutname', $data['workoutname']);
             $this->db->bind(':frequency', $data['frequency']);
             $this->db->bind(':duration', $data['duration']);
+            $this->db->bind(':durationdays', $data['durationdays']);
+            $this->db->bind(':videolink', $data['videolink']);
+            $this->db->bind(':intensity', $data['intensity']);
+            $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
+            $this->db->bind(':benefits', $data['benefits']);
             
             error_log("Query prepared, executing...");
             $result = $this->db->execute();
@@ -218,7 +228,12 @@ class M_Trainer {
         $this->db->query('UPDATE WorkoutPlan 
             SET workoutname = :workoutname, 
                 frequency = :frequency, 
-                Duration = :duration 
+                Duration = :duration,
+                durationdays = :durationdays,
+                VideoLink = :videolink,
+                Intensity = :intensity,
+                NotSuitableFor = :notsuitablefor,
+                Benefits = :benefits
             WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
         
         $this->db->bind(':plan_id', $data['plan_id']);
@@ -226,6 +241,11 @@ class M_Trainer {
         $this->db->bind(':workoutname', $data['workoutname']);
         $this->db->bind(':frequency', $data['frequency']);
         $this->db->bind(':duration', $data['duration']);
+        $this->db->bind(':durationdays', $data['durationdays']);
+        $this->db->bind(':videolink', $data['videolink']);
+        $this->db->bind(':intensity', $data['intensity']);
+        $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
+        $this->db->bind(':benefits', $data['benefits']);
         
         return $this->db->execute();
     }
@@ -247,6 +267,29 @@ class M_Trainer {
         $this->db->bind(':plan_id', $plan_id);
         
         return $this->db->single();
+    }
+
+    // Get all workout plans with trainer information for players to view
+    public function getAllWorkoutPlansWithTrainers() {
+        $this->db->query('SELECT 
+            wp.PlanID,
+            wp.TrainerID,
+            wp.workoutname,
+            wp.frequency,
+            wp.Duration,
+            wp.durationdays,
+            wp.VideoLink,
+            wp.Intensity,
+            wp.NotSuitableFor,
+            wp.Benefits,
+            wp.CreatedDate,
+            u.name as trainer_name,
+            u.email as trainer_email
+        FROM WorkoutPlan wp 
+        LEFT JOIN users u ON wp.TrainerID = u.user_id
+        ORDER BY wp.CreatedDate DESC');
+        
+        return $this->db->resultSet();
     }
 
     // Get all players for dropdown

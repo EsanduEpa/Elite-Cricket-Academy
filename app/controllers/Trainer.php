@@ -140,12 +140,17 @@ class Trainer extends Controller {
             // Initialize trainer model
             $trainerModel = $this->model('M_Trainer');
             
-            // Sanitize and prepare data (only the fields that exist in WorkoutPlan table)
+            // Sanitize and prepare data (including new fields)
             $data = [
                 'trainer_id' => $_SESSION['user_id'] ?? 10,
                 'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
                 'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
-                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0
+                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0,
+                'durationdays' => isset($_POST['durationdays']) ? (int)$_POST['durationdays'] : null,
+                'videolink' => !empty($_POST['videolink']) ? trim(htmlspecialchars($_POST['videolink'], ENT_QUOTES, 'UTF-8')) : null,
+                'intensity' => !empty($_POST['intensity']) ? htmlspecialchars($_POST['intensity'], ENT_QUOTES, 'UTF-8') : 'Moderate',
+                'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim(htmlspecialchars($_POST['notsuitablefor'], ENT_QUOTES, 'UTF-8')) : null,
+                'benefits' => !empty($_POST['benefits']) ? trim(htmlspecialchars($_POST['benefits'], ENT_QUOTES, 'UTF-8')) : null
             ];
             
             error_log("Processed data: " . print_r($data, true));
@@ -154,12 +159,30 @@ class Trainer extends Controller {
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
                 error_log("Validation failed - Missing required fields");
                 flash('workout_message', 'Please fill in all required fields (Workout Name, Frequency, Duration)', 'alert alert-danger');
+            } else if (strlen($data['workoutname']) < 3 || strlen($data['workoutname']) > 255) {
+                error_log("Validation failed - Workout name length invalid");
+                flash('workout_message', 'Workout name must be between 3 and 255 characters', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
                 error_log("Validation failed - Duration out of range: " . $data['duration']);
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else if (!empty($data['durationdays']) && ($data['durationdays'] < 1 || $data['durationdays'] > 365)) {
+                error_log("Validation failed - Duration days out of range: " . $data['durationdays']);
+                flash('workout_message', 'Duration days must be between 1 and 365', 'alert alert-danger');
             } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
                 error_log("Validation failed - Invalid frequency: " . $data['frequency']);
                 flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
+            } else if (!empty($data['intensity']) && !in_array($data['intensity'], ['Low', 'Moderate', 'High'])) {
+                error_log("Validation failed - Invalid intensity: " . $data['intensity']);
+                flash('workout_message', 'Invalid intensity level selected', 'alert alert-danger');
+            } else if (!empty($data['videolink']) && !filter_var($data['videolink'], FILTER_VALIDATE_URL)) {
+                error_log("Validation failed - Invalid video link URL: " . $data['videolink']);
+                flash('workout_message', 'Please provide a valid URL for the video link', 'alert alert-danger');
+            } else if (!empty($data['benefits']) && strlen($data['benefits']) > 1000) {
+                error_log("Validation failed - Benefits text too long");
+                flash('workout_message', 'Benefits description must not exceed 1000 characters', 'alert alert-danger');
+            } else if (!empty($data['notsuitablefor']) && strlen($data['notsuitablefor']) > 1000) {
+                error_log("Validation failed - Not suitable for text too long");
+                flash('workout_message', 'Not suitable for description must not exceed 1000 characters', 'alert alert-danger');
             } else {
                 error_log("Validation passed - Attempting to add workout plan");
                 
@@ -203,16 +226,33 @@ class Trainer extends Controller {
                 'trainer_id' => $_SESSION['user_id'] ?? 10,
                 'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
                 'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
-                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0
+                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0,
+                'durationdays' => isset($_POST['durationdays']) ? (int)$_POST['durationdays'] : null,
+                'videolink' => !empty($_POST['videolink']) ? trim(htmlspecialchars($_POST['videolink'], ENT_QUOTES, 'UTF-8')) : null,
+                'intensity' => !empty($_POST['intensity']) ? htmlspecialchars($_POST['intensity'], ENT_QUOTES, 'UTF-8') : 'Moderate',
+                'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim(htmlspecialchars($_POST['notsuitablefor'], ENT_QUOTES, 'UTF-8')) : null,
+                'benefits' => !empty($_POST['benefits']) ? trim(htmlspecialchars($_POST['benefits'], ENT_QUOTES, 'UTF-8')) : null
             ];
             
             // Validate data
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
                 flash('workout_message', 'Please fill in all required fields', 'alert alert-danger');
+            } else if (strlen($data['workoutname']) < 3 || strlen($data['workoutname']) > 255) {
+                flash('workout_message', 'Workout name must be between 3 and 255 characters', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else if (!empty($data['durationdays']) && ($data['durationdays'] < 1 || $data['durationdays'] > 365)) {
+                flash('workout_message', 'Duration days must be between 1 and 365', 'alert alert-danger');
             } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
                 flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
+            } else if (!empty($data['intensity']) && !in_array($data['intensity'], ['Low', 'Moderate', 'High'])) {
+                flash('workout_message', 'Invalid intensity level selected', 'alert alert-danger');
+            } else if (!empty($data['videolink']) && !filter_var($data['videolink'], FILTER_VALIDATE_URL)) {
+                flash('workout_message', 'Please provide a valid URL for the video link', 'alert alert-danger');
+            } else if (!empty($data['benefits']) && strlen($data['benefits']) > 1000) {
+                flash('workout_message', 'Benefits description must not exceed 1000 characters', 'alert alert-danger');
+            } else if (!empty($data['notsuitablefor']) && strlen($data['notsuitablefor']) > 1000) {
+                flash('workout_message', 'Not suitable for description must not exceed 1000 characters', 'alert alert-danger');
             } else {
                 // Update workout plan
                 if ($trainerModel->updateWorkoutPlan($data)) {

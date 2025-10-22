@@ -2,6 +2,9 @@
    COACH SESSIONS PAGE STYLES
    ============================================================================= */
 
+/* Import base dashboard styles */
+@import url('dashboard.css');
+
 /* Breadcrumb Navigation */
 .breadcrumb {
     margin-bottom: 10px;
