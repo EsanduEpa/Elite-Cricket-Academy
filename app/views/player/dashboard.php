@@ -297,13 +297,34 @@
 
             <!-- Row 2: Calendar Section -->
             <div class="calendar-section-wrapper">
-                <?php 
-                $calendarTitle = 'Training & Match Calendar';
-                $calendarIcon = 'fas fa-calendar-alt';
-                $calendarId = 'playerCalendar';
-                $calendarClass = 'player-calendar';
-                include APPROOT . '/views/inc/components/calendar.php'; 
-                ?>
+                <div class="calendar-section compact-calendar">
+                    <div class="calendar-header">
+                        <h3><i class="fas fa-calendar-alt"></i> Training & Match Calendar</h3>
+                        <div class="calendar-controls">
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="month"><i class="fas fa-calendar"></i> Month</button>
+                                <button class="view-btn" data-view="week"><i class="fas fa-calendar-week"></i> Week</button>
+                                <button class="view-btn" data-view="day"><i class="fas fa-calendar-day"></i> Day</button>
+                            </div>
+                            <div class="calendar-nav">
+                                <button id="dashTodayBtn" class="calendar-btn today-btn" title="Go to Today"><i class="fas fa-calendar-check"></i></button>
+                                <button id="dashPrevPeriod" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
+                                <span id="dashCurrentPeriod"></span>
+                                <button id="dashNextPeriod" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="dashCalendarContent" class="calendar-content">
+                        <div id="dashMonthView" class="calendar-grid"></div>
+                        <div id="dashWeekView" class="week-view" style="display: none;"></div>
+                        <div id="dashDayView" class="day-view" style="display: none;"></div>
+                    </div>
+                    <div class="calendar-legend">
+                        <div class="legend-item"><span class="legend-dot training"></span> Training Sessions</div>
+                        <div class="legend-item"><span class="legend-dot match"></span> Matches</div>
+                        <div class="legend-item"><span class="legend-dot fitness"></span> Fitness</div>
+                    </div>
+                </div>
             </div>
             <!-- Row 3: Quick Actions and Payment Due Side by Side -->
             <div class="action-row">
