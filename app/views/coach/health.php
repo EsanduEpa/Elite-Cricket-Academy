@@ -33,13 +33,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/schedules" class="nav-link" data-tooltip="Schedules">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Schedules</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
                         <i class="fas fa-users"></i>
                         <span>Players</span>

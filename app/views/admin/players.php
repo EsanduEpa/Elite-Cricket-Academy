@@ -201,7 +201,6 @@
                                 <th>Batting Style</th>
                                 <th>Subscription</th>
                                 <th>Status</th>
-                                <th>Performance</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -220,12 +219,6 @@
                                 <td><span class="badge badge-info">Right-Handed</span></td>
                                 <td><span class="badge badge-premium">Premium</span></td>
                                 <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="performance-bar">
-                                        <div class="performance-fill" style="width: 85%"></div>
-                                        <span>85%</span>
-                                    </div>
-                                </td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="btn-action btn-view" onclick="viewPlayerStats(1)" title="View Statistics">
@@ -256,12 +249,6 @@
                                 <td><span class="badge badge-standard">Standard</span></td>
                                 <td><span class="status-badge status-active">Active</span></td>
                                 <td>
-                                    <div class="performance-bar">
-                                        <div class="performance-fill" style="width: 92%"></div>
-                                        <span>92%</span>
-                                    </div>
-                                </td>
-                                <td>
                                     <div class="action-buttons">
                                         <button class="btn-action btn-view" onclick="viewPlayerStats(2)" title="View Statistics">
                                             <i class="fas fa-chart-line"></i>
@@ -290,12 +277,6 @@
                                 <td><span class="badge badge-info">Right-Handed</span></td>
                                 <td><span class="badge badge-trial">Trial</span></td>
                                 <td><span class="status-badge status-suspended">Suspended</span></td>
-                                <td>
-                                    <div class="performance-bar">
-                                        <div class="performance-fill" style="width: 68%"></div>
-                                        <span>68%</span>
-                                    </div>
-                                </td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="btn-action btn-view" onclick="viewPlayerStats(3)" title="View Statistics">
@@ -326,12 +307,6 @@
                                 <td><span class="badge badge-premium">Premium</span></td>
                                 <td><span class="status-badge status-active">Active</span></td>
                                 <td>
-                                    <div class="performance-bar">
-                                        <div class="performance-fill" style="width: 78%"></div>
-                                        <span>78%</span>
-                                    </div>
-                                </td>
-                                <td>
                                     <div class="action-buttons">
                                         <button class="btn-action btn-view" onclick="viewPlayerStats(4)" title="View Statistics">
                                             <i class="fas fa-chart-line"></i>
@@ -360,12 +335,6 @@
                                 <td><span class="badge badge-info">Left-Handed</span></td>
                                 <td><span class="badge badge-standard">Standard</span></td>
                                 <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="performance-bar">
-                                        <div class="performance-fill" style="width: 88%"></div>
-                                        <span>88%</span>
-                                    </div>
-                                </td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="btn-action btn-view" onclick="viewPlayerStats(5)" title="View Statistics">

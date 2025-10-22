@@ -299,30 +299,30 @@
                     <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                 </div>
                 <div class="quick-actions-grid">
-                    <button class="action-btn primary" onclick="openModal('addPlayer')">
+                    <a href="<?php echo URLROOT; ?>/admin/players" class="action-btn primary">
                         <i class="fas fa-user-plus"></i>
                         <span>Add New Player</span>
-                    </button>
-                    <button class="action-btn secondary" onclick="openModal('scheduleEvent')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/events" class="action-btn secondary">
                         <i class="fas fa-calendar-plus"></i>
                         <span>Schedule Event</span>
-                    </button>
-                    <button class="action-btn success" onclick="openModal('generateReport')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/reports" class="action-btn success">
                         <i class="fas fa-file-alt"></i>
                         <span>Generate Report</span>
-                    </button>
-                    <button class="action-btn warning" onclick="openModal('sendNotification')">
-                        <i class="fas fa-bell"></i>
-                        <span>Send Notification</span>
-                    </button>
-                    <button class="action-btn info" onclick="openModal('manageStaff')">
-                        <i class="fas fa-users-cog"></i>
-                        <span>Manage Staff</span>
-                    </button>
-                    <button class="action-btn danger" onclick="openModal('reviewFeedback')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="action-btn warning">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Add New Staff</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/finance" class="action-btn info">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Manage Finance</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="action-btn danger">
                         <i class="fas fa-comments"></i>
                         <span>Review Feedback</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

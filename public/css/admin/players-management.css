@@ -1,5 +1,29 @@
 /* Players Management Styles */
 
+/* Ensure proper layout: sidebar left, content right */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+}
+
+/* Content Container to match dashboard */
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 30px;
+    max-width: calc(100% - 280px);
+    box-sizing: border-box;
+}
+
 /* Filter Section */
 .filter-section {
     background: white;
@@ -260,7 +284,7 @@
     }
 }
 
-/* Performance Bar */
+/* Performance Bar - REMOVED (no longer used)
 .performance-bar {
     position: relative;
     width: 100px;
@@ -285,6 +309,7 @@
     font-weight: 600;
     color: #333;
 }
+*/
 
 /* Action Buttons */
 .action-buttons {

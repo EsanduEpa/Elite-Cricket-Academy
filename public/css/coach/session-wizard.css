@@ -668,3 +668,139 @@
     0%, 100% { transform: scale(1); opacity: 0.5; }
     50% { transform: scale(1.1); opacity: 0.8; }
 }
+
+/* ================================================
+   VALIDATION ERROR STYLES
+   ================================================ */
+
+/* Error Field Styling */
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error,
+.session-type-options.error,
+.session-mode-options.error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Success Field Styling */
+.form-group input.success,
+.form-group select.success,
+.form-group textarea.success {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4 !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Validation Error Popup */
+.validation-error-popup {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.error-popup-content {
+    position: relative;
+}
+
+.error-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(239, 68, 68, 0.2);
+}
+
+.error-popup-header i {
+    font-size: 28px;
+    color: #ef4444;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.error-popup-header span {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.error-popup-body {
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.error-popup-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.error-popup-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.error-popup-body::-webkit-scrollbar-thumb {
+    background: #ef4444;
+    border-radius: 10px;
+}
+
+.error-popup-body > div {
+    padding: 10px 16px;
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 4px solid #ef4444;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #991b1b;
+    font-weight: 500;
+}
+
+.error-popup-close {
+    width: 100%;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.error-popup-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Error Highlight for Radio Groups */
+.session-type-options.error .type-card,
+.session-mode-options.error .radio-option {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+/* Shake Animation for Error Fields */
+.error.shake {
+    animation: shake 0.5s ease;
+}

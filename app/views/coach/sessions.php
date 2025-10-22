@@ -34,13 +34,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/schedules" class="nav-link" data-tooltip="Schedules">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Schedules</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
                         <i class="fas fa-users"></i>
                         <span>Players</span>
@@ -1561,57 +1554,204 @@ function validateStep(stepNumber) {
     let isValid = true;
     let errors = [];
     
+    // Clear previous error styling
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
+    
     if (stepNumber === 1) {
         const sessionType = document.querySelector('input[name="sessionType"]:checked');
         const sessionMode = document.querySelector('input[name="sessionMode"]:checked');
         
         if (!sessionType) {
-            errors.push('Please select a session type');
+            errors.push('⚠️ Please select a session type');
+            highlightError(document.querySelector('.session-type-options'));
             isValid = false;
         }
         if (!sessionMode) {
-            errors.push('Please select a session mode');
+            errors.push('⚠️ Please select a session mode');
+            highlightError(document.querySelector('.session-mode-options'));
             isValid = false;
         }
     } else if (stepNumber === 2) {
-        const name = document.getElementById('sessionName').value.trim();
-        const date = document.getElementById('sessionDate').value;
-        const startTime = document.getElementById('startTime').value;
-        const endTime = document.getElementById('endTime').value;
-        const location = document.getElementById('location').value.trim();
-        const maxParticipants = document.getElementById('maxParticipants').value;
+        const nameField = document.getElementById('sessionName');
+        const dateField = document.getElementById('sessionDate');
+        const startTimeField = document.getElementById('startTime');
+        const endTimeField = document.getElementById('endTime');
+        const locationField = document.getElementById('location');
+        const maxParticipantsField = document.getElementById('maxParticipants');
+        const priceField = document.getElementById('pricePerSession');
         
+        const name = nameField.value.trim();
+        const date = dateField.value;
+        const startTime = startTimeField.value;
+        const endTime = endTimeField.value;
+        const location = locationField.value.trim();
+        const maxParticipants = maxParticipantsField.value;
+        const price = priceField.value;
+        
+        // Session name validation
         if (!name) {
-            errors.push('Session name is required');
+            errors.push('⚠️ Session name is required');
+            highlightError(nameField);
+            isValid = false;
+        } else if (name.length < 3) {
+            errors.push('⚠️ Session name must be at least 3 characters');
+            highlightError(nameField);
+            isValid = false;
+        } else if (name.length > 100) {
+            errors.push('⚠️ Session name must not exceed 100 characters');
+            highlightError(nameField);
             isValid = false;
         }
+        
+        // Date validation
         if (!date) {
-            errors.push('Session date is required');
+            errors.push('⚠️ Session date is required');
+            highlightError(dateField);
+            isValid = false;
+        } else {
+            const selectedDate = new Date(date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                errors.push('⚠️ Session date cannot be in the past');
+                highlightError(dateField);
+                isValid = false;
+            }
+        }
+        
+        // Time validation
+        if (!startTime) {
+            errors.push('⚠️ Start time is required');
+            highlightError(startTimeField);
             isValid = false;
         }
-        if (!startTime || !endTime) {
-            errors.push('Start and end times are required');
+        
+        if (!endTime) {
+            errors.push('⚠️ End time is required');
+            highlightError(endTimeField);
             isValid = false;
         }
+        
         if (startTime && endTime && startTime >= endTime) {
-            errors.push('End time must be after start time');
+            errors.push('⚠️ End time must be after start time');
+            highlightError(startTimeField);
+            highlightError(endTimeField);
             isValid = false;
         }
+        
+        // Check if session duration is reasonable (at least 30 minutes)
+        if (startTime && endTime && startTime < endTime) {
+            const start = new Date('2000-01-01 ' + startTime);
+            const end = new Date('2000-01-01 ' + endTime);
+            const durationMinutes = (end - start) / (1000 * 60);
+            
+            if (durationMinutes < 30) {
+                errors.push('⚠️ Session must be at least 30 minutes long');
+                highlightError(startTimeField);
+                highlightError(endTimeField);
+                isValid = false;
+            }
+        }
+        
+        // Location validation
         if (!location) {
-            errors.push('Location is required');
+            errors.push('⚠️ Location is required');
+            highlightError(locationField);
+            isValid = false;
+        } else if (location.length < 3) {
+            errors.push('⚠️ Location must be at least 3 characters');
+            highlightError(locationField);
             isValid = false;
         }
+        
+        // Max participants validation
         if (!maxParticipants || maxParticipants < 1) {
-            errors.push('Maximum participants must be at least 1');
+            errors.push('⚠️ Maximum participants must be at least 1');
+            highlightError(maxParticipantsField);
+            isValid = false;
+        } else if (maxParticipants > 100) {
+            errors.push('⚠️ Maximum participants cannot exceed 100');
+            highlightError(maxParticipantsField);
+            isValid = false;
+        }
+        
+        // Price validation (if provided)
+        if (price && (isNaN(price) || parseFloat(price) < 0)) {
+            errors.push('⚠️ Price must be a valid positive number');
+            highlightError(priceField);
+            isValid = false;
+        } else if (price && parseFloat(price) > 50000) {
+            errors.push('⚠️ Price cannot exceed Rs. 50,000');
+            highlightError(priceField);
             isValid = false;
         }
     }
     
     if (!isValid) {
-        alert(errors.join('\n'));
+        showValidationErrors(errors);
+        // Scroll to first error
+        const firstError = document.querySelector('.error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
     
     return isValid;
+}
+
+// Helper function to highlight error fields
+function highlightError(element) {
+    if (element) {
+        element.classList.add('error');
+    }
+}
+
+// Helper function to show validation errors
+function showValidationErrors(errors) {
+    const errorHtml = errors.map(err => `<div style="margin: 5px 0;">${err}</div>`).join('');
+    
+    const errorModal = document.createElement('div');
+    errorModal.className = 'validation-error-popup';
+    errorModal.innerHTML = `
+        <div class="error-popup-content">
+            <div class="error-popup-header">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Please fix the following errors:</span>
+            </div>
+            <div class="error-popup-body">
+                ${errorHtml}
+            </div>
+            <button class="error-popup-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    `;
+    
+    // Add styling
+    errorModal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(errorModal);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (errorModal.parentElement) {
+            errorModal.remove();
+        }
+    }, 5000);
 }
 
 function saveStepData(stepNumber) {
@@ -1750,6 +1890,62 @@ document.addEventListener('click', function(e) {
     if (e.target === modal) {
         closeWizard();
     }
+});
+
+// Add real-time validation - clear errors when user starts typing
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all input fields
+    const formFields = [
+        'sessionName',
+        'sessionDate',
+        'startTime',
+        'endTime',
+        'location',
+        'maxParticipants',
+        'pricePerSession'
+    ];
+    
+    // Add event listeners to clear errors on input
+    formFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                this.classList.remove('error');
+                this.classList.add('success');
+            });
+            
+            field.addEventListener('blur', function() {
+                if (this.value.trim() !== '') {
+                    this.classList.remove('error');
+                    this.classList.add('success');
+                } else {
+                    this.classList.remove('success');
+                }
+            });
+        }
+    });
+    
+    // Add listeners for radio buttons
+    const sessionTypeRadios = document.querySelectorAll('input[name="sessionType"]');
+    const sessionModeRadios = document.querySelectorAll('input[name="sessionMode"]');
+    
+    sessionTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const container = document.querySelector('.session-type-options');
+            if (container) {
+                container.classList.remove('error');
+            }
+        });
+    });
+    
+    sessionModeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const container = document.querySelector('.session-mode-options');
+            if (container) {
+                container.classList.remove('error');
+            }
+        });
+    });
 });
 
 // ================================================
