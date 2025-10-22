@@ -154,7 +154,7 @@
 .filter-select {
     width: 100%;
     padding: 14px 20px;
-    border: 2px solid rgba(102, 126, 234, 0.2);
+    border: 2px solid rgba(74, 144, 226, 0.2);
     border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
@@ -166,7 +166,7 @@
 
 .filter-select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A90E2' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 16px center;
     padding-right: 45px;
@@ -174,16 +174,16 @@
 
 .form-control:hover,
 .filter-select:hover {
-    border-color: rgba(102, 126, 234, 0.4);
+    border-color: rgba(74, 144, 226, 0.4);
     background-color: white;
 }
 
 .form-control:focus,
 .filter-select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #4A90E2;
     background: white;
-    box-shadow: 0 3px 15px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 3px 15px rgba(74, 144, 226, 0.15);
 }
 
 /* Options Panels */
@@ -217,7 +217,7 @@
 .report-options h4,
 .options-panel h4 {
     margin: 0 0 15px 0;
-    color: #667eea;
+    color: #4A90E2;
     font-size: 16px;
     font-weight: 600;
 }
@@ -239,7 +239,7 @@
 }
 
 .checkbox-label:hover {
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(74, 144, 226, 0.05);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -278,19 +278,19 @@
 }
 
 .format-option input[type="radio"]:checked + label {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
     color: white;
     border-color: transparent;
 }
 
 .format-option label:hover {
-    border-color: #667eea;
+    border-color: #4A90E2;
 }
 
 /* Generate Button */
 .btn-generate {
     padding: 14px 28px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
     color: white;
     border: none;
     border-radius: 8px;
@@ -307,12 +307,12 @@
 
 .btn-generate:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
 }
 
 .btn-primary {
     padding: 14px 28px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
     color: white;
     border: none;
     border-radius: 8px;
@@ -328,7 +328,31 @@
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    border: 2px solid rgba(74, 144, 226, 0.3);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 144, 226, 0.3);
 }
 
 /* Quick Templates */
@@ -366,7 +390,7 @@
 .template-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    border-color: #667eea;
+    border-color: #4A90E2;
 }
 
 .template-icon {
@@ -381,8 +405,8 @@
 }
 
 .template-icon.purple {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
 }
 
 .template-icon.blue {
@@ -425,7 +449,7 @@
 
 .btn-template {
     padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
     color: white;
     border: none;
     border-radius: 8px;
@@ -508,20 +532,20 @@
 
 .report-name {
     font-weight: 600;
-    color: #667eea;
+    color: #4A90E2;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .report-name i {
-    color: #667eea;
+    color: #4A90E2;
 }
 
 /* Report Type Badges */
 .badge-player {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
@@ -733,7 +757,7 @@
 
 .loading-animation i {
     font-size: 48px;
-    color: #667eea;
+    color: #4A90E2;
 }
 
 .spinner {
@@ -741,7 +765,7 @@
     height: 60px;
     margin: 0 auto 20px;
     border: 4px solid #e8eaed;
-    border-top-color: #667eea;
+    border-top-color: #4A90E2;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -776,13 +800,13 @@
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #4A90E2, #357ABD);
     border-radius: 10px;
     transition: width 0.3s ease;
 }
 
 .progress-text {
-    color: #667eea;
+    color: #4A90E2;
     font-weight: 700;
     font-size: 14px;
 }

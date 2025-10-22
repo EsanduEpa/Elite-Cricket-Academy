@@ -1,5 +1,32 @@
 <?php
 class M_Session {
+    /**
+     * Get upcoming sessions for a player (enrolled, active, future)
+     * @param int $playerId
+     * @return array
+     */
+    public function getUpcomingSessionsForPlayer($playerId) {
+        $this->db->query('SELECT 
+                s.SessionID,
+                s.Name,
+                s.Date,
+                s.StartTime,
+                s.EndTime,
+                s.Location,
+                s.SessionType,
+                s.SessionMode,
+                u.Name AS CoachName
+            FROM Session s
+            JOIN SessionEnrollment se ON s.SessionID = se.SessionID
+            LEFT JOIN User u ON s.CoachOrTrainerID = u.UserID
+            WHERE se.PlayerID = :player_id
+              AND se.Status = "enrolled"
+              AND s.Status = "active"
+              AND s.Date >= CURDATE()
+            ORDER BY s.Date ASC, s.StartTime ASC');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->resultSet();
+    }
     private $db;
 
     public function __construct() {

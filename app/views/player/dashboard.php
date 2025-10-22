@@ -228,7 +228,7 @@
                 <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
                         <div class="header-content">
-                            <h2><i class="fas fa-calendar-check"></i> Upcoming Events</h2>
+                            <h2><i class="fas fa-calendar-check"></i> Upcoming Schedule</h2>
                         </div>
                     </div>
                     <div class="card-content">
@@ -241,54 +241,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">Sep 07</div>
-                                        <div class="table-cell-secondary">Sunday</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Match vs Central Cricket Club</div>
-                                        <div class="table-cell-details">
-                                        </div>
-                                        <span class="table-badge">Match</span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">2:00 PM</div>
-                                        <div class="table-cell-secondary">6:00 PM</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">Sep 08</div>
-                                        <div class="table-cell-secondary">Monday</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Batting Practice Session</div>
-                                        <div class="table-cell-details">
-                                        </div>
-                                        <span class="table-badge">Training</span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">10:00 AM</div>
-                                        <div class="table-cell-secondary">12:00 PM</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">Sep 09</div>
-                                        <div class="table-cell-secondary">Tuesday</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Fitness Assessment</div>
-                                        <div class="table-cell-details">
-                                        </div>
-                                        <span class="table-badge">Assessment</span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">9:00 AM</div>
-                                        <div class="table-cell-secondary">11:00 AM</div>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($data['coachSessions'])): ?>
+                                    <?php foreach ($data['coachSessions'] as $session): ?>
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo date('M d', strtotime($session->Date)); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <?php echo date('l', strtotime($session->Date)); ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title">
+                                                    <?php echo htmlspecialchars($session->Name); ?>
+                                                </div>
+                                                <div class="table-cell-details">
+                                                    Coach: <?php echo htmlspecialchars($session->CoachName); ?> | <?php echo htmlspecialchars($session->Location); ?>
+                                                </div>
+                                                <span class="table-badge status-upcoming">Coach Session</span>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo date('g:i A', strtotime($session->StartTime)); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <?php echo date('g:i A', strtotime($session->EndTime)); ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" style="text-align:center; color:#888;">No upcoming coach sessions found.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>

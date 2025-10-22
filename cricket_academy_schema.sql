@@ -976,14 +976,21 @@ CREATE TABLE Supplement_Player (
 CREATE TABLE PlayerMedicalRecord (
     RecordID INT AUTO_INCREMENT PRIMARY KEY,
     PlayerID INT NOT NULL,
-    InjuryDetails TEXT,
+    InjuryDetails TEXT NOT NULL,
     Diagnosis TEXT,
     TreatmentGiven TEXT,
     RecoveryStatus ENUM('recovering', 'recovered', 'chronic', 'ongoing') DEFAULT 'ongoing',
-    ReportedDate DATE NOT NULL,
+    
+    -- 🆕 New Columns
+    InjuryDate DATE NOT NULL COMMENT 'Date when the injury occurred',
+    HappenedAtAcademy ENUM('yes', 'no') DEFAULT 'no' COMMENT 'Did the injury occur at the academy?',
+    RestDaysNeeded INT DEFAULT 0 COMMENT 'Estimated rest days required for recovery',
+    DiagnosisReceiptURL VARCHAR(255) COMMENT 'Path or URL of uploaded diagnosis receipt image/file',
+    
+    ReportedDate DATE NOT NULL COMMENT 'Date when report was created',
     ReportedBy INT COMMENT 'Doctor, trainer, or player who reported',
     verifyStatus ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
-    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) ON DELETE CASCADE ON UPDATE CASCADE,
+     FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ReportedBy) REFERENCES User(UserID) ON DELETE SET NULL ON UPDATE CASCADE,
     INDEX idx_player_medical (PlayerID),
     INDEX idx_reported_date (ReportedDate),

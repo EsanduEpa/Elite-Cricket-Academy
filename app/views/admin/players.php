@@ -212,10 +212,10 @@
                                 <td>
                                     <div class="player-info">
                                         <div class="player-avatar">JS</div>
-                                        <span>John Smith</span>
+                                        <span>kasun de silva</span>
                                     </div>
                                 </td>
-                                <td>john.smith@email.com</td>
+                                <td>kasun@email.com</td>
                                 <td><span class="jersey-badge">07</span></td>
                                 <td><span class="badge badge-info">Right-Handed</span></td>
                                 <td><span class="badge badge-premium">Premium</span></td>
@@ -247,10 +247,10 @@
                                 <td>
                                     <div class="player-info">
                                         <div class="player-avatar">EM</div>
-                                        <span>Emma Martinez</span>
+                                        <span>dilanka Martin</span>
                                     </div>
                                 </td>
-                                <td>emma.m@email.com</td>
+                                <td>dilam@email.com</td>
                                 <td><span class="jersey-badge">12</span></td>
                                 <td><span class="badge badge-info">Left-Handed</span></td>
                                 <td><span class="badge badge-standard">Standard</span></td>
@@ -282,10 +282,10 @@
                                 <td>
                                     <div class="player-info">
                                         <div class="player-avatar">DJ</div>
-                                        <span>David Johnson</span>
+                                        <span>Amith perera</span>
                                     </div>
                                 </td>
-                                <td>david.j@email.com</td>
+                                <td>amithp@email.com</td>
                                 <td><span class="jersey-badge">23</span></td>
                                 <td><span class="badge badge-info">Right-Handed</span></td>
                                 <td><span class="badge badge-trial">Trial</span></td>
@@ -317,10 +317,10 @@
                                 <td>
                                     <div class="player-info">
                                         <div class="player-avatar">SW</div>
-                                        <span>Sarah Williams</span>
+                                        <span>Saneru hanwella</span>
                                     </div>
                                 </td>
-                                <td>sarah.w@email.com</td>
+                                <td>saneru.h@email.com</td>
                                 <td><span class="jersey-badge">18</span></td>
                                 <td><span class="badge badge-info">Right-Handed</span></td>
                                 <td><span class="badge badge-premium">Premium</span></td>
@@ -352,10 +352,10 @@
                                 <td>
                                     <div class="player-info">
                                         <div class="player-avatar">MB</div>
-                                        <span>Michael Brown</span>
+                                        <span>murali naveen</span>
                                     </div>
                                 </td>
-                                <td>michael.b@email.com</td>
+                                <td>murali.n@email.com</td>
                                 <td><span class="jersey-badge">31</span></td>
                                 <td><span class="badge badge-info">Left-Handed</span></td>
                                 <td><span class="badge badge-standard">Standard</span></td>

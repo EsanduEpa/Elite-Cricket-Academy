@@ -154,7 +154,7 @@
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">$45,680</span>
+                            <span class="number">RS 100,000</span>
                             <span class="label">Monthly Revenue</span>
                         </div>
                     </div>

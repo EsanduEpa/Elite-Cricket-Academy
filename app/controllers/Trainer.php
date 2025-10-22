@@ -275,14 +275,19 @@ class Trainer extends Controller {
     // Update verification status for medical records
     public function updateVerifyStatus() {
         header('Content-Type: application/json');
+        error_log("=== updateVerifyStatus called ===");
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            error_log("Error: Invalid request method");
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
             return;
         }
 
+        error_log("POST data: " . print_r($_POST, true));
+
         // Validate input
         if (!isset($_POST['record_id']) || !isset($_POST['verify_status'])) {
+            error_log("Error: Missing required fields");
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
             return;
         }
@@ -291,9 +296,12 @@ class Trainer extends Controller {
         $verifyStatus = trim($_POST['verify_status']);
         $verifyComments = trim($_POST['verify_comments'] ?? '');
 
+        error_log("Record ID: $recordId, Status: $verifyStatus");
+
         // Validate verify status
         $allowedStatuses = ['pending', 'verified', 'rejected'];
         if (!in_array($verifyStatus, $allowedStatuses)) {
+            error_log("Error: Invalid verification status: $verifyStatus");
             echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
             return;
         }
@@ -301,9 +309,11 @@ class Trainer extends Controller {
         try {
             // Initialize medical model
             $medicalModel = $this->model('M_Medical');
+            error_log("Medical model initialized");
             
             // Update verify status
             $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
+            error_log("Update result: " . ($result ? 'true' : 'false'));
             
             if ($result) {
                 echo json_encode([
@@ -313,9 +323,12 @@ class Trainer extends Controller {
                     'new_status' => $verifyStatus
                 ]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to update verification status']);
+                error_log("Error: Database execute returned false");
+                echo json_encode(['success' => false, 'message' => 'Failed to update verification status. Database update returned false.']);
             }
         } catch (Exception $e) {
+            error_log("Exception: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         }
     }
