@@ -185,15 +185,32 @@ class M_Trainer {
     }
 
     public function addWorkoutPlan($data) {
-        $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration) 
-            VALUES (:trainer_id, :workoutname, :frequency, :duration)');
-        
-        $this->db->bind(':trainer_id', $data['trainer_id']);
-        $this->db->bind(':workoutname', $data['workoutname']);
-        $this->db->bind(':frequency', $data['frequency']);
-        $this->db->bind(':duration', $data['duration']);
-        
-        return $this->db->execute();
+        try {
+            error_log("=== M_Trainer::addWorkoutPlan() ===");
+            error_log("Data received: " . print_r($data, true));
+            
+            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration) 
+                VALUES (:trainer_id, :workoutname, :frequency, :duration)');
+            
+            $this->db->bind(':trainer_id', $data['trainer_id']);
+            $this->db->bind(':workoutname', $data['workoutname']);
+            $this->db->bind(':frequency', $data['frequency']);
+            $this->db->bind(':duration', $data['duration']);
+            
+            error_log("Query prepared, executing...");
+            $result = $this->db->execute();
+            error_log("Execute result: " . ($result ? 'TRUE' : 'FALSE'));
+            
+            return $result;
+        } catch (PDOException $e) {
+            error_log("PDO Exception in addWorkoutPlan: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            throw $e;
+        } catch (Exception $e) {
+            error_log("Exception in addWorkoutPlan: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     // Update workout plan

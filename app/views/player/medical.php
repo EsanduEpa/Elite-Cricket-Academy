@@ -635,12 +635,14 @@
                         <label for="injury_details">Injury/Health Details *</label>
                         <textarea id="injury_details" name="injury_details" class="form-control" rows="3" required 
                                 placeholder="Describe the injury, symptoms, or health condition in detail..."></textarea>
+                        <small class="form-text text-danger" id="injury_details_error" style="display: none;"></small>
                     </div>
                     
                     <div class="form-group">
                         <label for="diagnosis">Diagnosis *</label>
                         <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required 
                                 placeholder="Medical diagnosis or assessment..."></textarea>
+                        <small class="form-text text-danger" id="diagnosis_error" style="display: none;"></small>
                     </div>
                     
                     <div class="form-group">
@@ -652,8 +654,9 @@
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group">
                             <label for="rest_days_needed">Estimated Rest Days Needed</label>
-                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control" min="0" value="0" placeholder="e.g. 7">
-                            <small class="form-text">Number of days rest required</small>
+                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control" min="0" max="1000" step="1" value="0" placeholder="e.g. 7">
+                            <small class="form-text">Number of days rest required (max 1000)</small>
+                            <small class="form-text text-danger" id="rest_days_error" style="display: none;"></small>
                         </div>
                         
                         <div class="form-group">
@@ -683,6 +686,39 @@
             </form>
         </div>
     </div>
+
+    <style>
+        /* Validation Error Styling */
+        .text-danger {
+            color: #dc3545 !important;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .form-control.is-invalid,
+        .form-control[style*="border-color: rgb(220, 53, 69)"] {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-valid,
+        .form-control[style*="border-color: rgb(40, 167, 69)"] {
+            border-color: #28a745 !important;
+        }
+        
+        .form-text {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            color: #6c757d;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+    </style>
 
     <!-- Workout Plan Modal -->
     <div id="workoutPlanModal" class="modal" style="display: none;">
@@ -780,6 +816,137 @@
     </div>
 
     <script>
+        // Validation functions
+        function validateMinWords(text, minWords) {
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            return words.length >= minWords;
+        }
+
+        function validateRestDays(value) {
+            // Check if it's a valid integer
+            if (!Number.isInteger(Number(value))) {
+                return { valid: false, message: 'Rest days must be a whole number (no decimals)' };
+            }
+            
+            const numValue = parseInt(value);
+            
+            if (numValue < 0) {
+                return { valid: false, message: 'Rest days cannot be negative' };
+            }
+            
+            if (numValue > 1000) {
+                return { valid: false, message: 'Rest days cannot exceed 1000 days' };
+            }
+            
+            return { valid: true, message: '' };
+        }
+
+        // Real-time validation for injury details
+        document.addEventListener('DOMContentLoaded', function() {
+            const injuryDetailsInput = document.getElementById('injury_details');
+            const diagnosisInput = document.getElementById('diagnosis');
+            const restDaysInput = document.getElementById('rest_days_needed');
+            const form = document.querySelector('#addMedicalModal form');
+
+            if (injuryDetailsInput) {
+                injuryDetailsInput.addEventListener('blur', function() {
+                    const errorElement = document.getElementById('injury_details_error');
+                    if (!validateMinWords(this.value, 2)) {
+                        errorElement.textContent = 'Injury details must contain at least 2 words';
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+            }
+
+            if (diagnosisInput) {
+                diagnosisInput.addEventListener('blur', function() {
+                    const errorElement = document.getElementById('diagnosis_error');
+                    if (!validateMinWords(this.value, 2)) {
+                        errorElement.textContent = 'Diagnosis must contain at least 2 words';
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+            }
+
+            if (restDaysInput) {
+                restDaysInput.addEventListener('input', function() {
+                    const errorElement = document.getElementById('rest_days_error');
+                    const validation = validateRestDays(this.value);
+                    
+                    if (!validation.valid) {
+                        errorElement.textContent = validation.message;
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+
+                // Prevent decimal input
+                restDaysInput.addEventListener('keypress', function(e) {
+                    if (e.key === '.' || e.key === ',') {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Form submission validation
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    let errors = [];
+
+                    // Validate injury details
+                    const injuryDetails = document.getElementById('injury_details').value;
+                    if (!validateMinWords(injuryDetails, 2)) {
+                        isValid = false;
+                        errors.push('Injury details must contain at least 2 words');
+                        document.getElementById('injury_details_error').textContent = 'Injury details must contain at least 2 words';
+                        document.getElementById('injury_details_error').style.display = 'block';
+                        document.getElementById('injury_details').style.borderColor = '#dc3545';
+                    }
+
+                    // Validate diagnosis
+                    const diagnosis = document.getElementById('diagnosis').value;
+                    if (!validateMinWords(diagnosis, 2)) {
+                        isValid = false;
+                        errors.push('Diagnosis must contain at least 2 words');
+                        document.getElementById('diagnosis_error').textContent = 'Diagnosis must contain at least 2 words';
+                        document.getElementById('diagnosis_error').style.display = 'block';
+                        document.getElementById('diagnosis').style.borderColor = '#dc3545';
+                    }
+
+                    // Validate rest days
+                    const restDays = document.getElementById('rest_days_needed').value;
+                    if (restDays) {
+                        const restDaysValidation = validateRestDays(restDays);
+                        if (!restDaysValidation.valid) {
+                            isValid = false;
+                            errors.push(restDaysValidation.message);
+                            document.getElementById('rest_days_error').textContent = restDaysValidation.message;
+                            document.getElementById('rest_days_error').style.display = 'block';
+                            document.getElementById('rest_days_needed').style.borderColor = '#dc3545';
+                        }
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                        return false;
+                    }
+                });
+            }
+        });
+
         // Add Medical Record Modal Functions
         function openAddMedicalModal() {
             const modal = document.getElementById('addMedicalModal');
@@ -791,6 +958,10 @@
             if (!dateInput.value) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
+            
+            // Clear any previous validation errors
+            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
         }
         
         function closeAddMedicalModal() {
@@ -801,6 +972,10 @@
             // Reset form
             const form = modal.querySelector('form');
             form.reset();
+            
+            // Clear validation errors
+            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
         }
         
         function viewMedicalRecord(recordId) {
