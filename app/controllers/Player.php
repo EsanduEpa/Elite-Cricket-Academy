@@ -263,6 +263,8 @@ class Player extends Controller {
             
             // Validate data
             $errors = [];
+            
+            // Required fields
             if (empty($data['injury_details'])) {
                 $errors[] = 'Injury details are required';
             }
@@ -274,6 +276,34 @@ class Player extends Controller {
             }
             if (empty($data['reported_date'])) {
                 $errors[] = 'Reported date is required';
+            }
+            
+            // Validate injury details - at least 2 words
+            $injuryWords = str_word_count($data['injury_details']);
+            if ($injuryWords < 2) {
+                $errors[] = 'Injury details must contain at least 2 words';
+            }
+            
+            // Validate diagnosis - at least 2 words
+            $diagnosisWords = str_word_count($data['diagnosis']);
+            if ($diagnosisWords < 2) {
+                $errors[] = 'Diagnosis must contain at least 2 words';
+            }
+            
+            // Validate rest days - must be integer between 0 and 1000
+            if ($data['rest_days_needed'] < 0) {
+                $errors[] = 'Rest days cannot be negative';
+            }
+            if ($data['rest_days_needed'] > 1000) {
+                $errors[] = 'Rest days cannot exceed 1000 days';
+            }
+            // Check if decimal was submitted (cast to float and compare)
+            if (isset($_POST['rest_days_needed']) && !empty($_POST['rest_days_needed'])) {
+                $restDaysFloat = floatval($_POST['rest_days_needed']);
+                $restDaysInt = intval($_POST['rest_days_needed']);
+                if ($restDaysFloat != $restDaysInt) {
+                    $errors[] = 'Rest days must be a whole number (no decimals allowed)';
+                }
             }
             
             if (empty($errors)) {

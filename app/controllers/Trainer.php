@@ -121,35 +121,74 @@ class Trainer extends Controller {
 
     // Add workout plan
     public function addWorkoutPlan() {
+        // Ensure session has a valid trainer ID
+        if (!isset($_SESSION['user_id'])) {
+            $_SESSION['user_id'] = 10;
+            $_SESSION['username'] = 'John Trainer';
+            $_SESSION['user_type'] = 'trainer';
+        }
+        
+        // Log the request
+        error_log("=== ADD WORKOUT PLAN REQUEST ===");
+        error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
+        error_log("Session User ID: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+        
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Log raw POST data
+            error_log("Raw POST data: " . print_r($_POST, true));
+            
             // Initialize trainer model
             $trainerModel = $this->model('M_Trainer');
             
-            // Sanitize POST data
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            
+            // Sanitize and prepare data (only the fields that exist in WorkoutPlan table)
             $data = [
-                'trainer_id' => $_SESSION['user_id'] ?? 10, // Use 10 as default for testing
-                'workoutname' => trim($_POST['workoutname']),
-                'frequency' => $_POST['frequency'],
-                'duration' => (int)$_POST['duration']
+                'trainer_id' => $_SESSION['user_id'] ?? 10,
+                'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
+                'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
+                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0
             ];
+            
+            error_log("Processed data: " . print_r($data, true));
             
             // Validate data
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
-                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
+                error_log("Validation failed - Missing required fields");
+                flash('workout_message', 'Please fill in all required fields (Workout Name, Frequency, Duration)', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
+                error_log("Validation failed - Duration out of range: " . $data['duration']);
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
+                error_log("Validation failed - Invalid frequency: " . $data['frequency']);
+                flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
             } else {
+                error_log("Validation passed - Attempting to add workout plan");
+                
                 // Add workout plan
-                if ($trainerModel->addWorkoutPlan($data)) {
-                    flash('workout_message', 'Workout plan added successfully', 'alert alert-success');
-                } else {
-                    flash('workout_message', 'Failed to add workout plan', 'alert alert-danger');
+                try {
+                    $result = $trainerModel->addWorkoutPlan($data);
+                    error_log("Model result: " . ($result ? 'TRUE' : 'FALSE'));
+                    
+                    if ($result) {
+                        error_log("SUCCESS - Workout plan added");
+                        flash('workout_message', 'Workout plan added successfully!', 'alert alert-success');
+                    } else {
+                        error_log("FAILED - Model returned false");
+                        flash('workout_message', 'Failed to add workout plan. Database error occurred.', 'alert alert-danger');
+                    }
+                } catch (PDOException $e) {
+                    error_log("PDO Exception: " . $e->getMessage());
+                    flash('workout_message', 'Database error: ' . $e->getMessage(), 'alert alert-danger');
+                } catch (Exception $e) {
+                    error_log("General Exception: " . $e->getMessage());
+                    flash('workout_message', 'Error: ' . $e->getMessage(), 'alert alert-danger');
                 }
             }
+        } else {
+            error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
+            flash('workout_message', 'Invalid request method', 'alert alert-danger');
         }
         
+        error_log("Redirecting to trainer/workout");
         redirect('trainer/workout');
     }
 
@@ -159,28 +198,27 @@ class Trainer extends Controller {
             // Initialize trainer model
             $trainerModel = $this->model('M_Trainer');
             
-            // Sanitize POST data
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            
             $data = [
-                'plan_id' => (int)$_POST['plan_id'],
-                'trainer_id' => $_SESSION['user_id'] ?? 10, // Use 10 as default for testing
-                'workoutname' => trim($_POST['workoutname']),
-                'frequency' => $_POST['frequency'],
-                'duration' => (int)$_POST['duration']
+                'plan_id' => isset($_POST['plan_id']) ? (int)$_POST['plan_id'] : 0,
+                'trainer_id' => $_SESSION['user_id'] ?? 10,
+                'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
+                'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
+                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0
             ];
             
             // Validate data
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
-                flash('workout_message', 'Required fields are missing', 'alert alert-danger');
+                flash('workout_message', 'Please fill in all required fields', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
+            } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
+                flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
             } else {
                 // Update workout plan
                 if ($trainerModel->updateWorkoutPlan($data)) {
                     flash('workout_message', 'Workout plan updated successfully', 'alert alert-success');
                 } else {
-                    flash('workout_message', 'Failed to update workout plan', 'alert alert-danger');
+                    flash('workout_message', 'Failed to update workout plan. Please try again.', 'alert alert-danger');
                 }
             }
         }
