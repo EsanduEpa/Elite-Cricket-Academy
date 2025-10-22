@@ -737,6 +737,29 @@ CREATE TABLE TournamentPlayer (
 -- SECTION 8: PERFORMANCE TRACKING
 -- =============================================================================
 
+
+
+CREATE TABLE Achievements (
+    AchievementID INT AUTO_INCREMENT PRIMARY KEY,
+    PlayerID INT NOT NULL COMMENT 'Foreign key to identify which player earned it',
+    Date DATE NOT NULL,
+    MatchName VARCHAR(255) NOT NULL,
+    Tournament VARCHAR(255) NOT NULL,
+    Achievement TEXT NOT NULL,
+    VerifiedStatus ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
+
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (PlayerID) REFERENCES PlayerProfile(PlayerID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    INDEX idx_tournament (Tournament),
+    INDEX idx_verified (VerifiedStatus),
+    INDEX idx_date (Date)
+);
+
+
 -- Individual player performance in matches
 CREATE TABLE PlayerMatchPerformance (
     PerformanceID INT AUTO_INCREMENT PRIMARY KEY,

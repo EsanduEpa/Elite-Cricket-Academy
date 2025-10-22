@@ -3,13 +3,15 @@ class Player extends Controller {
     
     private $userModel;
     private $medicalModel;
+    private $achievementModel;
     
     public function __construct() {
         // Check authentication for all player pages
         requireAuth(['Player']);
-        // Database disabled for UI testing
-        // $this->userModel = $this->model('M_Users');
+        // Enable database for achievement functionality
+        $this->userModel = $this->model('M_Users');
         // $this->medicalModel = $this->model('M_Medical');
+        $this->achievementModel = $this->model('M_Achievement');
     }
     
     private function requireLogin() {
@@ -384,9 +386,308 @@ class Player extends Controller {
             'player' => $this->getPlayerData(),
             'practiceMatches' => $this->getPracticeMatches(),
             'tournaments' => $this->getTournaments(),
-            'performanceStats' => $this->getDetailedPerformanceStats()
+            'performanceStats' => $this->getDetailedPerformanceStats(),
+            'achievements' => $this->getPlayerAchievements()
         ];
         $this->view('player/performance', $data);
+    }
+
+    // Add Achievement (AJAX method)
+    public function addAchievement() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize input data
+            $data = [
+                'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
+                'date' => filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING),
+                'match_name' => filter_input(INPUT_POST, 'match_name', FILTER_SANITIZE_STRING),
+                'tournament' => filter_input(INPUT_POST, 'tournament', FILTER_SANITIZE_STRING),
+                'achievement' => filter_input(INPUT_POST, 'achievement', FILTER_SANITIZE_STRING),
+                'verified_status' => 'pending' // New achievements start as pending
+            ];
+
+            // Validate required fields
+            $errors = [];
+            if (empty($data['date'])) {
+                $errors[] = 'Date is required';
+            }
+            if (empty($data['match_name'])) {
+                $errors[] = 'Match name is required';
+            }
+            if (empty($data['tournament'])) {
+                $errors[] = 'Tournament is required';
+            }
+            if (empty($data['achievement'])) {
+                $errors[] = 'Achievement description is required';
+            }
+
+            // Return JSON response
+            header('Content-Type: application/json');
+            
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $errors
+                ]);
+                return;
+            }
+
+            // Try to add achievement to database
+            try {
+                $achievementId = $this->achievementModel->addAchievement($data);
+                
+                if ($achievementId) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Achievement added successfully! It will be reviewed by coaching staff.',
+                        'achievement_id' => $achievementId
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to add achievement. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Achievement creation error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            // Redirect if not POST request
+            redirect('player/performance');
+        }
+    }
+
+    // Edit Achievement (AJAX method)
+    public function editAchievement() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize input data
+            $data = [
+                'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
+                'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
+                'date' => filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING),
+                'match_name' => filter_input(INPUT_POST, 'match_name', FILTER_SANITIZE_STRING),
+                'tournament' => filter_input(INPUT_POST, 'tournament', FILTER_SANITIZE_STRING),
+                'achievement' => filter_input(INPUT_POST, 'achievement', FILTER_SANITIZE_STRING),
+                'verified_status' => filter_input(INPUT_POST, 'verified_status', FILTER_SANITIZE_STRING) ?? 'pending'
+            ];
+
+            // Validate required fields
+            $errors = [];
+            if (empty($data['achievement_id'])) {
+                $errors[] = 'Achievement ID is required';
+            }
+            if (empty($data['date'])) {
+                $errors[] = 'Date is required';
+            }
+            if (empty($data['match_name'])) {
+                $errors[] = 'Match name is required';
+            }
+            if (empty($data['tournament'])) {
+                $errors[] = 'Tournament is required';
+            }
+            if (empty($data['achievement'])) {
+                $errors[] = 'Achievement description is required';
+            }
+
+            // Return JSON response
+            header('Content-Type: application/json');
+            
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $errors
+                ]);
+                return;
+            }
+
+            // Try to update achievement in database
+            try {
+                $success = $this->achievementModel->updateAchievement($data);
+                
+                if ($success) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Achievement updated successfully!'
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to update achievement. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Achievement update error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            // Redirect if not POST request
+            redirect('player/performance');
+        }
+    }
+
+    // Get Achievement (AJAX method)
+    public function getAchievement() {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $achievementId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+            $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+
+            header('Content-Type: application/json');
+
+            if (!$achievementId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid achievement ID'
+                ]);
+                return;
+            }
+
+            try {
+                $achievement = $this->achievementModel->getAchievementById($achievementId);
+                
+                if ($achievement && $achievement->PlayerID == $playerId) {
+                    echo json_encode([
+                        'success' => true,
+                        'achievement' => $achievement
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Achievement not found or access denied'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Achievement retrieval error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred'
+                ]);
+            }
+        } else {
+            redirect('player/performance');
+        }
+    }
+
+    // Delete Achievement (AJAX method)
+    public function deleteAchievement() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $achievementId = filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT);
+            $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+
+            header('Content-Type: application/json');
+
+            if (!$achievementId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid achievement ID'
+                ]);
+                return;
+            }
+
+            try {
+                // First check if the achievement exists and belongs to the player
+                $achievement = $this->achievementModel->getAchievementById($achievementId);
+                
+                if (!$achievement || $achievement->PlayerID != $playerId) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Achievement not found or access denied'
+                    ]);
+                    return;
+                }
+
+                // Check if the achievement is rejected (only rejected achievements can be deleted)
+                if ($achievement->VerifiedStatus !== 'rejected') {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Only rejected achievements can be deleted'
+                    ]);
+                    return;
+                }
+
+                // Delete the achievement
+                $success = $this->achievementModel->deleteAchievement($achievementId, $playerId);
+                
+                if ($success) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Rejected achievement deleted successfully!'
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to delete achievement. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Achievement deletion error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            redirect('player/performance');
+        }
+    }
+
+    // Get player achievements (for display)
+    private function getPlayerAchievements() {
+        $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+        
+        // First, try to get data from database
+        try {
+            $achievements = $this->achievementModel->getAchievementsByPlayer($playerId);
+            
+            // If we get successful results from database, return them
+            if ($achievements !== false) {
+                error_log("Successfully fetched " . count($achievements) . " achievements from database");
+                return $achievements;
+            }
+            
+        } catch (Exception $e) {
+            error_log("Database error fetching achievements: " . $e->getMessage());
+            // Continue to fallback data
+        }
+        
+        // If database fails or returns false, provide fallback data for testing
+        error_log("Using fallback achievement data");
+        return [
+            (object)[
+                'AchievementID' => 1,
+                'Date' => '2024-10-15',
+                'MatchName' => 'vs Team Alpha',
+                'Tournament' => 'Elite League',
+                'Achievement' => 'Century Maker - Scored 100+ runs in single match',
+                'VerifiedStatus' => 'verified',
+                'CreatedAt' => '2024-10-15 15:30:00'
+            ],
+            (object)[
+                'AchievementID' => 2,
+                'Date' => '2024-10-12',
+                'MatchName' => 'vs City Warriors',
+                'Tournament' => 'Championship',
+                'Achievement' => 'Hot Streak - 5 consecutive match wins',
+                'VerifiedStatus' => 'verified',
+                'CreatedAt' => '2024-10-12 14:20:00'
+            ],
+            (object)[
+                'AchievementID' => 3,
+                'Date' => '2024-10-08',
+                'MatchName' => 'vs Thunder Bolts',
+                'Tournament' => 'Local Cup',
+                'Achievement' => 'Perfect Aim - Hit 3 sixes in a row',
+                'VerifiedStatus' => 'pending',
+                'CreatedAt' => '2024-10-08 16:45:00'
+            ]
+        ];
     }
     
     // Achievements
