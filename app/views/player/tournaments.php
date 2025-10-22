@@ -133,13 +133,15 @@
                 </div>
             </div>
 
-            <!-- Available Tournaments -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-plus"></i> Available Tournaments</h2>
+            <!-- Available Tournaments and My Enrollments - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Available Tournaments -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-calendar-plus"></i> Available Tournaments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -209,13 +211,13 @@
                 </div>
             </div>
 
-            <!-- My Enrollments -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-user-check"></i> My Enrollments</h2>
+                <!-- My Enrollments -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-user-check"></i> My Enrollments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -255,6 +257,7 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 

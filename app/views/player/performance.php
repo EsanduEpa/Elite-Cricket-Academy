@@ -89,344 +89,338 @@
                 <p>Track your cricket performance and see your improvement over time.</p>
             </div>
 
-            <!-- Performance Stats Table -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-chart-bar"></i> Batting Performance</h2>
-                        <button class="action-btn" style="font-size: 14px; padding: 8px 12px;">
-                            <i class="fas fa-sync-alt"></i> Update Stats
-                        </button>
+            <!-- Performance Stats - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Batting Performance -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-chart-bar"></i> Batting Performance</h2>
+                            <button class="action-btn" style="font-size: 14px; padding: 8px 12px;">
+                                <i class="fas fa-sync-alt"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Statistic</th>
+                                    <th>Value</th>
+                                    <th>Rank</th>
+                                    <th>Improvement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-baseball-ball"></i> Batting Average
+                                        </div>
+                                        <div class="table-cell-details">Runs per dismissal</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">45.2</div>
+                                        <div class="table-cell-secondary">runs</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#8</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #28a745; color: white;">+5.2</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-running"></i> Total Runs
+                                        </div>
+                                        <div class="table-cell-details">Career runs scored</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">1,245</div>
+                                        <div class="table-cell-secondary">runs</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#5</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #28a745; color: white;">+185</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-bullseye"></i> Highest Score
+                                        </div>
+                                        <div class="table-cell-details">Best individual innings</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">85</div>
+                                        <div class="table-cell-secondary">not out</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#12</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-percentage"></i> Strike Rate
+                                        </div>
+                                        <div class="table-cell-details">Runs per 100 balls</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">78%</div>
+                                        <div class="table-cell-secondary">per 100 balls</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#6</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #ffc107; color: black;">-2%</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Statistic</th>
-                                <th>Value</th>
-                                <th>Rank</th>
-                                <th>Improvement</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-baseball-ball"></i> Batting Average
-                                    </div>
-                                    <div class="table-cell-details">Runs per dismissal</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">45.2</div>
-                                    <div class="table-cell-secondary">runs</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#8</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #28a745; color: white;">+5.2</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-running"></i> Total Runs
-                                    </div>
-                                    <div class="table-cell-details">Career runs scored</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">1,245</div>
-                                    <div class="table-cell-secondary">runs</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#5</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #28a745; color: white;">+185</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-bullseye"></i> Highest Score
-                                    </div>
-                                    <div class="table-cell-details">Best individual innings</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">85</div>
-                                    <div class="table-cell-secondary">not out</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#12</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-percentage"></i> Strike Rate
-                                    </div>
-                                    <div class="table-cell-details">Runs per 100 balls</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">78%</div>
-                                    <div class="table-cell-secondary">per 100 balls</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#6</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #ffc107; color: black;">-2%</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                <!-- Bowling Performance -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-fire"></i> Bowling Performance</h2>
+                            <button class="action-btn" style="font-size: 14px; padding: 8px 12px;">
+                                <i class="fas fa-sync-alt"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Statistic</th>
+                                    <th>Value</th>
+                                    <th>Rank</th>
+                                    <th>Improvement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-fire"></i> Wickets Taken
+                                        </div>
+                                        <div class="table-cell-details">Total career wickets</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">15</div>
+                                        <div class="table-cell-secondary">wickets</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#4</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #28a745; color: white;">+3</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-chart-bar"></i> Economy Rate
+                                        </div>
+                                        <div class="table-cell-details">Runs per over</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">3.2</div>
+                                        <div class="table-cell-secondary">runs/over</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#3</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #28a745; color: white;">-0.5</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-bullseye"></i> Best Figures
+                                        </div>
+                                        <div class="table-cell-details">Best bowling in an innings</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">4/25</div>
+                                        <div class="table-cell-secondary">wickets/runs</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#2</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">
+                                            <i class="fas fa-crosshairs"></i> Bowling Average
+                                        </div>
+                                        <div class="table-cell-details">Runs per wicket</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">24.8</div>
+                                        <div class="table-cell-secondary">runs/wicket</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">#5</div>
+                                        <div class="table-cell-secondary">in team</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: #28a745; color: white;">-3.2</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Performance -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-chart-line"></i> Recent Matches</h2>
+            <!-- Recent Matches and Achievements - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Recent Matches -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-chart-line"></i> Recent Matches</h2>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Match</th>
+                                    <th>Runs</th>
+                                    <th>Wickets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Oct 14</div>
+                                        <div class="table-cell-secondary">Monday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">vs Team Alpha</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-map-marker-alt"></i> Main Ground
+                                        </div>
+                                        <span class="table-badge">Match</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">85</div>
+                                        <div class="table-cell-secondary">65 balls</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">2</div>
+                                        <div class="table-cell-secondary">32 runs</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Oct 10</div>
+                                        <div class="table-cell-secondary">Thursday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Practice Match</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-map-marker-alt"></i> Practice Ground
+                                        </div>
+                                        <span class="table-badge">Practice</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">42</div>
+                                        <div class="table-cell-secondary">38 balls</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">1</div>
+                                        <div class="table-cell-secondary">28 runs</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">Oct 6</div>
+                                        <div class="table-cell-secondary">Sunday</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Tournament Semi-Final</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-trophy"></i> Stadium Ground
+                                        </div>
+                                        <span class="table-badge">Tournament</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">67</div>
+                                        <div class="table-cell-secondary">55 balls</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary">3</div>
+                                        <div class="table-cell-secondary">45 runs</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Match</th>
-                                <th>Runs</th>
-                                <th>Wickets</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 14</div>
-                                    <div class="table-cell-secondary">Monday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Match vs Team Alpha</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-map-marker-alt"></i> Main Ground - Strike Rate: 130%
-                                    </div>
-                                    <span class="table-badge">Match</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">85</div>
-                                    <div class="table-cell-secondary">65 balls</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">2</div>
-                                    <div class="table-cell-secondary">32 runs</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 10</div>
-                                    <div class="table-cell-secondary">Thursday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Practice Match</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-map-marker-alt"></i> Practice Ground - Strike Rate: 110%
-                                    </div>
-                                    <span class="table-badge">Practice</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">42</div>
-                                    <div class="table-cell-secondary">38 balls</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">1</div>
-                                    <div class="table-cell-secondary">28 runs</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 6</div>
-                                    <div class="table-cell-secondary">Sunday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Tournament Semi-Final</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-trophy"></i> Stadium Ground - Strike Rate: 122%
-                                    </div>
-                                    <span class="table-badge">Tournament</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">67</div>
-                                    <div class="table-cell-secondary">55 balls</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">3</div>
-                                    <div class="table-cell-secondary">45 runs</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <!-- Bowling Performance -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-fire"></i> Bowling Performance</h2>
-                        <button class="action-btn" style="font-size: 14px; padding: 8px 12px;">
-                            <i class="fas fa-sync-alt"></i> Update Stats
-                        </button>
+                <!-- Achievements -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-trophy"></i> My Achievements</h2>
+                            <button class="action-btn" onclick="showAddAchievementModal()" style="font-size: 14px; padding: 8px 12px;">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Statistic</th>
-                                <th>Value</th>
-                                <th>Rank</th>
-                                <th>Improvement</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-fire"></i> Wickets Taken
-                                    </div>
-                                    <div class="table-cell-details">Total career wickets</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">15</div>
-                                    <div class="table-cell-secondary">wickets</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#4</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #28a745; color: white;">+3</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-chart-bar"></i> Economy Rate
-                                    </div>
-                                    <div class="table-cell-details">Runs per over</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">3.2</div>
-                                    <div class="table-cell-secondary">runs/over</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#3</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #28a745; color: white;">-0.5</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-bullseye"></i> Best Figures
-                                    </div>
-                                    <div class="table-cell-details">Best bowling in an innings</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">4/25</div>
-                                    <div class="table-cell-secondary">wickets/runs</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#2</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">
-                                        <i class="fas fa-crosshairs"></i> Bowling Average
-                                    </div>
-                                    <div class="table-cell-details">Runs per wicket</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">24.8</div>
-                                    <div class="table-cell-secondary">runs/wicket</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">#5</div>
-                                    <div class="table-cell-secondary">in team</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge" style="background: #28a745; color: white;">-3.2</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            
-
-            <!-- Achievements -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-trophy"></i> My Achievements</h2>
-                        <button class="action-btn" onclick="showAddAchievementModal()" style="font-size: 14px; padding: 8px 12px;">
-                            <i class="fas fa-plus"></i> Add Achievement
-                        </button>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Match</th>
-                                <th>Tournament</th>
-                                <th>Achievement</th>
-                                <th>Verified Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Tournament</th>
+                                    <th>Achievement</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
                         <tbody>
                             <?php if (isset($data['achievements']) && !empty($data['achievements'])): ?>
                                 <?php foreach ($data['achievements'] as $achievement): ?>
                                     <tr>
                                         <td style="text-align: center;">
                                             <div class="table-cell-primary"><?php echo date('M d', strtotime($achievement->Date)); ?></div>
-                                            <div class="table-cell-secondary"><?php echo date('l', strtotime($achievement->Date)); ?></div>
+                                            <div class="table-cell-secondary"><?php echo date('Y', strtotime($achievement->Date)); ?></div>
                                         </td>
                                         <td>
-                                            <div class="table-cell-title"><?php echo htmlspecialchars($achievement->MatchName); ?></div>
+                                            <div class="table-cell-title"><?php echo htmlspecialchars($achievement->Tournament); ?></div>
                                             <div class="table-cell-details">
-                                                <i class="fas fa-map-marker-alt"></i> Match Details
+                                                <i class="fas fa-baseball-ball"></i> <?php echo htmlspecialchars($achievement->MatchName); ?>
                                             </div>
-                                            <span class="table-badge">Match</span>
-                                        </td>
-                                        <td style="text-align: center;">
-                                            <div class="table-cell-primary"><?php echo htmlspecialchars($achievement->Tournament); ?></div>
-                                            <div class="table-cell-secondary">Tournament</div>
                                         </td>
                                         <td>
                                             <div class="table-cell-title"><?php echo htmlspecialchars($achievement->Achievement); ?></div>
-                                            <div class="table-cell-details">
-                                                <i class="fas fa-trophy"></i> Player Achievement
-                                            </div>
                                             <?php 
                                             // Determine badge color based on achievement type
                                             $badgeStyle = 'background: #3498db;'; // Default blue
@@ -457,18 +451,18 @@
                                         <td style="text-align: center;">
                                             <?php if ($achievement->VerifiedStatus === 'pending'): ?>
                                                 <button class="action-btn" onclick="editAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 10px;">
-                                                    <i class="fas fa-edit"></i> Edit
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
                                             <?php elseif ($achievement->VerifiedStatus === 'rejected'): ?>
-                                                <button class="action-btn" onclick="viewAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 10px; margin-right: 5px;">
-                                                    <i class="fas fa-eye"></i> View
+                                                <button class="action-btn" onclick="viewAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 8px; margin-right: 5px;">
+                                                    <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="action-btn" onclick="deleteAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 10px; background: #e74c3c; border-color: #e74c3c;" title="Delete rejected achievement">
-                                                    <i class="fas fa-trash"></i> Delete
+                                                <button class="action-btn" onclick="deleteAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 8px; background: #e74c3c; border-color: #e74c3c;" title="Delete">
+                                                    <i class="fas fa-trash"></i>
                                                 </button>
                                             <?php else: ?>
                                                 <button class="action-btn" onclick="viewAchievement(<?php echo $achievement->AchievementID; ?>)" style="font-size: 12px; padding: 6px 10px;">
-                                                    <i class="fas fa-eye"></i> View
+                                                    <i class="fas fa-eye"></i>
                                                 </button>
                                             <?php endif; ?>
                                         </td>
@@ -477,28 +471,29 @@
                             <?php elseif (isset($data['achievements']) && empty($data['achievements'])): ?>
                                 <!-- Database is working but no achievements found -->
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px;">
+                                    <td colspan="5" style="text-align: center; padding: 40px;">
                                         <div style="color: #7f8c8d;">
                                             <i class="fas fa-trophy" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
                                             <h3 style="margin: 10px 0; color: #7f8c8d;">No Achievements Yet</h3>
-                                            <p>Start tracking your cricket achievements by clicking "Add Achievement" above.</p>
+                                            <p>Start tracking your achievements by clicking "Add" above.</p>
                                         </div>
                                     </td>
                                 </tr>
                             <?php else: ?>
                                 <!-- Database/controller returned no data, show message -->
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px;">
+                                    <td colspan="5" style="text-align: center; padding: 40px;">
                                         <div style="color: #7f8c8d;">
                                             <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
                                             <h3 style="margin: 10px 0; color: #7f8c8d;">Unable to Load Achievements</h3>
-                                            <p>There was a problem loading achievement data. Please try refreshing the page or contact support.</p>
+                                            <p>Please try refreshing the page or contact support.</p>
                                         </div>
                                     </td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 

@@ -1,6 +1,5 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/profile.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/profile.css?v=<?php echo time(); ?>">
 
 <?php 
 // Safety check for user data

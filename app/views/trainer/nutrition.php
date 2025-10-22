@@ -1,5 +1,5 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
 <!-- Mobile-specific meta tags -->
 <meta name="theme-color" content="#2c3e50">

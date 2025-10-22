@@ -2,6 +2,30 @@
 /* Import base dashboard styles */
 @import url('dashboard.css');
 
+/* Two Tables Per Row Layout */
+.performance-tables-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 2rem;
+}
+
+.performance-tables-row .schedule-card {
+    margin-bottom: 0;
+}
+
+/* Responsive - Stack on smaller screens */
+@media (max-width: 1024px) {
+    .performance-tables-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .performance-tables-row .schedule-card {
+        margin-bottom: 0;
+    }
+}
+
 /* Performance-specific icon colors */
 .stat-icon i.fa-baseball-ball,
 .stat-icon i.fa-fire,
@@ -36,3 +60,4 @@
 .schedule-details i.fa-star {
     color: gold !important;
 }
+

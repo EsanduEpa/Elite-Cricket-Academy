@@ -1,12 +1,101 @@
 /* Trainer Bookings Page Specific Styles */
 @import url('dashboard.css');
 
+/* Controls Bar */
+.controls-bar {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.view-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.view-btn {
+    background: white;
+    color: #666;
+    border: 2px solid #e0e0e0;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.view-btn:hover {
+    border-color: #4A90E2;
+    color: #4A90E2;
+    transform: translateY(-1px);
+}
+
+.view-btn.active {
+    background: #4A90E2;
+    color: white;
+    border-color: #4A90E2;
+}
+
+.date-display {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.search-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper i {
+    position: absolute;
+    left: 15px;
+    color: #999;
+    font-size: 14px;
+}
+
+.search-input-wrapper input {
+    padding: 10px 15px 10px 40px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 280px;
+    transition: all 0.3s ease;
+}
+
+.search-input-wrapper input:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
 /* Schedule Cards */
 .schedule-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: white;
     border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     margin-bottom: 2rem;
     overflow: hidden;
     transition: transform 0.3s ease;
@@ -14,6 +103,7 @@
 
 .schedule-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
 .schedule-card .card-header {
@@ -50,53 +140,252 @@
     border-radius: 0 0 15px 15px;
 }
 
+/* Table Container */
+.table-container {
+    overflow-x: auto;
+}
+
 /* Dashboard Table Styles */
 .dashboard-table {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
     border-spacing: 0;
+    background: white;
+}
+
+.dashboard-table thead {
+    background: #4A90E2;
 }
 
 .dashboard-table th {
     background: #4A90E2;
     color: white;
-    padding: 15px 15px;
+    padding: 16px 20px;
     text-align: left;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     border: none;
-    margin: 0;
+    white-space: nowrap;
 }
 
-.dashboard-table th:first-child {
-    padding-left: 25px;
-}
-
-.dashboard-table th:last-child {
-    padding-right: 25px;
+.dashboard-table th i {
+    margin-right: 6px;
+    opacity: 0.9;
 }
 
 .dashboard-table td {
-    padding: 15px 15px;
-    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
-    vertical-align: top;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
 }
 
-.dashboard-table td:first-child {
-    padding-left: 25px;
+.dashboard-table tbody tr {
+    transition: all 0.2s ease;
 }
 
-.dashboard-table td:last-child {
-    padding-right: 25px;
+.dashboard-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.04);
 }
 
-.dashboard-table tr:last-child td {
+.dashboard-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-.dashboard-table tr:hover {
-    background: rgba(74, 144, 226, 0.05);
+/* Time Info */
+.time-info {
+    min-width: 120px;
+}
+
+.time-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.time-display .time {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.time-display .duration {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* Date Info */
+.date-info {
+    min-width: 100px;
+}
+
+.date-display {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.date-display .date {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.date-display .year {
+    font-size: 11px;
+    color: #95a5a6;
+    text-transform: uppercase;
+}
+
+.date-display .time {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 2px;
+}
+
+/* Client Info */
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 200px;
+}
+
+.player-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.client-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.client-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.client-sport,
+.client-email {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.session-type {
+    font-size: 12px;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.session-type i {
+    color: #4A90E2;
+}
+
+/* Location Info */
+.location-info {
+    min-width: 150px;
+}
+
+.location-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.location-display .venue {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.location-display .room {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* Session Details */
+.session-details {
+    min-width: 280px;
+}
+
+.session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.session-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.session-title i {
+    color: #4A90E2;
+    font-size: 16px;
+}
+
+.session-description {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-description span {
+    font-size: 12px;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+}
+
+.session-description span:before {
+    content: '•';
+    margin-right: 6px;
+    color: #4A90E2;
+}
+
+/* Performance Info */
+.performance-info {
+    min-width: 120px;
+}
+
+.rating-display {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stars {
+    display: flex;
+    gap: 3px;
+}
+
+.stars i {
+    color: #f39c12;
+    font-size: 14px;
+}
+
+.rating-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c3e50;
 }
 
 /* Table Cell Content Styles */
@@ -143,64 +432,154 @@
     border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
-/* Status Specific Badges */
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge i {
+    font-size: 11px;
+}
+
 .status-active {
-    background: rgba(46, 213, 115, 0.1);
-    color: #2ed573;
+    background: rgba(46, 213, 115, 0.15);
+    color: #27ae60;
     border: 1px solid rgba(46, 213, 115, 0.3);
 }
 
 .status-upcoming {
-    background: rgba(255, 159, 67, 0.1);
-    color: #ff9f43;
+    background: rgba(255, 159, 67, 0.15);
+    color: #e67e22;
     border: 1px solid rgba(255, 159, 67, 0.3);
 }
 
-.status-completed {
-    background: rgba(108, 117, 125, 0.1);
-    color: #6c757d;
-    border: 1px solid rgba(108, 117, 125, 0.3);
+.status-planned {
+    background: rgba(155, 89, 182, 0.15);
+    color: #8e44ad;
+    border: 1px solid rgba(155, 89, 182, 0.3);
 }
 
-/* Button Icon Styles */
-.btn-icon {
+.status-completed {
+    background: rgba(149, 165, 166, 0.15);
+    color: #7f8c8d;
+    border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+/* Actions Cell */
+.actions-cell {
+    min-width: 100px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.profile-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.profile-action.complete {
+    background: rgba(46, 213, 115, 0.1);
+    color: #27ae60;
+}
+
+.profile-action.complete:hover {
+    background: #27ae60;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.profile-action.view {
     background: rgba(74, 144, 226, 0.1);
     color: #4A90E2;
-    border: 1px solid rgba(74, 144, 226, 0.2);
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 0 2px;
-    font-size: 12px;
 }
 
-.btn-icon:hover {
+.profile-action.view:hover {
     background: #4A90E2;
     color: white;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
 }
 
-.btn-icon.success {
+/* Plan Actions */
+.plan-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.plan-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.plan-btn i {
+    font-size: 13px;
+}
+
+.plan-btn.workout {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
+}
+
+.plan-btn.workout:hover {
+    background: #2980b9;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
+}
+
+.plan-btn.nutrition {
     background: rgba(46, 213, 115, 0.1);
-    color: #2ed573;
-    border: 1px solid rgba(46, 213, 115, 0.2);
+    color: #27ae60;
 }
 
-.btn-icon.success:hover {
-    background: #2ed573;
+.plan-btn.nutrition:hover {
+    background: #27ae60;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
 }
 
-.btn-icon.danger {
-    background: rgba(255, 107, 107, 0.1);
-    color: #ff6b6b;
-    border: 1px solid rgba(255, 107, 107, 0.2);
+.plan-btn.supplement {
+    background: rgba(155, 89, 182, 0.1);
+    color: #8e44ad;
 }
 
-.btn-icon.danger:hover {
-    background: #ff6b6b;
+.plan-btn.supplement:hover {
+    background: #8e44ad;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3);
 }
 
 /* Section Spacing */
@@ -333,6 +712,21 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .view-controls,
+    .search-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .search-input-wrapper input {
+        width: 100%;
+    }
+
     .schedule-card .header-content {
         flex-direction: column;
         align-items: flex-start;
@@ -340,22 +734,29 @@
     }
 
     .dashboard-table {
-        font-size: 14px;
+        font-size: 12px;
     }
     
     .dashboard-table th,
     .dashboard-table td {
-        padding: 10px 8px;
+        padding: 12px 10px;
     }
     
-    .dashboard-table th:first-child,
-    .dashboard-table td:first-child {
-        padding-left: 15px;
+    .time-display .time {
+        font-size: 14px;
     }
     
-    .dashboard-table th:last-child,
-    .dashboard-table td:last-child {
-        padding-right: 15px;
+    .client-name {
+        font-size: 13px;
+    }
+    
+    .plan-actions {
+        flex-direction: column;
+    }
+    
+    .plan-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .table-cell-title {
@@ -421,6 +822,112 @@
     }
 }
 
+/* Modal Enhancements for Bookings */
+.client-info-card {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(53, 122, 189, 0.1));
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.client-info-card .client-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.client-info-card .client-details {
+    flex: 1;
+}
+
+.client-info-card h4 {
+    color: #2c3e50;
+    font-size: 18px;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+}
+
+.client-info-card p {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 0 0 8px 0;
+}
+
+.info-badge {
+    display: inline-block;
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-grid .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.form-label i {
+    color: #4A90E2;
+    font-size: 14px;
+}
+
+.form-input {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-input::placeholder {
+    color: #bdc3c7;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 100px;
+}
+
 /* Responsive Modal */
 @media (max-width: 768px) {
     .modal-content {
@@ -434,17 +941,23 @@
         padding: 1rem;
     }
     
-    .form-row {
+    .form-grid {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
+        gap: 15px;
     }
     
     .modal-footer {
         flex-direction: column;
+        gap: 10px;
     }
     
     .btn-primary,
     .btn-secondary {
         width: 100%;
+    }
+    
+    .client-info-card {
+        flex-direction: column;
+        text-align: center;
     }
 }

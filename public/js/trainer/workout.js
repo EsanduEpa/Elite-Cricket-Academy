@@ -90,7 +90,7 @@ function openAddModal() {
     setTimeout(() => modal.classList.add('show'), 10);
 }
 
-function editPlan(planId, workoutName, frequency, duration) {
+function editPlan(planId, planData) {
     const modal = document.getElementById('workoutModal');
     const form = document.getElementById('workoutForm');
     const modalTitle = document.getElementById('modalTitle');
@@ -98,9 +98,21 @@ function editPlan(planId, workoutName, frequency, duration) {
     
     // Fill form with existing data
     document.getElementById('planId').value = planId;
-    document.getElementById('workoutname').value = workoutName;
-    document.getElementById('frequency').value = frequency;
-    document.getElementById('duration').value = duration;
+    document.getElementById('workoutname').value = planData.workoutname || '';
+    document.getElementById('frequency').value = planData.frequency || '';
+    document.getElementById('duration').value = planData.duration || '';
+    document.getElementById('durationdays').value = planData.durationdays || '';
+    document.getElementById('videolink').value = planData.videolink || '';
+    document.getElementById('intensity').value = planData.intensity || 'Moderate';
+    document.getElementById('notsuitablefor').value = planData.notsuitablefor || '';
+    document.getElementById('benefits').value = planData.benefits || '';
+    
+    // Update character counters after filling the form
+    setTimeout(() => {
+        updateCharCount('workoutname');
+        updateCharCount('benefits');
+        updateCharCount('notsuitablefor');
+    }, 100);
     
     // Set modal for editing
     modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Workout Plan';
@@ -222,21 +234,190 @@ function closeViewModal() {
     }, 300);
 }
 
+// Character counter function
+function updateCharCount(fieldId) {
+    const field = document.getElementById(fieldId);
+    const counter = document.getElementById(`${fieldId}-counter`);
+    
+    if (field && counter) {
+        const currentLength = field.value.length;
+        const maxLength = field.maxLength || 255;
+        
+        counter.textContent = `${currentLength}/${maxLength} characters`;
+        
+        // Color coding for character counter
+        if (currentLength > maxLength * 0.9) {
+            counter.style.color = '#ff6b6b'; // Red when close to limit
+        } else if (currentLength > maxLength * 0.7) {
+            counter.style.color = '#ff9f43'; // Orange when approaching limit
+        } else {
+            counter.style.color = '#666'; // Default gray
+        }
+    }
+}
+
+// Real-time field validation
+function validateField(field) {
+    const fieldId = field.id;
+    const value = field.value.trim();
+    
+    // Remove existing validation classes
+    field.style.borderColor = '#ddd';
+    
+    switch(fieldId) {
+        case 'workoutname':
+            if (value.length >= 3 && value.length <= 255) {
+                field.style.borderColor = '#2ed573'; // Green for valid
+            } else if (value.length > 0) {
+                field.style.borderColor = '#ff6b6b'; // Red for invalid
+            }
+            break;
+            
+        case 'duration':
+            const duration = parseInt(value);
+            if (duration >= 15 && duration <= 180) {
+                field.style.borderColor = '#2ed573';
+            } else if (value.length > 0) {
+                field.style.borderColor = '#ff6b6b';
+            }
+            break;
+            
+        case 'durationdays':
+            if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 365)) {
+                field.style.borderColor = value === '' ? '#ddd' : '#2ed573';
+            } else {
+                field.style.borderColor = '#ff6b6b';
+            }
+            break;
+            
+        case 'videolink':
+            if (value === '' || value.match(/^https?:\/\/.+/)) {
+                field.style.borderColor = value === '' ? '#ddd' : '#2ed573';
+            } else {
+                field.style.borderColor = '#ff6b6b';
+            }
+            break;
+            
+        case 'benefits':
+        case 'notsuitablefor':
+            if (value.length <= 1000) {
+                field.style.borderColor = value.length > 0 ? '#2ed573' : '#ddd';
+            } else {
+                field.style.borderColor = '#ff6b6b';
+            }
+            break;
+    }
+}
+
+// Initialize character counters on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Update counters for all text fields
+    updateCharCount('workoutname');
+    updateCharCount('benefits');
+    updateCharCount('notsuitablefor');
+    
+    // Add input event listeners for character counting
+    const workoutname = document.getElementById('workoutname');
+    const benefits = document.getElementById('benefits');
+    const notsuitablefor = document.getElementById('notsuitablefor');
+    
+    if (workoutname) {
+        workoutname.addEventListener('input', () => {
+            updateCharCount('workoutname');
+            validateField(workoutname);
+        });
+        workoutname.addEventListener('blur', () => validateField(workoutname));
+    }
+    if (benefits) {
+        benefits.addEventListener('input', () => {
+            updateCharCount('benefits');
+            validateField(benefits);
+        });
+        benefits.addEventListener('blur', () => validateField(benefits));
+    }
+    if (notsuitablefor) {
+        notsuitablefor.addEventListener('input', () => {
+            updateCharCount('notsuitablefor');
+            validateField(notsuitablefor);
+        });
+        notsuitablefor.addEventListener('blur', () => validateField(notsuitablefor));
+    }
+    
+    // Add validation for other fields
+    const duration = document.getElementById('duration');
+    const durationDays = document.getElementById('durationdays');
+    const videoLink = document.getElementById('videolink');
+    
+    if (duration) {
+        duration.addEventListener('input', () => validateField(duration));
+        duration.addEventListener('blur', () => validateField(duration));
+    }
+    if (durationDays) {
+        durationDays.addEventListener('input', () => validateField(durationDays));
+        durationDays.addEventListener('blur', () => validateField(durationDays));
+    }
+    if (videoLink) {
+        videoLink.addEventListener('input', () => validateField(videoLink));
+        videoLink.addEventListener('blur', () => validateField(videoLink));
+    }
+});
+
 // Form validation
 document.getElementById('workoutForm').addEventListener('submit', function(e) {
     const workoutName = document.getElementById('workoutname').value.trim();
     const frequency = document.getElementById('frequency').value;
-    const duration = document.getElementById('duration').value;
+    const duration = parseInt(document.getElementById('duration').value);
+    const durationDays = document.getElementById('durationdays').value;
+    const videoLink = document.getElementById('videolink').value.trim();
+    const benefits = document.getElementById('benefits').value.trim();
+    const notSuitableFor = document.getElementById('notsuitablefor').value.trim();
     
+    // Required fields validation
     if (!workoutName || !frequency || !duration) {
         e.preventDefault();
         showNotification('Please fill in all required fields', 'error');
         return false;
     }
     
-    if (duration < 15 || duration > 180) {
+    // Workout name validation
+    if (workoutName.length < 3 || workoutName.length > 255) {
+        e.preventDefault();
+        showNotification('Workout name must be between 3 and 255 characters', 'error');
+        return false;
+    }
+    
+    // Duration validation (minutes)
+    if (isNaN(duration) || duration < 15 || duration > 180) {
         e.preventDefault();
         showNotification('Duration must be between 15 and 180 minutes', 'error');
+        return false;
+    }
+    
+    // Duration days validation (optional)
+    if (durationDays && (parseInt(durationDays) < 1 || parseInt(durationDays) > 365)) {
+        e.preventDefault();
+        showNotification('Duration days must be between 1 and 365', 'error');
+        return false;
+    }
+    
+    // Video link validation (optional but must be valid URL if provided)
+    if (videoLink && !videoLink.match(/^https?:\/\/.+/)) {
+        e.preventDefault();
+        showNotification('Video link must be a valid URL starting with http:// or https://', 'error');
+        return false;
+    }
+    
+    // Benefits validation (optional but max 1000 chars)
+    if (benefits.length > 1000) {
+        e.preventDefault();
+        showNotification('Benefits must not exceed 1000 characters', 'error');
+        return false;
+    }
+    
+    // Not suitable for validation (optional but max 1000 chars)
+    if (notSuitableFor.length > 1000) {
+        e.preventDefault();
+        showNotification('Not Suitable For must not exceed 1000 characters', 'error');
         return false;
     }
     

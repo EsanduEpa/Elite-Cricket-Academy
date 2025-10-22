@@ -5,6 +5,7 @@ class Player extends Controller {
     private $medicalModel;
     private $achievementModel;
     private $productModel;
+    private $trainerModel;
     
     public function __construct() {
         // Check authentication for all player pages
@@ -14,6 +15,7 @@ class Player extends Controller {
         // $this->medicalModel = $this->model('M_Medical');
         $this->achievementModel = $this->model('M_Achievement');
         $this->productModel = $this->model('M_Product');
+        $this->trainerModel = $this->model('M_Trainer');
     }
     
     private function requireLogin() {
@@ -806,7 +808,7 @@ class Player extends Controller {
         $data = [
             'title' => 'Trainer Plans',
             'player' => $this->getPlayerData(),
-            'workoutPlans' => $this->getGeneralWorkoutPlans(),
+            'workoutPlans' => $this->trainerModel->getAllWorkoutPlansWithTrainers(),
             'nutritionGuides' => $this->getGeneralNutritionGuides(),
             'supplementInfo' => $this->getGeneralSupplementInfo()
         ];
