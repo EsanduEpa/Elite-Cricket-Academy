@@ -91,158 +91,78 @@
 
             <?php flash('medical_message'); ?>
 
-            <!-- Health Overview - Compact Table -->
-            <div class="schedule-card">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-heartbeat"></i> Health Overview</h2>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                <th>Value</th>
-                                <th>Status</th>
-                                <th>Last Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title"><i class="fas fa-weight"></i> Weight</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">75 kg</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Normal</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-secondary">Oct 10, 2025</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title"><i class="fas fa-ruler-vertical"></i> Height</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">178 cm</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Normal</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-secondary">Registration</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title"><i class="fas fa-heart"></i> Resting HR</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">68 bpm</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Excellent</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-secondary">Oct 10, 2025</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title"><i class="fas fa-percentage"></i> Body Fat</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">12%</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Athletic</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-secondary">Sept 15, 2025</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title"><i class="fas fa-lungs"></i> Lung Capacity</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">4.2 L</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Above Average</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-secondary">Sept 15, 2025</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Trainer Assigned Plans -->
-            <div class="schedule-row">
-                <!-- Current Workout Plans -->
+            <!-- Health Overview and Supplements - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Health Overview - Compact Table -->
                 <div class="schedule-card">
                     <div class="card-header">
                         <div class="header-content">
-                            <h2><i class="fas fa-dumbbell"></i> Current Workout Plans</h2>
-                            <span class="event-count">2 Active</span>
+                            <h2><i class="fas fa-heartbeat"></i> Health Overview</h2>
                         </div>
                     </div>
                     <div class="card-content">
                         <table class="dashboard-table">
                             <thead>
                                 <tr>
-                                    <th>Plan</th>
-                                    <th>Trainer</th>
+                                    <th>Metric</th>
+                                    <th>Value</th>
                                     <th>Status</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div class="table-cell-title">Strength & Conditioning</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> 3x per week • Started Oct 5
-                                        </div>
+                                        <div class="table-cell-title"><i class="fas fa-weight"></i> Weight</div>
                                     </td>
                                     <td>
-                                        <div class="table-cell-title">Coach Johnson</div>
-                                        <div class="table-cell-secondary">Physical Trainer</div>
+                                        <div class="table-cell-primary">75 kg</div>
                                     </td>
                                     <td>
-                                        <span class="table-badge status-active">Active</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewWorkoutPlan(1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
+                                        <span class="table-badge status-active">Normal</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="table-cell-title">Cricket-Specific Fitness</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> Daily • Started Oct 1
-                                        </div>
+                                        <div class="table-cell-title"><i class="fas fa-ruler-vertical"></i> Height</div>
                                     </td>
                                     <td>
-                                        <div class="table-cell-title">Trainer Mike</div>
-                                        <div class="table-cell-secondary">Fitness Specialist</div>
+                                        <div class="table-cell-primary">178 cm</div>
                                     </td>
                                     <td>
-                                        <span class="table-badge status-active">Active</span>
+                                        <span class="table-badge status-active">Normal</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title"><i class="fas fa-heart"></i> Resting HR</div>
                                     </td>
                                     <td>
-                                        <button class="btn-sm" onclick="viewWorkoutPlan(2)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
+                                        <div class="table-cell-primary">68 bpm</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Excellent</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title"><i class="fas fa-percentage"></i> Body Fat</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">12%</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Athletic</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title"><i class="fas fa-lungs"></i> Lung Capacity</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">4.2 L</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Above Avg</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -250,43 +170,70 @@
                     </div>
                 </div>
 
-                <!-- Current Nutrition Plans -->
+                <!-- Current Supplement Plans -->
                 <div class="schedule-card">
                     <div class="card-header">
                         <div class="header-content">
-                            <h2><i class="fas fa-apple-alt"></i> Nutrition Plans</h2>
-                            <span class="event-count">1 Active</span>
+                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
+                            <span class="event-count">3 Active</span>
                         </div>
                     </div>
                     <div class="card-content">
                         <table class="dashboard-table">
                             <thead>
                                 <tr>
-                                    <th>Plan</th>
-                                    <th>Trainer</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th>Supplement</th>
+                                    <th>Dosage</th>
+                                    <th>Duration</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div class="table-cell-title">Performance Diet Plan</div>
+                                        <div class="table-cell-title">Whey Protein</div>
                                         <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> 30 days • Started Oct 8
+                                            <i class="fas fa-user"></i> Coach Johnson
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="table-cell-title">Nutritionist Sarah</div>
-                                        <div class="table-cell-secondary">Sports Nutritionist</div>
+                                        <div class="table-cell-primary">25g</div>
+                                        <div class="table-cell-secondary">2x daily</div>
                                     </td>
                                     <td>
-                                        <span class="table-badge status-active">Active</span>
+                                        <div class="table-cell-primary">60 days</div>
+                                        <div class="table-cell-secondary">Started Oct 1</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Creatine</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-user"></i> Coach Johnson
+                                        </div>
                                     </td>
                                     <td>
-                                        <button class="btn-sm" onclick="viewNutritionPlan(1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
+                                        <div class="table-cell-primary">5g</div>
+                                        <div class="table-cell-secondary">Daily</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">90 days</div>
+                                        <div class="table-cell-secondary">Started Sept 20</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Multivitamin</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-user"></i> Nutritionist Sarah
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">1 tablet</div>
+                                        <div class="table-cell-secondary">Morning</div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">30 days</div>
+                                        <div class="table-cell-secondary">Started Oct 8</div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -295,98 +242,7 @@
                 </div>
             </div>
 
-            <!-- Current Supplement Plans -->
-            <div class="schedule-card">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-capsules"></i> Supplement Recommendations</h2>
-                        <span class="event-count">3 Active</span>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Supplement</th>
-                                <th>Dosage</th>
-                                <th>Trainer</th>
-                                <th>Duration</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">Whey Protein Powder</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-info-circle"></i> Post-workout recovery
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">25g</div>
-                                    <div class="table-cell-secondary">2x daily</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Coach Johnson</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">60 days</div>
-                                    <div class="table-cell-secondary">Started Oct 1</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Active</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">Creatine Monohydrate</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-info-circle"></i> Strength & power
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">5g</div>
-                                    <div class="table-cell-secondary">Daily</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Coach Johnson</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">90 days</div>
-                                    <div class="table-cell-secondary">Started Sept 20</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Active</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">Multivitamin Complex</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-info-circle"></i> General health support
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">1 tablet</div>
-                                    <div class="table-cell-secondary">Morning</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Nutritionist Sarah</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">30 days</div>
-                                    <div class="table-cell-secondary">Started Oct 8</div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-active">Active</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <!-- Recent Medical Records -->
             <div class="schedule-card">
                 <div class="card-header">
                     <div class="header-content">
@@ -495,6 +351,120 @@
                 </div>
             </div>
 
+
+            <!-- Trainer Assigned Plans -->
+            <div class="performance-tables-row">
+                <!-- Current Workout Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-dumbbell"></i> Workout Plans</h2>
+                            <span class="event-count">2 Active</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Trainer</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Strength & Conditioning</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> 3x per week • Started Oct 5
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Coach Johnson</div>
+                                        <div class="table-cell-secondary">Physical Trainer</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewWorkoutPlan(1)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Cricket-Specific Fitness</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> Daily • Started Oct 1
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Trainer Mike</div>
+                                        <div class="table-cell-secondary">Fitness Specialist</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewWorkoutPlan(2)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Current Nutrition Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-apple-alt"></i> Nutrition Plans</h2>
+                            <span class="event-count">1 Active</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Trainer</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title">Performance Diet Plan</div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-calendar"></i> 30 days • Started Oct 8
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title">Nutritionist Sarah</div>
+                                        <div class="table-cell-secondary">Sports Nutritionist</div>
+                                    </td>
+                                    <td>
+                                        <span class="table-badge status-active">Active</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-sm" onclick="viewNutritionPlan(1)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Medical Records -->
+            
            
             <!-- Vaccinations & Immunizations -->
             <div class="schedule-card">
@@ -635,12 +605,14 @@
                         <label for="injury_details">Injury/Health Details *</label>
                         <textarea id="injury_details" name="injury_details" class="form-control" rows="3" required 
                                 placeholder="Describe the injury, symptoms, or health condition in detail..."></textarea>
+                        <small class="form-text text-danger" id="injury_details_error" style="display: none;"></small>
                     </div>
                     
                     <div class="form-group">
                         <label for="diagnosis">Diagnosis *</label>
                         <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required 
                                 placeholder="Medical diagnosis or assessment..."></textarea>
+                        <small class="form-text text-danger" id="diagnosis_error" style="display: none;"></small>
                     </div>
                     
                     <div class="form-group">
@@ -652,8 +624,9 @@
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group">
                             <label for="rest_days_needed">Estimated Rest Days Needed</label>
-                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control" min="0" value="0" placeholder="e.g. 7">
-                            <small class="form-text">Number of days rest required</small>
+                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control" min="0" max="1000" step="1" value="0" placeholder="e.g. 7">
+                            <small class="form-text">Number of days rest required (max 1000)</small>
+                            <small class="form-text text-danger" id="rest_days_error" style="display: none;"></small>
                         </div>
                         
                         <div class="form-group">
@@ -683,6 +656,39 @@
             </form>
         </div>
     </div>
+
+    <style>
+        /* Validation Error Styling */
+        .text-danger {
+            color: #dc3545 !important;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .form-control.is-invalid,
+        .form-control[style*="border-color: rgb(220, 53, 69)"] {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-valid,
+        .form-control[style*="border-color: rgb(40, 167, 69)"] {
+            border-color: #28a745 !important;
+        }
+        
+        .form-text {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            color: #6c757d;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+    </style>
 
     <!-- Workout Plan Modal -->
     <div id="workoutPlanModal" class="modal" style="display: none;">
@@ -780,6 +786,137 @@
     </div>
 
     <script>
+        // Validation functions
+        function validateMinWords(text, minWords) {
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            return words.length >= minWords;
+        }
+
+        function validateRestDays(value) {
+            // Check if it's a valid integer
+            if (!Number.isInteger(Number(value))) {
+                return { valid: false, message: 'Rest days must be a whole number (no decimals)' };
+            }
+            
+            const numValue = parseInt(value);
+            
+            if (numValue < 0) {
+                return { valid: false, message: 'Rest days cannot be negative' };
+            }
+            
+            if (numValue > 1000) {
+                return { valid: false, message: 'Rest days cannot exceed 1000 days' };
+            }
+            
+            return { valid: true, message: '' };
+        }
+
+        // Real-time validation for injury details
+        document.addEventListener('DOMContentLoaded', function() {
+            const injuryDetailsInput = document.getElementById('injury_details');
+            const diagnosisInput = document.getElementById('diagnosis');
+            const restDaysInput = document.getElementById('rest_days_needed');
+            const form = document.querySelector('#addMedicalModal form');
+
+            if (injuryDetailsInput) {
+                injuryDetailsInput.addEventListener('blur', function() {
+                    const errorElement = document.getElementById('injury_details_error');
+                    if (!validateMinWords(this.value, 2)) {
+                        errorElement.textContent = 'Injury details must contain at least 2 words';
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+            }
+
+            if (diagnosisInput) {
+                diagnosisInput.addEventListener('blur', function() {
+                    const errorElement = document.getElementById('diagnosis_error');
+                    if (!validateMinWords(this.value, 2)) {
+                        errorElement.textContent = 'Diagnosis must contain at least 2 words';
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+            }
+
+            if (restDaysInput) {
+                restDaysInput.addEventListener('input', function() {
+                    const errorElement = document.getElementById('rest_days_error');
+                    const validation = validateRestDays(this.value);
+                    
+                    if (!validation.valid) {
+                        errorElement.textContent = validation.message;
+                        errorElement.style.display = 'block';
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        errorElement.style.display = 'none';
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+
+                // Prevent decimal input
+                restDaysInput.addEventListener('keypress', function(e) {
+                    if (e.key === '.' || e.key === ',') {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Form submission validation
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    let errors = [];
+
+                    // Validate injury details
+                    const injuryDetails = document.getElementById('injury_details').value;
+                    if (!validateMinWords(injuryDetails, 2)) {
+                        isValid = false;
+                        errors.push('Injury details must contain at least 2 words');
+                        document.getElementById('injury_details_error').textContent = 'Injury details must contain at least 2 words';
+                        document.getElementById('injury_details_error').style.display = 'block';
+                        document.getElementById('injury_details').style.borderColor = '#dc3545';
+                    }
+
+                    // Validate diagnosis
+                    const diagnosis = document.getElementById('diagnosis').value;
+                    if (!validateMinWords(diagnosis, 2)) {
+                        isValid = false;
+                        errors.push('Diagnosis must contain at least 2 words');
+                        document.getElementById('diagnosis_error').textContent = 'Diagnosis must contain at least 2 words';
+                        document.getElementById('diagnosis_error').style.display = 'block';
+                        document.getElementById('diagnosis').style.borderColor = '#dc3545';
+                    }
+
+                    // Validate rest days
+                    const restDays = document.getElementById('rest_days_needed').value;
+                    if (restDays) {
+                        const restDaysValidation = validateRestDays(restDays);
+                        if (!restDaysValidation.valid) {
+                            isValid = false;
+                            errors.push(restDaysValidation.message);
+                            document.getElementById('rest_days_error').textContent = restDaysValidation.message;
+                            document.getElementById('rest_days_error').style.display = 'block';
+                            document.getElementById('rest_days_needed').style.borderColor = '#dc3545';
+                        }
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                        return false;
+                    }
+                });
+            }
+        });
+
         // Add Medical Record Modal Functions
         function openAddMedicalModal() {
             const modal = document.getElementById('addMedicalModal');
@@ -791,6 +928,10 @@
             if (!dateInput.value) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
+            
+            // Clear any previous validation errors
+            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
         }
         
         function closeAddMedicalModal() {
@@ -801,6 +942,10 @@
             // Reset form
             const form = modal.querySelector('form');
             form.reset();
+            
+            // Clear validation errors
+            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
         }
         
         function viewMedicalRecord(recordId) {

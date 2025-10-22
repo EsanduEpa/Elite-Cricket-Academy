@@ -6,6 +6,7 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,7 +65,214 @@ if (isset($data['event'])) {
         </a>
     </div>
 
-    <div class="form-content">
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<style>
+    /* Edit Event Form Specific Styles */
+    .edit-event-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .event-id-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .form-content {
+        padding: 2.5rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #4A90E2;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid rgba(74, 144, 226, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title i {
+        font-size: 1.5rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+     }
+    
+ 
+
+<!-- Admin Dashboard Layout -->
+<div class="admin-layout">
+    <!-- Left Sidebar Panel -->
+    <div class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <div class="admin-logo">
+                <i class="fas fa-user-shield"></i>
+                <h3>Admin Dashboard</h3>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard Overview</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Staff Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Player Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item active">
+                    <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events & Tournaments</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
+                        <i class="fas fa-comments"></i>
+                        <span>Feedback Monitoring</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Finance Management</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Admin Profile -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
+            <div class="profile-role">Super Administrator</div>
+            <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content" id="mainContent">
+        <div class="edit-event-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>
+                    <i class="fas fa-edit"></i>
+                    Edit Event
+                    <?php if (!empty($data['event']['EventID'])): ?>
+                        <span class="event-id-badge">ID: <?= htmlspecialchars($data['event']['EventID'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+                    <?php endif; ?>
+                </h1>
+                <a href="<?= URLROOT; ?>/admin/events" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Events
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="form-card">
+                <div class="form-content">
         <?php flash('event_message'); ?>
 
         <!-- Info Box -->
@@ -269,13 +477,31 @@ if (isset($data['event'])) {
                 </div>
             </form>
         <?php else: ?>
-            <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Event data not found.</div>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                Event data not found.
+            </div>
         <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
 console.log('Edit Event Page Loaded');
+
+// Sidebar toggle functionality
+const sidebarToggle = document.getElementById('sidebarToggle');
+const adminSidebar = document.getElementById('adminSidebar');
+const mainContent = document.getElementById('mainContent');
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+        adminSidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+}
 
 // Log event data to console
 <?php if (!empty($data['event'])): ?>
@@ -288,11 +514,6 @@ console.log('Status:', '<?= htmlspecialchars($event['Status'] ?? 'N/A', ENT_QUOT
 console.log('Location:', '<?= htmlspecialchars($event['Location'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 console.log('Start Date:', '<?= htmlspecialchars($event['StartDate'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 console.log('End Date:', '<?= htmlspecialchars($event['EndDate'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Max Participants:', '<?= htmlspecialchars($event['MaxParticipants'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Registration Fee:', '<?= htmlspecialchars($event['RegistrationFee'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Primary Contact:', '<?= htmlspecialchars($event['PrimaryContact'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Contact Email:', '<?= htmlspecialchars($event['ContactEmail'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
-console.log('Contact Phone:', '<?= htmlspecialchars($event['ContactPhone'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>');
 <?php else: ?>
 console.error('No event data available');
 <?php endif; ?>
@@ -309,19 +530,21 @@ if (form) {
         const endDateVal = document.getElementById('EndDate_date').value;
         const endTimeVal = document.getElementById('EndTime').value;
         
-        const startDateTime = new Date(startDateVal + ' ' + startTimeVal);
-        const endDateTime = new Date(endDateVal + ' ' + endTimeVal);
-        
-        if (endDateTime <= startDateTime) {
-            e.preventDefault();
-            alert('⚠️ End date/time must be after start date/time');
-            console.error('Date validation failed: End date must be after start date');
-            return false;
+        if (startDateVal && startTimeVal && endDateVal && endTimeVal) {
+            const startDateTime = new Date(startDateVal + ' ' + startTimeVal);
+            const endDateTime = new Date(endDateVal + ' ' + endTimeVal);
+            
+            if (endDateTime <= startDateTime) {
+                e.preventDefault();
+                alert('⚠️ End date/time must be after start date/time');
+                console.error('Date validation failed: End date must be after start date');
+                return false;
+            }
         }
         
         console.log('Form validation passed');
     });
 }
 </script>
-</body>
-</html>
+
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

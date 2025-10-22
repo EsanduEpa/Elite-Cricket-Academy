@@ -1,0 +1,264 @@
+/* Trainer Supplements Page */
+@import url('dashboard.css');
+
+/* Page-specific enhancements */
+.supplement-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.supplement-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Safety rating badges */
+.safety-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.safety-high {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.safety-medium {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.safety-low {
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.safety-caution {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Supplement category badges */
+.supplement-category {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.category-protein {
+    background: rgba(142, 68, 173, 0.1);
+    color: #8e44ad;
+    border: 1px solid rgba(142, 68, 173, 0.3);
+}
+
+.category-performance {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.category-vitamins {
+    background: rgba(241, 196, 15, 0.1);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.category-recovery {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.category-preworkout {
+    background: rgba(230, 126, 34, 0.1);
+    color: #e67e22;
+    border: 1px solid rgba(230, 126, 34, 0.3);
+}
+
+/* Dosage information box */
+.dosage-box {
+    background: rgba(142, 68, 173, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #8e44ad;
+    margin: 15px 0;
+}
+
+.dosage-box h5 {
+    color: #8e44ad;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dosage-box p {
+    color: #2c3e50;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Benefits list */
+.benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.benefits-list li {
+    padding: 8px 0;
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.benefits-list li i {
+    color: #2ecc71;
+    font-size: 14px;
+    margin-top: 3px;
+}
+
+/* Warning box */
+.warning-box {
+    background: rgba(255, 107, 107, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ff6b6b;
+    margin: 15px 0;
+}
+
+.warning-box h5 {
+    color: #ff6b6b;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.warning-box p {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Action buttons specific to supplements */
+.btn-supplement {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-supplement:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+}
+
+/* Form styling for supplement info */
+.supplement-form .form-group {
+    margin-bottom: 20px;
+}
+
+.supplement-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.supplement-form input[type="text"],
+.supplement-form input[type="number"],
+.supplement-form select,
+.supplement-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.supplement-form input:focus,
+.supplement-form select:focus,
+.supplement-form textarea:focus {
+    outline: none;
+    border-color: #8e44ad;
+    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
+}
+
+.supplement-form textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* Supplement comparison table */
+.supplement-comparison {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.supplement-comparison th {
+    background: #8e44ad;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.supplement-comparison td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    color: #555;
+}
+
+.supplement-comparison tr:hover {
+    background: rgba(142, 68, 173, 0.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .supplement-card {
+        padding: 20px 15px;
+    }
+    
+    .dosage-box,
+    .warning-box {
+        padding: 12px;
+    }
+}

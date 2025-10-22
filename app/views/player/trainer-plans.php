@@ -23,9 +23,15 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/player/trainer-plans" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Trainer Plans</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/training" class="nav-link">
-                            <i class="fas fa-dumbbell"></i>
+                            <i class="fas fa-running"></i>
                             <span>Training</span>
                         </a>
                     </li>
@@ -83,540 +89,246 @@
 
         <!-- Main Content Area -->
         <div class="main-content">
-            <!-- Page Header -->
             <div class="dashboard-header">
-                <div class="header-content">
-                    <div class="header-text">
-                        <h1><i class="fas fa-clipboard-list"></i> Trainer Plans & Resources</h1>
-                        <p>Access general workout routines, nutrition guides, and supplement recommendations from our trainers</p>
-                    </div>
-                    <div class="header-actions">
-                        <a href="<?php echo URLROOT; ?>/player/medical" class="btn-back">
-                            <i class="fas fa-arrow-left"></i> Back to Medical
-                        </a>
-                        <button class="btn-refresh" onclick="refreshTrainerPlans()">
-                            <i class="fas fa-sync-alt"></i>
-                            <span class="current-time"><?php echo date('H:i'); ?></span>
-                        </button>
-                    </div>
+                <div>
+                    <h1><i class="fas fa-dumbbell"></i> Trainer Plans</h1>
+                    <p>Explore workout, nutrition, and supplement plans from our expert trainers</p>
                 </div>
             </div>
 
             <!-- Filter Tabs -->
             <div class="filter-tabs">
-                <button class="tab-btn active" data-tab="all" onclick="switchTab('all')">
-                    <i class="fas fa-list"></i> All Plans
+                <button class="tab-btn active" onclick="showTab('workout')">
+                    <i class="fas fa-running"></i>
+                    Workout Plans
+                    <span style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px;">
+                        <?php echo count($data['workoutPlans']); ?>
+                    </span>
                 </button>
-                <button class="tab-btn" data-tab="workouts" onclick="switchTab('workouts')">
-                    <i class="fas fa-dumbbell"></i> General Workouts
+                <button class="tab-btn" onclick="showTab('nutrition')">
+                    <i class="fas fa-apple-alt"></i>
+                    Nutrition Guides
+                    <span style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px;">
+                        <?php echo count($data['nutritionGuides']); ?>
+                    </span>
                 </button>
-                <button class="tab-btn" data-tab="nutrition" onclick="switchTab('nutrition')">
-                    <i class="fas fa-apple-alt"></i> Nutrition Guides
-                </button>
-                <button class="tab-btn" data-tab="supplements" onclick="switchTab('supplements')">
-                    <i class="fas fa-capsules"></i> Supplement Info
+                <button class="tab-btn" onclick="showTab('supplement')">
+                    <i class="fas fa-pills"></i>
+                    Supplement Info
+                    <span style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px;">
+                        <?php echo count($data['supplementInfo']); ?>
+                    </span>
                 </button>
             </div>
 
-            <!-- Content Sections -->
-            <div id="all-plans" class="tab-content active">
-                <!-- General Workout Plans -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-dumbbell"></i> General Workout Plans</h2>
-                            <span class="event-count">5 Available</span>
+            <!-- Workout Plans Tab -->
+            <div id="workout-tab" class="tab-content active">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                    <?php if (!empty($data['workoutPlans'])): ?>
+                        <?php foreach ($data['workoutPlans'] as $plan): ?>
+                            <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="viewWorkoutPlan(<?php echo $plan->PlanID; ?>)">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="fas fa-dumbbell"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-title" style="font-size: 16px; font-weight: 600; margin-bottom: 5px;">
+                                        <?php echo htmlspecialchars($plan->workoutname); ?>
+                                    </div>
+                                    <div style="display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap;">
+                                        <span class="table-badge" style="background: rgba(74, 144, 226, 0.1); color: #4A90E2; border: 1px solid rgba(74, 144, 226, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                            <i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($plan->frequency); ?>
+                                        </span>
+                                        <?php if (!empty($plan->Intensity)): ?>
+                                            <span class="table-badge" style="
+                                                <?php 
+                                                    $intensityColors = [
+                                                        'High' => 'background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3);',
+                                                        'Moderate' => 'background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3);',
+                                                        'Low' => 'background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);'
+                                                    ];
+                                                    echo $intensityColors[$plan->Intensity] ?? $intensityColors['Moderate'];
+                                                ?>
+                                                padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                                <i class="fas fa-fire"></i> <?php echo htmlspecialchars($plan->Intensity); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="stat-value" style="font-size: 32px; color: #667eea; margin: 10px 0;">
+                                        <?php echo htmlspecialchars($plan->Duration); ?> <span style="font-size: 16px;">min</span>
+                                    </div>
+                                    <?php if (!empty($plan->durationdays)): ?>
+                                        <div style="font-size: 12px; color: #666; margin: 5px 0;">
+                                            <i class="fas fa-calendar-week"></i> <?php echo htmlspecialchars($plan->durationdays); ?> days program
+                                        </div>
+                                    <?php endif; ?>
+                                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-user-tie" style="color: #4A90E2;"></i>
+                                            <span style="font-size: 13px; font-weight: 600; color: #333;">
+                                                <?php echo htmlspecialchars($plan->trainer_name ?? 'Elite Trainer'); ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <?php if (!empty($plan->Benefits)): ?>
+                                        <div style="margin-top: 10px; font-size: 12px; color: #666; line-height: 1.4;">
+                                            <i class="fas fa-star" style="color: #f39c12;"></i>
+                                            <?php echo htmlspecialchars(substr($plan->Benefits, 0, 80)) . (strlen($plan->Benefits) > 80 ? '...' : ''); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                            <i class="fas fa-dumbbell" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                            <h3 style="color: #666; margin-bottom: 10px;">No Workout Plans Available</h3>
+                            <p style="color: #999;">Check back later for new training programs from our trainers</p>
                         </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Workout Plan</th>
-                                    <th>Trainer</th>
-                                    <th>Level</th>
-                                    <th>Duration</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Beginner Cricket Fitness</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-play"></i> Foundation strength & conditioning
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Coach Johnson</div>
-                                        <div class="table-cell-secondary">Physical Trainer</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge level-beginner">Beginner</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">4 weeks</div>
-                                        <div class="table-cell-secondary">3x per week</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('workout', 1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Intermediate Strength Training</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-weight-hanging"></i> Progressive strength building
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Trainer Mike</div>
-                                        <div class="table-cell-secondary">Fitness Specialist</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge level-intermediate">Intermediate</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">6 weeks</div>
-                                        <div class="table-cell-secondary">4x per week</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('workout', 2)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Advanced Cricket Performance</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-medal"></i> Elite performance training
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Coach Sarah</div>
-                                        <div class="table-cell-secondary">Performance Coach</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge level-advanced">Advanced</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">8 weeks</div>
-                                        <div class="table-cell-secondary">5x per week</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('workout', 3)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- General Nutrition Guides -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-apple-alt"></i> General Nutrition Guides</h2>
-                            <span class="event-count">4 Guides</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Nutrition Guide</th>
-                                    <th>Nutritionist</th>
-                                    <th>Focus</th>
-                                    <th>Updated</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Sports Nutrition Basics</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-book"></i> Essential nutrition fundamentals
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Nutritionist Emma</div>
-                                        <div class="table-cell-secondary">Sports Nutritionist</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge focus-general">General Health</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Oct 15</div>
-                                        <div class="table-cell-secondary">2025</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('nutrition', 1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Pre & Post Training Nutrition</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-clock"></i> Timing your nutrition
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Nutritionist Emma</div>
-                                        <div class="table-cell-secondary">Sports Nutritionist</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge focus-performance">Performance</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Oct 12</div>
-                                        <div class="table-cell-secondary">2025</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('nutrition', 2)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Hydration Guidelines</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-tint"></i> Optimal hydration strategies
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Dr. Wilson</div>
-                                        <div class="table-cell-secondary">Sports Medicine</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge focus-health">Health</span>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Oct 8</div>
-                                        <div class="table-cell-secondary">2025</div>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('nutrition', 3)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- General Supplement Information -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-capsules"></i> Supplement Information</h2>
-                            <span class="event-count">6 Supplements</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Supplement</th>
-                                    <th>Benefits</th>
-                                    <th>Recommended Dosage</th>
-                                    <th>Safety Rating</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Whey Protein</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-muscle"></i> Muscle recovery & growth
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Post-workout recovery</div>
-                                        <div class="table-cell-secondary">Muscle protein synthesis</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">20-30g</div>
-                                        <div class="table-cell-secondary">Post-workout</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge safety-high">Very Safe</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('supplement', 1)">
-                                            <i class="fas fa-info"></i> Info
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Creatine Monohydrate</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-bolt"></i> Power & strength enhancement
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Increased power output</div>
-                                        <div class="table-cell-secondary">Enhanced performance</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">3-5g</div>
-                                        <div class="table-cell-secondary">Daily</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge safety-high">Very Safe</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('supplement', 2)">
-                                            <i class="fas fa-info"></i> Info
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Multivitamin</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-pills"></i> General health support
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">Nutritional insurance</div>
-                                        <div class="table-cell-secondary">Immune system support</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">1 tablet</div>
-                                        <div class="table-cell-secondary">With breakfast</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge safety-high">Very Safe</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewGeneralPlan('supplement', 3)">
-                                            <i class="fas fa-info"></i> Info
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Individual Tab Contents (Hidden by default) -->
-            <div id="workouts-content" class="tab-content">
-                <!-- Only workout plans will be shown here -->
+            <!-- Nutrition Guides Tab -->
+            <div id="nutrition-tab" class="tab-content">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                    <?php foreach ($data['nutritionGuides'] as $guide): ?>
+                        <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="viewNutritionGuide(<?php echo $guide['id']; ?>)">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);">
+                                <i class="fas fa-apple-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-title" style="font-size: 16px; font-weight: 600; margin-bottom: 5px;">
+                                    <?php echo htmlspecialchars($guide['title']); ?>
+                                </div>
+                                <div style="display: flex; gap: 8px; margin: 8px 0;">
+                                    <span class="table-badge focus-<?php echo strtolower(str_replace(' ', '-', $guide['category'])); ?>" style="padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                        <?php echo htmlspecialchars($guide['category']); ?>
+                                    </span>
+                                    <span class="table-badge" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                        <?php echo htmlspecialchars($guide['target_audience']); ?>
+                                    </span>
+                                </div>
+                                <div style="font-size: 13px; color: #666; margin: 10px 0; line-height: 1.5;">
+                                    <?php echo htmlspecialchars($guide['description']); ?>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-user-md" style="color: #2ecc71;"></i>
+                                        <span style="font-size: 13px; font-weight: 600; color: #333;">
+                                            <?php echo htmlspecialchars($guide['trainer_name']); ?>
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 3px; margin-left: 24px;">
+                                        <?php echo htmlspecialchars($guide['trainer_specialization']); ?>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; display: flex; align-items: center; gap: 12px; font-size: 12px; color: #999;">
+                                    <span><i class="fas fa-eye"></i> <?php echo $guide['view_count']; ?> views</span>
+                                    <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($guide['created_date'])); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
-            <div id="nutrition-content" class="tab-content">
-                <!-- Only nutrition guides will be shown here -->
-            </div>
-
-            <div id="supplements-content" class="tab-content">
-                <!-- Only supplement info will be shown here -->
+            <!-- Supplement Info Tab -->
+            <div id="supplement-tab" class="tab-content">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                    <?php foreach ($data['supplementInfo'] as $supplement): ?>
+                        <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="viewSupplementInfo(<?php echo $supplement['id']; ?>)">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-title" style="font-size: 16px; font-weight: 600; margin-bottom: 5px;">
+                                    <?php echo htmlspecialchars($supplement['supplement_name']); ?>
+                                </div>
+                                <div style="display: flex; gap: 8px; margin: 8px 0;">
+                                    <span class="table-badge" style="background: rgba(142, 68, 173, 0.1); color: #8e44ad; border: 1px solid rgba(142, 68, 173, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                        <?php echo htmlspecialchars($supplement['category']); ?>
+                                    </span>
+                                    <span class="table-badge safety-<?php echo strtolower(str_replace(' ', '-', $supplement['safety_rating'])); ?>" style="padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                        <i class="fas fa-shield-alt"></i> <?php echo htmlspecialchars($supplement['safety_rating']); ?>
+                                    </span>
+                                </div>
+                                <div style="font-size: 13px; color: #666; margin: 10px 0; line-height: 1.5;">
+                                    <?php echo htmlspecialchars($supplement['description']); ?>
+                                </div>
+                                <div style="background: rgba(142, 68, 173, 0.05); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 3px solid #8e44ad;">
+                                    <div style="font-size: 11px; color: #666; font-weight: 600; margin-bottom: 3px;">RECOMMENDED DOSAGE</div>
+                                    <div style="font-size: 13px; color: #333; font-weight: 500;">
+                                        <?php echo htmlspecialchars($supplement['recommended_dosage']); ?>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-user-tie" style="color: #8e44ad;"></i>
+                                        <span style="font-size: 13px; font-weight: 600; color: #333;">
+                                            <?php echo htmlspecialchars($supplement['trainer_name']); ?>
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 3px; margin-left: 24px;">
+                                        <?php echo htmlspecialchars($supplement['trainer_specialization']); ?>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; display: flex; align-items: center; gap: 12px; font-size: 12px; color: #999;">
+                                    <span><i class="fas fa-eye"></i> <?php echo $supplement['view_count']; ?> views</span>
+                                    <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($supplement['created_date'])); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- General Plan Modal -->
-    <div id="generalPlanModal" class="modal" style="display: none;">
+    <!-- Workout Plan Detail Modal -->
+    <div id="workoutModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle"><i class="fas fa-info-circle"></i> Plan Details</h3>
-                <span class="close" onclick="closeModal('generalPlanModal')">&times;</span>
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                <h2 id="modalTitle"><i class="fas fa-dumbbell"></i> Workout Plan Details</h2>
+                <span class="close" onclick="closeModal('workoutModal')">&times;</span>
             </div>
-            <div class="modal-body" id="generalPlanContent">
-                <!-- Plan content will be loaded here -->
+            <div class="modal-body" id="workoutDetails">
+                <!-- Details will be loaded here -->
             </div>
         </div>
     </div>
 
+    <!-- Nutrition Guide Detail Modal -->
+    <div id="nutritionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
+                <h2 id="nutritionModalTitle"><i class="fas fa-apple-alt"></i> Nutrition Guide</h2>
+                <span class="close" onclick="closeModal('nutritionModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="nutritionDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplement Detail Modal -->
+    <div id="supplementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                <h2 id="supplementModalTitle"><i class="fas fa-pills"></i> Supplement Information</h2>
+                <span class="close" onclick="closeModal('supplementModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="supplementDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="<?php echo URLROOT; ?>/js/player/trainer-plans.js"></script>
     <script>
-        // Tab switching functionality
-        function switchTab(tabName) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked tab
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            
-            // Show corresponding content
-            if (tabName === 'all') {
-                document.getElementById('all-plans').classList.add('active');
-            } else {
-                // For specific tabs, you could filter the content or show separate sections
-                document.getElementById('all-plans').classList.add('active');
-                // Add filtering logic here if needed
-            }
-        }
-
-        // View general plan function
-        function viewGeneralPlan(type, planId) {
-            const modal = document.getElementById('generalPlanModal');
-            const content = document.getElementById('generalPlanContent');
-            const title = document.getElementById('modalTitle');
-            
-            // Sample plan data (in real app, this would be fetched from server)
-            const plans = {
-                workout: {
-                    1: {
-                        title: 'Beginner Cricket Fitness',
-                        trainer: 'Coach Johnson',
-                        level: 'Beginner',
-                        duration: '4 weeks',
-                        content: `
-                            <h4>Program Overview</h4>
-                            <p>This foundational program is designed for new cricket players to build basic fitness and strength.</p>
-                            
-                            <h4>Week 1-2: Foundation</h4>
-                            <ul>
-                                <li><strong>Day 1:</strong> Basic cardio (20 min) + bodyweight exercises</li>
-                                <li><strong>Day 2:</strong> Cricket-specific movements + flexibility</li>
-                                <li><strong>Day 3:</strong> Strength training basics + core work</li>
-                            </ul>
-                            
-                            <h4>Week 3-4: Progression</h4>
-                            <ul>
-                                <li><strong>Day 1:</strong> Cardio intervals (25 min) + resistance exercises</li>
-                                <li><strong>Day 2:</strong> Cricket drills + agility training</li>
-                                <li><strong>Day 3:</strong> Progressive strength training + stability</li>
-                            </ul>
-                            
-                            <h4>Equipment Needed</h4>
-                            <ul>
-                                <li>Cricket bat and ball</li>
-                                <li>Light dumbbells (5-15 lbs)</li>
-                                <li>Exercise mat</li>
-                                <li>Resistance bands</li>
-                            </ul>
-                        `
-                    }
-                },
-                nutrition: {
-                    1: {
-                        title: 'Sports Nutrition Basics',
-                        trainer: 'Nutritionist Emma',
-                        focus: 'General Health',
-                        content: `
-                            <h4>Nutrition Fundamentals for Athletes</h4>
-                            <p>Understanding proper nutrition is crucial for athletic performance and recovery.</p>
-                            
-                            <h4>Macronutrient Guidelines</h4>
-                            <ul>
-                                <li><strong>Carbohydrates (45-65%):</strong> Primary energy source</li>
-                                <li><strong>Proteins (15-25%):</strong> Muscle repair and growth</li>
-                                <li><strong>Fats (20-35%):</strong> Essential fatty acids and energy</li>
-                            </ul>
-                            
-                            <h4>Meal Timing</h4>
-                            <ul>
-                                <li><strong>Pre-workout (2-3 hours):</strong> Complex carbs + moderate protein</li>
-                                <li><strong>Post-workout (30 min):</strong> Protein + simple carbs</li>
-                                <li><strong>Throughout day:</strong> Balanced meals every 3-4 hours</li>
-                            </ul>
-                            
-                            <h4>Hydration Guidelines</h4>
-                            <ul>
-                                <li>8-10 glasses of water daily</li>
-                                <li>Extra 16-24 oz for every hour of training</li>
-                                <li>Monitor urine color for hydration status</li>
-                            </ul>
-                        `
-                    }
-                },
-                supplement: {
-                    1: {
-                        title: 'Whey Protein Information',
-                        benefits: 'Muscle recovery & growth',
-                        dosage: '20-30g post-workout',
-                        content: `
-                            <h4>What is Whey Protein?</h4>
-                            <p>Whey protein is a complete protein derived from milk during cheese production. It contains all essential amino acids needed for muscle protein synthesis.</p>
-                            
-                            <h4>Benefits</h4>
-                            <ul>
-                                <li>Rapid muscle recovery after workouts</li>
-                                <li>Supports lean muscle mass development</li>
-                                <li>High biological value and fast absorption</li>
-                                <li>Convenient protein source</li>
-                            </ul>
-                            
-                            <h4>Recommended Usage</h4>
-                            <ul>
-                                <li><strong>Timing:</strong> Within 30 minutes post-workout</li>
-                                <li><strong>Dosage:</strong> 20-30g per serving</li>
-                                <li><strong>Mixing:</strong> With water or milk</li>
-                                <li><strong>Frequency:</strong> 1-2 servings daily</li>
-                            </ul>
-                            
-                            <h4>Safety Information</h4>
-                            <ul>
-                                <li>Generally safe for healthy individuals</li>
-                                <li>Avoid if lactose intolerant (consider isolate)</li>
-                                <li>Stay hydrated when using protein supplements</li>
-                                <li>Consult healthcare provider if you have kidney issues</li>
-                            </ul>
-                        `
-                    }
-                }
-            };
-            
-            const planData = plans[type] && plans[type][planId];
-            if (planData) {
-                title.innerHTML = `<i class="fas fa-${type === 'workout' ? 'dumbbell' : type === 'nutrition' ? 'apple-alt' : 'capsules'}"></i> ${planData.title}`;
-                content.innerHTML = `
-                    <div class="plan-header">
-                        <h4>${planData.title}</h4>
-                        ${planData.trainer ? `<p><strong>By:</strong> ${planData.trainer}</p>` : ''}
-                        ${planData.level ? `<p><strong>Level:</strong> ${planData.level}</p>` : ''}
-                        ${planData.duration ? `<p><strong>Duration:</strong> ${planData.duration}</p>` : ''}
-                        ${planData.focus ? `<p><strong>Focus:</strong> ${planData.focus}</p>` : ''}
-                        ${planData.benefits ? `<p><strong>Benefits:</strong> ${planData.benefits}</p>` : ''}
-                        ${planData.dosage ? `<p><strong>Recommended Dosage:</strong> ${planData.dosage}</p>` : ''}
-                    </div>
-                    <div class="plan-details">
-                        ${planData.content}
-                    </div>
-                `;
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        // Close modal function
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Refresh function
-        function refreshTrainerPlans() {
-            console.log('Refreshing trainer plans...');
-            const refreshBtn = document.querySelector('.btn-refresh i');
-            refreshBtn.style.animation = 'spin 1s linear';
-            setTimeout(() => {
-                refreshBtn.style.animation = '';
-            }, 1000);
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('generalPlanModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
+        // Pass data to JavaScript
+        const workoutPlans = <?php echo json_encode($data['workoutPlans']); ?>;
+        const nutritionGuides = <?php echo json_encode($data['nutritionGuides']); ?>;
+        const supplementInfo = <?php echo json_encode($data['supplementInfo']); ?>;
     </script>
 
-    <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
-</body>
-</html>
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
