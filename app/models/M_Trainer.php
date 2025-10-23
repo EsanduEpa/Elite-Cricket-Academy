@@ -170,7 +170,6 @@ class M_Trainer {
             wp.workoutname,
             wp.frequency,
             wp.Duration,
-            wp.durationdays,
             wp.VideoLink,
             wp.Intensity,
             wp.NotSuitableFor,
@@ -194,14 +193,13 @@ class M_Trainer {
             error_log("=== M_Trainer::addWorkoutPlan() ===");
             error_log("Data received: " . print_r($data, true));
             
-            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration, durationdays, VideoLink, Intensity, NotSuitableFor, Benefits) 
-                VALUES (:trainer_id, :workoutname, :frequency, :duration, :durationdays, :videolink, :intensity, :notsuitablefor, :benefits)');
+            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits) 
+                VALUES (:trainer_id, :workoutname, :frequency, :duration, :videolink, :intensity, :notsuitablefor, :benefits)');
             
             $this->db->bind(':trainer_id', $data['trainer_id']);
             $this->db->bind(':workoutname', $data['workoutname']);
             $this->db->bind(':frequency', $data['frequency']);
             $this->db->bind(':duration', $data['duration']);
-            $this->db->bind(':durationdays', $data['durationdays']);
             $this->db->bind(':videolink', $data['videolink']);
             $this->db->bind(':intensity', $data['intensity']);
             $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
@@ -229,7 +227,6 @@ class M_Trainer {
             SET workoutname = :workoutname, 
                 frequency = :frequency, 
                 Duration = :duration,
-                durationdays = :durationdays,
                 VideoLink = :videolink,
                 Intensity = :intensity,
                 NotSuitableFor = :notsuitablefor,
@@ -241,7 +238,6 @@ class M_Trainer {
         $this->db->bind(':workoutname', $data['workoutname']);
         $this->db->bind(':frequency', $data['frequency']);
         $this->db->bind(':duration', $data['duration']);
-        $this->db->bind(':durationdays', $data['durationdays']);
         $this->db->bind(':videolink', $data['videolink']);
         $this->db->bind(':intensity', $data['intensity']);
         $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
@@ -277,7 +273,6 @@ class M_Trainer {
             wp.workoutname,
             wp.frequency,
             wp.Duration,
-            wp.durationdays,
             wp.VideoLink,
             wp.Intensity,
             wp.NotSuitableFor,

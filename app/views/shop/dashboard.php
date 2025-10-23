@@ -60,15 +60,6 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                
-                
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="nav-link">
                         <i class="fas fa-building"></i>
                         <span>Facility Management</span>
@@ -193,16 +184,6 @@
                     <a href="<?php echo URLROOT; ?>/shop/products" class="action-btn">Add Product</a>
                 </div>
                 
-               
-                
-                <div class="action-card">
-                    <div class="action-icon">
-                        <i class="fas fa-prescription-bottle"></i>
-                    </div>
-                    <h3>Request Prescription</h3>
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="action-btn">Request Now</a>
-                </div>
-                
                 <div class="action-card">
                     <div class="action-icon">
                         <i class="fas fa-building"></i>
@@ -210,6 +191,9 @@
                     <h3>Add Facility</h3>
                     <a href="<?php echo URLROOT; ?>/shop/facilities" class="action-btn">Add Facility</a>
                 </div>
+            </div>
+            
+            <div style="flex: 1;"></div>
             </div>
         </div>
         
@@ -256,13 +240,108 @@
             </div>
         </div>
         
-        <!-- Calendar Section -->
-        <?php 
-        $calendarTitle = 'Shop Events & Promotions';
-        $calendarIcon = 'fas fa-calendar-alt';
-        $calendarId = 'shopCalendar';
-        include APPROOT . '/views/inc/components/calendar.php'; 
-        ?>
+        <!-- Promotions Section -->
+        <div class="promotions-section" style="background: white; border-radius: 12px; padding: 24px; margin: 24px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #333; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-tags" style="color: #4A90E2;"></i>
+                    Shop Events & Promotions
+                </h2>
+                <button class="action-btn" style="padding: 8px 16px;">
+                    <i class="fas fa-plus"></i> Add Promotion
+                </button>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: rgba(74, 144, 226, 0.1); border-bottom: 2px solid #4A90E2;">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #4A90E2;">Event Name</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #4A90E2;">Type</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #4A90E2;">Discount</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #4A90E2;">Start Date</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #4A90E2;">End Date</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: #4A90E2;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 600; color: #333;">Cricket Season Sale</div>
+                            <div style="font-size: 12px; color: #999;">All cricket equipment</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="background: rgba(74, 144, 226, 0.15); color: #4A90E2; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Sale</span>
+                        </td>
+                        <td style="padding: 14px; color: #333; font-weight: 600;">25% OFF</td>
+                        <td style="padding: 14px; color: #666;">Dec 1, 2025</td>
+                        <td style="padding: 14px; color: #666;">Dec 31, 2025</td>
+                        <td style="padding: 14px; text-align: center;">
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Active</span>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 600; color: #333;">New Year Mega Sale</div>
+                            <div style="font-size: 12px; color: #999;">All categories</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Event</span>
+                        </td>
+                        <td style="padding: 14px; color: #333; font-weight: 600;">40% OFF</td>
+                        <td style="padding: 14px; color: #666;">Jan 1, 2026</td>
+                        <td style="padding: 14px; color: #666;">Jan 3, 2026</td>
+                        <td style="padding: 14px; text-align: center;">
+                            <span style="background: rgba(156, 163, 175, 0.15); color: #6b7280; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Upcoming</span>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 600; color: #333;">Buy 2 Get 1 Free</div>
+                            <div style="font-size: 12px; color: #999;">Cricket balls only</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Offer</span>
+                        </td>
+                        <td style="padding: 14px; color: #333; font-weight: 600;">BOGO</td>
+                        <td style="padding: 14px; color: #666;">Nov 15, 2025</td>
+                        <td style="padding: 14px; color: #666;">Dec 15, 2025</td>
+                        <td style="padding: 14px; text-align: center;">
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Active</span>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 600; color: #333;">Weekend Special</div>
+                            <div style="font-size: 12px; color: #999;">Batting gloves & pads</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="background: rgba(74, 144, 226, 0.15); color: #4A90E2; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Sale</span>
+                        </td>
+                        <td style="padding: 14px; color: #333; font-weight: 600;">30% OFF</td>
+                        <td style="padding: 14px; color: #666;">Every Sat-Sun</td>
+                        <td style="padding: 14px; color: #666;">Ongoing</td>
+                        <td style="padding: 14px; text-align: center;">
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Active</span>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 600; color: #333;">Black Friday Deal</div>
+                            <div style="font-size: 12px; color: #999;">Store-wide discount</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Flash Sale</span>
+                        </td>
+                        <td style="padding: 14px; color: #333; font-weight: 600;">50% OFF</td>
+                        <td style="padding: 14px; color: #666;">Nov 29, 2025</td>
+                        <td style="padding: 14px; color: #666;">Nov 29, 2025</td>
+                        <td style="padding: 14px; text-align: center;">
+                            <span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">Expired</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         
         <div class="activity-section">
             <div class="activity-card">

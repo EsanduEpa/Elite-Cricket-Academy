@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/tournaments.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/tournaments.css">

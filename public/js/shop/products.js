@@ -477,11 +477,29 @@ function editProduct(productId) {
                 // Clear any previous errors
                 clearAllErrors();
                 
-                // Make category and price read-only when editing
+                // Make category read-only when editing
+                // Use a hidden input to preserve the category value since disabled fields don't submit
                 const categoryField = document.getElementById('productCategory');
                 const categoryLabel = document.querySelector('label[for="productCategory"]');
                 if (categoryField) {
+                    // Remove any existing hidden category input
+                    const existingHidden = document.getElementById('hiddenCategory');
+                    if (existingHidden) {
+                        existingHidden.remove();
+                    }
+                    
+                    // Create hidden input to store category value
+                    const hiddenCategory = document.createElement('input');
+                    hiddenCategory.type = 'hidden';
+                    hiddenCategory.id = 'hiddenCategory';
+                    hiddenCategory.name = 'category';
+                    hiddenCategory.value = product.Category || '';
+                    categoryField.parentNode.appendChild(hiddenCategory);
+                    
+                    // Disable the visible select (for UI only)
                     categoryField.setAttribute('disabled', 'disabled');
+                    categoryField.removeAttribute('name'); // Remove name so it doesn't override hidden field
+                    
                     if (categoryLabel) {
                         categoryLabel.classList.add('readonly-label');
                     }
@@ -559,14 +577,22 @@ function closeProductModal() {
     // Clear errors
     clearAllErrors();
     
-    // Reset read-only states
+    // Reset read-only states and clean up hidden fields
     const categoryField = document.getElementById('productCategory');
     const categoryLabel = document.querySelector('label[for="productCategory"]');
+    const hiddenCategory = document.getElementById('hiddenCategory');
+    
     if (categoryField) {
         categoryField.removeAttribute('disabled');
+        categoryField.setAttribute('name', 'category'); // Restore name attribute
         if (categoryLabel) {
             categoryLabel.classList.remove('readonly-label');
         }
+    }
+    
+    // Remove hidden category field if exists
+    if (hiddenCategory) {
+        hiddenCategory.remove();
     }
 }
 

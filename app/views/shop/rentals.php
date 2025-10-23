@@ -52,17 +52,10 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/reviews" class="nav-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews & Feedback</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
                     </a>
                 </li>
                 
@@ -200,21 +193,21 @@
         </div>
 
         <!-- Rental Filters -->
-        <div class="filter-section">
-            <div class="filter-tabs">
-                <a href="#" class="filter-tab active" data-status="all">
+        <div class="filter-section" style="margin: 2rem 0;">
+            <div class="filter-tabs" style="display: flex; gap: 0.5rem; background: rgba(255, 255, 255, 0.25); padding: 0.5rem; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.18);">
+                <a href="#" class="filter-tab active" data-status="all" style="flex: 1; padding: 12px 20px; text-decoration: none; color: white; background: #4A90E2; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-th"></i> All Rentals
                 </a>
-                <a href="#" class="filter-tab" data-status="active">
+                <a href="#" class="filter-tab" data-status="active" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-play"></i> Active
                 </a>
-                <a href="#" class="filter-tab" data-status="overdue">
+                <a href="#" class="filter-tab" data-status="overdue" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-clock"></i> Overdue
                 </a>
-                <a href="#" class="filter-tab" data-status="returned">
+                <a href="#" class="filter-tab" data-status="returned" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-check"></i> Returned
                 </a>
-                <a href="#" class="filter-tab" data-status="cancelled">
+                <a href="#" class="filter-tab" data-status="cancelled" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-times"></i> Cancelled
                 </a>
             </div>
@@ -881,6 +874,17 @@ function showNotification(message, type) {
 </script>
 
 <style>
+/* Filter tabs styling */
+.filter-tab:hover {
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+}
+
+.filter-tab.active {
+    background: #4A90E2 !important;
+    color: white !important;
+}
+
 /* Due date indicators */
 .due-date {
     padding: 4px 8px;

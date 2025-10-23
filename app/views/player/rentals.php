@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/rentals.css">
@@ -153,8 +153,8 @@
             <!-- Professional Cricket Bat Set -->
             <div class="product-card" data-category="batting" data-condition="excellent">
                 <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/bat-rental-pro.jpg" alt="Professional Bat Rental" onerror="this.src='https://via.placeholder.com/300x200?text=Professional+Bat+Set'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Professional Bat Rental" onerror="this.src='https://via.placeholder.com/300x200?text=Professional+Bat+Set'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Premium Rental</div>
@@ -174,8 +174,8 @@
                         <span class="feature-tag">Professional Grade</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$25/day</span>
-                        <small style="color: #666; margin-left: 10px;">($150/week)</small>
+                        <span class="price-current">Rs. 25/day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 150/week)</small>
                     </div>
                     <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
@@ -188,8 +188,8 @@
             <!-- Automatic Bowling Machine -->
             <div class="product-card" data-category="bowling" data-condition="excellent">
                 <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/bowling-machine.jpg" alt="Bowling Machine" onerror="this.src='https://via.placeholder.com/300x200?text=Bowling+Machine'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Bowling Machine" onerror="this.src='https://via.placeholder.com/300x200?text=Bowling+Machine'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Professional Equipment</div>
@@ -209,10 +209,10 @@
                         <span class="feature-tag">Remote Control</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$15/hour</span>
-                        <small style="color: #666; margin-left: 10px;">($80/day)</small>
+                        <span class="price-current">Rs. 15/hour</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 80/day)</small>
                     </div>
-                    <div class="product-stock">✓ Available for booking</div>
+                    <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
                         <button class="btn btn-view" onclick="viewRentalDetails('bowling-machine')">View Details</button>
                         <button class="btn btn-cart rent-equipment" data-equipment="bowling-machine" data-name="Automatic Bowling Machine" data-hourly="15" data-daily="80">Rent Now</button>
@@ -223,8 +223,8 @@
             <!-- Complete Training Kit -->
             <div class="product-card" data-category="training" data-condition="good">
                 <div class="condition-badge condition-good">Good</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/training-kit.jpg" alt="Training Kit" onerror="this.src='https://via.placeholder.com/300x200?text=Training+Kit'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Training Kit" onerror="this.src='https://via.placeholder.com/300x200?text=Training+Kit'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Training Equipment</div>
@@ -244,8 +244,8 @@
                         <span class="feature-tag">Multi-Purpose</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$20/day</span>
-                        <small style="color: #666; margin-left: 10px;">($120/week)</small>
+                        <span class="price-current">Rs. 20/day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 120/week)</small>
                     </div>
                     <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
@@ -258,8 +258,8 @@
             <!-- Junior Cricket Set -->
             <div class="product-card" data-category="batting" data-condition="good">
                 <div class="condition-badge condition-good">Good</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/junior-set.jpg" alt="Junior Cricket Set" onerror="this.src='https://via.placeholder.com/300x200?text=Junior+Cricket+Set'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Junior Cricket Set" onerror="this.src='https://via.placeholder.com/300x200?text=Junior+Cricket+Set'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Youth Equipment</div>
@@ -279,8 +279,8 @@
                         <span class="feature-tag">Safety First</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$15/day</span>
-                        <small style="color: #666; margin-left: 10px;">($90/week)</small>
+                        <span class="price-current">Rs. 15/day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 90/week)</small>
                     </div>
                     <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
@@ -293,8 +293,8 @@
             <!-- Wicket Keeping Set -->
             <div class="product-card" data-category="fielding" data-condition="excellent">
                 <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/wicket-keeping.jpg" alt="Wicket Keeping Set" onerror="this.src='https://via.placeholder.com/300x200?text=Wicket+Keeping+Set'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Wicket Keeping Set" onerror="this.src='https://via.placeholder.com/300x200?text=Wicket+Keeping+Set'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Specialist Equipment</div>
@@ -314,8 +314,8 @@
                         <span class="feature-tag">Comfortable Fit</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$22/day</span>
-                        <small style="color: #666; margin-left: 10px;">($130/week)</small>
+                        <span class="price-current">Rs. 22/day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 130/week)</small>
                     </div>
                     <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
@@ -328,8 +328,8 @@
             <!-- Practice Stumps Set -->
             <div class="product-card" data-category="training" data-condition="good">
                 <div class="condition-badge condition-good">Good</div>
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/rentals/stumps-set.jpg" alt="Practice Stumps" onerror="this.src='https://via.placeholder.com/300x200?text=Practice+Stumps'" />
+                <div class="rental-image">
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Practice Stumps" onerror="this.src='https://via.placeholder.com/300x200?text=Practice+Stumps'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Training Equipment</div>
@@ -349,8 +349,8 @@
                         <span class="feature-tag">Easy Setup</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$12/day</span>
-                        <small style="color: #666; margin-left: 10px;">($70/week)</small>
+                        <span class="price-current">Rs. 12/day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 70/week)</small>
                     </div>
                     <div class="product-stock">✓ Available for pickup</div>
                     <div class="product-actions">
@@ -423,7 +423,7 @@
                 </div>
             </form>
             <div class="rental-total">
-                <strong>Total: $<span id="rental-total">0.00</span></strong>
+                <strong>Total: Rs. <span id="rental-total">0.00</span></strong>
             </div>
         </div>
         <div class="modal-footer">

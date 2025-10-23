@@ -52,17 +52,10 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/reviews" class="nav-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews & Feedback</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
                     </a>
                 </li>
                 
