@@ -154,9 +154,14 @@ class Coach extends Controller {
     }
     
     public function players() {
+        // Fetch achievements from database
+        $achievementModel = $this->model('M_Achievement');
+        $achievements = $achievementModel->getAllAchievementsWithPlayerInfo();
+        
         $data = [
             'title' => 'Player Management - Coach Dashboard',
-            'players' => []
+            'players' => [],
+            'achievements' => $achievements
         ];
         $this->view('coach/players', $data);
     }
@@ -178,133 +183,13 @@ class Coach extends Controller {
     }
     
     public function health() {
-        // Use only dummy data - not connected to database
-        $medicalRecords = [
-            (object)[
-                'RecordID' => 1,
-                'PlayerID' => 101,
-                'PlayerName' => 'Sandun Akalanka',
-                'InjuryType' => 'Muscle Strain',
-                'InjuryDescription' => 'Hamstring strain during batting practice',
-                'DateReported' => '2025-10-15',
-                'Severity' => 'moderate',
-                'TreatmentPlan' => 'Rest for 5 days, physiotherapy sessions, ice therapy',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-10-25',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Dr. Silva',
-                'VerifyComments' => 'Recovery progressing well'
-            ],
-            (object)[
-                'RecordID' => 2,
-                'PlayerID' => 102,
-                'PlayerName' => 'Kavindu Perera',
-                'InjuryType' => 'Sprain',
-                'InjuryDescription' => 'Ankle sprain while fielding',
-                'DateReported' => '2025-10-18',
-                'Severity' => 'mild',
-                'TreatmentPlan' => 'RICE protocol, ankle support',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-10-23',
-                'VerifyStatus' => 'pending',
-                'VerifiedBy' => null,
-                'VerifyComments' => null
-            ],
-            (object)[
-                'RecordID' => 3,
-                'PlayerID' => 103,
-                'PlayerName' => 'Ravindu Silva',
-                'InjuryType' => 'Fracture',
-                'InjuryDescription' => 'Finger fracture while catching',
-                'DateReported' => '2025-09-28',
-                'Severity' => 'severe',
-                'TreatmentPlan' => 'Splint for 4 weeks, follow-up X-ray',
-                'RecoveryStatus' => 'recovered',
-                'ExpectedRecoveryDate' => '2025-10-28',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Dr. Fernando',
-                'VerifyComments' => 'Fully recovered, cleared to play'
-            ],
-            (object)[
-                'RecordID' => 4,
-                'PlayerID' => 104,
-                'PlayerName' => 'Tharaka Wickramasinghe',
-                'InjuryType' => 'Bruise',
-                'InjuryDescription' => 'Thigh bruise from impact',
-                'DateReported' => '2025-10-20',
-                'Severity' => 'mild',
-                'TreatmentPlan' => 'Ice application, pain relief medication',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-10-24',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Nurse Perera',
-                'VerifyComments' => 'Minor injury, monitoring progress'
-            ],
-            (object)[
-                'RecordID' => 5,
-                'PlayerID' => 105,
-                'PlayerName' => 'Dilshan Nanayakkara',
-                'InjuryType' => 'Concussion',
-                'InjuryDescription' => 'Head impact during match',
-                'DateReported' => '2025-10-12',
-                'Severity' => 'severe',
-                'TreatmentPlan' => 'Complete rest, concussion protocol, no contact sports for 2 weeks',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-10-26',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Dr. Silva',
-                'VerifyComments' => 'Under observation, rest essential'
-            ],
-            (object)[
-                'RecordID' => 6,
-                'PlayerID' => 106,
-                'PlayerName' => 'Nimal Fernando',
-                'InjuryType' => 'Muscle Strain',
-                'InjuryDescription' => 'Lower back strain during bowling',
-                'DateReported' => '2025-10-10',
-                'Severity' => 'moderate',
-                'TreatmentPlan' => 'Physiotherapy, core strengthening exercises',
-                'RecoveryStatus' => 'recovered',
-                'ExpectedRecoveryDate' => '2025-10-20',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Physiotherapist Kumar',
-                'VerifyComments' => 'Cleared for full training'
-            ],
-            (object)[
-                'RecordID' => 7,
-                'PlayerID' => 107,
-                'PlayerName' => 'Chamika Jayasinghe',
-                'InjuryType' => 'Cut/Wound',
-                'InjuryDescription' => 'Deep cut on hand from equipment',
-                'DateReported' => '2025-10-19',
-                'Severity' => 'mild',
-                'TreatmentPlan' => 'Cleaned and bandaged, antibiotics prescribed',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-10-25',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Nurse Perera',
-                'VerifyComments' => 'Healing well, keep clean'
-            ],
-            (object)[
-                'RecordID' => 8,
-                'PlayerID' => 108,
-                'PlayerName' => 'Asanka Bandara',
-                'InjuryType' => 'Dislocation',
-                'InjuryDescription' => 'Shoulder dislocation while diving',
-                'DateReported' => '2025-09-25',
-                'Severity' => 'severe',
-                'TreatmentPlan' => 'Shoulder relocated, sling for 3 weeks, physiotherapy',
-                'RecoveryStatus' => 'recovering',
-                'ExpectedRecoveryDate' => '2025-11-01',
-                'VerifyStatus' => 'verified',
-                'VerifiedBy' => 'Dr. Fernando',
-                'VerifyComments' => 'Good progress, continue physio'
-            ]
-        ];
+        // Fetch real medical records from database
+        $medicalModel = $this->model('M_Medical');
+        $medicalRecords = $medicalModel->getAllMedicalRecordsWithPlayerInfo();
 
         $data = [
             'title' => 'Health & Injury Monitoring - Elite Cricket Academy',
-            'medical_records' => $medicalRecords
+            'medicalRecords' => $medicalRecords
         ];
         $this->view('coach/health', $data);
     }
@@ -581,6 +466,24 @@ class Coach extends Controller {
             }
             if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
                 $errors[] = 'Invalid email format';
+            }
+            
+            // Validate date of birth if provided
+            if (!empty($_POST['dateOfBirth'])) {
+                $dob = new DateTime($_POST['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if ($age < 16) {
+                    $errors[] = 'You must be at least 16 years old';
+                } elseif ($age > 100) {
+                    $errors[] = 'Please enter a valid date of birth';
+                } elseif ($dob > $today) {
+                    $errors[] = 'Date of birth cannot be in the future';
+                } else {
+                    // Add valid date of birth to userData
+                    $userData['date_of_birth'] = $_POST['dateOfBirth'];
+                }
             }
             
             if (empty($errors)) {
@@ -1113,6 +1016,19 @@ class Coach extends Controller {
                 echo json_encode([
                     'success' => false,
                     'message' => 'Unauthorized: You can only delete your own sessions'
+                ]);
+                return;
+            }
+            
+            // Validate if session can be deleted (must be in the past)
+            $sessionDateTime = new DateTime($session->Date . ' ' . $session->EndTime);
+            $now = new DateTime();
+            
+            if ($sessionDateTime > $now) {
+                error_log('Cannot delete future session');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Cannot delete upcoming sessions. Only past sessions can be deleted.'
                 ]);
                 return;
             }

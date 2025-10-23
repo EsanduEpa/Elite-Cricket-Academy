@@ -110,7 +110,7 @@
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>156</h3>
+                            <h3><?php echo $data['stats']->total_players ?? 0; ?></h3>
                             <p>Total Players</p>
                         </div>
                     </div>
@@ -120,28 +120,28 @@
                             <i class="fas fa-user-check"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>142</h3>
+                            <h3><?php echo $data['stats']->active_players ?? 0; ?></h3>
                             <p>Active Players</p>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
-                            <i class="fas fa-user-clock"></i>
+                            <i class="fas fa-crown"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>8</h3>
-                            <p>Suspended</p>
+                            <h3><?php echo $data['stats']->premium_subscription ?? 0; ?></h3>
+                            <p>Premium Members</p>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);">
-                            <i class="fas fa-trophy"></i>
+                            <i class="fas fa-user-friends"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>24</h3>
-                            <p>Top Performers</p>
+                            <h3><?php echo $data['stats']->basic_subscription ?? 0; ?></h3>
+                            <p>Basic Members</p>
                         </div>
                     </div>
                 </div>
@@ -197,7 +197,6 @@
                                 <th>Player ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Jersey #</th>
                                 <th>Batting Style</th>
                                 <th>Subscription</th>
                                 <th>Status</th>
@@ -205,150 +204,67 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Player 1 -->
-                            <tr data-player-id="1">
-                                <td>#PLR001</td>
-                                <td>
-                                    <div class="player-info">
-                                        <div class="player-avatar">JS</div>
-                                        <span>kasun de silva</span>
-                                    </div>
-                                </td>
-                                <td>kasun@email.com</td>
-                                <td><span class="jersey-badge">07</span></td>
-                                <td><span class="badge badge-info">Right-Handed</span></td>
-                                <td><span class="badge badge-premium">Premium</span></td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-view" onclick="viewPlayerStats(1)" title="View Statistics">
-                                            <i class="fas fa-chart-line"></i>
-                                        </button>
-                                        <button class="btn-action btn-suspend" onclick="openSuspendModal(1, 'John Smith')" title="Suspend Player">
-                                            <i class="fas fa-user-lock"></i>
-                                        </button>
-                                        <button class="btn-action btn-delete" onclick="openDeleteModal(1, 'John Smith')" title="Remove Player">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Player 2 -->
-                            <tr data-player-id="2">
-                                <td>#PLR002</td>
-                                <td>
-                                    <div class="player-info">
-                                        <div class="player-avatar">EM</div>
-                                        <span>dilanka Martin</span>
-                                    </div>
-                                </td>
-                                <td>dilam@email.com</td>
-                                <td><span class="jersey-badge">12</span></td>
-                                <td><span class="badge badge-info">Left-Handed</span></td>
-                                <td><span class="badge badge-standard">Standard</span></td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-view" onclick="viewPlayerStats(2)" title="View Statistics">
-                                            <i class="fas fa-chart-line"></i>
-                                        </button>
-                                        <button class="btn-action btn-suspend" onclick="openSuspendModal(2, 'Emma Martinez')" title="Suspend Player">
-                                            <i class="fas fa-user-lock"></i>
-                                        </button>
-                                        <button class="btn-action btn-delete" onclick="openDeleteModal(2, 'Emma Martinez')" title="Remove Player">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Player 3 - Suspended -->
-                            <tr data-player-id="3">
-                                <td>#PLR003</td>
-                                <td>
-                                    <div class="player-info">
-                                        <div class="player-avatar">DJ</div>
-                                        <span>Amith perera</span>
-                                    </div>
-                                </td>
-                                <td>amithp@email.com</td>
-                                <td><span class="jersey-badge">23</span></td>
-                                <td><span class="badge badge-info">Right-Handed</span></td>
-                                <td><span class="badge badge-trial">Trial</span></td>
-                                <td><span class="status-badge status-suspended">Suspended</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-view" onclick="viewPlayerStats(3)" title="View Statistics">
-                                            <i class="fas fa-chart-line"></i>
-                                        </button>
-                                        <button class="btn-action btn-unsuspend" onclick="unsuspendPlayer(3, 'David Johnson')" title="Unsuspend Player">
-                                            <i class="fas fa-user-check"></i>
-                                        </button>
-                                        <button class="btn-action btn-delete" onclick="openDeleteModal(3, 'David Johnson')" title="Remove Player">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Player 4 -->
-                            <tr data-player-id="4">
-                                <td>#PLR004</td>
-                                <td>
-                                    <div class="player-info">
-                                        <div class="player-avatar">SW</div>
-                                        <span>Saneru hanwella</span>
-                                    </div>
-                                </td>
-                                <td>saneru.h@email.com</td>
-                                <td><span class="jersey-badge">18</span></td>
-                                <td><span class="badge badge-info">Right-Handed</span></td>
-                                <td><span class="badge badge-premium">Premium</span></td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-view" onclick="viewPlayerStats(4)" title="View Statistics">
-                                            <i class="fas fa-chart-line"></i>
-                                        </button>
-                                        <button class="btn-action btn-suspend" onclick="openSuspendModal(4, 'Sarah Williams')" title="Suspend Player">
-                                            <i class="fas fa-user-lock"></i>
-                                        </button>
-                                        <button class="btn-action btn-delete" onclick="openDeleteModal(4, 'Sarah Williams')" title="Remove Player">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            <!-- Player 5 -->
-                            <tr data-player-id="5">
-                                <td>#PLR005</td>
-                                <td>
-                                    <div class="player-info">
-                                        <div class="player-avatar">MB</div>
-                                        <span>murali naveen</span>
-                                    </div>
-                                </td>
-                                <td>murali.n@email.com</td>
-                                <td><span class="jersey-badge">31</span></td>
-                                <td><span class="badge badge-info">Left-Handed</span></td>
-                                <td><span class="badge badge-standard">Standard</span></td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-view" onclick="viewPlayerStats(5)" title="View Statistics">
-                                            <i class="fas fa-chart-line"></i>
-                                        </button>
-                                        <button class="btn-action btn-suspend" onclick="openSuspendModal(5, 'Michael Brown')" title="Suspend Player">
-                                            <i class="fas fa-user-lock"></i>
-                                        </button>
-                                        <button class="btn-action btn-delete" onclick="openDeleteModal(5, 'Michael Brown')" title="Remove Player">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['players'])): ?>
+                                <?php foreach ($data['players'] as $index => $player): 
+                                    // Get player initials for avatar
+                                    $nameParts = explode(' ', $player->Name);
+                                    $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+                                    
+                                    // Format subscription badge class
+                                    $subClass = 'badge-' . strtolower($player->SubscriptionType ?? 'basic');
+                                    
+                                    // Format status badge class
+                                    $statusClass = 'status-' . strtolower($player->Status ?? 'active');
+                                ?>
+                                <tr data-player-id="<?php echo $player->UserID; ?>">
+                                    <td>#PLR<?php echo str_pad($player->UserID, 3, '0', STR_PAD_LEFT); ?></td>
+                                    <td>
+                                        <div class="player-info">
+                                            <div class="player-avatar"><?php echo $initials; ?></div>
+                                            <span><?php echo htmlspecialchars($player->Name); ?></span>
+                                        </div>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($player->Email); ?></td>
+                                    <td>
+                                        <?php if ($player->BattingStyle): ?>
+                                            <span class="badge badge-info"><?php echo htmlspecialchars($player->BattingStyle); ?></span>
+                                        <?php else: ?>
+                                            <span class="badge badge-secondary">Not set</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><span class="badge <?php echo $subClass; ?>"><?php echo ucfirst($player->SubscriptionType ?? 'basic'); ?></span></td>
+                                    <td><span class="status-badge <?php echo $statusClass; ?>"><?php echo ucfirst($player->Status ?? 'active'); ?></span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-action btn-view" onclick="window.location.href='<?php echo URLROOT; ?>/admin/player_statistics/<?php echo $player->UserID; ?>'" title="View Statistics">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <?php if (strtolower($player->Status) === 'active'): ?>
+                                                <button class="btn-action btn-suspend" onclick="openSuspendModal(<?php echo $player->UserID; ?>, '<?php echo htmlspecialchars($player->Name, ENT_QUOTES); ?>')" title="Suspend Player">
+                                                    <i class="fas fa-user-lock"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button class="btn-action btn-unsuspend" onclick="unsuspendPlayer(<?php echo $player->UserID; ?>, '<?php echo htmlspecialchars($player->Name, ENT_QUOTES); ?>')" title="Unsuspend Player">
+                                                    <i class="fas fa-user-check"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                            <button class="btn-action btn-delete" onclick="openDeleteModal(<?php echo $player->UserID; ?>, '<?php echo htmlspecialchars($player->Name, ENT_QUOTES); ?>')" title="Remove Player">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 40px;">
+                                        <div style="color: #999;">
+                                            <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                                            <p style="margin: 0; font-size: 16px;">No players found in the system</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                     

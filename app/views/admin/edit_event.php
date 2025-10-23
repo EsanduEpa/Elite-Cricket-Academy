@@ -6,10 +6,338 @@ if (isset($data['event'])) {
     error_log("Edit Event View - NO EVENT DATA");
 }
 ?>
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-    /* Edit Event Form Specific Styles */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Elite Cricket Academy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Admin Layout Container */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 0;
+            box-sizing: border-box;
+        }
+
+        /* Admin Sidebar Styles */
+        .admin-sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #333;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-sidebar.collapsed {
+            width: 80px;
+        }
+
+        .admin-sidebar.collapsed .admin-logo h3,
+        .admin-sidebar.collapsed .sidebar-nav .nav-link span,
+        .admin-sidebar.collapsed .profile-name,
+        .admin-sidebar.collapsed .profile-role,
+        .admin-sidebar.collapsed .badge {
+            display: none;
+        }
+
+        .admin-sidebar.collapsed .sidebar-nav .nav-link {
+            justify-content: center;
+            padding: 15px 12px;
+        }
+
+        .admin-sidebar.collapsed .sidebar-nav .nav-link i {
+            margin-right: 0;
+        }
+
+        .admin-sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+
+        .admin-sidebar.collapsed .admin-logo {
+            justify-content: center;
+            gap: 0;
+        }
+
+        .admin-sidebar.collapsed .profile-section {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(74, 144, 226, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-logo i {
+            font-size: 24px;
+            color: #4A90E2;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .admin-logo h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Sidebar Toggle Button */
+        .sidebar-toggle {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+            color: #4A90E2;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 25px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(5px);
+            outline: none;
+        }
+
+        .sidebar-toggle:hover {
+            background: #4A90E2;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        /* Navigation Menu */
+        .sidebar-nav {
+            padding: 25px 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav .nav-menu {
+            list-style: none;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px;
+            padding: 0 15px;
+            margin: 0;
+            width: 100%;
+        }
+
+        .sidebar-nav .nav-item {
+            margin-bottom: 0;
+            width: 100%;
+            display: block !important;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 25px;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-nav .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .sidebar-nav .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(74, 144, 226, 0.15);
+            color: #4A90E2;
+            transform: translateX(10px) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+            border-color: rgba(74, 144, 226, 0.5);
+        }
+
+        .sidebar-nav .nav-link.active,
+        .sidebar-nav .nav-item.active .nav-link {
+            background: rgba(74, 144, 226, 0.2);
+            color: #4A90E2;
+            border-color: rgba(74, 144, 226, 0.6);
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(74, 144, 226, 0.25);
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            font-size: 16px;
+            margin-right: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav .nav-link:hover i {
+            transform: scale(1.2) rotate(5deg);
+            color: #4A90E2;
+        }
+
+        .sidebar-nav .nav-link span {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            margin-top: auto;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-top: 1px solid rgba(74, 144, 226, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
+            text-align: center;
+        }
+
+        .profile-role {
+            color: #666;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 15px 20px !important;
+            font-size: 13px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(74, 144, 226, 0.1) !important;
+            color: #4A90E2 !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(74, 144, 226, 0.3) !important;
+            font-weight: 600 !important;
+            width: 100%;
+        }
+
+        .action-btn:hover {
+            background: #4A90E2 !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .action-btn i {
+            font-size: 18px !important;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            background: transparent;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Edit Event Form Specific Styles */
     .edit-event-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -228,6 +556,10 @@ if (isset($data['event'])) {
         font-size: 1.2rem;
     }
 </style>
+    </style>
+</head>
+<body>
+
 
 <!-- Admin Dashboard Layout -->
 <div class="admin-layout">
@@ -334,6 +666,13 @@ if (isset($data['event'])) {
                 <div class="form-content">
         <?php flash('event_message'); ?>
 
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Edit Permissions</h3>
+            <p><span class="readonly-indicator">🔒 READ-ONLY:</span> Event Type, Category (cannot be changed after creation)</p>
+            <p><span class="editable-indicator">✏️ EDITABLE:</span> Event Name, Description, Status, Dates, Location, Registration Details, Contact Info</p>
+        </div>
+
         <?php if (!empty($data['event'])): ?>
             <?php 
                 $event = $data['event'];
@@ -393,33 +732,17 @@ if (isset($data['event'])) {
                             <input type="text" id="Name" name="Name" value="<?= htmlspecialchars($event['Name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="Type">Event Type <span class="required">*</span></label>
+                            <label for="Type">Event Type <span class="required">*</span> <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $type = $event['Type'] ?? ''; ?>
-                            <select id="Type" name="Type" required>
-                                <option value="">Select Type</option>
-                                <?php 
-                                    $types = ['Training Camp','Workshop','Seminar','Competition','Tournament','Match','Trial','Meeting','Other'];
-                                    foreach($types as $t): ?>
-                                        <option value="<?= $t; ?>" <?= ($type === $t) ? 'selected' : ''; ?>><?= $t; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Type" name="Type" value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="Category">Category</label>
+                            <label for="Category">Category <span style="background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:5px;">READ ONLY</span></label>
                             <?php $category = $event['Category'] ?? ''; ?>
-                            <select id="Category" name="Category">
-                                <option value="">Select Category</option>
-                                <?php 
-                                    $categories = ['junior','senior','youth','professional','recreational','academy'];
-                                    foreach($categories as $c): ?>
-                                        <option value="<?= $c; ?>" <?= ($category === $c) ? 'selected' : ''; ?>>
-                                            <?= ucfirst($c); ?>
-                                        </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="Category" name="Category" value="<?= htmlspecialchars(ucfirst($category), ENT_QUOTES, 'UTF-8'); ?>" readonly style="background: #f8f9fa; cursor: not-allowed;">
                         </div>
 
                         <div class="form-group">

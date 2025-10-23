@@ -46,6 +46,19 @@ class Register extends Controller {
 
             if(empty($data['dateOfBirth'])) {
                 $data['dateOfBirth_err'] = 'Please enter your date of birth';
+            } else {
+                // Validate date of birth
+                $dob = new DateTime($data['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if($age < 5) {
+                    $data['dateOfBirth_err'] = 'You must be at least 5 years old to register';
+                } elseif($age > 100) {
+                    $data['dateOfBirth_err'] = 'Please enter a valid date of birth';
+                } elseif($dob > $today) {
+                    $data['dateOfBirth_err'] = 'Date of birth cannot be in the future';
+                }
             }
 
             if(empty($data['address'])) {
@@ -60,6 +73,14 @@ class Register extends Controller {
 
             if(empty($data['contactNumber'])) {
                 $data['contactNumber_err'] = 'Please enter your contact number';
+            } else {
+                // Validate phone number format (Sri Lankan format: 10 digits starting with 0)
+                $phone = preg_replace('/[^0-9]/', '', $data['contactNumber']);
+                if(strlen($phone) < 10) {
+                    $data['contactNumber_err'] = 'Contact number must be at least 10 digits';
+                } elseif(!preg_match('/^[0-9+\-\s()]+$/', $data['contactNumber'])) {
+                    $data['contactNumber_err'] = 'Please enter a valid phone number';
+                }
             }
 
             if(empty($data['school'])) {
@@ -76,6 +97,12 @@ class Register extends Controller {
                 $data['password_err'] = 'Please enter a password';
             } elseif(strlen($data['password']) < 8) {
                 $data['password_err'] = 'Password must be at least 8 characters long';
+            } else {
+                // Enhanced password validation
+                $passwordValidation = $this->validatePassword($data['password']);
+                if($passwordValidation !== true) {
+                    $data['password_err'] = $passwordValidation;
+                }
             }
 
             if(empty($data['confirmPassword'])) {
@@ -156,6 +183,34 @@ class Register extends Controller {
             // Load view
             $this->view('v_register', $data);
         }
+    }
+
+    /**
+     * Enhanced password validation
+     * Checks for minimum length, uppercase, lowercase, number, and special character
+     */
+    private function validatePassword($password) {
+        if(strlen($password) < 8) {
+            return 'Password must be at least 8 characters long';
+        }
+        
+        if(!preg_match('/[A-Z]/', $password)) {
+            return 'Password must contain at least one uppercase letter';
+        }
+        
+        if(!preg_match('/[a-z]/', $password)) {
+            return 'Password must contain at least one lowercase letter';
+        }
+        
+        if(!preg_match('/[0-9]/', $password)) {
+            return 'Password must contain at least one number';
+        }
+        
+        if(!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+            return 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)';
+        }
+        
+        return true; // Password is valid
     }
 }
 ?> 

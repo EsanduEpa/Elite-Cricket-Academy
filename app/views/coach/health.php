@@ -167,131 +167,62 @@
                     </thead>
                     <tbody>
                         <?php 
-                        // Dummy data - not from database
-                        $injuries = [
-                            [
-                                'id' => 1,
-                                'player' => 'Sandun Akalanka',
-                                'type' => 'Muscle Strain',
-                                'description' => 'Hamstring strain during batting practice',
-                                'severity' => 'moderate',
-                                'date' => '2025-10-15',
-                                'status' => 'recovering',
-                                'recovery_date' => '2025-10-25',
-                                'treatment' => 'Rest for 5 days, physiotherapy sessions, ice therapy'
-                            ],
-                            [
-                                'id' => 2,
-                                'player' => 'Kavindu Perera',
-                                'type' => 'Ankle Sprain',
-                                'description' => 'Ankle sprain while fielding',
-                                'severity' => 'mild',
-                                'date' => '2025-10-18',
-                                'status' => 'recovering',
-                                'recovery_date' => '2025-10-23',
-                                'treatment' => 'RICE protocol, ankle support'
-                            ],
-                            [
-                                'id' => 3,
-                                'player' => 'Ravindu Silva',
-                                'type' => 'Finger Fracture',
-                                'description' => 'Finger fracture while catching',
-                                'severity' => 'severe',
-                                'date' => '2025-09-28',
-                                'status' => 'recovered',
-                                'recovery_date' => '2025-10-28',
-                                'treatment' => 'Splint for 4 weeks, follow-up X-ray'
-                            ],
-                            [
-                                'id' => 4,
-                                'player' => 'Tharaka Wickramasinghe',
-                                'type' => 'Thigh Bruise',
-                                'description' => 'Thigh bruise from impact',
-                                'severity' => 'mild',
-                                'date' => '2025-10-20',
-                                'status' => 'recovering',
-                                'recovery_date' => '2025-10-24',
-                                'treatment' => 'Ice application, pain relief medication'
-                            ],
-                            [
-                                'id' => 5,
-                                'player' => 'Dilshan Nanayakkara',
-                                'type' => 'Concussion',
-                                'description' => 'Head impact during match',
-                                'severity' => 'severe',
-                                'date' => '2025-10-12',
-                                'status' => 'recovering',
-                                'recovery_date' => '2025-10-26',
-                                'treatment' => 'Complete rest, concussion protocol, no contact sports'
-                            ],
-                            [
-                                'id' => 6,
-                                'player' => 'Nimal Fernando',
-                                'type' => 'Back Strain',
-                                'description' => 'Lower back strain during bowling',
-                                'severity' => 'moderate',
-                                'date' => '2025-10-10',
-                                'status' => 'recovered',
-                                'recovery_date' => '2025-10-20',
-                                'treatment' => 'Physiotherapy, core strengthening exercises'
-                            ],
-                            [
-                                'id' => 7,
-                                'player' => 'Chamika Jayasinghe',
-                                'type' => 'Hand Cut',
-                                'description' => 'Deep cut on hand from equipment',
-                                'severity' => 'mild',
-                                'date' => '2025-10-19',
-                                'status' => 'recovering',
-                                'recovery_date' => '2025-10-25',
-                                'treatment' => 'Cleaned and bandaged, antibiotics prescribed'
-                            ],
-                            [
-                                'id' => 8,
-                                'player' => 'Asanka Bandara',
-                                'type' => 'Shoulder Dislocation',
-                                'description' => 'Shoulder dislocation while diving',
-                                'severity' => 'severe',
-                                'date' => '2025-09-25',
-                                'status' => 'recovered',
-                                'recovery_date' => '2025-11-01',
-                                'treatment' => 'Shoulder relocated, sling for 3 weeks, physiotherapy'
-                            ]
-                        ];
-                        
-                        foreach ($injuries as $injury): 
-                            $severityClass = $injury['severity'];
-                            $statusClass = $injury['status'];
+                        // Display real data from PlayerMedicalRecord table
+                        if (!empty($data['medicalRecords'])): 
+                            foreach ($data['medicalRecords'] as $record): 
+                                // Map database status to severity for display
+                                $severity = 'moderate'; // default
+                                if ($record->RecoveryStatus == 'recovered') {
+                                    $severity = 'mild';
+                                } elseif ($record->RecoveryStatus == 'chronic') {
+                                    $severity = 'severe';
+                                } elseif ($record->RestDaysNeeded > 14) {
+                                    $severity = 'severe';
+                                } elseif ($record->RestDaysNeeded < 7) {
+                                    $severity = 'mild';
+                                }
+                                
+                                $statusClass = strtolower($record->RecoveryStatus);
                         ?>
-                        <tr data-severity="<?php echo $severityClass; ?>" data-status="<?php echo $statusClass; ?>">
+                        <tr data-severity="<?php echo $severity; ?>" data-status="<?php echo $statusClass; ?>">
                             <td>
                                 <div class="player-info">
                                     <i class="fas fa-user-circle"></i>
-                                    <strong><?php echo $injury['player']; ?></strong>
+                                    <strong><?php echo htmlspecialchars($record->PlayerName); ?></strong>
                                 </div>
                             </td>
-                            <td><?php echo $injury['type']; ?></td>
-                            <td class="injury-desc"><?php echo $injury['description']; ?></td>
+                            <td><?php echo htmlspecialchars($record->Diagnosis ?? 'Not specified'); ?></td>
+                            <td class="injury-desc"><?php echo htmlspecialchars($record->InjuryDetails ?? 'No details provided'); ?></td>
                             <td>
-                                <span class="severity-badge <?php echo $severityClass; ?>">
-                                    <?php echo ucfirst($severityClass); ?>
+                                <span class="severity-badge <?php echo $severity; ?>">
+                                    <?php echo ucfirst($severity); ?>
                                 </span>
                             </td>
-                            <td><?php echo date('M d, Y', strtotime($injury['date'])); ?></td>
+                            <td><?php echo date('M d, Y', strtotime($record->InjuryDate)); ?></td>
                             <td>
                                 <span class="status-badge <?php echo $statusClass; ?>">
                                     <i class="fas fa-<?php echo $statusClass === 'recovered' ? 'check-circle' : 'spinner'; ?>"></i>
-                                    <?php echo ucfirst($statusClass); ?>
+                                    <?php echo ucfirst($record->RecoveryStatus); ?>
                                 </span>
                             </td>
-                            <td><?php echo date('M d, Y', strtotime($injury['recovery_date'])); ?></td>
+                            <td><?php echo $record->RestDaysNeeded > 0 ? $record->RestDaysNeeded . ' days' : 'N/A'; ?></td>
                             <td>
-                                <button class="btn-action view" onclick="viewDetails(<?php echo $injury['id']; ?>)">
+                                <button class="btn-action view" onclick="viewDetails(<?php echo $record->RecordID; ?>)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>
                         </tr>
-                        <?php endforeach; ?>
+                        <?php endforeach; 
+                        else: ?>
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem;">
+                                <div style="color: #999;">
+                                    <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                    <p>No medical records found</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -346,44 +277,54 @@ function filterTable() {
 
 // View details function
 function viewDetails(id) {
-    const injuries = <?php echo json_encode($injuries); ?>;
-    const injury = injuries.find(i => i.id === id);
+    const records = <?php echo json_encode($data['medicalRecords'] ?? []); ?>;
+    const record = records.find(r => r.RecordID === id);
     
-    if (injury) {
+    if (record) {
         const modalBody = document.getElementById('modalBody');
+        const severity = record.RestDaysNeeded > 14 ? 'severe' : (record.RestDaysNeeded < 7 ? 'mild' : 'moderate');
+        
         modalBody.innerHTML = `
             <div class="injury-details">
                 <div class="detail-row">
                     <strong>Player:</strong>
-                    <span>${injury.player}</span>
+                    <span>${record.PlayerName || 'Unknown'}</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Injury Type:</strong>
-                    <span>${injury.type}</span>
+                    <strong>Diagnosis:</strong>
+                    <span>${record.Diagnosis || 'Not specified'}</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Description:</strong>
-                    <span>${injury.description}</span>
+                    <strong>Injury Details:</strong>
+                    <span>${record.InjuryDetails || 'No details provided'}</span>
                 </div>
                 <div class="detail-row">
                     <strong>Severity:</strong>
-                    <span class="severity-badge ${injury.severity}">${injury.severity}</span>
+                    <span class="severity-badge ${severity}">${severity}</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Date Reported:</strong>
-                    <span>${new Date(injury.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <strong>Injury Date:</strong>
+                    <span>${new Date(record.InjuryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Status:</strong>
-                    <span class="status-badge ${injury.status}">${injury.status}</span>
+                    <strong>Recovery Status:</strong>
+                    <span class="status-badge ${record.RecoveryStatus.toLowerCase()}">${record.RecoveryStatus}</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Expected Recovery:</strong>
-                    <span>${new Date(injury.recovery_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <strong>Rest Days Needed:</strong>
+                    <span>${record.RestDaysNeeded || 0} days</span>
                 </div>
                 <div class="detail-row">
-                    <strong>Treatment Plan:</strong>
-                    <span>${injury.treatment}</span>
+                    <strong>Treatment Given:</strong>
+                    <span>${record.TreatmentGiven || 'Not specified'}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Happened at Academy:</strong>
+                    <span>${record.HappenedAtAcademy === 'yes' ? 'Yes' : 'No'}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Verification Status:</strong>
+                    <span class="status-badge ${record.verifyStatus}">${record.verifyStatus}</span>
                 </div>
             </div>
         `;

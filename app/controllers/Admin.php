@@ -14,6 +14,10 @@ class Admin extends Controller {
     }
     
     public function dashboard() {
+        // Auto-update event statuses on dashboard load
+        $eventModel = $this->model('Event');
+        $eventModel->updateEventStatuses();
+        
         // Hardcoded sample data for interface demonstration
         $data = [
             'title' => 'Academy Management Dashboard - Elite Cricket Academy',
@@ -188,8 +192,17 @@ class Admin extends Controller {
 
     // Staff Management
     public function staff() {
+        // Get user model
+        $userModel = $this->model('M_Users');
+        
+        // Get staff members from database
+        $staffMembers = $userModel->getStaffMembers();
+        $staffStats = $userModel->getStaffStats();
+        
         $data = [
-            'title' => 'Staff Management - Elite Cricket Academy'
+            'title' => 'Staff Management - Elite Cricket Academy',
+            'staff_members' => $staffMembers,
+            'staff_stats' => $staffStats
         ];
         
         $this->view('admin/staff', $data);
@@ -200,9 +213,21 @@ class Admin extends Controller {
         try {
             $eventModel = $this->model('Event');
             
+            // Auto-update event statuses before displaying
+            $eventModel->updateEventStatuses();
+            
             // Get events from database
             $upcomingEvents = $eventModel->getUpcomingEvents(10);
             $pastEvents = $eventModel->getPastEvents(10);
+            
+            // Add delete permission info to each event
+            foreach ($upcomingEvents as &$event) {
+                $event['can_delete'] = false; // Upcoming events cannot be deleted
+            }
+            
+            foreach ($pastEvents as &$event) {
+                $event['can_delete'] = $eventModel->canDeleteEvent($event['id']);
+            }
             
             // Calculate stats from database
             $totalEvents = $eventModel->getTotalEvents();
@@ -509,6 +534,14 @@ class Admin extends Controller {
 
     public function delete_event($id) {
         $eventModel = $this->model('Event');
+        
+        // Check if event can be deleted (6 months after end date)
+        if (!$eventModel->canDeleteEvent($id)) {
+            flash('event_message', 'This event cannot be deleted yet. Events can only be deleted 6 months after they have ended.', 'alert alert-warning');
+            redirect('admin/events');
+            return;
+        }
+        
         $result = $eventModel->deleteEvent($id);
         
         if ($result) {
@@ -531,7 +564,63 @@ class Admin extends Controller {
         header('Content-Type: application/json');
         $eventModel = $this->model('Event');
         $event = $eventModel->getEventById($id);
-        echo json_encode($event);
+        
+        if ($event) {
+            // Add proper field mapping for the frontend
+            $event['EventName'] = $event['Name'] ?? '';
+            $event['EventType'] = $event['Type'] ?? '';
+            $event['EventDate'] = $event['StartDate'] ?? '';
+            $event['EventTime'] = isset($event['StartDate']) ? date('H:i', strtotime($event['StartDate'])) : '';
+            $event['RegistrationDeadline'] = $event['RegistrationEnd'] ?? '';
+            
+            echo json_encode([
+                'success' => true,
+                'event' => $event
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Event not found'
+            ]);
+        }
+    }
+
+    public function update_event($id) {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $eventModel = $this->model('Event');
+            
+            // Prepare data for update - only allow certain fields to be edited
+            $data = [
+                'EventID' => $id,
+                'EventName' => trim($_POST['event_name']),
+                'Description' => trim($_POST['description']),
+                'Location' => trim($_POST['location']),
+                'EventDate' => $_POST['event_date'],
+                'EventTime' => $_POST['event_time'],
+                'RegistrationDeadline' => $_POST['registration_deadline'],
+                'MaxParticipants' => $_POST['max_participants']
+            ];
+            
+            // Call model method to update
+            if ($eventModel->updateEvent($data)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Event updated successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to update event'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid request method'
+            ]);
+        }
     }
 
     public function finance() {
@@ -975,6 +1064,39 @@ class Admin extends Controller {
                 return;
             }
             
+            // Validate date of birth
+            if (!empty($postData['dateOfBirth'])) {
+                $dob = new DateTime($postData['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if ($age < 16) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Staff member must be at least 16 years old'
+                    ]);
+                    return;
+                } elseif ($age > 100) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Please enter a valid date of birth'
+                    ]);
+                    return;
+                } elseif ($dob > $today) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Date of birth cannot be in the future'
+                    ]);
+                    return;
+                }
+            }
+            
             // Load user model
             $userModel = $this->model('M_Users');
             
@@ -1074,8 +1196,15 @@ class Admin extends Controller {
 
     // Player Management
     public function players() {
+        // Fetch all players with their profile information
+        $userModel = $this->model('M_Users');
+        $players = $userModel->getAllPlayersWithProfile();
+        $playerStats = $userModel->getPlayerStats();
+        
         $data = [
-            'title' => 'Player Management - Elite Cricket Academy'
+            'title' => 'Player Management - Elite Cricket Academy',
+            'players' => $players,
+            'stats' => $playerStats
         ];
         
         $this->view('admin/players', $data);

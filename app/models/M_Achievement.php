@@ -230,5 +230,20 @@ class M_Achievement {
         $this->db->bind(':player_id', $playerId);
         return $this->db->single();
     }
+    
+    // Get all achievements with player information for coach view
+    public function getAllAchievementsWithPlayerInfo() {
+        $this->db->query('SELECT 
+            a.*,
+            u.Name as PlayerName,
+            u.PhoneNumber as PlayerContact,
+            u.Email as PlayerEmail
+            FROM Achievements a
+            LEFT JOIN user u ON a.PlayerID = u.UserID
+            WHERE u.Role = "Player"
+            ORDER BY a.Date DESC, a.CreatedAt DESC');
+        
+        return $this->db->resultSet();
+    }
 }
 ?>

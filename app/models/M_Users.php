@@ -701,5 +701,103 @@ class M_Users {
             return false;
         }
     }
+
+    // Get all staff members (Coach, Trainer, ShopEmployee)
+    public function getStaffMembers() {
+        $this->db->query('SELECT 
+            u.UserID,
+            u.Name,
+            u.Email,
+            u.PhoneNumber,
+            u.Role,
+            u.DateJoined,
+            u.Status,
+            u.ProfileImage,
+            CASE 
+                WHEN u.Role = "Coach" THEN cp.Specialization
+                WHEN u.Role = "Trainer" THEN "Fitness Training"
+                WHEN u.Role = "ShopEmployee" THEN sep.Department
+                ELSE NULL
+            END as Department,
+            CASE 
+                WHEN u.Role = "Coach" THEN cp.Experience
+                WHEN u.Role = "Trainer" THEN tp.Experience
+                ELSE NULL
+            END as Experience
+        FROM User u
+        LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID AND u.Role = "Coach"
+        LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID AND u.Role = "Trainer"
+        LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID AND u.Role = "ShopEmployee"
+        WHERE u.Role IN ("Coach", "Trainer", "ShopEmployee")
+        ORDER BY u.DateJoined DESC');
+        
+        $results = $this->db->resultSet();
+        return $results;
+    }
+
+    // Get staff statistics
+    public function getStaffStats() {
+        $this->db->query('SELECT 
+            COUNT(*) as total_staff,
+            SUM(CASE WHEN Role = "Coach" THEN 1 ELSE 0 END) as total_coaches,
+            SUM(CASE WHEN Role = "Trainer" THEN 1 ELSE 0 END) as total_trainers,
+            SUM(CASE WHEN Role = "ShopEmployee" THEN 1 ELSE 0 END) as total_shop_employees,
+            SUM(CASE WHEN Status = "active" THEN 1 ELSE 0 END) as active_staff
+        FROM User 
+        WHERE Role IN ("Coach", "Trainer", "ShopEmployee")');
+        
+        $result = $this->db->single();
+        return $result;
+    }
+
+    // Get all players with their profile information
+    public function getAllPlayersWithProfile() {
+        $this->db->query('SELECT 
+            u.UserID,
+            u.Name,
+            u.DateOfBirth,
+            u.PhoneNumber,
+            u.Email,
+            u.Address,
+            u.School,
+            u.DateJoined,
+            u.Status,
+            u.ProfileImage,
+            pp.BattingStyle,
+            pp.BowlingStyle,
+            pp.JerseyNumber,
+            pp.SubscriptionType,
+            pp.EmergencyContactName,
+            pp.EmergencyContactPhone,
+            pp.ParentGuardianName,
+            pp.ParentGuardianPhone,
+            pp.SchoolInstitution,
+            pp.PreviousExperience,
+            pp.MedicalConditions,
+            pp.HowHeardAboutUs,
+            TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) as Age
+        FROM user u
+        LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+        WHERE u.Role = "Player"
+        ORDER BY u.DateJoined DESC');
+        
+        return $this->db->resultSet();
+    }
+
+    // Get player statistics
+    public function getPlayerStats() {
+        $this->db->query('SELECT 
+            COUNT(*) as total_players,
+            SUM(CASE WHEN Status = "active" THEN 1 ELSE 0 END) as active_players,
+            SUM(CASE WHEN pp.SubscriptionType = "basic" THEN 1 ELSE 0 END) as basic_subscription,
+            SUM(CASE WHEN pp.SubscriptionType = "premium" THEN 1 ELSE 0 END) as premium_subscription,
+            SUM(CASE WHEN pp.SubscriptionType = "private_only" THEN 1 ELSE 0 END) as private_only_subscription
+        FROM user u 
+        LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+        WHERE u.Role = "Player"');
+        
+        $result = $this->db->single();
+        return $result;
+    }
 }
 ?> 

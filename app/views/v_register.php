@@ -31,7 +31,8 @@ if (!function_exists('flash')) {
                     
                     <div class="form-group">
                         <label for="dateOfBirth">Date of birth</label>
-                        <input type="date" id="dateOfBirth" name="dateOfBirth" value="<?php echo $data['dateOfBirth']; ?>" required>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth" value="<?php echo $data['dateOfBirth']; ?>" max="<?php echo date('Y-m-d'); ?>" required>
+                        <small class="form-hint">You must be at least 5 years old</small>
                         <div class="error-message <?php echo (!empty($data['dateOfBirth_err'])) ? 'show' : ''; ?>" id="dateOfBirthError"><?php echo $data['dateOfBirth_err']; ?></div>
                     </div>
                     
@@ -49,7 +50,8 @@ if (!function_exists('flash')) {
                     
                     <div class="form-group">
                         <label for="contactNumber">Contact Number</label>
-                        <input type="tel" id="contactNumber" name="contactNumber" placeholder="Enter your contact number" value="<?php echo $data['contactNumber']; ?>" required>
+                        <input type="tel" id="contactNumber" name="contactNumber" placeholder="e.g., 0771234567 or +94771234567" value="<?php echo $data['contactNumber']; ?>" pattern="[0-9+\-\s()]+" required>
+                        <small class="form-hint">10-15 digits (may include +, -, spaces, or parentheses)</small>
                         <div class="error-message <?php echo (!empty($data['contactNumber_err'])) ? 'show' : ''; ?>" id="contactNumberError"><?php echo $data['contactNumber_err']; ?></div>
                     </div>
                     
@@ -67,7 +69,8 @@ if (!function_exists('flash')) {
                     
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Choose a password" required>
+                        <input type="password" id="password" name="password" placeholder="Choose a strong password" minlength="8" required>
+                        <small class="form-hint">Must be at least 8 characters with uppercase, lowercase, number, and special character</small>
                         <div class="error-message <?php echo (!empty($data['password_err'])) ? 'show' : ''; ?>" id="passwordError"><?php echo $data['password_err']; ?></div>
                     </div>
                     

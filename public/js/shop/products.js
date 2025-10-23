@@ -11,6 +11,7 @@ const URLROOT = window.location.origin + '/Elite';
 document.addEventListener('DOMContentLoaded', function() {
     loadProducts();
     setupEventListeners();
+    setupRealtimeValidation();
 });
 
 // Setup all event listeners
@@ -152,6 +153,15 @@ function getStockClass(quantity) {
 function handleProductSubmit(e) {
     e.preventDefault();
     
+    // Clear all previous errors
+    clearAllErrors();
+    
+    // Validate form
+    if (!validateProductForm()) {
+        showNotification('Please fix the errors before submitting', 'error');
+        return;
+    }
+    
     const formData = new FormData(e.target);
     const url = currentProductId 
         ? `${URLROOT}/shop/updateProductData`
@@ -200,6 +210,121 @@ function handleProductSubmit(e) {
     .catch(error => {
         console.error('Fetch Error:', error);
         showNotification('An error occurred while saving the product', 'error');
+    });
+}
+
+// Validate product form
+function validateProductForm() {
+    let isValid = true;
+    
+    // Product Name validation
+    const name = document.getElementById('productName').value.trim();
+    if (!name) {
+        showFieldError('productName', 'nameError', 'Product name is required');
+        isValid = false;
+    } else if (name.length < 3) {
+        showFieldError('productName', 'nameError', 'Product name must be at least 3 characters');
+        isValid = false;
+    } else if (name.length > 255) {
+        showFieldError('productName', 'nameError', 'Product name is too long (max 255 characters)');
+        isValid = false;
+    }
+    
+    // Description validation
+    const description = document.getElementById('productDescription').value.trim();
+    if (description.length > 1000) {
+        showFieldError('productDescription', 'descriptionError', 'Description is too long (max 1000 characters)');
+        isValid = false;
+    }
+    
+    // Category validation
+    const category = document.getElementById('productCategory').value;
+    if (!category) {
+        showFieldError('productCategory', 'categoryError', 'Please select a category');
+        isValid = false;
+    }
+    
+    // Brand validation
+    const brand = document.getElementById('productBrand').value.trim();
+    if (brand.length > 100) {
+        showFieldError('productBrand', 'brandError', 'Brand name is too long (max 100 characters)');
+        isValid = false;
+    }
+    
+    // Price validation
+    const price = parseFloat(document.getElementById('productPrice').value);
+    if (!price || price <= 0) {
+        showFieldError('productPrice', 'priceError', 'Price must be greater than 0');
+        isValid = false;
+    } else if (price > 1000000) {
+        showFieldError('productPrice', 'priceError', 'Price is too high (max ₨1,000,000)');
+        isValid = false;
+    }
+    
+    // Stock validation
+    const stock = parseInt(document.getElementById('productStock').value);
+    if (stock === '' || stock < 0) {
+        showFieldError('productStock', 'stockError', 'Stock quantity cannot be negative');
+        isValid = false;
+    } else if (stock > 10000) {
+        showFieldError('productStock', 'stockError', 'Stock quantity is too high (max 10,000)');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Show field error
+function showFieldError(fieldId, errorId, message) {
+    const field = document.getElementById(fieldId);
+    const errorSpan = document.getElementById(errorId);
+    
+    if (field) {
+        field.classList.add('error');
+        // Scroll to first error
+        if (document.querySelectorAll('.error').length === 1) {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    if (errorSpan) {
+        errorSpan.textContent = '⚠ ' + message;
+        errorSpan.style.display = 'block';
+        errorSpan.style.color = '#e74c3c';
+        errorSpan.style.fontWeight = '500';
+    }
+}
+
+// Clear all errors
+function clearAllErrors() {
+    // Remove error class from all inputs
+    document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(field => {
+        field.classList.remove('error');
+    });
+    
+    // Clear all error messages
+    document.querySelectorAll('.field-error').forEach(errorSpan => {
+        errorSpan.textContent = '';
+        errorSpan.style.display = 'none';
+    });
+}
+
+// Clear error on input
+function setupRealtimeValidation() {
+    const fields = ['productName', 'productDescription', 'productCategory', 'productBrand', 'productPrice', 'productStock'];
+    
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                this.classList.remove('error');
+                const errorId = fieldId.replace('product', '').charAt(0).toLowerCase() + fieldId.replace('product', '').slice(1) + 'Error';
+                const errorSpan = document.getElementById(errorId);
+                if (errorSpan) {
+                    errorSpan.textContent = '';
+                }
+            });
+        }
     });
 }
 
@@ -299,6 +424,19 @@ function openAddProductModal() {
     document.getElementById('modalTitle').textContent = 'Add New Product';
     document.getElementById('productForm').reset();
     
+    // Clear all errors
+    clearAllErrors();
+    
+    // Enable all fields for new product (remove read-only from category)
+    const categoryField = document.getElementById('productCategory');
+    const categoryLabel = document.querySelector('label[for="productCategory"]');
+    if (categoryField) {
+        categoryField.removeAttribute('disabled');
+        if (categoryLabel) {
+            categoryLabel.classList.remove('readonly-label');
+        }
+    }
+    
     // Reset image preview
     const previewArea = document.querySelector('.image-upload-area');
     if (previewArea) {
@@ -331,11 +469,23 @@ function editProduct(productId) {
                 document.getElementById('productCategory').value = product.Category || '';
                 document.getElementById('productBrand').value = product.Brand || '';
                 document.getElementById('productPrice').value = product.Price || '';
-                document.getElementById('productSKU').value = product.SKU || '';
                 document.getElementById('productStock').value = product.StockQuantity || 0;
                 document.getElementById('productStatus').value = product.Status || 'active';
                 document.getElementById('productWeight').value = product.Weight || '';
                 document.getElementById('productDimensions').value = product.Dimensions || '';
+                
+                // Clear any previous errors
+                clearAllErrors();
+                
+                // Make category and price read-only when editing
+                const categoryField = document.getElementById('productCategory');
+                const categoryLabel = document.querySelector('label[for="productCategory"]');
+                if (categoryField) {
+                    categoryField.setAttribute('disabled', 'disabled');
+                    if (categoryLabel) {
+                        categoryLabel.classList.add('readonly-label');
+                    }
+                }
                 
                 // Show current image if exists
                 if (product.ProductImage) {
@@ -405,6 +555,19 @@ function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
     currentProductId = null;
     currentProductImage = null;
+    
+    // Clear errors
+    clearAllErrors();
+    
+    // Reset read-only states
+    const categoryField = document.getElementById('productCategory');
+    const categoryLabel = document.querySelector('label[for="productCategory"]');
+    if (categoryField) {
+        categoryField.removeAttribute('disabled');
+        if (categoryLabel) {
+            categoryLabel.classList.remove('readonly-label');
+        }
+    }
 }
 
 // Filter functions

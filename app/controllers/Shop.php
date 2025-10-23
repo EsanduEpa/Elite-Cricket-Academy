@@ -1567,6 +1567,7 @@ class Shop extends Controller {
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize and collect data
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'description' => trim($_POST['description'] ?? ''),
@@ -1575,15 +1576,64 @@ class Shop extends Controller {
                 'price' => floatval($_POST['price'] ?? 0),
                 'stock' => intval($_POST['stock'] ?? 0),
                 'status' => $_POST['status'] ?? 'active',
-                'sku' => !empty(trim($_POST['sku'] ?? '')) ? trim($_POST['sku']) : null,
                 'weight' => !empty($_POST['weight']) ? floatval($_POST['weight']) : null,
                 'dimensions' => !empty(trim($_POST['dimensions'] ?? '')) ? trim($_POST['dimensions']) : null,
                 'image' => null
             ];
             
-            // Validate required fields
-            if (empty($data['name']) || empty($data['category']) || $data['price'] <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
+            // Comprehensive validation
+            $errors = [];
+            
+            // Validate product name
+            if (empty($data['name'])) {
+                $errors[] = 'Product name is required';
+            } elseif (strlen($data['name']) < 3) {
+                $errors[] = 'Product name must be at least 3 characters';
+            } elseif (strlen($data['name']) > 255) {
+                $errors[] = 'Product name is too long (max 255 characters)';
+            }
+            
+            // Validate description
+            if (!empty($data['description']) && strlen($data['description']) > 1000) {
+                $errors[] = 'Description is too long (max 1000 characters)';
+            }
+            
+            // Validate category
+            if (empty($data['category'])) {
+                $errors[] = 'Category is required';
+            }
+            
+            // Validate brand
+            if (!empty($data['brand']) && strlen($data['brand']) > 100) {
+                $errors[] = 'Brand name is too long (max 100 characters)';
+            }
+            
+            // Validate price
+            if ($data['price'] <= 0) {
+                $errors[] = 'Price must be greater than 0';
+            } elseif ($data['price'] > 1000000) {
+                $errors[] = 'Price is too high (max ₨1,000,000)';
+            }
+            
+            // Validate stock
+            if ($data['stock'] < 0) {
+                $errors[] = 'Stock quantity cannot be negative';
+            } elseif ($data['stock'] > 10000) {
+                $errors[] = 'Stock quantity is too high (max 10,000)';
+            }
+            
+            // Validate status
+            $validStatuses = ['active', 'discontinued', 'out_of_stock'];
+            if (!in_array($data['status'], $validStatuses)) {
+                $data['status'] = 'active';
+            }
+            
+            // Check for validation errors
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => implode(', ', $errors)
+                ]);
                 return;
             }
             
@@ -1620,6 +1670,7 @@ class Shop extends Controller {
                 return;
             }
             
+            // Sanitize and collect data
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'description' => trim($_POST['description'] ?? ''),
@@ -1628,14 +1679,63 @@ class Shop extends Controller {
                 'price' => floatval($_POST['price'] ?? 0),
                 'stock' => intval($_POST['stock'] ?? 0),
                 'status' => $_POST['status'] ?? 'active',
-                'sku' => !empty(trim($_POST['sku'] ?? '')) ? trim($_POST['sku']) : null,
                 'weight' => !empty($_POST['weight']) ? floatval($_POST['weight']) : null,
                 'dimensions' => !empty(trim($_POST['dimensions'] ?? '')) ? trim($_POST['dimensions']) : null
             ];
             
-            // Validate required fields
-            if (empty($data['name']) || empty($data['category']) || $data['price'] <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
+            // Comprehensive validation
+            $errors = [];
+            
+            // Validate product name
+            if (empty($data['name'])) {
+                $errors[] = 'Product name is required';
+            } elseif (strlen($data['name']) < 3) {
+                $errors[] = 'Product name must be at least 3 characters';
+            } elseif (strlen($data['name']) > 255) {
+                $errors[] = 'Product name is too long (max 255 characters)';
+            }
+            
+            // Validate description
+            if (!empty($data['description']) && strlen($data['description']) > 1000) {
+                $errors[] = 'Description is too long (max 1000 characters)';
+            }
+            
+            // Validate category
+            if (empty($data['category'])) {
+                $errors[] = 'Category is required';
+            }
+            
+            // Validate brand
+            if (!empty($data['brand']) && strlen($data['brand']) > 100) {
+                $errors[] = 'Brand name is too long (max 100 characters)';
+            }
+            
+            // Validate price
+            if ($data['price'] <= 0) {
+                $errors[] = 'Price must be greater than 0';
+            } elseif ($data['price'] > 1000000) {
+                $errors[] = 'Price is too high (max ₨1,000,000)';
+            }
+            
+            // Validate stock
+            if ($data['stock'] < 0) {
+                $errors[] = 'Stock quantity cannot be negative';
+            } elseif ($data['stock'] > 10000) {
+                $errors[] = 'Stock quantity is too high (max 10,000)';
+            }
+            
+            // Validate status
+            $validStatuses = ['active', 'discontinued', 'out_of_stock'];
+            if (!in_array($data['status'], $validStatuses)) {
+                $data['status'] = 'active';
+            }
+            
+            // Check for validation errors
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => implode(', ', $errors)
+                ]);
                 return;
             }
             
