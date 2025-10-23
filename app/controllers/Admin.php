@@ -1196,8 +1196,15 @@ class Admin extends Controller {
 
     // Player Management
     public function players() {
+        // Fetch all players with their profile information
+        $userModel = $this->model('M_Users');
+        $players = $userModel->getAllPlayersWithProfile();
+        $playerStats = $userModel->getPlayerStats();
+        
         $data = [
-            'title' => 'Player Management - Elite Cricket Academy'
+            'title' => 'Player Management - Elite Cricket Academy',
+            'players' => $players,
+            'stats' => $playerStats
         ];
         
         $this->view('admin/players', $data);
