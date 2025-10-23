@@ -45,14 +45,13 @@ class Shop extends Controller {
         $this->view('shop/dashboard', $data);
     }
 
-    public function orders() {
+    public function orders($status = 'all') {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
         $data = [
             'title' => 'Order Management - Elite Cricket Gear',
-            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'orders' => $this->getOrdersData()
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager'
         ];
         
         $this->view('shop/orders', $data);

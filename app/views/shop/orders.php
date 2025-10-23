@@ -52,17 +52,10 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/reviews" class="nav-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews & Feedback</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
                     </a>
                 </li>
                 
@@ -165,19 +158,19 @@
         <!-- Order Filters -->
         <div class="filter-section">
             <div class="filter-tabs">
-                <a href="<?php echo URLROOT; ?>/shop/orders" class="filter-tab <?php echo ($data['current_status'] == 'all') ? 'active' : ''; ?>">
+                <a href="#" class="filter-tab active" data-status="all">
                     <i class="fas fa-list"></i> All Orders
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/pending" class="filter-tab <?php echo ($data['current_status'] == 'pending') ? 'active' : ''; ?>">
+                <a href="#" class="filter-tab" data-status="pending">
                     <i class="fas fa-clock"></i> Pending
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/processing" class="filter-tab <?php echo ($data['current_status'] == 'processing') ? 'active' : ''; ?>">
+                <a href="#" class="filter-tab" data-status="processing">
                     <i class="fas fa-cog"></i> Processing
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/completed" class="filter-tab <?php echo ($data['current_status'] == 'completed') ? 'active' : ''; ?>">
+                <a href="#" class="filter-tab" data-status="completed">
                     <i class="fas fa-check"></i> Completed
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/cancelled" class="filter-tab <?php echo ($data['current_status'] == 'cancelled') ? 'active' : ''; ?>">
+                <a href="#" class="filter-tab" data-status="cancelled">
                     <i class="fas fa-times"></i> Cancelled
                 </a>
             </div>
@@ -202,18 +195,18 @@
                 </div>
             </div>
             
-            <div class="table-content">
-                <table id="ordersTable" class="dashboard-table">
+            <div class="table-content" style="overflow-x: auto;">
+                <table id="ordersTable" class="dashboard-table" style="width: 100%; min-width: 900px;">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="width: 120px;">Order ID</th>
+                            <th style="width: 150px;">Customer</th>
+                            <th style="width: 100px;">Date</th>
+                            <th style="width: 70px;">Items</th>
+                            <th style="width: 90px;">Total</th>
+                            <th style="width: 80px;">Payment</th>
+                            <th style="width: 110px;">Status</th>
+                            <th style="width: 130px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -343,6 +336,122 @@
                                     <button class="btn-small btn-info" onclick="requestReview(154)">
                                         <i class="fas fa-star"></i>
                                     </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><div class="table-cell-primary">#ORD-2025-153</div></td>
+                            <td>
+                                <div class="table-cell-title">Emma Davis</div>
+                                <div class="table-cell-details">emma@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 15, 2025</div>
+                                <div class="table-cell-secondary">11:20 AM</div>
+                            </td>
+                            <td><div class="table-cell-primary">5 items</div></td>
+                            <td><div class="table-cell-primary">₨ 18,900</div></td>
+                            <td style="text-align: center;"><span class="table-badge status-card">Card</span></td>
+                            <td>
+                                <select class="status-dropdown" onchange="updateOrderStatus(153, this.value)">
+                                    <option value="pending" selected>Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small btn-primary" onclick="viewOrder(153)"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-small btn-secondary" onclick="printInvoice(153)"><i class="fas fa-print"></i></button>
+                                    <button class="btn-small btn-success" onclick="processPayment(153)"><i class="fas fa-credit-card"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><div class="table-cell-primary">#ORD-2025-152</div></td>
+                            <td>
+                                <div class="table-cell-title">David Brown</div>
+                                <div class="table-cell-details">david@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 14, 2025</div>
+                                <div class="table-cell-secondary">3:30 PM</div>
+                            </td>
+                            <td><div class="table-cell-primary">2 items</div></td>
+                            <td><div class="table-cell-primary">₨ 6,750</div></td>
+                            <td style="text-align: center;"><span class="table-badge status-cash">Cash</span></td>
+                            <td>
+                                <select class="status-dropdown" onchange="updateOrderStatus(152, this.value)">
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed" selected>Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small btn-primary" onclick="viewOrder(152)"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-small btn-secondary" onclick="printInvoice(152)"><i class="fas fa-print"></i></button>
+                                    <button class="btn-small btn-info" onclick="requestReview(152)"><i class="fas fa-star"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><div class="table-cell-primary">#ORD-2025-151</div></td>
+                            <td>
+                                <div class="table-cell-title">Lisa Anderson</div>
+                                <div class="table-cell-details">lisa@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 13, 2025</div>
+                                <div class="table-cell-secondary">1:45 PM</div>
+                            </td>
+                            <td><div class="table-cell-primary">4 items</div></td>
+                            <td><div class="table-cell-primary">₨ 15,300</div></td>
+                            <td style="text-align: center;"><span class="table-badge status-online">Online</span></td>
+                            <td>
+                                <select class="status-dropdown" onchange="updateOrderStatus(151, this.value)">
+                                    <option value="pending">Pending</option>
+                                    <option value="processing" selected>Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small btn-primary" onclick="viewOrder(151)"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-small btn-secondary" onclick="printInvoice(151)"><i class="fas fa-print"></i></button>
+                                    <button class="btn-small btn-warning" onclick="trackDelivery(151)"><i class="fas fa-truck"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><div class="table-cell-primary">#ORD-2025-150</div></td>
+                            <td>
+                                <div class="table-cell-title">Robert Taylor</div>
+                                <div class="table-cell-details">robert@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 12, 2025</div>
+                                <div class="table-cell-secondary">9:15 AM</div>
+                            </td>
+                            <td><div class="table-cell-primary">1 item</div></td>
+                            <td><div class="table-cell-primary">₨ 3,200</div></td>
+                            <td style="text-align: center;"><span class="table-badge status-card">Card</span></td>
+                            <td>
+                                <select class="status-dropdown" onchange="updateOrderStatus(150, this.value)">
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed" selected>Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small btn-primary" onclick="viewOrder(150)"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-small btn-secondary" onclick="printInvoice(150)"><i class="fas fa-print"></i></button>
+                                    <button class="btn-small btn-info" onclick="requestReview(150)"><i class="fas fa-star"></i></button>
                                 </div>
                             </td>
                         </tr>
