@@ -132,6 +132,21 @@ class M_Medical {
         return $this->db->resultSet();
     }
     
+    // Get all medical records with player information for coach view
+    public function getAllMedicalRecordsWithPlayerInfo() {
+        $this->db->query('SELECT 
+            pmr.*,
+            u.Name as PlayerName,
+            u.PhoneNumber as PlayerContact,
+            u.Email as PlayerEmail
+            FROM PlayerMedicalRecord pmr 
+            LEFT JOIN user u ON pmr.PlayerID = u.UserID
+            WHERE u.Role = "Player"
+            ORDER BY pmr.InjuryDate DESC, pmr.ReportedDate DESC');
+        
+        return $this->db->resultSet();
+    }
+    
     // Update verification status for a medical record
     public function updateVerifyStatus($recordId, $verifyStatus, $comments = '') {
         error_log("=== M_Medical::updateVerifyStatus called ===");
