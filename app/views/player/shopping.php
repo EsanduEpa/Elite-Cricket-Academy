@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
@@ -208,10 +208,10 @@
                                     <?php if (isset($product->Discount) && $product->Discount > 0): 
                                         $originalPrice = $product->Price / (1 - $product->Discount / 100);
                                     ?>
-                                        <span class="price-original">₹<?php echo number_format($originalPrice, 2); ?></span>
-                                        <span class="price-discounted">₹<?php echo number_format($product->Price, 2); ?></span>
+                                        <span class="price-original">Rs. <?php echo number_format($originalPrice, 2); ?></span>
+                                        <span class="price-discounted">Rs. <?php echo number_format($product->Price, 2); ?></span>
                                     <?php else: ?>
-                                        <span class="price-current">₹<?php echo number_format($product->Price ?? 0, 2); ?></span>
+                                        <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
                                     <?php endif; ?>
                                 </div>
                                 

@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/bookings.css?v=<?php echo time(); ?>">
     

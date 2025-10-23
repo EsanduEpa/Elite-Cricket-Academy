@@ -470,10 +470,10 @@ class Player extends Controller {
             // Sanitize input data
             $data = [
                 'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
-                'date' => filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING),
-                'match_name' => filter_input(INPUT_POST, 'match_name', FILTER_SANITIZE_STRING),
-                'tournament' => filter_input(INPUT_POST, 'tournament', FILTER_SANITIZE_STRING),
-                'achievement' => filter_input(INPUT_POST, 'achievement', FILTER_SANITIZE_STRING),
+                'date' => trim($_POST['date'] ?? ''),
+                'match_name' => trim($_POST['match_name'] ?? ''),
+                'tournament' => trim($_POST['tournament'] ?? ''),
+                'achievement' => trim($_POST['achievement'] ?? ''),
                 'verified_status' => 'pending' // New achievements start as pending
             ];
 
@@ -540,11 +540,11 @@ class Player extends Controller {
             $data = [
                 'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
                 'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
-                'date' => filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING),
-                'match_name' => filter_input(INPUT_POST, 'match_name', FILTER_SANITIZE_STRING),
-                'tournament' => filter_input(INPUT_POST, 'tournament', FILTER_SANITIZE_STRING),
-                'achievement' => filter_input(INPUT_POST, 'achievement', FILTER_SANITIZE_STRING),
-                'verified_status' => filter_input(INPUT_POST, 'verified_status', FILTER_SANITIZE_STRING) ?? 'pending'
+                'date' => trim($_POST['date'] ?? ''),
+                'match_name' => trim($_POST['match_name'] ?? ''),
+                'tournament' => trim($_POST['tournament'] ?? ''),
+                'achievement' => trim($_POST['achievement'] ?? ''),
+                'verified_status' => trim($_POST['verified_status'] ?? 'pending')
             ];
 
             // Validate required fields

@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/facilities.css">
@@ -153,7 +153,7 @@
             <!-- Indoor Practice Nets -->
             <div class="product-card" data-type="indoor" data-capacity="small">
                 <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/indoor-nets.jpg" alt="Indoor Practice Nets" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Practice+Nets'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Indoor Practice Nets" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Practice+Nets'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Indoor Facility</div>
@@ -187,7 +187,7 @@
                         </div>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$35/hour</span>
+                        <span class="price-current">Rs. 35/hour</span>
                     </div>
                     <div class="product-stock">✓ Available for booking</div>
                     <div class="product-actions">
@@ -200,7 +200,7 @@
             <!-- Main Cricket Ground -->
             <div class="product-card" data-type="outdoor" data-capacity="large">
                 <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/main-ground.jpg" alt="Main Cricket Ground" onerror="this.src='https://via.placeholder.com/300x200?text=Main+Cricket+Ground'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Main Cricket Ground" onerror="this.src='https://via.placeholder.com/300x200?text=Main+Cricket+Ground'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Outdoor Facility</div>
@@ -238,8 +238,8 @@
                         </div>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$200/half-day</span>
-                        <small style="color: #666; margin-left: 10px;">($350/full-day)</small>
+                        <span class="price-current">Rs. 200/half-day</span>
+                        <small style="color: #666; margin-left: 10px;">(Rs. 350/full-day)</small>
                     </div>
                     <div class="product-stock">✓ Available for booking</div>
                     <div class="product-actions">
@@ -252,7 +252,7 @@
             <!-- Cricket Fitness Center -->
             <div class="product-card" data-type="training" data-capacity="medium">
                 <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/fitness-center.jpg" alt="Fitness Center" onerror="this.src='https://via.placeholder.com/300x200?text=Fitness+Center'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Fitness Center" onerror="this.src='https://via.placeholder.com/300x200?text=Fitness+Center'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Training Facility</div>
@@ -290,7 +290,7 @@
                         </div>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">$25/hour</span>
+                        <span class="price-current">Rs. 25/hour</span>
                     </div>
                     <div class="product-stock">✓ Available for booking</div>
                     <div class="product-actions">
@@ -303,7 +303,7 @@
             <!-- Team Conference Room -->
             <div class="product-card" data-type="event" data-capacity="medium">
                 <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/conference-room.jpg" alt="Conference Room" onerror="this.src='https://via.placeholder.com/300x200?text=Conference+Room'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Conference Room" onerror="this.src='https://via.placeholder.com/300x200?text=Conference+Room'" />
                 </div>
                 <div class="product-info">
                     <div class="product-brand">Event Facility</div>
@@ -343,7 +343,7 @@
                     <div class="facility-pricing">
                         <div class="price-option">
                             <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">$40/hour</span>
+                            <span class="price-value">Rs. 40/hour</span>
                         </div>
                     </div>
                     <button class="btn btn-book book-facility" data-facility="conference-room" data-name="Team Conference Room" data-hourly="40" data-capacity="25">Book Facility</button>
@@ -353,7 +353,7 @@
             <!-- Outdoor Training Area -->
             <div class="facility-card" data-type="outdoor" data-capacity="medium">
                 <div class="facility-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/outdoor-training.jpg" alt="Outdoor Training Area" onerror="this.src='https://via.placeholder.com/300x200?text=Outdoor+Training+Area'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Outdoor Training Area" onerror="this.src='https://via.placeholder.com/300x200?text=Outdoor+Training+Area'" />
                 </div>
                 <div class="facility-info">
                     <h3>Outdoor Training Area</h3>
@@ -384,7 +384,7 @@
                     <div class="facility-pricing">
                         <div class="price-option">
                             <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">$20/hour</span>
+                            <span class="price-value">Rs. 20/hour</span>
                         </div>
                     </div>
                     <button class="btn btn-book book-facility" data-facility="outdoor-training" data-name="Outdoor Training Area" data-hourly="20" data-capacity="20">Book Facility</button>
@@ -394,7 +394,7 @@
             <!-- Indoor Sports Hall -->
             <div class="facility-card" data-type="indoor" data-capacity="large">
                 <div class="facility-image">
-                    <img src="<?php echo URLROOT; ?>/img/facilities/sports-hall.jpg" alt="Indoor Sports Hall" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Sports+Hall'" />
+                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Indoor Sports Hall" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Sports+Hall'" />
                 </div>
                 <div class="facility-info">
                     <h3>Indoor Sports Hall</h3>
@@ -425,7 +425,7 @@
                     <div class="facility-pricing">
                         <div class="price-option">
                             <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">$45/hour</span>
+                            <span class="price-value">Rs. 45/hour</span>
                         </div>
                     </div>
                     <button class="btn btn-book book-facility" data-facility="sports-hall" data-name="Indoor Sports Hall" data-hourly="45" data-capacity="40">Book Facility</button>
@@ -525,7 +525,7 @@
                 </div>
             </form>
             <div class="booking-total">
-                <strong>Total: $<span id="booking-total">0.00</span></strong>
+                <strong>Total: Rs. <span id="booking-total">0.00</span></strong>
             </div>
         </div>
         <div class="modal-footer">
