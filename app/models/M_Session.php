@@ -270,6 +270,72 @@ class M_Session {
     }
 
     /**
+     * Get all sessions (no coach filter) with optional filters
+     * @param array $filters
+     * @return array
+     */
+    public function getAllSessions($filters = []) {
+        $query = 'SELECT 
+                s.SessionID,
+                s.SessionType,
+                s.SessionMode,
+                s.CoachOrTrainerID,
+                s.Name,
+                s.`Date`,
+                s.StartTime,
+                s.EndTime,
+                s.Location,
+                s.`Status`,
+                s.MaxParticipants,
+                s.PricePerSession,
+                s.IsRecurring,
+                (SELECT COUNT(*) FROM SessionEnrollment WHERE SessionID = s.SessionID AND `Status` != "cancelled") AS ParticipantCount
+            FROM `Session` s
+            WHERE 1=1';
+
+        if (!empty($filters['type'])) {
+            $query .= ' AND s.SessionType = :type';
+        }
+        if (!empty($filters['status'])) {
+            $query .= ' AND s.`Status` = :status';
+        }
+        if (!empty($filters['dateFrom'])) {
+            $query .= ' AND s.`Date` >= :date_from';
+        }
+        if (!empty($filters['dateTo'])) {
+            $query .= ' AND s.`Date` <= :date_to';
+        }
+        if (!empty($filters['search'])) {
+            $query .= ' AND (s.Name LIKE :search OR s.Location LIKE :search)';
+        }
+
+        $query .= ' ORDER BY s.`Date` DESC, s.StartTime DESC';
+
+        $this->db->query($query);
+
+        // Bind filters
+        if (!empty($filters['type'])) {
+            $this->db->bind(':type', $filters['type']);
+        }
+        if (!empty($filters['status'])) {
+            $this->db->bind(':status', $filters['status']);
+        }
+        if (!empty($filters['dateFrom'])) {
+            $this->db->bind(':date_from', $filters['dateFrom']);
+        }
+        if (!empty($filters['dateTo'])) {
+            $this->db->bind(':date_to', $filters['dateTo']);
+        }
+        if (!empty($filters['search'])) {
+            $this->db->bind(':search', '%' . $filters['search'] . '%');
+        }
+
+        $result = $this->db->resultSet();
+        error_log('getAllSessions returned ' . count($result) . ' rows');
+        return $result;
+    }
+
+    /**
      * Get session participants
      * @param int $sessionId
      * @return array

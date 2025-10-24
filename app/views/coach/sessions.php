@@ -259,7 +259,7 @@
         <div class="section-header">
             <h2>
                 <i class="fas fa-list"></i>
-                Upcoming Sessions
+                Practice Sessions
             </h2>
             <p>All scheduled sessions with quick actions</p>
         </div>
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadSessionsFromDatabase() {
     console.log('Loading sessions from database...');
     
-    fetch(`<?php echo URLROOT; ?>/coach/get_sessions_list`)
+    fetch(`<?php echo URLROOT; ?>/coach/get_sessions_list?scope=all`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -994,33 +994,25 @@ function renderSessionsTable() {
         return;
     }
     
-    // Sort sessions by date and time
+    // Sort sessions by date and time (show ALL sessions)
     const sortedSessions = [...calendarState.sessions].sort((a, b) => {
         return new Date(a.date + ' ' + a.startTime) - new Date(b.date + ' ' + b.startTime);
     });
-    
-    // Filter only upcoming sessions
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const upcomingSessions = sortedSessions.filter(session => {
-        const sessionDate = new Date(session.date);
-        return sessionDate >= today;
-    });
-    
-    if (upcomingSessions.length === 0) {
+
+    if (sortedSessions.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 40px;">
-                    <i class="fas fa-check-circle" style="font-size: 48px; color: #10b981; margin-bottom: 16px;"></i>
-                    <p style="color: #999; margin: 0;">No upcoming sessions. All sessions are completed!</p>
+                    <i class="fas fa-calendar-times" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                    <p style="color: #999; margin: 0;">No sessions found. Create your first session!</p>
                 </td>
             </tr>
         `;
         return;
     }
-    
-    upcomingSessions.forEach(session => {
+
+    // Render all sessions (past and future)
+    sortedSessions.forEach(session => {
         const row = createTableRow(session);
         tbody.appendChild(row);
     });

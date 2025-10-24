@@ -743,7 +743,15 @@ class Coach extends Controller {
         error_log('Filters: ' . print_r($filters, true));
         
         $sessionModel = $this->model('M_Session');
-        $sessions = $sessionModel->getSessionsByCoach($coachId, $filters);
+
+        // If scope=all is requested and user is authorized (coach), return all sessions
+        $scope = $_GET['scope'] ?? '';
+        if ($scope === 'all') {
+            error_log('get_sessions_list: returning ALL sessions (scope=all)');
+            $sessions = $sessionModel->getAllSessions($filters);
+        } else {
+            $sessions = $sessionModel->getSessionsByCoach($coachId, $filters);
+        }
         
         error_log('Found ' . count($sessions) . ' session(s) for coach ID: ' . $coachId);
         error_log('=== GET SESSIONS LIST END ===');

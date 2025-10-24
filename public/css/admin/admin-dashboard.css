@@ -104,6 +104,9 @@ body {
     background: transparent;
     min-height: calc(100vh - 80px);
     transition: margin-left 0.3s ease;
+    /* Defensive: avoid width rules that override left margin when sidebar is fixed */
+    box-sizing: border-box;
+    max-width: calc(100% - 280px);
 }
 
 /* Dashboard Header - Consistent Blue Theme */

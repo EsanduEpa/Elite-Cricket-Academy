@@ -1535,3 +1535,28 @@ textarea.form-control {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
+
+/* Ensure main content is offset when a fixed sidebar is present (fallback)
+   This prevents .main-content from appearing full-width if JS hasn't run
+   or if other CSS overrides the margin. We cover both admin-sidebar and
+   shopSidebar id/class and the collapsed state. */
+.admin-sidebar + .main-content,
+.shop-sidebar + .main-content,
+#shopSidebar + .main-content {
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
+}
+
+.admin-sidebar.collapsed + .main-content,
+.shop-sidebar.collapsed + .main-content,
+#shopSidebar.collapsed + .main-content {
+    margin-left: 80px;
+}
+
+@media (max-width: 1024px) {
+    .admin-sidebar + .main-content,
+    .shop-sidebar + .main-content,
+    #shopSidebar + .main-content {
+        margin-left: 0;
+    }
+}

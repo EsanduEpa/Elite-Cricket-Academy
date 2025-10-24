@@ -1,7 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<!-- FullCalendar CSS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<!-- FullCalendar removed for coach dashboard -->
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
@@ -143,8 +142,10 @@
                 </div>
             </div>
 
-            <!-- Today's Sessions Overview - Moved to Top -->
-            <div class="todays-sessions">
+            <!-- Top Row: Today's Sessions + Upcoming Bookings -->
+            <div class="top-row">
+                <!-- Today's Sessions Overview -->
+                <div class="todays-sessions">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-day"></i> Today's Training Sessions</h2>
                     <div class="session-summary">
@@ -190,16 +191,6 @@
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- Secondary Content Grid for Calendar and Bookings -->
-            <div class="secondary-content-grid">
-                <!-- Calendar Section -->
-                <?php 
-                $calendarTitle = 'Training Calendar';
-                $calendarIcon = 'fas fa-calendar-alt';
-                $calendarId = 'trainingCalendar';
-                include APPROOT . '/views/inc/components/calendar.php'; 
-                ?>
 
                 <!-- Upcoming Bookings Section -->
                 <div class="bookings-section">
@@ -263,7 +254,7 @@
                         <?php endif; ?>
                     </div>
                 </div>
-            </div>
+            </div> <!-- end top-row -->
 
             <!-- Charts & Analytics Section -->
             <div class="analytics-section">
@@ -273,25 +264,7 @@
                 </div>
 
                 <div class="analytics-grid">
-                    <!-- Player Performance Chart -->
-                    <div class="analytics-card" id="performance">
-                        <div class="card-header">
-                            <h3>Player Performance</h3>
-                            <div class="controls">
-                                <select id="performancePlayerSelect"></select>
-                                <select id="performanceRangeSelect">
-                                    <option value="30">Last 30 days</option>
-                                    <option value="90">Last 90 days</option>
-                                    <option value="365">Last 12 months</option>
-                                </select>
-                                <button class="btn small" id="performanceToggleType">Toggle Line/Bar</button>
-                            </div>
-                        </div>
-                        <div class="card-body chart-container">
-                            <canvas id="performanceChart" aria-label="Player performance over time"></canvas>
-                        </div>
-                        <div class="card-footer muted">Tip: Click a legend item to show/hide series. Hover for exact values.</div>
-                    </div>
+                    <!-- Player Performance card removed per request -->
 
                     <!-- Attendance Chart -->
                     <div class="analytics-card" id="sessions">
@@ -391,8 +364,6 @@
     <!-- Include Footer -->
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
-    <!-- FullCalendar JS -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script>
         // Expose server-side dashboard data to client-side scripts
         window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;

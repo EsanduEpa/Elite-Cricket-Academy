@@ -248,6 +248,21 @@ body {
     margin-bottom: 32px;
 }
 
+/* Top row used for Today's Sessions and Upcoming Bookings side-by-side */
+.top-row {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .top-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ============ TODAY'S SESSIONS - BLUE THEME ============ */
 .todays-sessions {
     background: rgba(255, 255, 255, 0.25);
@@ -675,7 +690,7 @@ body {
 
 .analytics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: 1fr 1fr; /* two columns for the two remaining charts */
     gap: 24px;
 }
 
@@ -909,7 +924,7 @@ body {
 /* ============ RESPONSIVE DESIGN ============ */
 @media (max-width: 1400px) {
     .analytics-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* collapse to single column under 1400px */
     }
 }
 
