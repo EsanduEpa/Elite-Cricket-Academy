@@ -186,13 +186,13 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <div class="table-cell-primary">
+                                            <div class="table-cell-primary duration">
                                                 <i class="fas fa-clock"></i> <?php echo $plan->Duration; ?> mins
                                             </div>
                                         </td>
                                         <td>
                                             <?php if (!empty($plan->durationdays)): ?>
-                                                <div class="table-cell-primary">
+                                                <div class="table-cell-primary durationdays">
                                                     <i class="fas fa-calendar-week"></i> <?php echo $plan->durationdays; ?> days
                                                 </div>
                                             <?php else: ?>

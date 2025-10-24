@@ -174,8 +174,11 @@ function viewPlan(planId) {
     if (row) {
         const planName = row.querySelector('.plan-name strong').textContent;
         const frequency = row.querySelector('.frequency-badge').textContent.trim();
-        const duration = row.querySelector('.duration').textContent;
-        const date = row.querySelector('.date').textContent;
+        // Safely read duration and created date by class selectors added to server-rendered rows
+        const durationEl = row.querySelector('.duration');
+        const dateEl = row.querySelector('.table-cell-secondary') || row.querySelector('.date');
+        const duration = durationEl ? durationEl.textContent.trim() : '';
+        const date = dateEl ? dateEl.textContent.trim() : '';
         const planIdFormatted = row.querySelector('.plan-id').textContent;
         
         // Display plan details
@@ -215,7 +218,7 @@ function viewPlan(planId) {
                 </div>
             </div>
             <div style="display: flex; gap: 12px; justify-content: center; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                <button onclick="editPlan(${planId}, '${planName.replace(/'/g, "\\'")}', '${frequency}', '${duration.replace(' mins', '')}'); closeViewModal();" style="background: linear-gradient(135deg, #ff9f43, #ffb74d); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <button onclick="prepareEditFromView(${planId}); closeViewModal();" style="background: linear-gradient(135deg, #ff9f43, #ffb74d); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-edit"></i>Edit Plan
                 </button>
                 <button onclick="deletePlan(${planId}, '${planName.replace(/'/g, "\\'")}'); closeViewModal();" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
@@ -232,6 +235,34 @@ function closeViewModal() {
     setTimeout(() => {
         modal.style.display = 'none';
     }, 300);
+}
+
+// Prepare and open the edit modal using data from the table row (used by view modal Edit button)
+function prepareEditFromView(planId) {
+    const row = document.querySelector(`tr[data-plan-id="${planId}"]`);
+    if (!row) return;
+
+    const planName = row.querySelector('.plan-name strong') ? row.querySelector('.plan-name strong').textContent.trim() : '';
+    const frequency = row.querySelector('.frequency-badge') ? row.querySelector('.frequency-badge').textContent.trim() : '';
+    const durationText = row.querySelector('.duration') ? row.querySelector('.duration').textContent.trim() : '';
+    const durationNumeric = parseInt(durationText.replace(/[^0-9]/g, ''), 10) || '';
+    const durationDaysText = row.querySelector('.durationdays') ? row.querySelector('.durationdays').textContent.trim() : '';
+    const durationDaysNumeric = parseInt(durationDaysText.replace(/[^0-9]/g, ''), 10) || '';
+    const videolink = row.querySelector('a') ? row.querySelector('a').getAttribute('href') : '';
+
+    // Construct a planData object similar to what editPlan expects
+    const planData = {
+        workoutname: planName,
+        frequency: frequency,
+        duration: durationNumeric,
+        durationdays: durationDaysNumeric,
+        videolink: videolink,
+        intensity: row.querySelector('.intensity-badge') ? row.querySelector('.intensity-badge').textContent.trim() : 'Moderate',
+        notsuitablefor: row.querySelector('.notsuitablefor') ? row.querySelector('.notsuitablefor').textContent.trim() : '',
+        benefits: row.querySelector('.benefits') ? row.querySelector('.benefits').textContent.trim() : ''
+    };
+
+    editPlan(planId, planData);
 }
 
 // Character counter function

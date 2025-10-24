@@ -677,28 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const addModal = document.getElementById('addNutritionPlanModal');
-        const viewModal = document.getElementById('viewPlanModal');
-        
-        if (event.target === addModal) {
-            closeAddNutritionPlanModal();
-        }
-        if (event.target === viewModal) {
-            closeViewPlanModal();
-        }
-    }
-
-    // Initialize Universal Sidebar for trainer
-    document.addEventListener('DOMContentLoaded', function() {
-        new UniversalSidebar({
-            sidebarId: 'trainerSidebar',
-            toggleId: 'sidebarToggle',
-            mainContentId: 'mainContent',
-            sidebarClass: 'trainer-sidebar'
-        });
-    });
+   
 </script>
 
 <script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>

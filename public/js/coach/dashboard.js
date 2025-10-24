@@ -90,17 +90,26 @@ document.addEventListener('DOMContentLoaded', function(){
 		healthChart = new Chart(ctx, cfg);
 	}
 
-	// UI handlers
-	document.getElementById('performanceToggleType').addEventListener('click', function(){
-		performanceIsLine = !performanceIsLine; renderPerformance(document.getElementById('performancePlayerSelect').value);
-	});
+	// UI handlers (guard existence since performance chart may be removed)
+	const perfToggle = document.getElementById('performanceToggleType');
+	const perfSelect = document.getElementById('performancePlayerSelect');
+	if (perfToggle && perfSelect) {
+		perfToggle.addEventListener('click', function(){
+			performanceIsLine = !performanceIsLine; renderPerformance(perfSelect.value);
+		});
 
-	document.getElementById('performancePlayerSelect').addEventListener('change', function(){
-		renderPerformance(this.value);
-	});
-	document.getElementById('attendanceTeamSelect').addEventListener('change', renderAttendance);
-	document.getElementById('attendanceRangeSelect').addEventListener('change', renderAttendance);
-	document.getElementById('healthFilterSelect').addEventListener('change', renderHealth);
+		perfSelect.addEventListener('change', function(){
+			renderPerformance(this.value);
+		});
+	}
+
+	const attendanceTeam = document.getElementById('attendanceTeamSelect');
+	const attendanceRange = document.getElementById('attendanceRangeSelect');
+	if (attendanceTeam) attendanceTeam.addEventListener('change', renderAttendance);
+	if (attendanceRange) attendanceRange.addEventListener('change', renderAttendance);
+
+	const healthFilter = document.getElementById('healthFilterSelect');
+	if (healthFilter) healthFilter.addEventListener('change', renderHealth);
 
 	// Nav anchors smooth scroll
 	document.querySelectorAll('.nav-anchor').forEach(a=>{
@@ -112,7 +121,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
 	// Initialize
 	populatePlayerSelect();
-	renderPerformance('all');
+	// Only render performance if the canvas exists
+	if (document.getElementById('performanceChart')) {
+		renderPerformance('all');
+	}
 	renderAttendance();
 	renderHealth();
 });
