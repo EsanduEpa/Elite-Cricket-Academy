@@ -176,7 +176,7 @@ class M_Trainer {
             wp.NotSuitableFor,
             wp.Benefits,
             wp.CreatedDate
-        FROM WorkoutPlan wp 
+        FROM workoutplan wp 
         WHERE wp.TrainerID = :trainer_id
         ORDER BY wp.CreatedDate DESC');
         
@@ -194,7 +194,25 @@ class M_Trainer {
             error_log("=== M_Trainer::addWorkoutPlan() ===");
             error_log("Data received: " . print_r($data, true));
             
-            $this->db->query('INSERT INTO WorkoutPlan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits) 
+            // First, verify that the TrainerID exists in the trainerprofile table
+            $this->db->query('SELECT TrainerID FROM trainerprofile WHERE TrainerID = :trainer_id');
+            $this->db->bind(':trainer_id', $data['trainer_id']);
+            $trainerExists = $this->db->single();
+            
+            if (!$trainerExists) {
+                error_log("Trainer ID {$data['trainer_id']} does not exist in trainerprofile table");
+                // Create a basic trainer profile if one doesn't exist
+                $this->db->query('INSERT INTO trainerprofile (TrainerID, Experience, Certifications) VALUES (:trainer_id, 0, NULL)');
+                $this->db->bind(':trainer_id', $data['trainer_id']);
+                
+                if (!$this->db->execute()) {
+                    error_log("Failed to create trainer profile for TrainerID: {$data['trainer_id']}");
+                    return false;
+                }
+                error_log("Created trainer profile for TrainerID: {$data['trainer_id']}");
+            }
+            
+            $this->db->query('INSERT INTO workoutplan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits) 
                 VALUES (:trainer_id, :workoutname, :frequency, :duration, :videolink, :intensity, :notsuitablefor, :benefits)');
             
             $this->db->bind(':trainer_id', $data['trainer_id']);
@@ -210,21 +228,33 @@ class M_Trainer {
             $result = $this->db->execute();
             error_log("Execute result: " . ($result ? 'TRUE' : 'FALSE'));
             
+            if ($result) {
+                $insertId = $this->db->lastInsertId();
+                error_log("Successfully inserted workout plan with ID: " . $insertId);
+            }
+            
             return $result;
         } catch (PDOException $e) {
             error_log("PDO Exception in addWorkoutPlan: " . $e->getMessage());
+            error_log("Error Code: " . $e->getCode());
             error_log("Stack trace: " . $e->getTraceAsString());
-            throw $e;
+            
+            // Check if it's a foreign key constraint error
+            if ($e->getCode() == 23000) {
+                error_log("Foreign key constraint violation - TrainerID may not exist in trainerprofile table");
+            }
+            
+            throw $e; // Re-throw the exception so controller can handle it
         } catch (Exception $e) {
             error_log("Exception in addWorkoutPlan: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
-            throw $e;
+            throw $e; // Re-throw the exception so controller can handle it
         }
     }
 
     // Update workout plan
     public function updateWorkoutPlan($data) {
-        $this->db->query('UPDATE WorkoutPlan 
+        $this->db->query('UPDATE workoutplan 
             SET workoutname = :workoutname, 
                 frequency = :frequency, 
                 Duration = :duration,
@@ -249,7 +279,7 @@ class M_Trainer {
 
     // Delete workout plan
     public function deleteWorkoutPlan($plan_id, $trainer_id) {
-        $this->db->query('DELETE FROM WorkoutPlan 
+        $this->db->query('DELETE FROM workoutplan 
             WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
         
         $this->db->bind(':plan_id', $plan_id);
@@ -260,7 +290,7 @@ class M_Trainer {
 
     // Get single workout plan by ID
     public function getWorkoutPlanById($plan_id) {
-    $this->db->query('SELECT *, Duration AS durationdays FROM WorkoutPlan WHERE PlanID = :plan_id');
+    $this->db->query('SELECT *, Duration AS durationdays FROM workoutplan WHERE PlanID = :plan_id');
         $this->db->bind(':plan_id', $plan_id);
         
         return $this->db->single();
@@ -282,7 +312,7 @@ class M_Trainer {
             wp.CreatedDate,
             u.name as trainer_name,
             u.email as trainer_email
-        FROM WorkoutPlan wp 
+        FROM workoutplan wp 
         LEFT JOIN users u ON wp.TrainerID = u.user_id
         ORDER BY wp.CreatedDate DESC');
         
