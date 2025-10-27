@@ -60,7 +60,12 @@
         //excute the prepared statement
         public function execute() {
             try {
-                return $this->statement->execute();
+                $result = $this->statement->execute();
+                if (!$result) {
+                    $errorInfo = $this->statement->errorInfo();
+                    error_log("Database execution failed with error: " . print_r($errorInfo, true));
+                }
+                return $result;
             } catch (PDOException $e) {
                 error_log("Database execution error: " . $e->getMessage());
                 error_log("SQL Error Info: " . print_r($this->statement->errorInfo(), true));
