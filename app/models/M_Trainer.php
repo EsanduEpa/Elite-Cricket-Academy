@@ -170,7 +170,6 @@ class M_Trainer {
             wp.workoutname,
             wp.frequency,
             wp.Duration,
-            wp.Duration AS durationdays,
             wp.VideoLink,
             wp.Intensity,
             wp.NotSuitableFor,
@@ -260,7 +259,7 @@ class M_Trainer {
 
     // Get single workout plan by ID
     public function getWorkoutPlanById($plan_id) {
-    $this->db->query('SELECT *, Duration AS durationdays FROM WorkoutPlan WHERE PlanID = :plan_id');
+        $this->db->query('SELECT * FROM WorkoutPlan WHERE PlanID = :plan_id');
         $this->db->bind(':plan_id', $plan_id);
         
         return $this->db->single();
@@ -274,7 +273,6 @@ class M_Trainer {
             wp.workoutname,
             wp.frequency,
             wp.Duration,
-            wp.Duration AS durationdays,
             wp.VideoLink,
             wp.Intensity,
             wp.NotSuitableFor,
