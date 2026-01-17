@@ -1,16 +1,37 @@
 <?php
 
+/**
+ * LOGIN CONTROLLER
+ * 
+ * Purpose: Handle user authentication (login/logout) for the cricket academy
+ * Responsibilities:
+ *   1. Display login form
+ *   2. Validate credentials against database
+ *   3. Create user session upon successful login
+ *   4. Redirect users to appropriate dashboard based on role
+ *   5. Handle logout and session destruction
+ */
 class Login extends Controller {
+    // Store reference to User model for database operations
     private $userModel;
 
+    /**
+     * CONSTRUCTOR - Runs when Login controller is instantiated
+     * Loads the M_Users model for authentication queries
+     */
     public function __construct() {
         $this->userModel = $this->model('M_Users');
     }
 
+    /**
+     * INDEX METHOD - Main login handler
+     * Handles both GET (show form) and POST (process login) requests
+     */
     public function index() {
-        // ========== SIMPLIFIED LOGIN - CREDENTIAL CHECKING WITH ROLE-BASED REDIRECT ==========
+        // ========== AUTHENTICATION SYSTEM ==========
         
-        // Start session if not already started
+        // STEP 1: ENSURE SESSION IS STARTED
+        // Sessions are needed to store logged-in user information
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
@@ -38,19 +59,26 @@ class Login extends Controller {
             }
         }
         
-        // Check for POST request
+        // STEP 3: DETERMINE REQUEST TYPE
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Process form
+            // === POST REQUEST - PROCESS LOGIN ATTEMPT ===
+            
+            // STEP 4: SANITIZE USER INPUT
+            // Prevent XSS attacks by cleaning all POST data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
+            // STEP 5: PREPARE DATA ARRAY
+            // Store credentials and error messages
             $data = [
+                // User inputs (supports both email and username)
                 'email' => trim($_POST['email']),
                 'password' => trim($_POST['password']),
+                // Error message placeholders
                 'email_err' => '',
                 'password_err' => ''
             ];
 
-            // Basic validation
+            // STEP 6: BASIC INPUT VALIDATION
             if(empty($data['email'])) {
                 $data['email_err'] = 'Please enter email or username';
             }
@@ -66,24 +94,33 @@ class Login extends Controller {
                 $loggedInUser = $this->userModel->login($data['email'], $data['password']);
                 
                 if($loggedInUser) {
-                    // ✅ CREDENTIALS MATCH - Create session and redirect based on role
+                    // === STEP 9: AUTHENTICATION SUCCESSFUL ===
+                    // Credentials are valid - create user session
+                    
+                    // Ensure session is started (safety check)
                     if (session_status() == PHP_SESSION_NONE) {
                         session_start();
                     }
                     
-                    $_SESSION['user_id'] = $loggedInUser->UserID;
-                    $_SESSION['user_email'] = $loggedInUser->Email;
-                    $_SESSION['user_name'] = $loggedInUser->Name;
-                    $_SESSION['user_role'] = $loggedInUser->Role;
+                    // STEP 10: STORE USER DATA IN SESSION
+                    // This data persists across pages until logout
+                    // $_SESSION is a PHP superglobal accessible anywhere
+                    $_SESSION['user_id'] = $loggedInUser->UserID;        // Unique identifier
+                    $_SESSION['user_email'] = $loggedInUser->Email;      // User's email
+                    $_SESSION['user_name'] = $loggedInUser->Name;        // Display name
+                    $_SESSION['user_role'] = $loggedInUser->Role;        // For access control
                     
-                    // DEBUG: Show what's happening (remove this after testing)
+                    // STEP 11: DEBUG OUTPUT (Remove in production)
+                    // Shows authentication details before redirect
                     echo "<div style='background: #d4edda; color: #155724; padding: 15px; margin: 20px; border: 1px solid #c3e6cb; border-radius: 5px;'>";
                     echo "<h3>✅ Login Successful - Debug Info</h3>";
                     echo "<p><strong>User:</strong> " . $loggedInUser->Name . "</p>";
                     echo "<p><strong>Role:</strong> " . $loggedInUser->Role . "</p>";
                     echo "<p><strong>Should redirect to:</strong> ";
                     
-                    // Redirect based on user role
+                    // STEP 12: ROLE-BASED REDIRECT
+                    // Different user roles access different dashboards
+                    // This implements Role-Based Access Control (RBAC)
                     switch($loggedInUser->Role) {
                         case 'Admin':
                             echo "admin/dashboard";
@@ -123,23 +160,31 @@ class Login extends Controller {
                             break;
                     }
                 } else {
-                    // ❌ CREDENTIALS DON'T MATCH
+                    // === AUTHENTICATION FAILED ===
+                    // Credentials are invalid (wrong email/username or password)
+                    // SECURITY NOTE: We don't specify which field is wrong to prevent
+                    // attackers from knowing if an email/username exists in the system
                     $data['password_err'] = 'Invalid email/username or password';
                 }
             }
 
-            // Load view with errors
+            // STEP 13: RELOAD LOGIN FORM WITH ERRORS
+            // If validation failed or authentication failed, show form again
             $this->view('v_login', $data);
         } else {
-            // Init data
+            // === GET REQUEST - DISPLAY LOGIN FORM ===
+            // User is visiting login page for the first time
+            
+            // Initialize empty data array
             $data = [
-                'email' => '',
-                'password' => '',
-                'email_err' => '',
-                'password_err' => ''
+                'email' => '',          // Empty email field
+                'password' => '',       // Empty password field
+                'email_err' => '',      // No errors yet
+                'password_err' => ''    // No errors yet
             ];
 
-            // Load view
+            // LOAD LOGIN VIEW
+            // Display the login form (v_login.php)
             $this->view('v_login', $data);
         }
 
@@ -221,20 +266,35 @@ class Login extends Controller {
         ========== END COMMENTED SECTION ========== */
     }
 
-    // Simple logout method
+    /**
+     * LOGOUT METHOD - Terminate user session
+     * 
+     * Purpose: Securely log out the user and clean up their session
+     * Steps:
+     *   1. Start session (to access session data)
+     *   2. Clear all session variables
+     *   3. Destroy the session entirely
+     *   4. Redirect to login page
+     */
     public function logout() {
-        // Start session if not already started
+        // STEP 1: ENSURE SESSION IS STARTED
+        // We need an active session to destroy it
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
         
-        // Clear all session variables
+        // STEP 2: CLEAR ALL SESSION VARIABLES
+        // session_unset() removes all session variables (user_id, user_role, etc.)
+        // User is no longer authenticated after this
         session_unset();
         
-        // Destroy the session
+        // STEP 3: DESTROY THE SESSION
+        // session_destroy() completely removes the session file from server
+        // This is more secure than just unsetting variables
         session_destroy();
         
-        // Redirect to login page
+        // STEP 4: REDIRECT TO LOGIN PAGE
+        // Send user back to login page
         redirect('login');
     }
     
