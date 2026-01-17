@@ -14,157 +14,98 @@ class Admin extends Controller {
     }
     
     public function dashboard() {
-        // Auto-update event statuses on dashboard load
+        // === ADMIN DASHBOARD - REAL DATABASE DATA ===
+        
+        // STEP 1: AUTO-UPDATE EVENT STATUSES
+        // Updates events to "completed" if end date has passed
+        // This keeps event data accurate without manual intervention
         $eventModel = $this->model('Event');
         $eventModel->updateEventStatuses();
         
-        // Hardcoded sample data for interface demonstration
+        // STEP 2: LOAD DATA MODELS
+        // Each model handles specific database queries for its domain
+        $userModel = $this->model('M_Users');      // User-related queries
+        $feedbackModel = $this->model('Feedback'); // Feedback queries
+        
+        // STEP 3: FETCH USER STATISTICS FROM DATABASE
+        // Query the User table to get real counts for each role
+        // Role values: 'Admin', 'Coach', 'Player', 'Trainer', 'ShopEmployee'
+        $totalUsers = $userModel->getTotalUsers();                    // COUNT all users
+        $totalCoaches = $userModel->getTotalUsersByType('Coach');     // COUNT WHERE Role = 'Coach'
+        $totalPlayers = $userModel->getTotalUsersByType('Player');    // COUNT WHERE Role = 'Player'
+        $totalTrainers = $userModel->getTotalUsersByType('Trainer');  // COUNT WHERE Role = 'Trainer'
+        $totalAdmins = $userModel->getTotalUsersByType('Admin');      // COUNT WHERE Role = 'Admin'
+        $totalShopEmployees = $userModel->getTotalUsersByType('ShopEmployee'); // COUNT WHERE Role = 'ShopEmployee'
+        
+        // CALCULATE TOTAL STAFF: All users except Players
+        // Staff = Admin + Coach + Trainer + ShopEmployee
+        $totalStaff = $totalAdmins + $totalCoaches + $totalTrainers + $totalShopEmployees;
+        
+        // STEP 4: FETCH UPCOMING EVENTS FROM DATABASE
+        // Get next 4 upcoming events ordered by start date
+        // This replaces hardcoded event data with real database records
+        $upcomingEvents = $eventModel->getUpcomingEvents(4);
+        
+        // STEP 5: FETCH RECENT ACTIVITIES FROM DATABASE
+        // Get last 6 activities from ActivityLog table
+        // Includes user actions like registrations, logins, profile updates
+        $recentActivities = $userModel->getRecentActivities(6);
+        
+        // STEP 6: FETCH PENDING FEEDBACK FROM DATABASE
+        // Get feedback items that need admin attention
+        // Status = 'pending' means not yet reviewed by admin
+        $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
+        
+        // STEP 7: PREPARE DATA ARRAY FOR VIEW
+        // All data now comes from database queries above
         $data = [
             'title' => 'Academy Management Dashboard - Elite Cricket Academy',
-            'totalUsers' => 47,
-            'totalCoaches' => 8,
-            'totalPlayers' => 32,
-            'totalTrainers' => 5,
-            'totalStaff' => 2,
-            'upcomingEvents' => [
-                [
-                    'id' => 1,
-                    'title' => 'Junior Cricket Championship',
-                    'event_date' => '2025-09-15',
-                    'event_type' => 'tournament',
-                    'description' => 'Annual junior cricket championship for under-16 players',
-                    'location' => 'Main Cricket Ground'
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Advanced Batting Workshop',
-                    'event_date' => '2025-09-12',
-                    'event_type' => 'training',
-                    'description' => 'Specialized batting techniques workshop by senior coach',
-                    'location' => 'Practice Nets Area'
-                ],
-                [
-                    'id' => 3,
-                    'title' => 'Inter-Academy Friendly Match',
-                    'event_date' => '2025-09-18',
-                    'event_type' => 'match',
-                    'description' => 'Friendly match against City Sports Academy',
-                    'location' => 'Stadium Ground'
-                ],
-                [
-                    'id' => 4,
-                    'title' => 'Fielding Skills Training',
-                    'event_date' => '2025-09-20',
-                    'event_type' => 'training',
-                    'description' => 'Intensive fielding and wicket-keeping session',
-                    'location' => 'Training Field B'
-                ]
-            ],
-            'recentActivities' => [
-                [
-                    'id' => 1,
-                    'action' => 'New player registered',
-                    'user_name' => 'Sarah Thompson',
-                    'timestamp' => '2 hours ago',
-                    'type' => 'registration',
-                    'details' => 'Junior player joined the academy program'
-                ],
-                [
-                    'id' => 2,
-                    'action' => 'Training session completed',
-                    'user_name' => 'Coach Michael Smith',
-                    'timestamp' => '4 hours ago',
-                    'type' => 'training',
-                    'details' => 'Bowling technique workshop for senior players'
-                ],
-                [
-                    'id' => 3,
-                    'action' => 'Event scheduled',
-                    'user_name' => 'Admin User',
-                    'timestamp' => '6 hours ago',
-                    'type' => 'event',
-                    'details' => 'Junior Cricket Championship added to calendar'
-                ],
-                [
-                    'id' => 4,
-                    'action' => 'Feedback submitted',
-                    'user_name' => 'Emily Rodriguez',
-                    'timestamp' => '1 day ago',
-                    'type' => 'feedback',
-                    'details' => 'Training facility improvement suggestions'
-                ],
-                [
-                    'id' => 5,
-                    'action' => 'Coach profile updated',
-                    'user_name' => 'David Wilson',
-                    'timestamp' => '1 day ago',
-                    'type' => 'profile',
-                    'details' => 'Coaching credentials and certifications updated'
-                ],
-                [
-                    'id' => 6,
-                    'action' => 'Equipment inventory updated',
-                    'user_name' => 'Staff Manager',
-                    'timestamp' => '2 days ago',
-                    'type' => 'inventory',
-                    'details' => 'New cricket gear added to inventory'
-                ]
-            ],
-            'pendingFeedback' => [
-                [
-                    'id' => 1,
-                    'subject' => 'Training Schedule Improvement',
-                    'message' => 'Could we have more evening training slots for working parents?',
-                    'user_name' => 'Jennifer Martinez',
-                    'status' => 'pending',
-                    'created_at' => '2025-09-01 14:30:00',
-                    'priority' => 'medium'
-                ],
-                [
-                    'id' => 2,
-                    'subject' => 'Equipment Quality Concern',
-                    'message' => 'Some of the batting helmets need replacement for safety.',
-                    'user_name' => 'Robert Chen',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-31 09:15:00',
-                    'priority' => 'high'
-                ],
-                [
-                    'id' => 3,
-                    'subject' => 'Ground Maintenance',
-                    'message' => 'The practice pitch needs better drainage after recent rains.',
-                    'user_name' => 'Amanda Foster',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-30 16:45:00',
-                    'priority' => 'high'
-                ],
-                [
-                    'id' => 4,
-                    'subject' => 'Coaching Appreciation',
-                    'message' => 'Excellent work by Coach Smith with the junior team!',
-                    'user_name' => 'Mark Johnson',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-29 11:20:00',
-                    'priority' => 'low'
-                ],
-                [
-                    'id' => 5,
-                    'subject' => 'Tournament Preparation',
-                    'message' => 'Need more practice matches before the championship.',
-                    'user_name' => 'Lisa Williams',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-28 13:10:00',
-                    'priority' => 'medium'
-                ]
-            ],
-            'totalPendingFeedback' => 5,
+            
+            // USER STATISTICS (from database)
+            'totalUsers' => $totalUsers,       // Total registered users
+            'totalCoaches' => $totalCoaches,   // Users with Coach role
+            'totalPlayers' => $totalPlayers,   // Users with Player role
+            'totalTrainers' => $totalTrainers, // Users with Trainer role
+            'totalStaff' => $totalStaff,       // Users with ShopEmployee role
+            
+            // UPCOMING EVENTS (from Event table)
+            // Returns array of event objects with: id, title, event_date, Type, Description, Location
+            'upcomingEvents' => $upcomingEvents,
+            
+            // RECENT ACTIVITIES (from ActivityLog table)
+            // Returns array of activity objects with: ActivityID, Action, Description, Timestamp, user_name
+            'recentActivities' => $recentActivities,
+            
+            // PENDING FEEDBACK (from Feedback table)
+            // Returns array of feedback objects with: FeedbackID, Content, Rating, Status, user_name
+            'pendingFeedback' => $pendingFeedback,
+            
+            // FEEDBACK STATISTICS
+            // Count of total pending feedback items needing review
+            'totalPendingFeedback' => count($pendingFeedback),
+            
+            // TODAY'S STATISTICS (from database)
+            // Real-time data for current day activity monitoring
             'todayStats' => [
-                'newRegistrations' => 3,
-                'activeEvents' => 2,
-                'feedbackReceived' => 1
-            ]
+                // New user registrations today (WHERE DATE(DateJoined) = CURDATE())
+                'newRegistrations' => $userModel->getTodayRegistrations(),
+                
+                // Events happening today (WHERE DATE(StartDate) = CURDATE())
+                'activeEvents' => count($eventModel->getTodayActiveEvents()),
+                
+                // Feedback received today - will need to add this method if needed
+                'feedbackReceived' => 0  // Placeholder - can add getFeedbackToday() method
+            ],
+            
+            // MONTHLY REVENUE (Placeholder until Finance model is created)
+            // TODO: Create Finance model with getMonthlyRevenue() method
+            // This should query Order/Transaction table and SUM payments for current month
+            'monthlyRevenue' => 0  // Will show "RS 0" until Finance model implemented
         ];
         
+        // STEP 8: LOAD DASHBOARD VIEW
+        // Pass all database data to the view template
+        // View file: app/views/admin/dashboard.php
         $this->view('admin/dashboard', $data);
     }
     

@@ -50,7 +50,9 @@
                         <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
-                            <span class="badge">12</span>
+                            <?php if($data['totalPendingFeedback'] > 0): ?>
+                            <span class="badge"><?php echo $data['totalPendingFeedback']; ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
                     
@@ -109,7 +111,7 @@
                             <i class="fas fa-users-cog"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">24</span>
+                            <span class="number"><?php echo $data['totalStaff']; ?></span>
                             <span class="label">Total Staff</span>
                         </div>
                     </div>
@@ -124,7 +126,7 @@
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">8</span>
+                            <span class="number"><?php echo count($data['upcomingEvents']); ?></span>
                             <span class="label">Upcoming Events</span>
                         </div>
                     </div>
@@ -139,7 +141,7 @@
                             <i class="fas fa-comments"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">12</span>
+                            <span class="number"><?php echo $data['totalPendingFeedback']; ?></span>
                             <span class="label">Pending Reviews</span>
                         </div>
                     </div>
@@ -154,7 +156,7 @@
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">RS 100,000</span>
+                            <span class="number">RS <?php echo number_format($data['monthlyRevenue'] ?? 0); ?></span>
                             <span class="label">Monthly Revenue</span>
                         </div>
                     </div>

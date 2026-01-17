@@ -244,99 +244,127 @@ class M_Users {
     }
 
     // Get total users count
+    /**
+     * GET TOTAL USERS - Count all registered users
+     * 
+     * Purpose: Get total count of users in the system
+     * @return int - Total number of users in database
+     */
     public function getTotalUsers() {
+        // QUERY: COUNT all rows in User table
         $this->db->query('SELECT COUNT(*) as count FROM User');
         $result = $this->db->single();
         
-        return $result ? $result->count : 25; // Return dummy data if no database
+        // RETURN: Total user count (returns 0 if table is empty)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get total users by type (coach, player, trainer, staff)
+    /**
+     * GET TOTAL USERS BY TYPE - Count users by their role
+     * 
+     * Purpose: Get count of users for specific role (Coach, Player, Trainer, ShopEmployee)
+     * @param string $type - Role name (case-sensitive: 'Coach', 'Player', 'Trainer', 'ShopEmployee')
+     * @return int - Count of users with specified role
+     * 
+     * Example: getTotalUsersByType('Coach') returns number of coaches
+     */
     public function getTotalUsersByType($type) {
+        // QUERY: COUNT users WHERE Role matches the specified type
         $this->db->query('SELECT COUNT(*) as count FROM User WHERE Role = :type');
         $this->db->bind(':type', $type);
         $result = $this->db->single();
         
-        // Return dummy data if no database results
-        if (!$result) {
-            switch($type) {
-                case 'coach': return 8;
-                case 'player': return 15;
-                case 'trainer': return 3;
-                case 'staff': return 2;
-                default: return 0;
-            }
-        }
-        
-        return $result->count;
+        // RETURN: Count for this role (returns 0 if none found)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get today's registrations
+    /**
+     * GET TODAY'S REGISTRATIONS - Count new users registered today
+     * 
+     * Purpose: Track daily registration activity for monitoring growth
+     * @return int - Number of users who registered today
+     * 
+     * Uses CURDATE() to compare with registration date
+     */
     public function getTodayRegistrations() {
+        // QUERY: COUNT users WHERE registration date = today's date
+        // DATE(DateJoined) extracts just the date part (ignoring time)
+        // CURDATE() returns current date in 'YYYY-MM-DD' format
         $this->db->query('SELECT COUNT(*) as count FROM User WHERE DATE(DateJoined) = CURDATE()');
         $result = $this->db->single();
         
-        return $result ? $result->count : 3; // Return dummy data if no database
+        // RETURN: Today's registration count (returns 0 if no registrations today)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get recent activities
+    /**
+     * GET RECENT ACTIVITIES - Fetch latest user activities from log
+     * 
+     * Purpose: Display recent system activities on admin dashboard
+     * @param int $limit - Maximum number of activities to return (default: 10)
+     * @return array - Array of activity objects with user information
+     * 
+     * Returns activities like: account_created, login, profile_updated, etc.
+     * Useful for monitoring system usage and user behavior
+     */
     public function getRecentActivities($limit = 10) {
-        $this->db->query('SELECT al.*, u.Name as user_name 
-                         FROM ActivityLog al 
-                         LEFT JOIN User u ON al.UserID = u.UserID 
-                         ORDER BY al.Timestamp DESC 
-                         LIMIT :limit');
-        $this->db->bind(':limit', $limit);
+        // QUERY: Get activities with user names via LEFT JOIN
+        // ActivityLog.UserID -> User.UserID to get user name
+        // ORDER BY Timestamp DESC gets newest activities first
+        $this->db->query('SELECT 
+            al.ActivityID as id,
+            al.Action as action,
+            al.Description as details,
+            al.Timestamp as timestamp,
+            al.Action as type,
+            u.Name as user_name 
+        FROM ActivityLog al 
+        LEFT JOIN User u ON al.UserID = u.UserID 
+        ORDER BY al.Timestamp DESC 
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
+        
+        // EXECUTE QUERY
         $results = $this->db->resultSet();
         
-        // Return dummy data if no database results
-        if (empty($results)) {
-            return [
-                [
-                    'id' => 1,
-                    'action' => 'New player registered',
-                    'user_name' => 'John Doe',
-                    'timestamp' => '2 hours ago',
-                    'type' => 'registration',
-                    'details' => 'Player joined junior cricket program'
-                ],
-                [
-                    'id' => 2,
-                    'action' => 'Training session completed',
-                    'user_name' => 'Coach Smith',
-                    'timestamp' => '4 hours ago',
-                    'type' => 'training',
-                    'details' => 'Batting practice session for senior players'
-                ],
-                [
-                    'id' => 3,
-                    'action' => 'Event created',
-                    'user_name' => 'Admin User',
-                    'timestamp' => '1 day ago',
-                    'type' => 'event',
-                    'details' => 'Junior Cricket Tournament scheduled'
-                ],
-                [
-                    'id' => 4,
-                    'action' => 'Feedback submitted',
-                    'user_name' => 'Sarah Wilson',
-                    'timestamp' => '1 day ago',
-                    'type' => 'feedback',
-                    'details' => 'Training quality improvement suggestion'
-                ],
-                [
-                    'id' => 5,
-                    'action' => 'Profile updated',
-                    'user_name' => 'Mike Johnson',
-                    'timestamp' => '2 days ago',
-                    'type' => 'profile',
-                    'details' => 'Contact information updated'
-                ]
-            ];
+        // FORMAT TIMESTAMPS
+        // Convert database timestamps to relative time (e.g., "2 hours ago")
+        foreach ($results as &$activity) {
+            if (isset($activity->timestamp)) {
+                $activity->timestamp = $this->timeAgo($activity->timestamp);
+            }
         }
         
+        // RETURN: Array of activities (empty array if no activities found)
         return $results;
+    }
+    
+    /**
+     * TIME AGO - Convert timestamp to relative time string
+     * 
+     * Purpose: Display user-friendly relative time ("2 hours ago" instead of timestamp)
+     * @param string $datetime - Database timestamp
+     * @return string - Relative time string
+     */
+    private function timeAgo($datetime) {
+        $timestamp = strtotime($datetime);
+        $difference = time() - $timestamp;
+        
+        if ($difference < 60) {
+            return 'Just now';
+        } elseif ($difference < 3600) {
+            $minutes = floor($difference / 60);
+            return $minutes . ' minute' . ($minutes > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 86400) {
+            $hours = floor($difference / 3600);
+            return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 604800) {
+            $days = floor($difference / 86400);
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        } else {
+            return date('M j, Y', $timestamp);
+        }
     }
 
     // Get all users with pagination
