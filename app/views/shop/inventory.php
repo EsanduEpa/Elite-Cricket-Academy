@@ -102,7 +102,7 @@
                     <h3>Total Stock Value</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">₨ 2,84,500</span>
+                            <span class="number">₨ <?php echo number_format($data['stats']['total_stock_value']); ?></span>
                             <span class="label">Current Inventory</span>
                         </div>
                     </div>
@@ -117,7 +117,7 @@
                     <h3>Low Stock Alerts</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number urgent">12</span>
+                            <span class="number urgent"><?php echo $data['stats']['low_stock_count']; ?></span>
                             <span class="label">Items Below Minimum</span>
                         </div>
                     </div>
@@ -126,14 +126,14 @@
             
             <div class="summary-card">
                 <div class="card-icon" style="background: linear-gradient(45deg, #4ECDC4, #5EDDD4);">
-                    <i class="fas fa-truck-loading"></i>
+                    <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Pending Orders</h3>
+                    <h3>In Stock</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">5</span>
-                            <span class="label">Supplier Orders</span>
+                            <span class="number"><?php echo $data['stats']['in_stock_count']; ?></span>
+                            <span class="label">Well Stocked Items</span>
                         </div>
                     </div>
                 </div>
@@ -141,14 +141,14 @@
             
             <div class="summary-card">
                 <div class="card-icon" style="background: linear-gradient(45deg, #6B73FF, #8B83FF);">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Stock Turnover</h3>
+                    <h3>Out of Stock</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">6.2x</span>
-                            <span class="label">This Year</span>
+                            <span class="number"><?php echo $data['stats']['out_of_stock_count']; ?></span>
+                            <span class="label">Need Restock</span>
                         </div>
                     </div>
                 </div>
@@ -250,154 +250,91 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="table-cell-title">Professional Cricket Bat</div>
-                                <div class="table-cell-details">Grade A English Willow</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">BAT-001</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="category-badge category-bats">Bats</span>
-                            </td>
-                            <td>
-                                <span class="stock-quantity stock-normal">15 units</span>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">5</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 18,000</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 2,70,000</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Gray-Nicolls</div>
-                                <div class="table-cell-details">+94771234567</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge status-in-stock">In Stock</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="adjustStock('BAT-001')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewStockHistory('BAT-001')">
-                                        <i class="fas fa-history"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="reorderItem('BAT-001')">
-                                        <i class="fas fa-shopping-cart"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="table-cell-title">Premium Batting Gloves</div>
-                                <div class="table-cell-details">Leather palm with ventilation</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">GLV-002</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="category-badge category-protective">Protective</span>
-                            </td>
-                            <td>
-                                <span class="stock-quantity stock-low">3 units</span>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">10</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 6,200</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 18,600</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Kookaburra</div>
-                                <div class="table-cell-details">+94779876543</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge status-low-stock">Low Stock</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="adjustStock('GLV-002')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewStockHistory('GLV-002')">
-                                        <i class="fas fa-history"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="urgentReorder('GLV-002')">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="table-cell-title">Elite Cricket Helmet</div>
-                                <div class="table-cell-details">Titanium grille with comfort padding</div>
-                            </td>
-                            <td>HLM-003</td>
-                            <td>
-                                <span class="category-badge category-protective">Protective</span>
-                            </td>
-                            <td>
-                                <span class="stock-quantity stock-high">28 units</span>
-                            </td>
-                            <td>8</td>
-                            <td>₨ 11,500</td>
-                            <td>₨ 3,22,000</td>
-                            <td>
-                                <div>
-                                    <strong>MRF</strong><br>
-                                    <small>+94112345678</small>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-badge status-in-stock">In Stock</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="adjustStock('HLM-003')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewStockHistory('HLM-003')">
-                                        <i class="fas fa-history"></i>
-                                    </button>
-                                    <button class="btn-small btn-info" onclick="checkReorderPoint('HLM-003')">
-                                        <i class="fas fa-chart-line"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>
-                                    <strong>Team Cricket Jersey</strong><br>
-                                    <small>Moisture-wicking fabric</small>
-                                </div>
-                            </td>
-                            <td>JER-004</td>
-                            <td>
-                                <span class="category-badge category-clothing">Clothing</span>
-                            </td>
-                            <td>
-                                <span class="stock-quantity stock-out">0 units</span>
-                            </td>
-                            <td>20</td>
-                            <td>₨ 2,800</td>
-                            <td>₨ 0</td>
-                            <td>
-                                <div>
-                                    <strong>Nike</strong><br>
-                                    <small>+94773456789</small>
-                                </div>
+                        <?php if(isset($data['inventory']) && !empty($data['inventory'])): ?>
+                            <?php foreach($data['inventory'] as $item): ?>
+                                <?php
+                                // Determine stock status
+                                $stockClass = 'stock-high';
+                                $statusText = 'In Stock';
+                                $statusClass = 'status-in-stock';
+                                
+                                if ($item->StockQuantity == 0) {
+                                    $stockClass = 'stock-out';
+                                    $statusText = 'Out of Stock';
+                                    $statusClass = 'status-out-stock';
+                                } elseif ($item->StockQuantity <= 5) {
+                                    $stockClass = 'stock-low';
+                                    $statusText = 'Low Stock';
+                                    $statusClass = 'status-low-stock';
+                                } elseif ($item->StockQuantity <= 15) {
+                                    $stockClass = 'stock-normal';
+                                }
+                                
+                                $totalValue = $item->Price * $item->StockQuantity;
+                                $minStock = max(5, round($item->StockQuantity * 0.2));
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($item->Name); ?></div>
+                                        <div class="table-cell-details"><?php echo htmlspecialchars(substr($item->Description ?? '', 0, 40)); ?><?php echo strlen($item->Description ?? '') > 40 ? '...' : ''; ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo $item->SKU ?? 'N/A'; ?></div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="category-badge category-<?php echo strtolower($item->Category); ?>"><?php echo $item->Category; ?></span>
+                                    </td>
+                                    <td>
+                                        <span class="stock-quantity <?php echo $stockClass; ?>"><?php echo $item->StockQuantity; ?> units</span>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo $minStock; ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">₨ <?php echo number_format($item->Price, 2); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">₨ <?php echo number_format($totalValue, 2); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo $item->Brand ?? 'N/A'; ?></div>
+                                        <div class="table-cell-details">Supplier Info</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-small btn-primary" onclick="adjustStock(<?php echo $item->ProductID; ?>)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-small btn-secondary" onclick="viewStockHistory(<?php echo $item->ProductID; ?>)">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                            <?php if($item->StockQuantity <= 10): ?>
+                                                <button class="btn-small btn-danger" onclick="urgentReorder(<?php echo $item->ProductID; ?>)">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button class="btn-small btn-warning" onclick="reorderItem(<?php echo $item->ProductID; ?>)">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="10" style="text-align: center; padding: 3rem;">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                        <h3>No Inventory Items</h3>
+                                        <p>Start by adding products to your inventory.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                             </td>
                             <td>
                                 <span class="status-badge status-out-of-stock">Out of Stock</span>

@@ -102,7 +102,7 @@
                     <h3>Total Products</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">248</span>
+                            <span class="number"><?php echo $data['stats']['total_products']; ?></span>
                             <span class="label">Active Products</span>
                         </div>
                     </div>
@@ -117,7 +117,7 @@
                     <h3>Low Stock</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number urgent">12</span>
+                            <span class="number urgent"><?php echo $data['stats']['low_stock']; ?></span>
                             <span class="label">Need Restock</span>
                         </div>
                     </div>
@@ -132,8 +132,8 @@
                     <h3>Top Rated</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">28</span>
-                            <span class="label">5 Star Products</span>
+                            <span class="number"><?php echo $data['stats']['top_rated']; ?></span>
+                            <span class="label">High Ratings</span>
                         </div>
                     </div>
                 </div>
@@ -147,7 +147,7 @@
                     <h3>New This Month</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">15</span>
+                            <span class="number"><?php echo $data['stats']['new_this_month']; ?></span>
                             <span class="label">Added Products</span>
                         </div>
                     </div>
@@ -250,186 +250,87 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="product-image">
-                                    <img src="<?php echo URLROOT; ?>/img/products/bat-pro.jpg" alt="Cricket Bat" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Professional Cricket Bat</div>
-                                <div class="table-cell-details">Grade A English Willow</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="category-badge category-bats">Bats</span>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 25,000</div>
-                            </td>
-                            <td>
-                                <span class="stock-level stock-medium">15 units</span>
-                            </td>
-                            <td>
-                                <div class="rating">
-                                    <span class="stars">★★★★★</span>
-                                    <small>(4.8)</small>
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge status-active">Active</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="editProduct(1)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewProduct(1)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="duplicateProduct(1)">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="deleteProduct(1)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-image">
-                                    <img src="<?php echo URLROOT; ?>/img/products/gloves.jpg" alt="Batting Gloves" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Premium Batting Gloves</div>
-                                <div class="table-cell-details">Leather palm with ventilation</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="category-badge category-protective">Protective</span>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 8,500</div>
-                            </td>
-                            <td>
-                                <span class="stock-level stock-low">3 units</span>
-                            </td>
-                            <td>
-                                <div class="rating">
-                                    <span class="stars">★★★★☆</span>
-                                    <small>(4.2)</small>
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge status-active">Active</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="editProduct(2)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewProduct(2)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="duplicateProduct(2)">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="deleteProduct(2)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-image">
-                                    <img src="<?php echo URLROOT; ?>/img/products/helmet.jpg" alt="Cricket Helmet" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Elite Cricket Helmet</div>
-                                <div class="table-cell-details">Titanium grille with comfort padding</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="category-badge category-protective">Protective</span>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">₨ 15,200</div>
-                            </td>
-                            <td>
-                                <span class="stock-level stock-high">28 units</span>
-                            </td>
-                            <td>
-                                <div class="rating">
-                                    <span class="stars">★★★★★</span>
-                                    <small>(4.9)</small>
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge status-active">Active</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="editProduct(3)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewProduct(3)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="duplicateProduct(3)">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="deleteProduct(3)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-image">
-                                    <img src="<?php echo URLROOT; ?>/img/products/jersey.jpg" alt="Team Jersey" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>Team Cricket Jersey</strong><br>
-                                    <small>Moisture-wicking fabric</small>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="category-badge category-clothing">Clothing</span>
-                            </td>
-                            <td>₨ 4,200</td>
-                            <td>
-                                <span class="stock-level stock-high">45 units</span>
-                            </td>
-                            <td>
-                                <div class="rating">
-                                    <span class="stars">★★★★☆</span>
-                                    <small>(4.3)</small>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-badge status-active">Active</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="editProduct(4)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="viewProduct(4)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="duplicateProduct(4)">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="deleteProduct(4)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php if(isset($data['products']) && !empty($data['products'])): ?>
+                            <?php foreach($data['products'] as $product): ?>
+                                <?php
+                                // Determine stock level class
+                                $stockClass = 'stock-high';
+                                if ($product->StockQuantity <= 5) {
+                                    $stockClass = 'stock-low';
+                                } elseif ($product->StockQuantity <= 15) {
+                                    $stockClass = 'stock-medium';
+                                }
+                                
+                                // Generate star rating
+                                $rating = round($product->avg_rating);
+                                $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="product-image">
+                                            <?php if($product->ProductImage): ?>
+                                                <img src="<?php echo URLROOT; ?>/<?php echo $product->ProductImage; ?>" alt="<?php echo htmlspecialchars($product->Name); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                            <?php else: ?>
+                                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                                    <?php echo strtoupper(substr($product->Name, 0, 2)); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($product->Name); ?></div>
+                                        <div class="table-cell-details"><?php echo htmlspecialchars(substr($product->Description ?? 'No description', 0, 40)); ?><?php echo strlen($product->Description ?? '') > 40 ? '...' : ''; ?></div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="category-badge category-<?php echo strtolower($product->Category); ?>"><?php echo $product->Category; ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">₨ <?php echo number_format($product->Price, 2); ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="stock-level <?php echo $stockClass; ?>"><?php echo $product->StockQuantity; ?> units</span>
+                                    </td>
+                                    <td>
+                                        <div class="rating">
+                                            <span class="stars"><?php echo $stars; ?></span>
+                                            <small>(<?php echo number_format($product->avg_rating, 1); ?>)</small>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge status-<?php echo strtolower($product->Status); ?>"><?php echo ucfirst($product->Status); ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-small btn-primary" onclick="editProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-small btn-secondary" onclick="viewProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn-small btn-warning" onclick="duplicateProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button class="btn-small btn-danger" onclick="deleteProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 3rem;">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                        <h3>No Products Found</h3>
+                                        <p>Start by adding your first product.</p>
+                                        <button class="btn btn-primary" onclick="openAddProductModal()" style="margin-top: 1rem;">
+                                            <i class="fas fa-plus"></i> Add Product
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

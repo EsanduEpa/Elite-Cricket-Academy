@@ -49,22 +49,82 @@ class Shop extends Controller {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
+        // Get order statistics
+        $stats = $this->shopModel->getOrderStats();
+        
+        // Get orders based on status filter
+        if ($status === 'all') {
+            $orders = $this->shopModel->getAllOrders();
+        } else {
+            $orders = $this->shopModel->getOrdersByStatus($status);
+        }
+        
         $data = [
             'title' => 'Order Management - Elite Cricket Gear',
-            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager'
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'stats' => $stats,
+            'orders' => $orders,
+            'current_status' => $status
         ];
         
         $this->view('shop/orders', $data);
+    }
+    
+    public function updateOrderStatus() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        // Check if POST request
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Get JSON data
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (isset($input['orderId']) && isset($input['status'])) {
+                $orderId = $input['orderId'];
+                $status = $input['status'];
+                
+                // Update order status
+                if ($this->shopModel->updateOrderStatus($orderId, $status)) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Order #$orderId status updated to $status"
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to update order status'
+                    ]);
+                }
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid request data'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid request method'
+            ]);
+        }
+        exit;
     }
 
     public function inventory() {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
+        // Get inventory statistics
+        $stats = $this->shopModel->getInventoryStats();
+        
+        // Get all inventory items
+        $inventory = $this->shopModel->getAllInventoryItems();
+        
         $data = [
             'title' => 'Inventory Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'inventory' => $this->getInventoryData()
+            'stats' => $stats,
+            'inventory' => $inventory
         ];
         
         $this->view('shop/inventory', $data);
@@ -129,11 +189,13 @@ class Shop extends Controller {
         // Get product statistics
         $stats = $this->productModel->getProductStats();
         
+        // Get all products with details
+        $products = $this->productModel->getAllProductsWithDetails();
+        
         $data = [
             'title' => 'Product Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'products' => $this->productModel->getAllProducts(),
-            'categories' => $this->getCategories(),
+            'products' => $products,
             'stats' => $stats
         ];
         

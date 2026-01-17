@@ -233,5 +233,140 @@ class M_Shop {
         ');
         return $this->db->resultSet();
     }
+    
+    // Order Management Methods
+    
+    public function getAllOrders() {
+        $this->db->query('
+            SELECT 
+                po.OrderID,
+                po.OrderDate,
+                po.TotalAmount,
+                po.PaymentMethod,
+                po.Status,
+                u.Name as CustomerName,
+                u.Email,
+                COUNT(poi.OrderItemID) as item_count
+            FROM productorder po
+            JOIN user u ON po.PlayerID = u.UserID
+            LEFT JOIN productorderitem poi ON po.OrderID = poi.OrderID
+            GROUP BY po.OrderID
+            ORDER BY po.OrderDate DESC
+        ');
+        return $this->db->resultSet();
+    }
+    
+    public function getOrdersByStatus($status) {
+        $this->db->query('
+            SELECT 
+                po.OrderID,
+                po.OrderDate,
+                po.TotalAmount,
+                po.PaymentMethod,
+                po.Status,
+                u.Name as CustomerName,
+                u.Email,
+                COUNT(poi.OrderItemID) as item_count
+            FROM productorder po
+            JOIN user u ON po.PlayerID = u.UserID
+            LEFT JOIN productorderitem poi ON po.OrderID = poi.OrderID
+            WHERE po.Status = :status
+            GROUP BY po.OrderID
+            ORDER BY po.OrderDate DESC
+        ');
+        $this->db->bind(':status', $status);
+        return $this->db->resultSet();
+    }
+    
+    public function getOrderStats() {
+        $stats = [
+            'total' => 0,
+            'pending' => 0,
+            'processing' => 0,
+            'completed' => 0,
+            'cancelled' => 0
+        ];
+        
+        // Get total orders
+        $this->db->query('SELECT COUNT(*) as total FROM productorder');
+        $result = $this->db->single();
+        $stats['total'] = $result->total ?? 0;
+        
+        // Get pending orders
+        $this->db->query('SELECT COUNT(*) as total FROM productorder WHERE Status = "pending"');
+        $result = $this->db->single();
+        $stats['pending'] = $result->total ?? 0;
+        
+        // Get processing orders
+        $this->db->query('SELECT COUNT(*) as total FROM productorder WHERE Status = "processing"');
+        $result = $this->db->single();
+        $stats['processing'] = $result->total ?? 0;
+        
+        // Get completed orders
+        $this->db->query('SELECT COUNT(*) as total FROM productorder WHERE Status = "completed"');
+        $result = $this->db->single();
+        $stats['completed'] = $result->total ?? 0;
+        
+        // Get cancelled orders
+        $this->db->query('SELECT COUNT(*) as total FROM productorder WHERE Status = "cancelled"');
+        $result = $this->db->single();
+        $stats['cancelled'] = $result->total ?? 0;
+        
+        return $stats;
+    }
+    
+    public function updateOrderStatus($orderId, $status) {
+        $this->db->query('UPDATE productorder SET Status = :status WHERE OrderID = :order_id');
+        $this->db->bind(':status', $status);
+        $this->db->bind(':order_id', $orderId);
+        
+        return $this->db->execute();
+    }
+    
+    // Inventory Management Methods
+    
+    public function getInventoryStats() {
+        $stats = [];
+        
+        // Total stock value
+        $this->db->query('SELECT SUM(Price * StockQuantity) as total_value FROM product WHERE Status = "active"');
+        $result = $this->db->single();
+        $stats['total_stock_value'] = $result->total_value ?? 0;
+        
+        // Low stock count (≤ 10)
+        $this->db->query('SELECT COUNT(*) as total FROM product WHERE StockQuantity <= 10 AND Status = "active"');
+        $result = $this->db->single();
+        $stats['low_stock_count'] = $result->total ?? 0;
+        
+        // Out of stock count
+        $this->db->query('SELECT COUNT(*) as total FROM product WHERE StockQuantity = 0 AND Status = "active"');
+        $result = $this->db->single();
+        $stats['out_of_stock_count'] = $result->total ?? 0;
+        
+        // Items in stock
+        $this->db->query('SELECT COUNT(*) as total FROM product WHERE StockQuantity > 10 AND Status = "active"');
+        $result = $this->db->single();
+        $stats['in_stock_count'] = $result->total ?? 0;
+        
+        return $stats;
+    }
+    
+    public function getAllInventoryItems() {
+        $this->db->query('
+            SELECT 
+                ProductID,
+                Name,
+                Description,
+                Category,
+                Brand,
+                Price,
+                StockQuantity,
+                Status,
+                SKU
+            FROM product
+            ORDER BY Name ASC
+        ');
+        return $this->db->resultSet();
+    }
 }
 ?>
