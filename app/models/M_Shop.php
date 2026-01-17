@@ -139,5 +139,99 @@ class M_Shop {
         }
         return $count;
     }
+    
+    // Dashboard Statistics Methods
+    
+    public function getTotalOrders() {
+        $this->db->query('SELECT COUNT(*) as total FROM productorder');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getPendingOrders() {
+        $this->db->query('SELECT COUNT(*) as total FROM productorder WHERE Status = "pending"');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getMonthlyRevenue() {
+        $this->db->query('
+            SELECT COALESCE(SUM(TotalAmount), 0) as revenue 
+            FROM productorder 
+            WHERE MONTH(OrderDate) = MONTH(CURRENT_DATE()) 
+            AND YEAR(OrderDate) = YEAR(CURRENT_DATE())
+            AND Status IN ("completed", "processing")
+        ');
+        $result = $this->db->single();
+        return $result->revenue ?? 0;
+    }
+    
+    public function getTotalProducts() {
+        $this->db->query('SELECT COUNT(*) as total FROM product WHERE Status = "active"');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getLowStockCount() {
+        $this->db->query('SELECT COUNT(*) as total FROM product WHERE StockQuantity <= 5 AND Status = "active"');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getLowStockItems() {
+        $this->db->query('SELECT Name, StockQuantity FROM product WHERE StockQuantity <= 5 AND Status = "active" ORDER BY StockQuantity ASC LIMIT 5');
+        return $this->db->resultSet();
+    }
+    
+    public function getPendingReviewsCount() {
+        $this->db->query('SELECT COUNT(*) as total FROM productreview WHERE Status = "pending"');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getPendingReviewItems() {
+        $this->db->query('
+            SELECT pr.Rating, p.Name as product_name 
+            FROM productreview pr
+            JOIN product p ON pr.ProductID = p.ProductID
+            WHERE pr.Status = "pending"
+            ORDER BY pr.ReviewDate DESC
+            LIMIT 5
+        ');
+        return $this->db->resultSet();
+    }
+    
+    public function getActiveRentalsCount() {
+        $this->db->query('SELECT COUNT(*) as total FROM equipmentrental WHERE Status = "active"');
+        $result = $this->db->single();
+        return $result->total ?? 0;
+    }
+    
+    public function getActiveRentalItems() {
+        $this->db->query('
+            SELECT e.Name as equipment_name, er.EndTime 
+            FROM equipmentrental er
+            JOIN equipment e ON er.EquipmentID = e.EquipmentID
+            WHERE er.Status = "active"
+            ORDER BY er.EndTime ASC
+            LIMIT 5
+        ');
+        return $this->db->resultSet();
+    }
+    
+    public function getTopSellingProducts() {
+        $this->db->query('
+            SELECT p.Name, COUNT(poi.ProductID) as total_sales, SUM(poi.SubTotal) as total_revenue
+            FROM productorderitem poi
+            JOIN product p ON poi.ProductID = p.ProductID
+            JOIN productorder po ON poi.OrderID = po.OrderID
+            WHERE MONTH(po.OrderDate) = MONTH(CURRENT_DATE())
+            AND YEAR(po.OrderDate) = YEAR(CURRENT_DATE())
+            GROUP BY poi.ProductID, p.Name
+            ORDER BY total_sales DESC
+            LIMIT 5
+        ');
+        return $this->db->resultSet();
+    }
 }
 ?>

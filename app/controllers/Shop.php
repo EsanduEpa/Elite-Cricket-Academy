@@ -1170,18 +1170,22 @@ class Shop extends Controller {
 
     // Helper method for dashboard statistics
     private function getDashboardStats() {
-        return [
-            'total_orders' => 125, // Mock data - would come from database
-            'pending_orders' => 8, // Mock data - would come from database
-            'monthly_revenue' => 45000, // Mock data - would come from database
-            'total_products' => count($this->getAllProducts()),
-            'total_categories' => count($this->getCategories()),
-            'featured_products' => count($this->getFeaturedProducts()),
-            'active_deals' => count($this->getCurrentDeals()),
-            'low_stock_products' => 3, // Mock data - would come from database
-            'pending_reviews' => 5, // Mock data - would come from database
-            'active_rentals' => 12 // Mock data - would come from database
+        // Get real statistics from database
+        $stats = [
+            'total_orders' => $this->shopModel->getTotalOrders(),
+            'pending_orders' => $this->shopModel->getPendingOrders(),
+            'monthly_revenue' => $this->shopModel->getMonthlyRevenue(),
+            'total_products' => $this->shopModel->getTotalProducts(),
+            'low_stock_products' => $this->shopModel->getLowStockCount(),
+            'pending_reviews' => $this->shopModel->getPendingReviewsCount(),
+            'active_rentals' => $this->shopModel->getActiveRentalsCount(),
+            'low_stock_items' => $this->shopModel->getLowStockItems(),
+            'pending_review_items' => $this->shopModel->getPendingReviewItems(),
+            'active_rental_items' => $this->shopModel->getActiveRentalItems(),
+            'top_products' => $this->shopModel->getTopSellingProducts()
         ];
+        
+        return $stats;
     }
 
     // Helper methods for new shop management pages

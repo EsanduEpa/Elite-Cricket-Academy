@@ -859,7 +859,7 @@
     const generateIcon = document.getElementById('generateIcon');
     const generateText = document.getElementById('generateText');
 
-    // Show/hide custom date range
+    
     if (reportPeriod) {
         reportPeriod.addEventListener('change', function() {
             if (this.value === 'custom') {
