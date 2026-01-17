@@ -234,62 +234,42 @@
                             </tr>
                         </thead>
                         <tbody id="activityTableBody">
-                            <tr>
-                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
-                                <td>New player registered: Sarah Johnson (Age 14)</td>
-                                <td>Oct 19, 2025 - 10:30 AM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(1)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge event"><i class="fas fa-calendar-plus"></i> Event</span></td>
-                                <td>Tournament scheduled: Junior Championship 2025</td>
-                                <td>Oct 19, 2025 - 08:15 AM</td>
-                                <td><span class="status-badge scheduled">Scheduled</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(2)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge feedback"><i class="fas fa-star"></i> Feedback</span></td>
-                                <td>5-star feedback received from parent of Alex Kumar</td>
-                                <td>Oct 18, 2025 - 04:45 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(3)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge payment"><i class="fas fa-credit-card"></i> Payment</span></td>
-                                <td>Payment received: $450 from Emma Wilson</td>
-                                <td>Oct 18, 2025 - 02:20 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(4)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge staff"><i class="fas fa-user-tie"></i> Staff</span></td>
-                                <td>New coach hired: Michael Roberts (Former State Player)</td>
-                                <td>Oct 17, 2025 - 09:00 AM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(5)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge training"><i class="fas fa-dumbbell"></i> Training</span></td>
-                                <td>Advanced batting session completed: 15 participants</td>
-                                <td>Oct 16, 2025 - 05:30 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(6)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge maintenance"><i class="fas fa-tools"></i> Maintenance</span></td>
-                                <td>Equipment maintenance completed for Ground A</td>
-                                <td>Oct 16, 2025 - 11:00 AM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(7)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
-                                <td>New player registered: David Chen (Age 12)</td>
-                                <td>Oct 15, 2025 - 03:15 PM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(8)">Show More</button></td>
-                            </tr>
+                            <?php if(!empty($data['recentActivities'])): ?>
+                                <?php foreach($data['recentActivities'] as $activity): ?>
+                                    <tr>
+                                        <td>
+                                            <span class="activity-badge <?php echo strtolower($activity->action); ?>">
+                                                <i class="fas fa-<?php 
+                                                    // Map activity action to icon
+                                                    $icon = 'info-circle'; // default
+                                                    if(stripos($activity->action, 'login') !== false) $icon = 'sign-in-alt';
+                                                    elseif(stripos($activity->action, 'register') !== false || stripos($activity->action, 'created') !== false) $icon = 'user-plus';
+                                                    elseif(stripos($activity->action, 'update') !== false || stripos($activity->action, 'edit') !== false) $icon = 'edit';
+                                                    elseif(stripos($activity->action, 'delete') !== false) $icon = 'trash';
+                                                    elseif(stripos($activity->action, 'event') !== false) $icon = 'calendar-alt';
+                                                    elseif(stripos($activity->action, 'feedback') !== false) $icon = 'comment';
+                                                    echo $icon;
+                                                ?>"></i> 
+                                                <?php echo htmlspecialchars($activity->action); ?>
+                                            </span>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($activity->details); ?></td>
+                                        <td><?php echo htmlspecialchars($activity->timestamp); ?></td>
+                                        <td><span class="status-badge active">Completed</span></td>
+                                        <td>
+                                            <button class="btn-show-more" onclick="showActivityDetails(<?php echo $activity->id; ?>)">
+                                                Show More
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px; color: #999;">
+                                        <i class="fas fa-info-circle"></i> No recent activities found
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

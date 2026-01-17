@@ -309,7 +309,7 @@ class M_Users {
      */
     public function getRecentActivities($limit = 10) {
         // QUERY: Get activities with user names via LEFT JOIN
-        // ActivityLog.UserID -> User.UserID to get user name
+        // activitylog.UserID -> User.UserID to get user name
         // ORDER BY Timestamp DESC gets newest activities first
         $this->db->query('SELECT 
             al.ActivityID as id,
@@ -318,7 +318,7 @@ class M_Users {
             al.Timestamp as timestamp,
             al.Action as type,
             u.Name as user_name 
-        FROM ActivityLog al 
+        FROM activitylog al 
         LEFT JOIN User u ON al.UserID = u.UserID 
         ORDER BY al.Timestamp DESC 
         LIMIT :limit');
@@ -504,7 +504,7 @@ class M_Users {
 
     // Create activity log entry
     public function logActivity($userId, $action, $description, $ipAddress = null, $userAgent = null) {
-        $this->db->query('INSERT INTO ActivityLog (UserID, Action, Description, IPAddress, UserAgent) 
+        $this->db->query('INSERT INTO activitylog (UserID, Action, Description, IPAddress, UserAgent) 
                          VALUES (:user_id, :action, :description, :ip_address, :user_agent)');
         
         $this->db->bind(':user_id', $userId);

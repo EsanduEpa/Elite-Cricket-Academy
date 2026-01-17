@@ -47,9 +47,9 @@ class Admin extends Controller {
         $upcomingEvents = $eventModel->getUpcomingEvents(4);
         
         // STEP 5: FETCH RECENT ACTIVITIES FROM DATABASE
-        // Get last 6 activities from ActivityLog table
+        // Get last 20 activities from ActivityLog table
         // Includes user actions like registrations, logins, profile updates
-        $recentActivities = $userModel->getRecentActivities(6);
+        $recentActivities = $userModel->getRecentActivities(20);
         
         // STEP 6: FETCH PENDING FEEDBACK FROM DATABASE
         // Get feedback items that need admin attention
@@ -317,6 +317,16 @@ class Admin extends Controller {
                 $result = $eventModel->createEvent($eventData);
                 
                 if ($result) {
+                    // LOG ACTIVITY: Event created
+                    $userModel = $this->model('M_Users');
+                    $userModel->logActivity(
+                        $_SESSION['user_id'],
+                        'Event Created',
+                        'Created new event: ' . $eventData['name'] . ' (' . $eventData['type'] . ')',
+                        $_SERVER['REMOTE_ADDR'] ?? null,
+                        $_SERVER['HTTP_USER_AGENT'] ?? null
+                    );
+                    
                     flash('event_message', '✅ Event "' . $eventData['name'] . '" created successfully!', 'alert alert-success');
                     redirect('admin/events');
                 } else {
@@ -449,6 +459,16 @@ class Admin extends Controller {
             $result = $eventModel->updateEvent($eventData);
             
             if ($result) {
+                // LOG ACTIVITY: Event updated
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Event Updated',
+                    'Updated event: ' . $eventData['name'] . ' (' . $eventData['type'] . ')',
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
                 flash('event_message', '✅ Event updated successfully!', 'alert alert-success');
                 redirect('admin/events');
             } else {
@@ -476,6 +496,10 @@ class Admin extends Controller {
     public function delete_event($id) {
         $eventModel = $this->model('Event');
         
+        // Get event details before deletion for activity log
+        $event = $eventModel->getEventById($id);
+        $eventName = $event ? $event->Name : 'Event #' . $id;
+        
         // Check if event can be deleted (6 months after end date)
         if (!$eventModel->canDeleteEvent($id)) {
             flash('event_message', 'This event cannot be deleted yet. Events can only be deleted 6 months after they have ended.', 'alert alert-warning');
@@ -486,6 +510,16 @@ class Admin extends Controller {
         $result = $eventModel->deleteEvent($id);
         
         if ($result) {
+            // LOG ACTIVITY: Event deleted
+            $userModel = $this->model('M_Users');
+            $userModel->logActivity(
+                $_SESSION['user_id'],
+                'Event Deleted',
+                'Deleted event: ' . $eventName,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+            
             flash('event_message', 'Event deleted successfully');
         } else {
             flash('event_message', 'Something went wrong', 'alert alert-danger');
@@ -546,6 +580,19 @@ class Admin extends Controller {
             
             // Call model method to update
             if ($eventModel->updateEvent($data)) {
+                // LOG ACTIVITY: Event updated
+                $userModel = $this->model('M_Users');
+                $logResult = $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Event Updated',
+                    'Updated event: ' . $data['EventName'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
+                // Debug logging
+                error_log("Activity logged for event update: " . ($logResult ? 'SUCCESS' : 'FAILED'));
+                
                 echo json_encode([
                     'success' => true,
                     'message' => 'Event updated successfully'
@@ -936,6 +983,18 @@ class Admin extends Controller {
                 $response
             );
             
+            if ($result) {
+                // LOG ACTIVITY: Feedback status updated
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Feedback Updated',
+                    'Updated feedback #' . $_POST['feedback_id'] . ' status to: ' . $_POST['status'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+            }
+            
             echo json_encode(['success' => $result]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request']);
@@ -949,6 +1008,18 @@ class Admin extends Controller {
         if ($_POST && isset($_POST['feedback_id'])) {
             $feedbackModel = $this->model('Feedback');
             $result = $feedbackModel->deleteFeedback($_POST['feedback_id']);
+            
+            if ($result) {
+                // LOG ACTIVITY: Feedback deleted
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Feedback Deleted',
+                    'Deleted feedback #' . $_POST['feedback_id'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+            }
             
             echo json_encode(['success' => $result]);
         } else {
@@ -1097,6 +1168,15 @@ class Admin extends Controller {
             $userId = $userModel->createStaff($staffData);
             
             if ($userId) {
+                // LOG ACTIVITY: Staff member created
+                $userModel->logActivity(
+                    $_SESSION['user_id'] ?? 0,
+                    'Staff Created',
+                    'Added new staff member: ' . $staffData['fullName'] . ' (' . $staffData['role'] . ')',
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
                 error_log("✅ Staff member created successfully with ID: $userId");
                 ob_end_clean(); // Clear any accumulated output
                 echo json_encode([
