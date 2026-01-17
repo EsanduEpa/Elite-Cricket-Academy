@@ -79,19 +79,55 @@ class Feedback {
         return $result ? $result->count : 1; // Return dummy data if no database
     }
 
-    // Get all feedbacks
+    // Get all feedbacks with user information
     public function getAllFeedbacks() {
-        $this->db->query('SELECT f.*, u.name as user_name FROM feedback f 
-                         LEFT JOIN users u ON f.user_id = u.id 
-                         ORDER BY f.created_at DESC');
-        return $this->db->resultSet();
+        $this->db->query('SELECT 
+            f.FeedbackID as id,
+            f.Content as message,
+            f.Category as subject,
+            f.Rating as rating,
+            f.Status as status,
+            f.CreatedDate as created_at,
+            f.AdminResponse as admin_response,
+            f.ResponseDate as resolved_at,
+            u.Name as user_name,
+            u.Email as user_email,
+            CASE 
+                WHEN f.Rating >= 4 THEN "low"
+                WHEN f.Rating = 3 THEN "medium"
+                WHEN f.Rating <= 2 THEN "high"
+                ELSE "medium"
+            END as priority
+        FROM feedback f 
+        LEFT JOIN User u ON f.FromUserID = u.UserID 
+        ORDER BY f.CreatedDate DESC');
+        
+        $results = $this->db->resultSet();
+        
+        // Convert objects to arrays for compatibility
+        $feedbacks = [];
+        foreach ($results as $feedback) {
+            $feedbacks[] = (array) $feedback;
+        }
+        
+        return $feedbacks;
     }
 
     // Get feedback by ID
     public function getFeedbackById($id) {
-        $this->db->query('SELECT f.*, u.name as user_name FROM feedback f 
-                         LEFT JOIN users u ON f.user_id = u.id 
-                         WHERE f.id = :id');
+        $this->db->query('SELECT 
+            f.FeedbackID as id,
+            f.Content as message,
+            f.Category as subject,
+            f.Rating as rating,
+            f.Status as status,
+            f.CreatedDate as created_at,
+            f.AdminResponse as admin_response,
+            u.Name as user_name,
+            u.Email as user_email
+        FROM feedback f 
+        LEFT JOIN User u ON f.FromUserID = u.UserID 
+        WHERE f.FeedbackID = :id');
         $this->db->bind(':id', $id);
         
         return $this->db->single();

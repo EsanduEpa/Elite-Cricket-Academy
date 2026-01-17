@@ -1,9 +1,19 @@
 // Reports JavaScript
+console.log('Reports.js loaded successfully');
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded fired in reports.js');
     initReportTypeSelector();
-    initCharts();
+    
+    // Initialize charts only if Chart is available
+    if (typeof Chart !== 'undefined') {
+        try {
+            initCharts();
+        } catch (error) {
+            console.warn('Chart initialization failed:', error);
+        }
+    }
 });
 
 // Report Type Selector
@@ -50,47 +60,177 @@ function updateReportOptions() {
 
 // Generate Report
 function generateReport() {
+    console.log('generateReport function called');
     const reportType = document.getElementById('reportType').value;
-    const timePeriod = document.getElementById('timePeriod').value;
-    const format = document.querySelector('input[name="format"]:checked')?.value;
+    const reportPeriod = document.getElementById('reportPeriod').value;
+    const reportFormat = document.getElementById('reportFormat');
+    const format = reportFormat ? reportFormat.value : 'pdf';
+    
+    console.log('Report Type:', reportType);
+    console.log('Report Period:', reportPeriod);
+    console.log('Format:', format);
     
     if (!reportType) {
         alert('Please select a report type');
         return;
     }
     
-    if (!format) {
-        alert('Please select an export format');
-        return;
-    }
-    
-    // Get selected options based on report type
-    const options = getSelectedOptions(reportType);
-    
     // Show loading modal
     showLoadingModal();
     
-    // Simulate report generation
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 10;
-        updateProgress(progress);
-        
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            setTimeout(() => {
-                hideLoadingModal();
-                showSuccessMessage(reportType, format);
-            }, 500);
-        }
-    }, 300);
+    // Handle different report types
+    if (reportType === 'event') {
+        generateEventReport(reportPeriod, format);
+    } else {
+        // For other report types, show coming soon message
+        setTimeout(() => {
+            hideLoadingModal();
+            alert('This report type will be available soon!');
+        }, 1000);
+    }
+}
+
+// Make generateReport available globally
+window.generateReport = generateReport;
+
+// Generate Event Report
+function generateEventReport(period, format) {
+    const startDate = document.getElementById('startDate')?.value;
+    const endDate = document.getElementById('endDate')?.value;
     
-    console.log('Generating report:', {
-        type: reportType,
-        period: timePeriod,
-        format: format,
-        options: options
+    // Get base URL from page
+    const baseUrl = window.location.origin + '/Elite';
+    
+    fetch(baseUrl + '/admin/generate_event_report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            period: period,
+            start_date: startDate || '',
+            end_date: endDate || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoadingModal();
+        if (data.success) {
+            displayEventReport(data, format);
+        } else {
+            alert('Error generating report: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        hideLoadingModal();
+        console.error('Error:', error);
+        alert('Failed to generate report. Please try again.');
     });
+}
+
+// Display Event Report
+function displayEventReport(data, format) {
+    // Create report content
+    let reportHTML = `
+        <div class="report-preview">
+            <div class="report-header">
+                <h2>${data.report_type}</h2>
+                <p>Period: ${data.date_range.from} to ${data.date_range.to}</p>
+                <p>Generated: ${data.generated_at}</p>
+            </div>
+            
+            <div class="report-summary">
+                <h3>Event Summary</h3>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <strong>Total Events:</strong> ${data.summary.total_events}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Completed:</strong> ${data.summary.completed_events}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Upcoming:</strong> ${data.summary.upcoming_events}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Cancelled:</strong> ${data.summary.cancelled_events}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Tournaments:</strong> ${data.summary.tournaments}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Training Camps:</strong> ${data.summary.training_camps}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Matches:</strong> ${data.summary.matches}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-table">
+                <h3>Event Details</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Type</th>
+                            <th>Start Date</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.events.map(event => `
+                            <tr>
+                                <td>${event.Name}</td>
+                                <td>${event.Type}</td>
+                                <td>${event.StartDate}</td>
+                                <td>${event.Location || 'N/A'}</td>
+                                <td>${event.Status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    // Show report in modal or new window
+    showReportPreview(reportHTML, format);
+}
+
+// Show report preview
+function showReportPreview(html, format) {
+    const modal = document.createElement('div');
+    modal.className = 'report-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+        <div class="modal-content report-content">
+            <div class="modal-header">
+                <h2>Report Preview</h2>
+                <button onclick="this.closest('.report-modal').remove()" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                ${html}
+            </div>
+            <div class="modal-footer">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button onclick="downloadReport('${format}')" class="btn btn-success">
+                    <i class="fas fa-download"></i> Download ${format.toUpperCase()}
+                </button>
+                <button onclick="this.closest('.report-modal').remove()" class="btn btn-secondary">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Download report
+function downloadReport(format) {
+    alert(`Downloading report as ${format.toUpperCase()}... (Feature coming soon)`);
 }
 
 // Get selected options for a report type
@@ -267,14 +407,26 @@ function shareReport(reportId) {
 
 // Initialize Charts
 function initCharts() {
-    initReportsByTypeChart();
-    initGenerationTrendChart();
+    try {
+        initReportsByTypeChart();
+        initGenerationTrendChart();
+    } catch (error) {
+        console.warn('Error initializing charts:', error);
+    }
 }
 
 // Reports by Type Pie Chart
 function initReportsByTypeChart() {
-    const ctx = document.getElementById('reportsByTypeChart');
-    if (!ctx) return;
+    const ctx = document.getElementById('reportTypeChart');
+    if (!ctx) {
+        console.log('reportTypeChart canvas not found');
+        return;
+    }
+    
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded');
+        return;
+    }
     
     new Chart(ctx, {
         type: 'doughnut',
@@ -323,8 +475,16 @@ function initReportsByTypeChart() {
 
 // Generation Trend Line Chart
 function initGenerationTrendChart() {
-    const ctx = document.getElementById('generationTrendChart');
-    if (!ctx) return;
+    const ctx = document.getElementById('reportTrendChart');
+    if (!ctx) {
+        console.log('reportTrendChart canvas not found');
+        return;
+    }
+    
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded');
+        return;
+    }
     
     new Chart(ctx, {
         type: 'line',

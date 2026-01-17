@@ -770,7 +770,7 @@ class Admin extends Controller {
     public function feedback() {
         $feedbackModel = $this->model('Feedback');
         
-        // Get all feedbacks with different statuses
+        // Get all feedbacks from database
         $allFeedbacks = $feedbackModel->getAllFeedbacks();
         
         // Separate by status
@@ -785,164 +785,6 @@ class Admin extends Controller {
         $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
             return isset($f['status']) && $f['status'] === 'resolved';
         });
-        
-        // Add dummy data if no database results
-        if (empty($allFeedbacks)) {
-            $allFeedbacks = [
-                [
-                    'id' => 1,
-                    'subject' => 'Training Quality Feedback',
-                    'message' => 'The coaching sessions are excellent but need more practice time. The coaches are very supportive.',
-                    'user_name' => 'John Smith',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'training',
-                    'created_at' => '2025-10-18 10:30:00',
-                    'user_email' => 'john.smith@email.com'
-                ],
-                [
-                    'id' => 2,
-                    'subject' => 'Facility Improvement Suggestion',
-                    'message' => 'The changing rooms could use better lighting and ventilation. Also, more benches would be helpful.',
-                    'user_name' => 'Sarah Johnson',
-                    'status' => 'in_progress',
-                    'priority' => 'low',
-                    'category' => 'facilities',
-                    'created_at' => '2025-10-17 14:15:00',
-                    'user_email' => 'sarah.j@email.com'
-                ],
-                [
-                    'id' => 3,
-                    'subject' => 'Equipment Request',
-                    'message' => 'We need more batting helmets for junior players. Current stock is insufficient for the growing number of students.',
-                    'user_name' => 'Mike Wilson',
-                    'status' => 'pending',
-                    'priority' => 'high',
-                    'category' => 'equipment',
-                    'created_at' => '2025-10-17 09:45:00',
-                    'user_email' => 'mike.w@email.com'
-                ],
-                [
-                    'id' => 4,
-                    'subject' => 'Schedule Conflict Issue',
-                    'message' => 'There is a scheduling conflict between junior and senior training sessions on weekends.',
-                    'user_name' => 'Emily Brown',
-                    'status' => 'resolved',
-                    'priority' => 'high',
-                    'category' => 'scheduling',
-                    'created_at' => '2025-10-15 16:20:00',
-                    'resolved_at' => '2025-10-16 10:00:00',
-                    'admin_response' => 'Schedule has been adjusted. Junior sessions now at 8 AM, seniors at 10 AM.',
-                    'user_email' => 'emily.b@email.com'
-                ],
-                [
-                    'id' => 5,
-                    'subject' => 'Payment System Feedback',
-                    'message' => 'The online payment system is great but could use more payment options like digital wallets.',
-                    'user_name' => 'David Lee',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'system',
-                    'created_at' => '2025-10-14 11:30:00',
-                    'user_email' => 'david.lee@email.com'
-                ],
-                [
-                    'id' => 6,
-                    'subject' => 'Coach Performance Appreciation',
-                    'message' => 'Coach Williams has been exceptional in improving my batting technique. Highly appreciate the dedication.',
-                    'user_name' => 'Lisa Anderson',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'appreciation',
-                    'created_at' => '2025-10-13 13:45:00',
-                    'resolved_at' => '2025-10-14 09:00:00',
-                    'admin_response' => 'Thank you for your positive feedback. We have shared it with Coach Williams.',
-                    'user_email' => 'lisa.a@email.com'
-                ],
-                [
-                    'id' => 7,
-                    'subject' => 'Tournament Organization Query',
-                    'message' => 'When will the registration open for the upcoming junior cricket championship?',
-                    'user_name' => 'Robert Martinez',
-                    'status' => 'in_progress',
-                    'priority' => 'medium',
-                    'category' => 'events',
-                    'created_at' => '2025-10-12 15:00:00',
-                    'user_email' => 'robert.m@email.com'
-                ],
-                [
-                    'id' => 8,
-                    'subject' => 'Parking Space Concern',
-                    'message' => 'Limited parking space during peak hours. Parents have difficulty finding parking spots.',
-                    'user_name' => 'Jennifer White',
-                    'status' => 'pending',
-                    'priority' => 'high',
-                    'category' => 'facilities',
-                    'created_at' => '2025-10-11 08:30:00',
-                    'user_email' => 'jennifer.w@email.com'
-                ],
-                [
-                    'id' => 9,
-                    'subject' => 'Cafeteria Menu Suggestion',
-                    'message' => 'It would be great to have more healthy food options in the cafeteria menu.',
-                    'user_name' => 'Chris Taylor',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'services',
-                    'created_at' => '2025-10-10 12:15:00',
-                    'resolved_at' => '2025-10-11 14:30:00',
-                    'admin_response' => 'New healthy menu items have been added. Check the updated menu board.',
-                    'user_email' => 'chris.t@email.com'
-                ],
-                [
-                    'id' => 10,
-                    'subject' => 'Medical Facility Inquiry',
-                    'message' => 'Is there a sports physiotherapist available on-site for injury consultations?',
-                    'user_name' => 'Amanda Clark',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'medical',
-                    'created_at' => '2025-10-09 10:00:00',
-                    'user_email' => 'amanda.c@email.com'
-                ],
-                [
-                    'id' => 11,
-                    'subject' => 'Equipment Maintenance Issue',
-                    'message' => 'Some of the bowling machines in Practice Net 2 are not working properly.',
-                    'user_name' => 'Kevin Brown',
-                    'status' => 'in_progress',
-                    'priority' => 'high',
-                    'category' => 'equipment',
-                    'created_at' => '2025-10-08 14:45:00',
-                    'user_email' => 'kevin.b@email.com'
-                ],
-                [
-                    'id' => 12,
-                    'subject' => 'Membership Benefits Query',
-                    'message' => 'What additional benefits are included in the premium membership package?',
-                    'user_name' => 'Rachel Green',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'membership',
-                    'created_at' => '2025-10-07 11:20:00',
-                    'resolved_at' => '2025-10-08 09:15:00',
-                    'admin_response' => 'Premium membership includes priority booking, free equipment rental, and personalized training sessions.',
-                    'user_email' => 'rachel.g@email.com'
-                ]
-            ];
-            
-            $pendingFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'pending';
-            });
-            
-            $inProgressFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'in_progress';
-            });
-            
-            $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'resolved';
-            });
-        }
         
         $data = [
             'title' => 'Feedback Monitoring - Elite Cricket Academy',
@@ -961,8 +803,8 @@ class Admin extends Controller {
                 'todayCount' => count(array_filter($allFeedbacks, function($f) {
                     return isset($f['created_at']) && date('Y-m-d', strtotime($f['created_at'])) === date('Y-m-d');
                 })),
-                'avgResponseTime' => '4.2 hours',
-                'satisfactionRate' => 92
+                'avgResponseTime' => '0 hours',
+                'satisfactionRate' => 0
             ]
         ];
         
@@ -1249,6 +1091,122 @@ class Admin extends Controller {
         ];
         
         $this->view('admin/reports', $data);
+    }
+
+    // Generate Event Summary Report
+    public function generate_event_report() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $period = $_POST['period'] ?? 'month';
+            $startDate = $_POST['start_date'] ?? null;
+            $endDate = $_POST['end_date'] ?? null;
+            
+            // Calculate date range based on period
+            if ($period == 'custom' && $startDate && $endDate) {
+                $dateFrom = $startDate;
+                $dateTo = $endDate;
+            } else {
+                switch($period) {
+                    case 'week':
+                        $dateFrom = date('Y-m-d', strtotime('-7 days'));
+                        break;
+                    case 'quarter':
+                        $dateFrom = date('Y-m-d', strtotime('-3 months'));
+                        break;
+                    case 'year':
+                        $dateFrom = date('Y-m-d', strtotime('-1 year'));
+                        break;
+                    case 'month':
+                    default:
+                        $dateFrom = date('Y-m-d', strtotime('-1 month'));
+                        break;
+                }
+                $dateTo = date('Y-m-d');
+            }
+            
+            // Get event data from database
+            $eventModel = $this->model('Event');
+            $db = new Database();
+            
+            // Get event summary statistics
+            $db->query('SELECT 
+                COUNT(*) as total_events,
+                SUM(CASE WHEN Status = "completed" THEN 1 ELSE 0 END) as completed_events,
+                SUM(CASE WHEN Status = "upcoming" THEN 1 ELSE 0 END) as upcoming_events,
+                SUM(CASE WHEN Status = "cancelled" THEN 1 ELSE 0 END) as cancelled_events,
+                SUM(CASE WHEN Type = "Tournament" THEN 1 ELSE 0 END) as tournaments,
+                SUM(CASE WHEN Type = "Training Camp" THEN 1 ELSE 0 END) as training_camps,
+                SUM(CASE WHEN Type = "Match" THEN 1 ELSE 0 END) as matches
+            FROM Event 
+            WHERE StartDate >= :start_date AND StartDate <= :end_date');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $summary = $db->single();
+            
+            // Get detailed event list
+            $db->query('SELECT 
+                EventID,
+                Name,
+                Type,
+                StartDate,
+                EndDate,
+                Location,
+                Status,
+                MaxParticipants
+            FROM Event 
+            WHERE StartDate >= :start_date AND StartDate <= :end_date
+            ORDER BY StartDate DESC');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $events = $db->resultSet();
+            
+            // Get event participation statistics
+            $db->query('SELECT 
+                e.Name as event_name,
+                e.Type as event_type,
+                e.StartDate,
+                COUNT(ep.PlayerID) as participant_count,
+                e.MaxParticipants as max_participants
+            FROM Event e
+            LEFT JOIN EventParticipation ep ON e.EventID = ep.EventID
+            WHERE e.StartDate >= :start_date AND e.StartDate <= :end_date
+            GROUP BY e.EventID
+            ORDER BY e.StartDate DESC');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $participation = $db->resultSet();
+            
+            // Prepare report data
+            $reportData = [
+                'success' => true,
+                'report_type' => 'Event Summary Report',
+                'period' => $period,
+                'date_range' => [
+                    'from' => $dateFrom,
+                    'to' => $dateTo
+                ],
+                'summary' => [
+                    'total_events' => (int)$summary->total_events,
+                    'completed_events' => (int)$summary->completed_events,
+                    'upcoming_events' => (int)$summary->upcoming_events,
+                    'cancelled_events' => (int)$summary->cancelled_events,
+                    'tournaments' => (int)$summary->tournaments,
+                    'training_camps' => (int)$summary->training_camps,
+                    'matches' => (int)$summary->matches
+                ],
+                'events' => $events,
+                'participation' => $participation,
+                'generated_at' => date('Y-m-d H:i:s')
+            ];
+            
+            echo json_encode($reportData);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
     }
 
     // Profile Management

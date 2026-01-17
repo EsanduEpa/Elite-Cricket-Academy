@@ -1,7 +1,613 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/reports.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* Reports Page Enhanced Styles */
+.reports-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.reports-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.reports-header h1 {
+    margin: 0 0 12px 0;
+    font-size: 36px;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.reports-header p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.stat-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.25);
+}
+
+.stat-card .icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.stat-card h3 {
+    font-size: 42px;
+    margin: 12px 0;
+    color: #2c3e50;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-card p {
+    color: #7f8c8d;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.content-card {
+    background: white;
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #f0f0f0;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 26px;
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.section-header i {
+    margin-right: 15px;
+    color: #667eea;
+    font-size: 28px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group label i {
+    margin-right: 10px;
+    color: #667eea;
+    font-size: 16px;
+}
+
+.form-group select,
+.form-group input {
+    padding: 14px 18px;
+    border: 2px solid #e8ecef;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: white;
+    font-weight: 500;
+}
+
+.form-group select:hover,
+.form-group input:hover {
+    border-color: #d0d7de;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    background: #fafbfd;
+}
+
+.btn-generate {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 16px 35px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-generate:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+}
+
+.btn-generate:active {
+    transform: translateY(-1px);
+}
+
+.btn-generate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-generate i {
+    font-size: 18px;
+}
+
+/* Loading Modal */
+.loading-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(44, 62, 80, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-modal.active {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.loading-content {
+    background: white;
+    padding: 60px 80px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.loading-spinner {
+    font-size: 70px;
+    color: #667eea;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-content h3 {
+    margin: 20px 0 12px 0;
+    color: #2c3e50;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.loading-content p {
+    color: #7f8c8d;
+    margin: 0;
+    font-size: 15px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Report Modal */
+.report-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(44, 62, 80, 0.75);
+    backdrop-filter: blur(5px);
+    z-index: 10001;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.report-modal.active {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 20px;
+    max-width: 1300px;
+    width: 100%;
+    max-height: 92vh;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+    animation: modalSlide 0.4s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes modalSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 30px 35px;
+    border-bottom: 3px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    color: white;
+    padding: 0;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    font-weight: 300;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 35px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.report-preview h2 {
+    color: #667eea;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.report-date {
+    text-align: center;
+    color: #7f8c8d;
+    margin-bottom: 35px;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.summary-section h3 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 22px;
+    font-weight: 700;
+    padding-left: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 35px;
+}
+
+.summary-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px;
+    border-radius: 14px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.summary-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+}
+
+.summary-item strong {
+    display: block;
+    font-size: 12px;
+    opacity: 0.95;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.summary-item span {
+    font-size: 38px;
+    font-weight: 800;
+    display: block;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.report-table {
+    margin-top: 35px;
+}
+
+.report-table h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 700;
+    padding-left: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.report-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.report-table th {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 18px 20px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.report-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+    color: #2c3e50;
+}
+
+.report-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.report-table tr:hover td {
+    background: #f8f9fd;
+    transform: scale(1.01);
+}
+
+.report-table tr:last-child td {
+    border-bottom: none;
+}
+
+.modal-footer {
+    padding: 25px 35px;
+    border-top: 3px solid #f0f0f0;
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    background: #fafbfd;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(127, 140, 141, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .reports-header {
+        padding: 30px;
+    }
+    
+    .reports-header h1 {
+        font-size: 28px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-container {
+        max-width: 95%;
+        max-height: 95vh;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .modal-header,
+    .modal-footer {
+        display: none;
+    }
+    
+    .modal-container {
+        box-shadow: none;
+        max-height: none;
+    }
+    
+    .report-table {
+        page-break-inside: avoid;
+    }
+}
+</style>
 
     <!-- Admin Dashboard Layout -->
     <div class="admin-layout">
@@ -54,486 +660,144 @@
                         </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Finance Management</span>
-                        </a>
-                    </li>
-                    
                     <li class="nav-item active">
                         <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
                             <i class="fas fa-file-alt"></i>
                             <span>Reports</span>
                         </a>
                     </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Finance Management</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
             
             <!-- Admin Profile -->
-            <div class="admin-profile">
+            <div class="profile-section">
                 <div class="profile-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <div class="profile-info">
-                    <span class="admin-name">Admin User</span>
-                    <span class="admin-role">Super Administrator</span>
-                </div>
-                <div class="logout-btn">
-                    <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                </div>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
+                <div class="profile-role">Super Administrator</div>
+                <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
         </div>
-        
+
         <!-- Main Content Area -->
         <div class="main-content" id="mainContent">
-            <!-- Dashboard Header -->
-            <div class="dashboard-header">
-                <div class="header-content">
-                    <div class="header-text">
-                        <h1><i class="fas fa-file-alt"></i> Reports & Analytics</h1>
-                        <p>Generate comprehensive reports on performance, revenue, and events</p>
+            <!-- Reports Header -->
+            <div class="reports-header">
+                <h1><i class="fas fa-chart-bar"></i> Reports & Analytics</h1>
+                <p>Generate comprehensive reports for your cricket academy operations</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">
+                        <i class="fas fa-file-alt"></i>
                     </div>
-                    <div class="header-actions">
-                        <div class="current-time" id="currentTime"></div>
+                    <h3 id="totalReports">-</h3>
+                    <p>Total Reports</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">
+                        <i class="fas fa-download"></i>
                     </div>
+                    <h3 id="totalDownloads">-</h3>
+                    <p>Downloads</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 id="monthReports">-</h3>
+                    <p>This Month</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>-</h3>
+                    <p>Last Generated</p>
                 </div>
             </div>
 
-            <!-- Reports Content -->
-            <div class="content-wrapper">
-                <!-- Quick Stats -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>48</h3>
-                            <p>Reports Generated</p>
-                        </div>
+            <!-- Report Generator -->
+            <div class="content-card">
+                <div class="section-header">
+                    <h2><i class="fas fa-plus-circle"></i> Generate New Report</h2>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reportType">
+                            <i class="fas fa-file-alt"></i> Report Type
+                        </label>
+                        <select id="reportType">
+                            <option value="">Select Report Type</option>
+                            <option value="event">Event Summary Report</option>
+                            <option value="player">Player Performance Report</option>
+                            <option value="revenue">Revenue & Finance Report</option>
+                            <option value="attendance">Attendance Report</option>
+                        </select>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #06d6a0 0%, #118ab2 100%);">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>156</h3>
-                            <p>Total Downloads</p>
-                        </div>
+
+                    <div class="form-group">
+                        <label for="reportPeriod">
+                            <i class="fas fa-calendar"></i> Time Period
+                        </label>
+                        <select id="reportPeriod">
+                            <option value="week">Last Week</option>
+                            <option value="month" selected>Last Month</option>
+                            <option value="quarter">Last Quarter</option>
+                            <option value="year">Last Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
-                            <i class="fas fa-calendar-week"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>12</h3>
-                            <p>This Month</p>
-                        </div>
+
+                    <div class="form-group" id="customDateStart" style="display: none;">
+                        <label for="startDate">
+                            <i class="fas fa-calendar-day"></i> Start Date
+                        </label>
+                        <input type="date" id="startDate">
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Today</h3>
-                            <p>Last Generated</p>
-                        </div>
+
+                    <div class="form-group" id="customDateEnd" style="display: none;">
+                        <label for="endDate">
+                            <i class="fas fa-calendar-day"></i> End Date
+                        </label>
+                        <input type="date" id="endDate">
                     </div>
                 </div>
 
-                <!-- Report Generator Section -->
-                <div class="report-generator">
-                    <div class="section-header">
-                        <h2><i class="fas fa-plus-circle"></i> Generate New Report</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reportFormat">
+                            <i class="fas fa-file-export"></i> Export Format
+                        </label>
+                        <select id="reportFormat">
+                            <option value="pdf">PDF Document</option>
+                            <option value="excel">Excel Spreadsheet</option>
+                            <option value="csv">CSV File</option>
+                        </select>
                     </div>
-                    
-                    <div class="generator-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="reportType">
-                                    <i class="fas fa-file-alt"></i> Report Type
-                                </label>
-                                <select id="reportType" class="filter-select">
-                                    <option value="">Select Report Type</option>
-                                    <option value="player">Player Performance Report</option>
-                                    <option value="revenue">Revenue & Finance Report</option>
-                                    <option value="event">Event & Tournament Report</option>
-                                    <option value="attendance">Attendance Report</option>
-                                    <option value="subscription">Subscription Report</option>
-                                    <option value="comprehensive">Comprehensive Report</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="reportPeriod">
-                                    <i class="fas fa-calendar-alt"></i> Time Period
-                                </label>
-                                <select id="reportPeriod" class="filter-select">
-                                    <option value="week">Last Week</option>
-                                    <option value="month" selected>Last Month</option>
-                                    <option value="quarter">Last Quarter</option>
-                                    <option value="year">Last Year</option>
-                                    <option value="custom">Custom Date Range</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group" id="customDateGroup" style="display: none;">
-                                <label for="startDate">
-                                    <i class="fas fa-calendar"></i> Start Date
-                                </label>
-                                <input type="date" id="startDate" class="form-control">
-                            </div>
-                            
-                            <div class="form-group" id="customDateGroup2" style="display: none;">
-                                <label for="endDate">
-                                    <i class="fas fa-calendar"></i> End Date
-                                </label>
-                                <input type="date" id="endDate" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <!-- Player Report Options -->
-                        <div class="report-options" id="playerOptions" style="display: none;">
-                            <h4>Player Report Options</h4>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Include Batting Statistics
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Include Bowling Statistics
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Include Fielding Statistics
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Include Training Attendance
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Include Performance Graphs
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Revenue Report Options -->
-                        <div class="report-options" id="revenueOptions" style="display: none;">
-                            <h4>Revenue Report Options</h4>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Subscription Revenue
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Event Registration Fees
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Equipment Sales
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Facility Rentals
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Revenue Comparison Charts
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Event Report Options -->
-                        <div class="report-options" id="eventOptions" style="display: none;">
-                            <h4>Event Report Options</h4>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Event Participation Stats
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" checked> Registration Details
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Event Revenue
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Attendance Records
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox"> Success Metrics
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="reportFormat">
-                                    <i class="fas fa-file-export"></i> Export Format
-                                </label>
-                                <select id="reportFormat" class="form-control">
-                                    <option value="pdf">PDF Document</option>
-                                    <option value="excel">Excel Spreadsheet</option>
-                                    <option value="csv">CSV File</option>
-                                    <option value="html">HTML Page</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary btn-generate" onclick="generateReport()">
-                                    <i class="fas fa-file-export"></i> Generate Report
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Report Templates -->
-                <div class="report-templates">
-                    <div class="section-header">
-                        <h2><i class="fas fa-layer-group"></i> Quick Report Templates</h2>
-                    </div>
-                    
-                    <div class="templates-grid">
-                        <div class="template-card" onclick="generateTemplateReport('monthly-performance')">
-                            <div class="template-icon purple">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h3>Monthly Performance</h3>
-                            <p>Overall academy performance for the current month</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                        
-                        <div class="template-card" onclick="generateTemplateReport('player-rankings')">
-                            <div class="template-icon blue">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <h3>Player Rankings</h3>
-                            <p>Top performers based on statistics</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                        
-                        <div class="template-card" onclick="generateTemplateReport('revenue-summary')">
-                            <div class="template-icon green">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                            <h3>Revenue Summary</h3>
-                            <p>Financial overview and revenue breakdown</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                        
-                        <div class="template-card" onclick="generateTemplateReport('event-summary')">
-                            <div class="template-icon orange">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <h3>Event Summary</h3>
-                            <p>Completed and upcoming events report</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                        
-                        <div class="template-card" onclick="generateTemplateReport('attendance-report')">
-                            <div class="template-icon pink">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <h3>Attendance Report</h3>
-                            <p>Training and match attendance records</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                        
-                        <div class="template-card" onclick="generateTemplateReport('comprehensive')">
-                            <div class="template-icon indigo">
-                                <i class="fas fa-file-contract"></i>
-                            </div>
-                            <h3>Comprehensive Report</h3>
-                            <p>Complete academy overview with all metrics</p>
-                            <button class="btn-template">
-                                <i class="fas fa-download"></i> Generate
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Reports -->
-                <div class="recent-reports">
-                    <div class="section-header">
-                        <h2><i class="fas fa-history"></i> Recent Reports</h2>
-                        <button class="btn-secondary" onclick="viewAllReports()">
-                            <i class="fas fa-list"></i> View All
+                    <div class="form-group">
+                        <button type="button" class="btn-generate" id="generateBtn">
+                            <i class="fas fa-cog fa-spin" style="display:none;" id="generateSpinner"></i>
+                            <i class="fas fa-play" id="generateIcon"></i>
+                            <span id="generateText">Generate Report</span>
                         </button>
-                    </div>
-                    
-                    <div class="reports-table">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Report Name</th>
-                                    <th>Type</th>
-                                    <th>Period</th>
-                                    <th>Generated</th>
-                                    <th>Size</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="report-name">
-                                            <i class="fas fa-file-pdf"></i>
-                                            <span>Player Performance October 2025</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-player">Player Report</span></td>
-                                    <td>Oct 1 - Oct 22, 2025</td>
-                                    <td>Today, 10:30 AM</td>
-                                    <td>2.4 MB</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-action btn-view" onclick="viewReport(1)" title="View Report">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-action btn-download" onclick="downloadReport(1)" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                            <button class="btn-action btn-share" onclick="shareReport(1)" title="Share">
-                                                <i class="fas fa-share-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="report-name">
-                                            <i class="fas fa-file-excel"></i>
-                                            <span>Revenue Report Q3 2025</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-revenue">Revenue Report</span></td>
-                                    <td>Jul - Sep 2025</td>
-                                    <td>Oct 20, 2025</td>
-                                    <td>1.8 MB</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-action btn-view" onclick="viewReport(2)" title="View Report">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-action btn-download" onclick="downloadReport(2)" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                            <button class="btn-action btn-share" onclick="shareReport(2)" title="Share">
-                                                <i class="fas fa-share-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="report-name">
-                                            <i class="fas fa-file-pdf"></i>
-                                            <span>Event Participation Report</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-event">Event Report</span></td>
-                                    <td>Sep 2025</td>
-                                    <td>Oct 15, 2025</td>
-                                    <td>3.1 MB</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-action btn-view" onclick="viewReport(3)" title="View Report">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-action btn-download" onclick="downloadReport(3)" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                            <button class="btn-action btn-share" onclick="shareReport(3)" title="Share">
-                                                <i class="fas fa-share-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="report-name">
-                                            <i class="fas fa-file-alt"></i>
-                                            <span>Training Attendance September</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-attendance">Attendance</span></td>
-                                    <td>Sep 1 - Sep 30, 2025</td>
-                                    <td>Oct 10, 2025</td>
-                                    <td>856 KB</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-action btn-view" onclick="viewReport(4)" title="View Report">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-action btn-download" onclick="downloadReport(4)" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                            <button class="btn-action btn-share" onclick="shareReport(4)" title="Share">
-                                                <i class="fas fa-share-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="report-name">
-                                            <i class="fas fa-file-pdf"></i>
-                                            <span>Comprehensive Academy Report</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-comprehensive">Comprehensive</span></td>
-                                    <td>Aug 2025</td>
-                                    <td>Sep 5, 2025</td>
-                                    <td>5.2 MB</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-action btn-view" onclick="viewReport(5)" title="View Report">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-action btn-download" onclick="downloadReport(5)" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                            <button class="btn-action btn-share" onclick="shareReport(5)" title="Share">
-                                                <i class="fas fa-share-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Report Analytics -->
-                <div class="report-analytics">
-                    <div class="section-header">
-                        <h2><i class="fas fa-chart-bar"></i> Report Analytics</h2>
-                    </div>
-                    
-                    <div class="analytics-grid">
-                        <div class="analytics-chart">
-                            <h3>Reports Generated by Type</h3>
-                            <canvas id="reportTypeChart"></canvas>
-                        </div>
-                        
-                        <div class="analytics-chart">
-                            <h3>Report Generation Trend</h3>
-                            <canvas id="reportTrendChart"></canvas>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -541,22 +805,253 @@
     </div>
 
     <!-- Loading Modal -->
-    <div class="modal" id="loadingModal" style="display: none;">
-        <div class="modal-overlay"></div>
-        <div class="modal-content modal-loading">
-            <div class="loading-animation">
+    <div class="loading-modal" id="loadingModal">
+        <div class="loading-content">
+            <div class="loading-spinner">
                 <i class="fas fa-spinner fa-spin"></i>
             </div>
             <h3>Generating Report...</h3>
-            <p>Please wait while we compile your report</p>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <p class="progress-text" id="progressText">0%</p>
+            <p>Please wait while we compile your data</p>
         </div>
     </div>
 
-<script src="<?php echo URLROOT; ?>/js/admin/reports.js"></script>
+    <!-- Report Preview Modal -->
+    <div class="report-modal" id="reportModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Report Preview</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Report content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closeModalBtn">Close</button>
+                <button class="btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Reports Page JavaScript
+(function() {
+    'use strict';
+    
+    console.log('Reports page loaded');
+
+    // Get all elements
+    const generateBtn = document.getElementById('generateBtn');
+    const reportType = document.getElementById('reportType');
+    const reportPeriod = document.getElementById('reportPeriod');
+    const reportFormat = document.getElementById('reportFormat');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const customDateStart = document.getElementById('customDateStart');
+    const customDateEnd = document.getElementById('customDateEnd');
+    const loadingModal = document.getElementById('loadingModal');
+    const reportModal = document.getElementById('reportModal');
+    const modalBody = document.getElementById('modalBody');
+    const closeModal = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const generateSpinner = document.getElementById('generateSpinner');
+    const generateIcon = document.getElementById('generateIcon');
+    const generateText = document.getElementById('generateText');
+
+    // Show/hide custom date range
+    if (reportPeriod) {
+        reportPeriod.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customDateStart.style.display = 'block';
+                customDateEnd.style.display = 'block';
+            } else {
+                customDateStart.style.display = 'none';
+                customDateEnd.style.display = 'none';
+            }
+        });
+    }
+
+    // Generate button click handler
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+            console.log('Generate button clicked');
+            
+            const type = reportType.value;
+            const period = reportPeriod.value;
+            const format = reportFormat.value;
+
+            if (!type) {
+                alert('Please select a report type');
+                return;
+            }
+
+            if (type === 'event') {
+                generateEventReport(period, format);
+            } else {
+                alert('This report type will be available soon!');
+            }
+        });
+    }
+
+    // Generate Event Report
+    function generateEventReport(period, format) {
+        console.log('Generating event report:', period, format);
+        
+        // Show loading
+        generateSpinner.style.display = 'inline-block';
+        generateIcon.style.display = 'none';
+        generateText.textContent = 'Generating...';
+        generateBtn.disabled = true;
+        loadingModal.classList.add('active');
+
+        const formData = new URLSearchParams();
+        formData.append('period', period);
+        
+        if (period === 'custom') {
+            formData.append('start_date', startDate.value);
+            formData.append('end_date', endDate.value);
+        }
+
+        fetch('<?php echo URLROOT; ?>/admin/generate_event_report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading
+            loadingModal.classList.remove('active');
+            generateSpinner.style.display = 'none';
+            generateIcon.style.display = 'inline-block';
+            generateText.textContent = 'Generate Report';
+            generateBtn.disabled = false;
+            
+            if (data.success) {
+                displayReport(data);
+            } else {
+                alert('Error: ' + (data.message || 'Failed to generate report'));
+            }
+        })
+        .catch(error => {
+            // Hide loading
+            loadingModal.classList.remove('active');
+            generateSpinner.style.display = 'none';
+            generateIcon.style.display = 'inline-block';
+            generateText.textContent = 'Generate Report';
+            generateBtn.disabled = false;
+            
+            console.error('Error:', error);
+            alert('Failed to generate report. Please try again.');
+        });
+    }
+
+    // Display Report in Modal
+    function displayReport(data) {
+        const html = `
+            <div class="report-preview">
+                <h2>${data.report_type}</h2>
+                <p class="report-date">
+                    <strong>Period:</strong> ${data.date_range.from} to ${data.date_range.to}<br>
+                    <strong>Generated:</strong> ${data.generated_at}
+                </p>
+
+                <div class="summary-section">
+                    <h3>Summary Statistics</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <strong>Total Events</strong>
+                            <span>${data.summary.total_events}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Completed</strong>
+                            <span>${data.summary.completed_events}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Upcoming</strong>
+                            <span>${data.summary.upcoming_events}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Cancelled</strong>
+                            <span>${data.summary.cancelled_events}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Tournaments</strong>
+                            <span>${data.summary.tournaments}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Training Camps</strong>
+                            <span>${data.summary.training_camps}</span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Matches</strong>
+                            <span>${data.summary.matches}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${data.events && data.events.length > 0 ? `
+                    <div class="report-table">
+                        <h3>Event Details</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Event Name</th>
+                                    <th>Type</th>
+                                    <th>Start Date</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.events.map(event => `
+                                    <tr>
+                                        <td>${event.Name}</td>
+                                        <td>${event.Type}</td>
+                                        <td>${event.StartDate}</td>
+                                        <td>${event.Location || 'N/A'}</td>
+                                        <td><span style="text-transform: capitalize;">${event.Status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '<p style="text-align: center; color: #7f8c8d; padding: 30px; font-size: 16px;">No events found for this period.</p>'}
+            </div>
+        `;
+
+        modalBody.innerHTML = html;
+        reportModal.classList.add('active');
+    }
+
+    // Close modal handlers
+    if (closeModal) {
+        closeModal.addEventListener('click', function() {
+            reportModal.classList.remove('active');
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            reportModal.classList.remove('active');
+        });
+    }
+
+    // Close on outside click
+    if (reportModal) {
+        reportModal.addEventListener('click', function(e) {
+            if (e.target === reportModal) {
+                reportModal.classList.remove('active');
+            }
+        });
+    }
+
+    console.log('Reports page initialized successfully');
+})();
+</script>
+
 <script src="<?php echo URLROOT; ?>/js/admin/admin-dashboard.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
