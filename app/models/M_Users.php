@@ -1,17 +1,87 @@
 <?php
 
+/**
+ * USER MODEL (M_Users)
+ * 
+ * Purpose: Handle all database operations related to users
+ * Responsibilities:
+ *   1. User registration (INSERT new users)
+ *   2. User authentication (SELECT and verify credentials)
+ *   3. User profile management (UPDATE user data)
+ *   4. User queries (SELECT user information)
+ *   5. Activity logging and security features
+ * 
+ * This is the DATA LAYER in MVC architecture
+ * - No business logic here, only database queries
+ * - Controllers call these methods to interact with database
+ * - Uses PDO (PHP Data Objects) for secure database access
+ */
 class M_Users {
+    // Database connection object
     private $db;
 
+    /**
+     * CONSTRUCTOR - Initialize database connection
+     * Runs automatically when model is instantiated
+     */
     public function __construct() {
+        // Create new Database instance (handles PDO connection)
         $this->db = new Database();
     }
 
-    // Register user with new table structure
+    /**
+     * REGISTER METHOD - Create new user account in database
+     * 
+     * Purpose: Insert a new user record into the User table
+     * 
+     * @param array $data - User registration data from controller:
+     *   - fullName: User's full name
+     *   - dateOfBirth: Birth date (YYYY-MM-DD format)
+     *   - address: Physical address
+     *   - school: School/institution name
+     *   - email: Unique email address
+     *   - contactNumber: Phone number
+     *   - username: Unique username
+     *   - password: ALREADY HASHED password (controller handles hashing)
+     * 
+     * @return int|false - Returns new UserID if successful, false if failed
+     * 
+     * Database Interaction:
+     *   - Inserts into 'User' table
+     *   - Triggers auto-creation of role-specific profile (PlayerProfile)
+     *   - Triggers welcome notification and email
+     */
     public function register($data) {
-        $this->db->query('INSERT INTO User (Name, DateOfBirth, Address, School, Email, PhoneNumber, Role, Username, PasswordHash, DateJoined) VALUES(:name, :date_of_birth, :address, :school, :email, :phone_number, :role, :username, :password_hash, NOW())');
+        // STEP 1: PREPARE SQL INSERT QUERY
+        // Uses placeholders (:name) to prevent SQL injection
+        // INSERT INTO table (columns) VALUES (placeholders)
+        $this->db->query('INSERT INTO User (
+            Name,
+            DateOfBirth,
+            Address,
+            School,
+            Email,
+            PhoneNumber,
+            Role,
+            Username,
+            PasswordHash,
+            DateJoined
+        ) VALUES (
+            :name, 
+            :date_of_birth, 
+            :address, 
+            :school, 
+            :email, 
+            :phone_number, 
+            :role, 
+            :username, 
+            :password_hash, 
+            NOW()
+        )');
         
-        // Bind values
+        // STEP 2: BIND VALUES TO PLACEHOLDERS
+        // This prevents SQL injection by separating data from SQL structure
+        // PDO handles proper escaping and type conversion
         $this->db->bind(':name', $data['fullName']);
         $this->db->bind(':date_of_birth', $data['dateOfBirth']);
         $this->db->bind(':address', $data['address']);
@@ -37,155 +107,264 @@ class M_Users {
         }
     }
 
-    // Login user
+    /**
+     * LOGIN METHOD - Authenticate user credentials
+     * 
+     * Purpose: Verify user's email/username and password against database
+     * 
+     * @param string $email - Email address OR username (supports both)
+     * @param string $password - Plain-text password (NOT hashed yet)
+     * 
+     * @return object|false - Returns user object if valid, false if invalid
+     * 
+     * Security Features:
+     *   - Uses password_verify() to check hashed passwords
+     *   - Never compares plain-text passwords
+     *   - Supports both email and username login
+     * 
+     * How Password Verification Works:
+     *   1. Query database for user by email OR username
+     *   2. Get the stored password hash from database
+     *   3. Use password_verify() to compare plain password with hash
+     *   4. Return user data if match, false if no match
+     */
     public function login($email, $password) {
+        // STEP 1: PREPARE SELECT QUERY
+        // Search for user by email OR username (flexible login)
+        // SELECT * gets all user columns (UserID, Name, Email, Role, etc.)
         $this->db->query('SELECT * FROM User WHERE Email = :email OR Username = :email');
+        
+        // STEP 2: BIND THE EMAIL/USERNAME
+        // Same placeholder used twice (email OR username)
+        // User can login with either their email or username
         $this->db->bind(':email', $email);
 
+        // STEP 3: EXECUTE QUERY AND GET RESULT
+        // single() returns one row as an object, or false if no match
         $row = $this->db->single();
 
+        // STEP 4: VERIFY PASSWORD IF USER EXISTS
         if($row) {
+            // User found in database - now verify password
+            
+            // Get the hashed password from database
             $hashed_password = $row->PasswordHash;
+            
+            // STEP 5: VERIFY PASSWORD
+            // password_verify() compares plain password with hashed password
+            // This is SECURE - it uses the same algorithm that created the hash
+            // Returns true if passwords match, false if they don't
             if(password_verify($password, $hashed_password)) {
+                // PASSWORD MATCHES - Return complete user object
+                // Contains: UserID, Name, Email, Role, etc.
                 return $row;
             }
         }
 
+        // USER NOT FOUND OR PASSWORD WRONG
+        // Return false (controller will show "Invalid credentials" message)
         return false;
     }
 
-    // Find user by email
+    /**
+     * FIND USER BY EMAIL - Check if email exists in database
+     * 
+     * Purpose: Validate email uniqueness during registration
+     * 
+     * @param string $email - Email address to search for
+     * @return bool - Returns true if email exists, false if available
+     * 
+     * Used during registration to prevent duplicate email addresses
+     * Controller checks this before allowing registration
+     */
     public function findUserByEmail($email) {
+        // STEP 1: QUERY DATABASE FOR EMAIL
         $this->db->query('SELECT * FROM User WHERE Email = :email');
         $this->db->bind(':email', $email);
 
+        // STEP 2: EXECUTE QUERY
         $row = $this->db->single();
 
-        // Check row
+        // STEP 3: CHECK IF EMAIL WAS FOUND
+        // rowCount() returns number of rows found (1 if exists, 0 if not)
         if($this->db->rowCount() > 0) {
-            return true;
+            return true;  // Email already exists in database
         } else {
-            return false;
+            return false; // Email is available
         }
     }
 
-    // Find user by username
+    /**
+     * FIND USER BY USERNAME - Check if username exists in database
+     * 
+     * Purpose: Validate username uniqueness during registration
+     * 
+     * @param string $username - Username to search for
+     * @return bool - Returns true if username exists, false if available
+     * 
+     * Used during registration to prevent duplicate usernames
+     * Works exactly like findUserByEmail() but for usernames
+     */
     public function findUserByUsername($username) {
+        // STEP 1: QUERY DATABASE FOR USERNAME
         $this->db->query('SELECT * FROM User WHERE Username = :username');
         $this->db->bind(':username', $username);
 
+        // STEP 2: EXECUTE QUERY
         $row = $this->db->single();
 
-        // Check row
+        // STEP 3: CHECK IF USERNAME WAS FOUND
+        // rowCount() returns number of matching rows
         if($this->db->rowCount() > 0) {
-            return true;
+            return true;  // Username already taken
         } else {
-            return false;
+            return false; // Username is available
         }
     }
 
-    // Get user by ID
+    /**
+     * GET USER BY ID - Retrieve user information by UserID
+     * 
+     * Purpose: Fetch complete user record from database
+     * 
+     * @param int $id - UserID to search for
+     * @return object|null - User object if found, null if not found
+     * 
+     * Used to get user details for profile pages, admin views, etc.
+     * Returns all user columns as an object
+     */
     public function getUserById($id) {
+        // STEP 1: QUERY FOR USER BY ID
         $this->db->query('SELECT * FROM User WHERE UserID = :id');
         $this->db->bind(':id', $id);
 
+        // STEP 2: RETURN USER OBJECT
+        // single() returns one row as object, or null if not found
         return $this->db->single();
     }
 
     // Get total users count
+    /**
+     * GET TOTAL USERS - Count all registered users
+     * 
+     * Purpose: Get total count of users in the system
+     * @return int - Total number of users in database
+     */
     public function getTotalUsers() {
+        // QUERY: COUNT all rows in User table
         $this->db->query('SELECT COUNT(*) as count FROM User');
         $result = $this->db->single();
         
-        return $result ? $result->count : 25; // Return dummy data if no database
+        // RETURN: Total user count (returns 0 if table is empty)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get total users by type (coach, player, trainer, staff)
+    /**
+     * GET TOTAL USERS BY TYPE - Count users by their role
+     * 
+     * Purpose: Get count of users for specific role (Coach, Player, Trainer, ShopEmployee)
+     * @param string $type - Role name (case-sensitive: 'Coach', 'Player', 'Trainer', 'ShopEmployee')
+     * @return int - Count of users with specified role
+     * 
+     * Example: getTotalUsersByType('Coach') returns number of coaches
+     */
     public function getTotalUsersByType($type) {
+        // QUERY: COUNT users WHERE Role matches the specified type
         $this->db->query('SELECT COUNT(*) as count FROM User WHERE Role = :type');
         $this->db->bind(':type', $type);
         $result = $this->db->single();
         
-        // Return dummy data if no database results
-        if (!$result) {
-            switch($type) {
-                case 'coach': return 8;
-                case 'player': return 15;
-                case 'trainer': return 3;
-                case 'staff': return 2;
-                default: return 0;
-            }
-        }
-        
-        return $result->count;
+        // RETURN: Count for this role (returns 0 if none found)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get today's registrations
+    /**
+     * GET TODAY'S REGISTRATIONS - Count new users registered today
+     * 
+     * Purpose: Track daily registration activity for monitoring growth
+     * @return int - Number of users who registered today
+     * 
+     * Uses CURDATE() to compare with registration date
+     */
     public function getTodayRegistrations() {
+        // QUERY: COUNT users WHERE registration date = today's date
+        // DATE(DateJoined) extracts just the date part (ignoring time)
+        // CURDATE() returns current date in 'YYYY-MM-DD' format
         $this->db->query('SELECT COUNT(*) as count FROM User WHERE DATE(DateJoined) = CURDATE()');
         $result = $this->db->single();
         
-        return $result ? $result->count : 3; // Return dummy data if no database
+        // RETURN: Today's registration count (returns 0 if no registrations today)
+        return $result ? (int)$result->count : 0;
     }
 
-    // Get recent activities
+    /**
+     * GET RECENT ACTIVITIES - Fetch latest user activities from log
+     * 
+     * Purpose: Display recent system activities on admin dashboard
+     * @param int $limit - Maximum number of activities to return (default: 10)
+     * @return array - Array of activity objects with user information
+     * 
+     * Returns activities like: account_created, login, profile_updated, etc.
+     * Useful for monitoring system usage and user behavior
+     */
     public function getRecentActivities($limit = 10) {
-        $this->db->query('SELECT al.*, u.Name as user_name 
-                         FROM ActivityLog al 
-                         LEFT JOIN User u ON al.UserID = u.UserID 
-                         ORDER BY al.Timestamp DESC 
-                         LIMIT :limit');
-        $this->db->bind(':limit', $limit);
+        // QUERY: Get activities with user names via LEFT JOIN
+        // activitylog.UserID -> User.UserID to get user name
+        // ORDER BY Timestamp DESC gets newest activities first
+        $this->db->query('SELECT 
+            al.ActivityID as id,
+            al.Action as action,
+            al.Description as details,
+            al.Timestamp as timestamp,
+            al.Action as type,
+            u.Name as user_name 
+        FROM activitylog al 
+        LEFT JOIN User u ON al.UserID = u.UserID 
+        ORDER BY al.Timestamp DESC 
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
+        
+        // EXECUTE QUERY
         $results = $this->db->resultSet();
         
-        // Return dummy data if no database results
-        if (empty($results)) {
-            return [
-                [
-                    'id' => 1,
-                    'action' => 'New player registered',
-                    'user_name' => 'John Doe',
-                    'timestamp' => '2 hours ago',
-                    'type' => 'registration',
-                    'details' => 'Player joined junior cricket program'
-                ],
-                [
-                    'id' => 2,
-                    'action' => 'Training session completed',
-                    'user_name' => 'Coach Smith',
-                    'timestamp' => '4 hours ago',
-                    'type' => 'training',
-                    'details' => 'Batting practice session for senior players'
-                ],
-                [
-                    'id' => 3,
-                    'action' => 'Event created',
-                    'user_name' => 'Admin User',
-                    'timestamp' => '1 day ago',
-                    'type' => 'event',
-                    'details' => 'Junior Cricket Tournament scheduled'
-                ],
-                [
-                    'id' => 4,
-                    'action' => 'Feedback submitted',
-                    'user_name' => 'Sarah Wilson',
-                    'timestamp' => '1 day ago',
-                    'type' => 'feedback',
-                    'details' => 'Training quality improvement suggestion'
-                ],
-                [
-                    'id' => 5,
-                    'action' => 'Profile updated',
-                    'user_name' => 'Mike Johnson',
-                    'timestamp' => '2 days ago',
-                    'type' => 'profile',
-                    'details' => 'Contact information updated'
-                ]
-            ];
+        // FORMAT TIMESTAMPS
+        // Convert database timestamps to relative time (e.g., "2 hours ago")
+        foreach ($results as &$activity) {
+            if (isset($activity->timestamp)) {
+                $activity->timestamp = $this->timeAgo($activity->timestamp);
+            }
         }
         
+        // RETURN: Array of activities (empty array if no activities found)
         return $results;
+    }
+    
+    /**
+     * TIME AGO - Convert timestamp to relative time string
+     * 
+     * Purpose: Display user-friendly relative time ("2 hours ago" instead of timestamp)
+     * @param string $datetime - Database timestamp
+     * @return string - Relative time string
+     */
+    private function timeAgo($datetime) {
+        $timestamp = strtotime($datetime);
+        $difference = time() - $timestamp;
+        
+        if ($difference < 60) {
+            return 'Just now';
+        } elseif ($difference < 3600) {
+            $minutes = floor($difference / 60);
+            return $minutes . ' minute' . ($minutes > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 86400) {
+            $hours = floor($difference / 3600);
+            return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+        } elseif ($difference < 604800) {
+            $days = floor($difference / 86400);
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        } else {
+            return date('M j, Y', $timestamp);
+        }
     }
 
     // Get all users with pagination
@@ -325,7 +504,7 @@ class M_Users {
 
     // Create activity log entry
     public function logActivity($userId, $action, $description, $ipAddress = null, $userAgent = null) {
-        $this->db->query('INSERT INTO ActivityLog (UserID, Action, Description, IPAddress, UserAgent) 
+        $this->db->query('INSERT INTO activitylog (UserID, Action, Description, IPAddress, UserAgent) 
                          VALUES (:user_id, :action, :description, :ip_address, :user_agent)');
         
         $this->db->bind(':user_id', $userId);

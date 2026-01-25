@@ -6,58 +6,69 @@ class Feedback {
         $this->db = new Database();
     }
 
-    // Get pending feedbacks
+    /**
+     * GET PENDING FEEDBACKS - Fetch unresolved feedback items
+     * 
+     * Purpose: Display feedback that requires admin attention on dashboard
+     * @param int $limit - Maximum number of feedback items to return
+     * @return array - Array of feedback objects with user information
+     * 
+     * Database Schema:
+     *   - FeedbackID: Primary key
+     *   - FromUserID: User who submitted feedback
+     *   - ToUserID: Target user (coach/trainer) or NULL for general feedback
+     *   - Content: Feedback message text
+     *   - Rating: 1-5 star rating (optional)
+     *   - Category: coach, trainer, facility, equipment, shop, general
+     *   - Status: pending, reviewed, resolved
+     *   - CreatedDate: When feedback was submitted
+     */
     public function getPendingFeedbacks($limit = 5) {
-        $this->db->query('SELECT f.*, u.name as user_name FROM feedback f 
-                         LEFT JOIN users u ON f.user_id = u.id 
-                         WHERE f.status = "pending" 
-                         ORDER BY f.created_at DESC LIMIT :limit');
-        $this->db->bind(':limit', $limit);
+        // QUERY: Get pending feedback with user names
+        // LEFT JOIN to get the name of user who submitted feedback (FromUserID)
+        // Filter by Status = 'pending' to show only unresolved items
+        $this->db->query('SELECT 
+            f.FeedbackID as id,
+            f.Content as message,
+            f.Category as subject,
+            f.Rating as rating,
+            f.Status as status,
+            f.CreatedDate as created_at,
+            u.Name as user_name,
+            CASE 
+                WHEN f.Rating >= 4 THEN "low"
+                WHEN f.Rating = 3 THEN "medium"
+                WHEN f.Rating <= 2 THEN "high"
+                ELSE "medium"
+            END as priority
+        FROM feedback f 
+        LEFT JOIN User u ON f.FromUserID = u.UserID 
+        WHERE f.Status = "pending" 
+        ORDER BY f.CreatedDate DESC 
+        LIMIT :limit');
         
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
+        
+        // EXECUTE AND RETURN RESULTS
         $results = $this->db->resultSet();
         
-        // Return dummy data if no database results
-        if (empty($results)) {
-            return [
-                [
-                    'id' => 1,
-                    'subject' => 'Training Quality Feedback',
-                    'message' => 'The coaching sessions are excellent but need more practice time.',
-                    'user_name' => 'John Smith',
-                    'status' => 'pending',
-                    'created_at' => '2025-09-01 10:30:00',
-                    'priority' => 'medium'
-                ],
-                [
-                    'id' => 2,
-                    'subject' => 'Facility Improvement Suggestion',
-                    'message' => 'The changing rooms could use better lighting and ventilation.',
-                    'user_name' => 'Sarah Johnson',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-30 14:15:00',
-                    'priority' => 'low'
-                ],
-                [
-                    'id' => 3,
-                    'subject' => 'Equipment Request',
-                    'message' => 'We need more batting helmets for junior players.',
-                    'user_name' => 'Mike Wilson',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-29 09:45:00',
-                    'priority' => 'high'
-                ]
-            ];
-        }
-        
+        // RETURN: Array of feedback (empty array if no pending feedback)
         return $results;
     }
 
-    // Get total pending feedback count
+    /**
+     * GET TOTAL PENDING FEEDBACK - Count unresolved feedback items
+     * 
+     * Purpose: Display count badge on admin dashboard
+     * @return int - Number of pending feedback items
+     */
     public function getTotalPendingFeedback() {
-        $this->db->query('SELECT COUNT(*) as count FROM feedback WHERE status = "pending"');
+        // QUERY: COUNT feedback WHERE Status = 'pending'
+        $this->db->query('SELECT COUNT(*) as count FROM feedback WHERE Status = "pending"');
         $result = $this->db->single();
         
-        return $result ? $result->count : 5; // Return dummy data if no database
+        // RETURN: Count of pending feedback (0 if none)
+        return $result ? (int)$result->count : 0;
     }
 
     // Get today's feedback count
@@ -68,19 +79,55 @@ class Feedback {
         return $result ? $result->count : 1; // Return dummy data if no database
     }
 
-    // Get all feedbacks
+    // Get all feedbacks with user information
     public function getAllFeedbacks() {
-        $this->db->query('SELECT f.*, u.name as user_name FROM feedback f 
-                         LEFT JOIN users u ON f.user_id = u.id 
-                         ORDER BY f.created_at DESC');
-        return $this->db->resultSet();
+        $this->db->query('SELECT 
+            f.FeedbackID as id,
+            f.Content as message,
+            f.Category as subject,
+            f.Rating as rating,
+            f.Status as status,
+            f.CreatedDate as created_at,
+            f.AdminResponse as admin_response,
+            f.ResponseDate as resolved_at,
+            u.Name as user_name,
+            u.Email as user_email,
+            CASE 
+                WHEN f.Rating >= 4 THEN "low"
+                WHEN f.Rating = 3 THEN "medium"
+                WHEN f.Rating <= 2 THEN "high"
+                ELSE "medium"
+            END as priority
+        FROM feedback f 
+        LEFT JOIN User u ON f.FromUserID = u.UserID 
+        ORDER BY f.CreatedDate DESC');
+        
+        $results = $this->db->resultSet();
+        
+        // Convert objects to arrays for compatibility
+        $feedbacks = [];
+        foreach ($results as $feedback) {
+            $feedbacks[] = (array) $feedback;
+        }
+        
+        return $feedbacks;
     }
 
     // Get feedback by ID
     public function getFeedbackById($id) {
-        $this->db->query('SELECT f.*, u.name as user_name FROM feedback f 
-                         LEFT JOIN users u ON f.user_id = u.id 
-                         WHERE f.id = :id');
+        $this->db->query('SELECT 
+            f.FeedbackID as id,
+            f.Content as message,
+            f.Category as subject,
+            f.Rating as rating,
+            f.Status as status,
+            f.CreatedDate as created_at,
+            f.AdminResponse as admin_response,
+            u.Name as user_name,
+            u.Email as user_email
+        FROM feedback f 
+        LEFT JOIN User u ON f.FromUserID = u.UserID 
+        WHERE f.FeedbackID = :id');
         $this->db->bind(':id', $id);
         
         return $this->db->single();

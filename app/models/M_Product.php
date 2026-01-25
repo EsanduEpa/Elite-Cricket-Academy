@@ -122,15 +122,64 @@ class M_Product {
 
     // Get product statistics
     public function getProductStats() {
-        $this->db->query('SELECT 
-            COUNT(*) as total_products,
-            SUM(CASE WHEN Status = "active" THEN 1 ELSE 0 END) as active_products,
-            SUM(CASE WHEN Status = "discontinued" THEN 1 ELSE 0 END) as discontinued_products,
-            SUM(CASE WHEN Status = "out_of_stock" THEN 1 ELSE 0 END) as out_of_stock_products,
-            SUM(StockQuantity) as total_stock_quantity,
-            SUM(CASE WHEN StockQuantity <= 10 AND Status = "active" THEN 1 ELSE 0 END) as low_stock_count
-            FROM Product');
-        return $this->db->single();
+        $stats = [];
+        
+        // Total active products
+        $this->db->query('SELECT COUNT(*) as total FROM Product WHERE Status = "active"');
+        $result = $this->db->single();
+        $stats['total_products'] = $result->total ?? 0;
+        
+        // Low stock count (≤ 10 units)
+        $this->db->query('SELECT COUNT(*) as total FROM Product WHERE StockQuantity <= 10 AND Status = "active"');
+        $result = $this->db->single();
+        $stats['low_stock'] = $result->total ?? 0;
+        
+        // Products with average rating ≥ 4.5
+        $this->db->query('
+            SELECT COUNT(DISTINCT p.ProductID) as total 
+            FROM product p
+            LEFT JOIN productreview pr ON p.ProductID = pr.ProductID AND pr.Status = "approved"
+            WHERE p.Status = "active"
+            GROUP BY p.ProductID
+            HAVING AVG(pr.Rating) >= 4.5
+        ');
+        $result = $this->db->single();
+        $stats['top_rated'] = $result->total ?? 0;
+        
+        // New products added this month
+        $this->db->query('
+            SELECT COUNT(*) as total 
+            FROM Product 
+            WHERE MONTH(AddedDate) = MONTH(CURRENT_DATE()) 
+            AND YEAR(AddedDate) = YEAR(CURRENT_DATE())
+        ');
+        $result = $this->db->single();
+        $stats['new_this_month'] = $result->total ?? 0;
+        
+        return $stats;
+    }
+    
+    // Get products with category and review stats
+    public function getAllProductsWithDetails() {
+        $this->db->query('
+            SELECT 
+                p.ProductID,
+                p.Name,
+                p.Description,
+                p.Category,
+                p.Brand,
+                p.Price,
+                p.StockQuantity,
+                p.Status,
+                p.ProductImage,
+                COALESCE(AVG(pr.Rating), 0) as avg_rating,
+                COUNT(pr.ReviewID) as review_count
+            FROM product p
+            LEFT JOIN productreview pr ON p.ProductID = pr.ProductID AND pr.Status = "approved"
+            GROUP BY p.ProductID
+            ORDER BY p.AddedDate DESC
+        ');
+        return $this->db->resultSet();
     }
 
     // ===== PRODUCT IMAGE METHODS =====

@@ -49,22 +49,82 @@ class Shop extends Controller {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
+        // Get order statistics
+        $stats = $this->shopModel->getOrderStats();
+        
+        // Get orders based on status filter
+        if ($status === 'all') {
+            $orders = $this->shopModel->getAllOrders();
+        } else {
+            $orders = $this->shopModel->getOrdersByStatus($status);
+        }
+        
         $data = [
             'title' => 'Order Management - Elite Cricket Gear',
-            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager'
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'stats' => $stats,
+            'orders' => $orders,
+            'current_status' => $status
         ];
         
         $this->view('shop/orders', $data);
+    }
+    
+    public function updateOrderStatus() {
+        // Check authentication for shop employees
+        requireAuth(['Shop']);
+        
+        // Check if POST request
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Get JSON data
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (isset($input['orderId']) && isset($input['status'])) {
+                $orderId = $input['orderId'];
+                $status = $input['status'];
+                
+                // Update order status
+                if ($this->shopModel->updateOrderStatus($orderId, $status)) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Order #$orderId status updated to $status"
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to update order status'
+                    ]);
+                }
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid request data'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid request method'
+            ]);
+        }
+        exit;
     }
 
     public function inventory() {
         // Check authentication for shop employees
         requireAuth(['Shop']);
         
+        // Get inventory statistics
+        $stats = $this->shopModel->getInventoryStats();
+        
+        // Get all inventory items
+        $inventory = $this->shopModel->getAllInventoryItems();
+        
         $data = [
             'title' => 'Inventory Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'inventory' => $this->getInventoryData()
+            'stats' => $stats,
+            'inventory' => $inventory
         ];
         
         $this->view('shop/inventory', $data);
@@ -129,11 +189,13 @@ class Shop extends Controller {
         // Get product statistics
         $stats = $this->productModel->getProductStats();
         
+        // Get all products with details
+        $products = $this->productModel->getAllProductsWithDetails();
+        
         $data = [
             'title' => 'Product Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'products' => $this->productModel->getAllProducts(),
-            'categories' => $this->getCategories(),
+            'products' => $products,
             'stats' => $stats
         ];
         
@@ -1170,18 +1232,22 @@ class Shop extends Controller {
 
     // Helper method for dashboard statistics
     private function getDashboardStats() {
-        return [
-            'total_orders' => 125, // Mock data - would come from database
-            'pending_orders' => 8, // Mock data - would come from database
-            'monthly_revenue' => 45000, // Mock data - would come from database
-            'total_products' => count($this->getAllProducts()),
-            'total_categories' => count($this->getCategories()),
-            'featured_products' => count($this->getFeaturedProducts()),
-            'active_deals' => count($this->getCurrentDeals()),
-            'low_stock_products' => 3, // Mock data - would come from database
-            'pending_reviews' => 5, // Mock data - would come from database
-            'active_rentals' => 12 // Mock data - would come from database
+        // Get real statistics from database
+        $stats = [
+            'total_orders' => $this->shopModel->getTotalOrders(),
+            'pending_orders' => $this->shopModel->getPendingOrders(),
+            'monthly_revenue' => $this->shopModel->getMonthlyRevenue(),
+            'total_products' => $this->shopModel->getTotalProducts(),
+            'low_stock_products' => $this->shopModel->getLowStockCount(),
+            'pending_reviews' => $this->shopModel->getPendingReviewsCount(),
+            'active_rentals' => $this->shopModel->getActiveRentalsCount(),
+            'low_stock_items' => $this->shopModel->getLowStockItems(),
+            'pending_review_items' => $this->shopModel->getPendingReviewItems(),
+            'active_rental_items' => $this->shopModel->getActiveRentalItems(),
+            'top_products' => $this->shopModel->getTopSellingProducts()
         ];
+        
+        return $stats;
     }
 
     // Helper methods for new shop management pages

@@ -51,7 +51,6 @@
                         <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
-                            <span class="badge">12</span>
                         </a>
                     </li>
                     
@@ -145,30 +144,6 @@
                             <h3><?php echo $data['staff_stats']->total_shop_employees ?? 0; ?></h3>
                             <p>Shop Staff</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Role Requests Section -->
-                <div class="role-requests-section" id="roleRequestsSection" style="display: none;">
-                    <div class="section-header">
-                        <h2><i class="fas fa-user-clock"></i> Pending Role Requests</h2>
-                        <span class="badge-count" id="requestCount">0</span>
-                    </div>
-                    <div class="role-requests-table-wrapper">
-                        <table class="role-requests-table" id="roleRequestsTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Requested Role</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="roleRequestsTableBody">
-                                <!-- Role request rows will be dynamically inserted here -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 

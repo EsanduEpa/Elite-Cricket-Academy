@@ -14,157 +14,98 @@ class Admin extends Controller {
     }
     
     public function dashboard() {
-        // Auto-update event statuses on dashboard load
+        // === ADMIN DASHBOARD - REAL DATABASE DATA ===
+        
+        // STEP 1: AUTO-UPDATE EVENT STATUSES
+        // Updates events to "completed" if end date has passed
+        // This keeps event data accurate without manual intervention
         $eventModel = $this->model('Event');
         $eventModel->updateEventStatuses();
         
-        // Hardcoded sample data for interface demonstration
+        // STEP 2: LOAD DATA MODELS
+        // Each model handles specific database queries for its domain
+        $userModel = $this->model('M_Users');      // User-related queries
+        $feedbackModel = $this->model('Feedback'); // Feedback queries
+        
+        // STEP 3: FETCH USER STATISTICS FROM DATABASE
+        // Query the User table to get real counts for each role
+        // Role values: 'Admin', 'Coach', 'Player', 'Trainer', 'ShopEmployee'
+        $totalUsers = $userModel->getTotalUsers();                    // COUNT all users
+        $totalCoaches = $userModel->getTotalUsersByType('Coach');     // COUNT WHERE Role = 'Coach'
+        $totalPlayers = $userModel->getTotalUsersByType('Player');    // COUNT WHERE Role = 'Player'
+        $totalTrainers = $userModel->getTotalUsersByType('Trainer');  // COUNT WHERE Role = 'Trainer'
+        $totalAdmins = $userModel->getTotalUsersByType('Admin');      // COUNT WHERE Role = 'Admin'
+        $totalShopEmployees = $userModel->getTotalUsersByType('ShopEmployee'); // COUNT WHERE Role = 'ShopEmployee'
+        
+        // CALCULATE TOTAL STAFF: All users except Players
+        // Staff = Admin + Coach + Trainer + ShopEmployee
+        $totalStaff = $totalAdmins + $totalCoaches + $totalTrainers + $totalShopEmployees;
+        
+        // STEP 4: FETCH UPCOMING EVENTS FROM DATABASE
+        // Get next 4 upcoming events ordered by start date
+        // This replaces hardcoded event data with real database records
+        $upcomingEvents = $eventModel->getUpcomingEvents(4);
+        
+        // STEP 5: FETCH RECENT ACTIVITIES FROM DATABASE
+        // Get last 20 activities from ActivityLog table
+        // Includes user actions like registrations, logins, profile updates
+        $recentActivities = $userModel->getRecentActivities(20);
+        
+        // STEP 6: FETCH PENDING FEEDBACK FROM DATABASE
+        // Get feedback items that need admin attention
+        // Status = 'pending' means not yet reviewed by admin
+        $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
+        
+        // STEP 7: PREPARE DATA ARRAY FOR VIEW
+        // All data now comes from database queries above
         $data = [
             'title' => 'Academy Management Dashboard - Elite Cricket Academy',
-            'totalUsers' => 47,
-            'totalCoaches' => 8,
-            'totalPlayers' => 32,
-            'totalTrainers' => 5,
-            'totalStaff' => 2,
-            'upcomingEvents' => [
-                [
-                    'id' => 1,
-                    'title' => 'Junior Cricket Championship',
-                    'event_date' => '2025-09-15',
-                    'event_type' => 'tournament',
-                    'description' => 'Annual junior cricket championship for under-16 players',
-                    'location' => 'Main Cricket Ground'
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Advanced Batting Workshop',
-                    'event_date' => '2025-09-12',
-                    'event_type' => 'training',
-                    'description' => 'Specialized batting techniques workshop by senior coach',
-                    'location' => 'Practice Nets Area'
-                ],
-                [
-                    'id' => 3,
-                    'title' => 'Inter-Academy Friendly Match',
-                    'event_date' => '2025-09-18',
-                    'event_type' => 'match',
-                    'description' => 'Friendly match against City Sports Academy',
-                    'location' => 'Stadium Ground'
-                ],
-                [
-                    'id' => 4,
-                    'title' => 'Fielding Skills Training',
-                    'event_date' => '2025-09-20',
-                    'event_type' => 'training',
-                    'description' => 'Intensive fielding and wicket-keeping session',
-                    'location' => 'Training Field B'
-                ]
-            ],
-            'recentActivities' => [
-                [
-                    'id' => 1,
-                    'action' => 'New player registered',
-                    'user_name' => 'Sarah Thompson',
-                    'timestamp' => '2 hours ago',
-                    'type' => 'registration',
-                    'details' => 'Junior player joined the academy program'
-                ],
-                [
-                    'id' => 2,
-                    'action' => 'Training session completed',
-                    'user_name' => 'Coach Michael Smith',
-                    'timestamp' => '4 hours ago',
-                    'type' => 'training',
-                    'details' => 'Bowling technique workshop for senior players'
-                ],
-                [
-                    'id' => 3,
-                    'action' => 'Event scheduled',
-                    'user_name' => 'Admin User',
-                    'timestamp' => '6 hours ago',
-                    'type' => 'event',
-                    'details' => 'Junior Cricket Championship added to calendar'
-                ],
-                [
-                    'id' => 4,
-                    'action' => 'Feedback submitted',
-                    'user_name' => 'Emily Rodriguez',
-                    'timestamp' => '1 day ago',
-                    'type' => 'feedback',
-                    'details' => 'Training facility improvement suggestions'
-                ],
-                [
-                    'id' => 5,
-                    'action' => 'Coach profile updated',
-                    'user_name' => 'David Wilson',
-                    'timestamp' => '1 day ago',
-                    'type' => 'profile',
-                    'details' => 'Coaching credentials and certifications updated'
-                ],
-                [
-                    'id' => 6,
-                    'action' => 'Equipment inventory updated',
-                    'user_name' => 'Staff Manager',
-                    'timestamp' => '2 days ago',
-                    'type' => 'inventory',
-                    'details' => 'New cricket gear added to inventory'
-                ]
-            ],
-            'pendingFeedback' => [
-                [
-                    'id' => 1,
-                    'subject' => 'Training Schedule Improvement',
-                    'message' => 'Could we have more evening training slots for working parents?',
-                    'user_name' => 'Jennifer Martinez',
-                    'status' => 'pending',
-                    'created_at' => '2025-09-01 14:30:00',
-                    'priority' => 'medium'
-                ],
-                [
-                    'id' => 2,
-                    'subject' => 'Equipment Quality Concern',
-                    'message' => 'Some of the batting helmets need replacement for safety.',
-                    'user_name' => 'Robert Chen',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-31 09:15:00',
-                    'priority' => 'high'
-                ],
-                [
-                    'id' => 3,
-                    'subject' => 'Ground Maintenance',
-                    'message' => 'The practice pitch needs better drainage after recent rains.',
-                    'user_name' => 'Amanda Foster',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-30 16:45:00',
-                    'priority' => 'high'
-                ],
-                [
-                    'id' => 4,
-                    'subject' => 'Coaching Appreciation',
-                    'message' => 'Excellent work by Coach Smith with the junior team!',
-                    'user_name' => 'Mark Johnson',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-29 11:20:00',
-                    'priority' => 'low'
-                ],
-                [
-                    'id' => 5,
-                    'subject' => 'Tournament Preparation',
-                    'message' => 'Need more practice matches before the championship.',
-                    'user_name' => 'Lisa Williams',
-                    'status' => 'pending',
-                    'created_at' => '2025-08-28 13:10:00',
-                    'priority' => 'medium'
-                ]
-            ],
-            'totalPendingFeedback' => 5,
+            
+            // USER STATISTICS (from database)
+            'totalUsers' => $totalUsers,       // Total registered users
+            'totalCoaches' => $totalCoaches,   // Users with Coach role
+            'totalPlayers' => $totalPlayers,   // Users with Player role
+            'totalTrainers' => $totalTrainers, // Users with Trainer role
+            'totalStaff' => $totalStaff,       // Users with ShopEmployee role
+            
+            // UPCOMING EVENTS (from Event table)
+            // Returns array of event objects with: id, title, event_date, Type, Description, Location
+            'upcomingEvents' => $upcomingEvents,
+            
+            // RECENT ACTIVITIES (from ActivityLog table)
+            // Returns array of activity objects with: ActivityID, Action, Description, Timestamp, user_name
+            'recentActivities' => $recentActivities,
+            
+            // PENDING FEEDBACK (from Feedback table)
+            // Returns array of feedback objects with: FeedbackID, Content, Rating, Status, user_name
+            'pendingFeedback' => $pendingFeedback,
+            
+            // FEEDBACK STATISTICS
+            // Count of total pending feedback items needing review
+            'totalPendingFeedback' => count($pendingFeedback),
+            
+            // TODAY'S STATISTICS (from database)
+            // Real-time data for current day activity monitoring
             'todayStats' => [
-                'newRegistrations' => 3,
-                'activeEvents' => 2,
-                'feedbackReceived' => 1
-            ]
+                // New user registrations today (WHERE DATE(DateJoined) = CURDATE())
+                'newRegistrations' => $userModel->getTodayRegistrations(),
+                
+                // Events happening today (WHERE DATE(StartDate) = CURDATE())
+                'activeEvents' => count($eventModel->getTodayActiveEvents()),
+                
+                // Feedback received today - will need to add this method if needed
+                'feedbackReceived' => 0  // Placeholder - can add getFeedbackToday() method
+            ],
+            
+            // MONTHLY REVENUE (Placeholder until Finance model is created)
+            // TODO: Create Finance model with getMonthlyRevenue() method
+            // This should query Order/Transaction table and SUM payments for current month
+            'monthlyRevenue' => 0  // Will show "RS 0" until Finance model implemented
         ];
         
+        // STEP 8: LOAD DASHBOARD VIEW
+        // Pass all database data to the view template
+        // View file: app/views/admin/dashboard.php
         $this->view('admin/dashboard', $data);
     }
     
@@ -376,6 +317,16 @@ class Admin extends Controller {
                 $result = $eventModel->createEvent($eventData);
                 
                 if ($result) {
+                    // LOG ACTIVITY: Event created
+                    $userModel = $this->model('M_Users');
+                    $userModel->logActivity(
+                        $_SESSION['user_id'],
+                        'Event Created',
+                        'Created new event: ' . $eventData['name'] . ' (' . $eventData['type'] . ')',
+                        $_SERVER['REMOTE_ADDR'] ?? null,
+                        $_SERVER['HTTP_USER_AGENT'] ?? null
+                    );
+                    
                     flash('event_message', '✅ Event "' . $eventData['name'] . '" created successfully!', 'alert alert-success');
                     redirect('admin/events');
                 } else {
@@ -508,6 +459,16 @@ class Admin extends Controller {
             $result = $eventModel->updateEvent($eventData);
             
             if ($result) {
+                // LOG ACTIVITY: Event updated
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Event Updated',
+                    'Updated event: ' . $eventData['name'] . ' (' . $eventData['type'] . ')',
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
                 flash('event_message', '✅ Event updated successfully!', 'alert alert-success');
                 redirect('admin/events');
             } else {
@@ -535,6 +496,10 @@ class Admin extends Controller {
     public function delete_event($id) {
         $eventModel = $this->model('Event');
         
+        // Get event details before deletion for activity log
+        $event = $eventModel->getEventById($id);
+        $eventName = $event ? $event->Name : 'Event #' . $id;
+        
         // Check if event can be deleted (6 months after end date)
         if (!$eventModel->canDeleteEvent($id)) {
             flash('event_message', 'This event cannot be deleted yet. Events can only be deleted 6 months after they have ended.', 'alert alert-warning');
@@ -545,6 +510,16 @@ class Admin extends Controller {
         $result = $eventModel->deleteEvent($id);
         
         if ($result) {
+            // LOG ACTIVITY: Event deleted
+            $userModel = $this->model('M_Users');
+            $userModel->logActivity(
+                $_SESSION['user_id'],
+                'Event Deleted',
+                'Deleted event: ' . $eventName,
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+            
             flash('event_message', 'Event deleted successfully');
         } else {
             flash('event_message', 'Something went wrong', 'alert alert-danger');
@@ -605,6 +580,19 @@ class Admin extends Controller {
             
             // Call model method to update
             if ($eventModel->updateEvent($data)) {
+                // LOG ACTIVITY: Event updated
+                $userModel = $this->model('M_Users');
+                $logResult = $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Event Updated',
+                    'Updated event: ' . $data['EventName'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
+                // Debug logging
+                error_log("Activity logged for event update: " . ($logResult ? 'SUCCESS' : 'FAILED'));
+                
                 echo json_encode([
                     'success' => true,
                     'message' => 'Event updated successfully'
@@ -782,7 +770,7 @@ class Admin extends Controller {
     public function feedback() {
         $feedbackModel = $this->model('Feedback');
         
-        // Get all feedbacks with different statuses
+        // Get all feedbacks from database
         $allFeedbacks = $feedbackModel->getAllFeedbacks();
         
         // Separate by status
@@ -797,164 +785,6 @@ class Admin extends Controller {
         $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
             return isset($f['status']) && $f['status'] === 'resolved';
         });
-        
-        // Add dummy data if no database results
-        if (empty($allFeedbacks)) {
-            $allFeedbacks = [
-                [
-                    'id' => 1,
-                    'subject' => 'Training Quality Feedback',
-                    'message' => 'The coaching sessions are excellent but need more practice time. The coaches are very supportive.',
-                    'user_name' => 'John Smith',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'training',
-                    'created_at' => '2025-10-18 10:30:00',
-                    'user_email' => 'john.smith@email.com'
-                ],
-                [
-                    'id' => 2,
-                    'subject' => 'Facility Improvement Suggestion',
-                    'message' => 'The changing rooms could use better lighting and ventilation. Also, more benches would be helpful.',
-                    'user_name' => 'Sarah Johnson',
-                    'status' => 'in_progress',
-                    'priority' => 'low',
-                    'category' => 'facilities',
-                    'created_at' => '2025-10-17 14:15:00',
-                    'user_email' => 'sarah.j@email.com'
-                ],
-                [
-                    'id' => 3,
-                    'subject' => 'Equipment Request',
-                    'message' => 'We need more batting helmets for junior players. Current stock is insufficient for the growing number of students.',
-                    'user_name' => 'Mike Wilson',
-                    'status' => 'pending',
-                    'priority' => 'high',
-                    'category' => 'equipment',
-                    'created_at' => '2025-10-17 09:45:00',
-                    'user_email' => 'mike.w@email.com'
-                ],
-                [
-                    'id' => 4,
-                    'subject' => 'Schedule Conflict Issue',
-                    'message' => 'There is a scheduling conflict between junior and senior training sessions on weekends.',
-                    'user_name' => 'Emily Brown',
-                    'status' => 'resolved',
-                    'priority' => 'high',
-                    'category' => 'scheduling',
-                    'created_at' => '2025-10-15 16:20:00',
-                    'resolved_at' => '2025-10-16 10:00:00',
-                    'admin_response' => 'Schedule has been adjusted. Junior sessions now at 8 AM, seniors at 10 AM.',
-                    'user_email' => 'emily.b@email.com'
-                ],
-                [
-                    'id' => 5,
-                    'subject' => 'Payment System Feedback',
-                    'message' => 'The online payment system is great but could use more payment options like digital wallets.',
-                    'user_name' => 'David Lee',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'system',
-                    'created_at' => '2025-10-14 11:30:00',
-                    'user_email' => 'david.lee@email.com'
-                ],
-                [
-                    'id' => 6,
-                    'subject' => 'Coach Performance Appreciation',
-                    'message' => 'Coach Williams has been exceptional in improving my batting technique. Highly appreciate the dedication.',
-                    'user_name' => 'Lisa Anderson',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'appreciation',
-                    'created_at' => '2025-10-13 13:45:00',
-                    'resolved_at' => '2025-10-14 09:00:00',
-                    'admin_response' => 'Thank you for your positive feedback. We have shared it with Coach Williams.',
-                    'user_email' => 'lisa.a@email.com'
-                ],
-                [
-                    'id' => 7,
-                    'subject' => 'Tournament Organization Query',
-                    'message' => 'When will the registration open for the upcoming junior cricket championship?',
-                    'user_name' => 'Robert Martinez',
-                    'status' => 'in_progress',
-                    'priority' => 'medium',
-                    'category' => 'events',
-                    'created_at' => '2025-10-12 15:00:00',
-                    'user_email' => 'robert.m@email.com'
-                ],
-                [
-                    'id' => 8,
-                    'subject' => 'Parking Space Concern',
-                    'message' => 'Limited parking space during peak hours. Parents have difficulty finding parking spots.',
-                    'user_name' => 'Jennifer White',
-                    'status' => 'pending',
-                    'priority' => 'high',
-                    'category' => 'facilities',
-                    'created_at' => '2025-10-11 08:30:00',
-                    'user_email' => 'jennifer.w@email.com'
-                ],
-                [
-                    'id' => 9,
-                    'subject' => 'Cafeteria Menu Suggestion',
-                    'message' => 'It would be great to have more healthy food options in the cafeteria menu.',
-                    'user_name' => 'Chris Taylor',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'services',
-                    'created_at' => '2025-10-10 12:15:00',
-                    'resolved_at' => '2025-10-11 14:30:00',
-                    'admin_response' => 'New healthy menu items have been added. Check the updated menu board.',
-                    'user_email' => 'chris.t@email.com'
-                ],
-                [
-                    'id' => 10,
-                    'subject' => 'Medical Facility Inquiry',
-                    'message' => 'Is there a sports physiotherapist available on-site for injury consultations?',
-                    'user_name' => 'Amanda Clark',
-                    'status' => 'pending',
-                    'priority' => 'medium',
-                    'category' => 'medical',
-                    'created_at' => '2025-10-09 10:00:00',
-                    'user_email' => 'amanda.c@email.com'
-                ],
-                [
-                    'id' => 11,
-                    'subject' => 'Equipment Maintenance Issue',
-                    'message' => 'Some of the bowling machines in Practice Net 2 are not working properly.',
-                    'user_name' => 'Kevin Brown',
-                    'status' => 'in_progress',
-                    'priority' => 'high',
-                    'category' => 'equipment',
-                    'created_at' => '2025-10-08 14:45:00',
-                    'user_email' => 'kevin.b@email.com'
-                ],
-                [
-                    'id' => 12,
-                    'subject' => 'Membership Benefits Query',
-                    'message' => 'What additional benefits are included in the premium membership package?',
-                    'user_name' => 'Rachel Green',
-                    'status' => 'resolved',
-                    'priority' => 'low',
-                    'category' => 'membership',
-                    'created_at' => '2025-10-07 11:20:00',
-                    'resolved_at' => '2025-10-08 09:15:00',
-                    'admin_response' => 'Premium membership includes priority booking, free equipment rental, and personalized training sessions.',
-                    'user_email' => 'rachel.g@email.com'
-                ]
-            ];
-            
-            $pendingFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'pending';
-            });
-            
-            $inProgressFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'in_progress';
-            });
-            
-            $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
-                return $f['status'] === 'resolved';
-            });
-        }
         
         $data = [
             'title' => 'Feedback Monitoring - Elite Cricket Academy',
@@ -973,8 +803,8 @@ class Admin extends Controller {
                 'todayCount' => count(array_filter($allFeedbacks, function($f) {
                     return isset($f['created_at']) && date('Y-m-d', strtotime($f['created_at'])) === date('Y-m-d');
                 })),
-                'avgResponseTime' => '4.2 hours',
-                'satisfactionRate' => 92
+                'avgResponseTime' => '0 hours',
+                'satisfactionRate' => 0
             ]
         ];
         
@@ -995,6 +825,18 @@ class Admin extends Controller {
                 $response
             );
             
+            if ($result) {
+                // LOG ACTIVITY: Feedback status updated
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Feedback Updated',
+                    'Updated feedback #' . $_POST['feedback_id'] . ' status to: ' . $_POST['status'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+            }
+            
             echo json_encode(['success' => $result]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request']);
@@ -1008,6 +850,18 @@ class Admin extends Controller {
         if ($_POST && isset($_POST['feedback_id'])) {
             $feedbackModel = $this->model('Feedback');
             $result = $feedbackModel->deleteFeedback($_POST['feedback_id']);
+            
+            if ($result) {
+                // LOG ACTIVITY: Feedback deleted
+                $userModel = $this->model('M_Users');
+                $userModel->logActivity(
+                    $_SESSION['user_id'],
+                    'Feedback Deleted',
+                    'Deleted feedback #' . $_POST['feedback_id'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+            }
             
             echo json_encode(['success' => $result]);
         } else {
@@ -1156,6 +1010,15 @@ class Admin extends Controller {
             $userId = $userModel->createStaff($staffData);
             
             if ($userId) {
+                // LOG ACTIVITY: Staff member created
+                $userModel->logActivity(
+                    $_SESSION['user_id'] ?? 0,
+                    'Staff Created',
+                    'Added new staff member: ' . $staffData['fullName'] . ' (' . $staffData['role'] . ')',
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
                 error_log("✅ Staff member created successfully with ID: $userId");
                 ob_end_clean(); // Clear any accumulated output
                 echo json_encode([
@@ -1228,6 +1091,122 @@ class Admin extends Controller {
         ];
         
         $this->view('admin/reports', $data);
+    }
+
+    // Generate Event Summary Report
+    public function generate_event_report() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $period = $_POST['period'] ?? 'month';
+            $startDate = $_POST['start_date'] ?? null;
+            $endDate = $_POST['end_date'] ?? null;
+            
+            // Calculate date range based on period
+            if ($period == 'custom' && $startDate && $endDate) {
+                $dateFrom = $startDate;
+                $dateTo = $endDate;
+            } else {
+                switch($period) {
+                    case 'week':
+                        $dateFrom = date('Y-m-d', strtotime('-7 days'));
+                        break;
+                    case 'quarter':
+                        $dateFrom = date('Y-m-d', strtotime('-3 months'));
+                        break;
+                    case 'year':
+                        $dateFrom = date('Y-m-d', strtotime('-1 year'));
+                        break;
+                    case 'month':
+                    default:
+                        $dateFrom = date('Y-m-d', strtotime('-1 month'));
+                        break;
+                }
+                $dateTo = date('Y-m-d');
+            }
+            
+            // Get event data from database
+            $eventModel = $this->model('Event');
+            $db = new Database();
+            
+            // Get event summary statistics
+            $db->query('SELECT 
+                COUNT(*) as total_events,
+                SUM(CASE WHEN Status = "completed" THEN 1 ELSE 0 END) as completed_events,
+                SUM(CASE WHEN Status = "upcoming" THEN 1 ELSE 0 END) as upcoming_events,
+                SUM(CASE WHEN Status = "cancelled" THEN 1 ELSE 0 END) as cancelled_events,
+                SUM(CASE WHEN Type = "Tournament" THEN 1 ELSE 0 END) as tournaments,
+                SUM(CASE WHEN Type = "Training Camp" THEN 1 ELSE 0 END) as training_camps,
+                SUM(CASE WHEN Type = "Match" THEN 1 ELSE 0 END) as matches
+            FROM Event 
+            WHERE StartDate >= :start_date AND StartDate <= :end_date');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $summary = $db->single();
+            
+            // Get detailed event list
+            $db->query('SELECT 
+                EventID,
+                Name,
+                Type,
+                StartDate,
+                EndDate,
+                Location,
+                Status,
+                MaxParticipants
+            FROM Event 
+            WHERE StartDate >= :start_date AND StartDate <= :end_date
+            ORDER BY StartDate DESC');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $events = $db->resultSet();
+            
+            // Get event participation statistics
+            $db->query('SELECT 
+                e.Name as event_name,
+                e.Type as event_type,
+                e.StartDate,
+                COUNT(ep.PlayerID) as participant_count,
+                e.MaxParticipants as max_participants
+            FROM Event e
+            LEFT JOIN EventParticipation ep ON e.EventID = ep.EventID
+            WHERE e.StartDate >= :start_date AND e.StartDate <= :end_date
+            GROUP BY e.EventID
+            ORDER BY e.StartDate DESC');
+            
+            $db->bind(':start_date', $dateFrom);
+            $db->bind(':end_date', $dateTo);
+            $participation = $db->resultSet();
+            
+            // Prepare report data
+            $reportData = [
+                'success' => true,
+                'report_type' => 'Event Summary Report',
+                'period' => $period,
+                'date_range' => [
+                    'from' => $dateFrom,
+                    'to' => $dateTo
+                ],
+                'summary' => [
+                    'total_events' => (int)$summary->total_events,
+                    'completed_events' => (int)$summary->completed_events,
+                    'upcoming_events' => (int)$summary->upcoming_events,
+                    'cancelled_events' => (int)$summary->cancelled_events,
+                    'tournaments' => (int)$summary->tournaments,
+                    'training_camps' => (int)$summary->training_camps,
+                    'matches' => (int)$summary->matches
+                ],
+                'events' => $events,
+                'participation' => $participation,
+                'generated_at' => date('Y-m-d H:i:s')
+            ];
+            
+            echo json_encode($reportData);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
     }
 
     // Profile Management
