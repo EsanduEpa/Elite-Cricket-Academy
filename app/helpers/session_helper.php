@@ -81,8 +81,26 @@ function requireAuth($allowedRoles = []) {
         session_start();
     }
     
+    // Check if this is an AJAX request
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $isJsonRequest = (isset($_SERVER['CONTENT_TYPE']) && 
+                     strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+                     (isset($_SERVER['HTTP_ACCEPT']) && 
+                     strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+    
     // Check if user is logged in
     if (!isLoggedIn()) {
+        if ($isAjax || $isJsonRequest) {
+            // Return JSON error for AJAX requests
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Please login to access this resource'
+            ]);
+            exit();
+        }
         flash('login_required', 'Please login to access this page', 'alert alert-danger');
         redirect('login');
         exit();
@@ -90,6 +108,16 @@ function requireAuth($allowedRoles = []) {
     
     // Check if role is allowed (if roles specified)
     if (!empty($allowedRoles) && !in_array($_SESSION['user_role'], $allowedRoles)) {
+        if ($isAjax || $isJsonRequest) {
+            // Return JSON error for AJAX requests
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'You do not have permission to access this resource'
+            ]);
+            exit();
+        }
         flash('access_denied', 'You do not have permission to access this page', 'alert alert-danger');
         // Redirect to their own dashboard
         redirectToDashboard();

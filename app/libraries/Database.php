@@ -94,5 +94,10 @@
         public function lastInsertId(){
             return $this->dbh->lastInsertId();
         }
+
+        //get error info from last statement
+        public function getError(){
+            return $this->statement ? $this->statement->errorInfo() : ['00000', null, 'No statement executed'];
+        }
     }
 ?>

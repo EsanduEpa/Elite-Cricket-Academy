@@ -31,23 +31,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const subscriptionValue = subscriptionFilter ? subscriptionFilter.value.toLowerCase() : 'all';
         const battingValue = battingFilter ? battingFilter.value.toLowerCase() : 'all';
         
-        const playerRows = document.querySelectorAll('.data-table tbody tr');
+        const playerRows = document.querySelectorAll('.staff-table tbody tr');
         
         playerRows.forEach(row => {
-            const playerName = row.querySelector('.player-info h4')?.textContent.toLowerCase() || '';
-            const playerEmail = row.querySelector('.player-info p')?.textContent.toLowerCase() || '';
+            const playerName = row.querySelector('.staff-info h4')?.textContent.toLowerCase() || '';
+            const playerAge = row.querySelector('.staff-info p')?.textContent.toLowerCase() || '';
             const jerseyNumber = row.cells[2]?.textContent.toLowerCase() || '';
+            const playerEmail = row.cells[3]?.textContent.toLowerCase() || '';
             
             // Get status from badge class
             const statusBadge = row.querySelector('.status-badge');
             const playerStatus = statusBadge ? statusBadge.textContent.trim().toLowerCase() : '';
             
-            // Get subscription from badge
-            const subscriptionBadge = row.querySelector('.badge-premium, .badge-standard, .badge-trial');
-            const playerSubscription = subscriptionBadge ? subscriptionBadge.textContent.trim().toLowerCase() : '';
+            // Get subscription from badge in column 6
+            const subscriptionCell = row.cells[6];
+            const playerSubscription = subscriptionCell ? subscriptionCell.textContent.trim().toLowerCase() : '';
             
-            // Get batting style
-            const playerBattingStyle = row.cells[3]?.textContent.trim().toLowerCase() || '';
+            // Get batting style from column 5
+            const battingCell = row.cells[5];
+            const playerBattingStyle = battingCell ? battingCell.textContent.trim().toLowerCase() : '';
             
             let showRow = true;
             
@@ -55,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchTerm && 
                 !playerName.includes(searchTerm) && 
                 !playerEmail.includes(searchTerm) && 
-                !jerseyNumber.includes(searchTerm)) {
+                !jerseyNumber.includes(searchTerm) &&
+                !playerAge.includes(searchTerm)) {
                 showRow = false;
             }
             
@@ -81,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateResultsCount() {
-        const allRows = document.querySelectorAll('.data-table tbody tr');
+        const allRows = document.querySelectorAll('.staff-table tbody tr');
         const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
         console.log(`Showing ${visibleRows.length} of ${allRows.length} players`);
     }
@@ -94,7 +97,7 @@ function resetFilters() {
     document.getElementById('subscriptionFilter').value = 'all';
     document.getElementById('battingFilter').value = 'all';
     
-    const playerRows = document.querySelectorAll('.data-table tbody tr');
+    const playerRows = document.querySelectorAll('.staff-table tbody tr');
     playerRows.forEach(row => {
         row.style.display = '';
     });

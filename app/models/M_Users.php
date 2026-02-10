@@ -833,6 +833,157 @@ class M_Users {
         }
     }
 
+    public function createPlayer($data) {
+        // First, insert into User table
+        $this->db->query('INSERT INTO User (
+            Name, 
+            DateOfBirth, 
+            PhoneNumber, 
+            Email, 
+            Address, 
+            Role, 
+            Username, 
+            PasswordHash, 
+            DateJoined, 
+            Status,
+            CreatedBy
+        ) VALUES (
+            :name, 
+            :date_of_birth, 
+            :phone_number, 
+            :email, 
+            :address, 
+            :role, 
+            :username, 
+            :password_hash, 
+            NOW(), 
+            :status,
+            :created_by
+        )');
+        
+        // Bind values
+        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':date_of_birth', $data['dateOfBirth']);
+        $this->db->bind(':phone_number', $data['phone']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':address', $data['address']);
+        $this->db->bind(':role', 'Player');
+        $this->db->bind(':username', $data['username']);
+        $this->db->bind(':password_hash', $data['passwordHash']);
+        $this->db->bind(':status', $data['status'] ?? 'active');
+        $this->db->bind(':created_by', $data['createdBy'] ?? null);
+
+        // Execute User insert
+        try {
+            if($this->db->execute()) {
+                $userId = $this->db->lastInsertId();
+                
+                // Clean up any orphaned PlayerProfile record with this ID (from previous failed attempts)
+                $this->db->query('DELETE FROM playerprofile WHERE PlayerID = :player_id');
+                $this->db->bind(':player_id', $userId);
+                $this->db->execute();
+                
+                // Now insert into PlayerProfile table
+                $this->db->query('INSERT INTO playerprofile (
+                    PlayerID,
+                    JerseyNumber,
+                    BattingStyle,
+                    BowlingStyle,
+                    SubscriptionType
+                ) VALUES (
+                    :player_id,
+                    :jersey_number,
+                    :batting_style,
+                    :bowling_style,
+                    :subscription_type
+                )');
+                
+                $this->db->bind(':player_id', $userId);
+                $this->db->bind(':jersey_number', $data['jerseyNumber'] ?? null);
+                $this->db->bind(':batting_style', $data['battingStyle'] ?? null);
+                $this->db->bind(':bowling_style', $data['bowlingStyle'] ?? null);
+                $this->db->bind(':subscription_type', $data['subscriptionType'] ?? 'basic');
+                
+                if($this->db->execute()) {
+                    return $userId;
+                } else {
+                    $errorInfo = $this->db->getError();
+                    error_log("Failed to create Player profile for UserID: $userId - Error: " . print_r($errorInfo, true));
+                    
+                    // Rollback: Delete both playerprofile and user records
+                    $this->db->query('DELETE FROM playerprofile WHERE PlayerID = :player_id');
+                    $this->db->bind(':player_id', $userId);
+                    $this->db->execute();
+                    
+                    $this->db->query('DELETE FROM User WHERE UserID = :user_id');
+                    $this->db->bind(':user_id', $userId);
+                    $this->db->execute();
+                    
+                    throw new Exception('Failed to create player profile: ' . ($errorInfo[2] ?? 'Unknown database error'));
+                }
+            } else {
+                $errorInfo = $this->db->getError();
+                error_log("Database execution failed during player user creation - Error: " . print_r($errorInfo, true));
+                throw new Exception('Failed to create user account: ' . ($errorInfo[2] ?? 'Unknown database error'));
+            }
+        } catch (Exception $e) {
+            error_log("Database error during player creation: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updatePlayer($data) {
+        try {
+            // Update User table
+            $this->db->query('UPDATE User SET 
+                Name = :name,
+                Email = :email,
+                PhoneNumber = :phone,
+                Address = :address,
+                Status = :status
+                WHERE UserID = :user_id');
+            
+            $this->db->bind(':name', $data['fullName']);
+            $this->db->bind(':email', $data['email']);
+            $this->db->bind(':phone', $data['phone']);
+            $this->db->bind(':address', $data['address']);
+            $this->db->bind(':status', $data['status']);
+            $this->db->bind(':user_id', $data['playerId']);
+            
+            if(!$this->db->execute()) {
+                $errorInfo = $this->db->getError();
+                error_log("Failed to update User for PlayerID: {$data['playerId']} - Error: " . print_r($errorInfo, true));
+                throw new Exception('Failed to update user account: ' . ($errorInfo[2] ?? 'Unknown database error'));
+            }
+            
+            // Update PlayerProfile table
+            $this->db->query('UPDATE playerprofile SET 
+                JerseyNumber = :jersey_number,
+                BattingStyle = :batting_style,
+                BowlingStyle = :bowling_style,
+                SubscriptionType = :subscription_type
+                WHERE PlayerID = :player_id');
+            
+            $this->db->bind(':jersey_number', $data['jerseyNumber']);
+            $this->db->bind(':batting_style', $data['battingStyle']);
+            $this->db->bind(':bowling_style', $data['bowlingStyle']);
+            $this->db->bind(':subscription_type', $data['subscriptionType']);
+            $this->db->bind(':player_id', $data['playerId']);
+            
+            if(!$this->db->execute()) {
+                $errorInfo = $this->db->getError();
+                error_log("Failed to update PlayerProfile for PlayerID: {$data['playerId']} - Error: " . print_r($errorInfo, true));
+                throw new Exception('Failed to update player profile: ' . ($errorInfo[2] ?? 'Unknown database error'));
+            }
+            
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("Database error during player update: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     // ============= PROFILE IMAGE METHODS =============
 
     // Update user profile image

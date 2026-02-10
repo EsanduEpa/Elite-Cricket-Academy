@@ -1057,6 +1057,475 @@ class Admin extends Controller {
         exit;
     }
 
+    public function add_player() {
+        // Start output buffering to catch any PHP errors/warnings
+        ob_start();
+        
+        // Disable error display for this endpoint (log only)
+        ini_set('display_errors', 0);
+        
+        try {
+            // Set JSON header
+            header('Content-Type: application/json; charset=utf-8');
+            
+            // Only accept POST requests
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Invalid request method. POST required.');
+            }
+            
+            // Get JSON input
+            $jsonInput = file_get_contents('php://input');
+            $postData = json_decode($jsonInput, true);
+            
+            if ($postData === null) {
+                // Fallback to POST data if JSON parsing fails
+                $postData = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            }
+            
+            // Log incoming data for debugging
+            error_log("=== Add Player Request ===");
+            error_log("POST data: " . print_r($postData, true));
+            
+            if ($postData === null || $postData === false) {
+                throw new Exception('Invalid form data received');
+            }
+            
+            // Validate required fields
+            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'username', 'subscriptionType'];
+            $missingFields = [];
+            
+            foreach ($requiredFields as $field) {
+                if (empty($postData[$field])) {
+                    $missingFields[] = $field;
+                }
+            }
+            
+            if (!empty($missingFields)) {
+                ob_end_clean();
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Missing required fields: ' . implode(', ', $missingFields)
+                ]);
+                return;
+            }
+            
+            // Validate date of birth
+            if (!empty($postData['dateOfBirth'])) {
+                $dob = new DateTime($postData['dateOfBirth']);
+                $today = new DateTime();
+                $age = $today->diff($dob)->y;
+                
+                if ($age < 5) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Player must be at least 5 years old'
+                    ]);
+                    return;
+                } elseif ($age > 100) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Please enter a valid date of birth'
+                    ]);
+                    return;
+                } elseif ($dob > $today) {
+                    ob_end_clean();
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Date of birth cannot be in the future'
+                    ]);
+                    return;
+                }
+            }
+            
+            // Load user model
+            $userModel = $this->model('M_Users');
+            
+            // Check if username already exists
+            if ($userModel->findUserByUsername($postData['username'])) {
+                ob_end_clean();
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Username already exists. Please choose a different username.'
+                ]);
+                return;
+            }
+            
+            // Check if email already exists
+            if ($userModel->findUserByEmail($postData['email'])) {
+                ob_end_clean();
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false, 
+                    'message' => 'Email already exists. Please use a different email.'
+                ]);
+                return;
+            }
+            
+            // Hash the default password
+            $defaultPassword = 'player123456';
+            $hashedPassword = password_hash($defaultPassword, PASSWORD_DEFAULT);
+            
+            // Get CreatedBy
+            $createdBy = null;
+            if (isset($_SESSION['user_id'])) {
+                $existingUser = $userModel->getUserById($_SESSION['user_id']);
+                if ($existingUser) {
+                    $createdBy = $_SESSION['user_id'];
+                }
+            }
+            
+            // Prepare player data
+            $playerData = [
+                'fullName' => trim($postData['fullName']),
+                'dateOfBirth' => $postData['dateOfBirth'],
+                'phone' => trim($postData['phone']),
+                'email' => trim($postData['email']),
+                'address' => !empty($postData['address']) ? trim($postData['address']) : null,
+                'jerseyNumber' => !empty($postData['jerseyNumber']) ? intval($postData['jerseyNumber']) : null,
+                'battingStyle' => !empty($postData['battingStyle']) ? trim($postData['battingStyle']) : null,
+                'bowlingStyle' => !empty($postData['bowlingStyle']) ? trim($postData['bowlingStyle']) : null,
+                'subscriptionType' => $postData['subscriptionType'],
+                'username' => trim($postData['username']),
+                'passwordHash' => $hashedPassword,
+                'status' => 'active',
+                'createdBy' => $createdBy
+            ];
+            
+            // Create player
+            $userId = $userModel->createPlayer($playerData);
+            
+            if ($userId) {
+                // LOG ACTIVITY: Player created
+                $userModel->logActivity(
+                    $_SESSION['user_id'] ?? 0,
+                    'Player Created',
+                    'Added new player: ' . $playerData['fullName'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
+                error_log("✅ Player created successfully with ID: $userId");
+                ob_end_clean();
+                echo json_encode([
+                    'status' => 'success',
+                    'success' => true, 
+                    'message' => 'Player added successfully! Default password: player123456',
+                    'userId' => $userId,
+                    'data' => [
+                        'id' => $userId,
+                        'username' => $postData['username'],
+                        'name' => $postData['fullName']
+                    ]
+                ]);
+            } else {
+                throw new Exception('Failed to create player in database');
+            }
+            
+        } catch (Exception $e) {
+            // Log the full error
+            error_log("❌ Player creation error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            // Clear any output buffer
+            ob_end_clean();
+            
+            // Return clean JSON error
+            echo json_encode([
+                'status' => 'error',
+                'success' => false, 
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+        
+        // Ensure we exit cleanly
+        exit;
+    }
+
+    public function update_player() {
+        // Set up fatal error handler
+        register_shutdown_function(function() {
+            $error = error_get_last();
+            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+                error_log("FATAL ERROR in update_player: " . print_r($error, true));
+                if (ob_get_level()) ob_end_clean();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false,
+                    'message' => 'Server error: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']
+                ]);
+            }
+        });
+        
+        // Disable any error display and use error_log instead
+        @ini_set('display_errors', '0');
+        error_reporting(E_ALL);
+        
+        // Start output buffering FIRST - before anything else
+        while (ob_get_level()) ob_end_clean();
+        ob_start();
+        
+        // Set JSON header immediately
+        header('Content-Type: application/json');
+        
+        error_log("update_player method called");
+        
+        // Check authentication for AJAX request
+        if (!isLoggedIn() || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'Admin') {
+            error_log("Authentication failed for update_player");
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]);
+            exit;
+        }
+        
+        try {
+            // Only allow POST requests
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Invalid request method');
+            }
+            
+            // Get JSON input
+            $json = file_get_contents('php://input');
+            error_log("Raw JSON input: " . $json);
+            
+            $postData = json_decode($json, true);
+            
+            // Fallback to $_POST if JSON is empty
+            if (empty($postData)) {
+                $postData = $_POST;
+            }
+            
+            error_log("Update player request data: " . print_r($postData, true));
+            
+            // Validate required fields
+            $required = ['playerId', 'fullName', 'email', 'phone', 'subscriptionType', 'status'];
+            foreach ($required as $field) {
+                if (empty($postData[$field])) {
+                    throw new Exception("Missing required field: $field");
+                }
+            }
+            
+            error_log("Validation passed, loading model...");
+            
+            // Load user model
+            $userModel = $this->model('M_Users');
+            error_log("Model loaded successfully");
+            
+            // Check if email is already used by another player
+            if (!empty($postData['email'])) {
+                $existingUser = $userModel->getUserByEmail($postData['email']);
+                if ($existingUser && $existingUser->UserID != $postData['playerId']) {
+                    throw new Exception('Email is already registered to another user');
+                }
+            }
+            
+            error_log("Email check passed, preparing data...");
+            
+            // Prepare update data
+            $playerData = [
+                'playerId' => $postData['playerId'],
+                'fullName' => trim($postData['fullName']),
+                'email' => trim($postData['email']),
+                'phone' => trim($postData['phone']),
+                'address' => trim($postData['address'] ?? ''),
+                'jerseyNumber' => !empty($postData['jerseyNumber']) ? intval($postData['jerseyNumber']) : null,
+                'battingStyle' => !empty($postData['battingStyle']) ? $postData['battingStyle'] : null,
+                'bowlingStyle' => !empty($postData['bowlingStyle']) ? $postData['bowlingStyle'] : null,
+                'subscriptionType' => $postData['subscriptionType'],
+                'status' => $postData['status']
+            ];
+            
+            error_log("Data prepared, calling updatePlayer...");
+            
+            // Update player
+            $result = $userModel->updatePlayer($playerData);
+            
+            error_log("updatePlayer returned: " . ($result ? 'true' : 'false'));
+            
+            if ($result) {
+                // LOG ACTIVITY: Player updated
+                $userModel->logActivity(
+                    $_SESSION['user_id'] ?? 0,
+                    'Player Updated',
+                    'Updated player: ' . $playerData['fullName'],
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
+                error_log("✅ Player updated successfully: " . $playerData['playerId']);
+                
+                // Clear buffer and output JSON
+                $output = ob_get_clean();
+                if (!empty($output)) {
+                    error_log("WARNING: Unexpected output before JSON: " . $output);
+                }
+                
+                echo json_encode([
+                    'status' => 'success',
+                    'success' => true, 
+                    'message' => 'Player updated successfully!',
+                    'data' => [
+                        'id' => $playerData['playerId'],
+                        'name' => $playerData['fullName']
+                    ]
+                ]);
+            } else {
+                throw new Exception('Failed to update player in database');
+            }
+            
+        } catch (Exception $e) {
+            error_log("❌ Player update error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            // Clear any buffered content
+            if (ob_get_level()) {
+                $output = ob_get_clean();
+                if (!empty($output)) {
+                    error_log("Buffered output during error: " . $output);
+                }
+            }
+            
+            echo json_encode([
+                'status' => 'error',
+                'success' => false, 
+                'message' => $e->getMessage()
+            ]);
+        }
+        
+        exit;
+    }
+
+    public function delete_player() {
+        // Set up fatal error handler
+        register_shutdown_function(function() {
+            $error = error_get_last();
+            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+                error_log("FATAL ERROR in delete_player: " . print_r($error, true));
+                if (ob_get_level()) ob_end_clean();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false,
+                    'message' => 'Server error: ' . $error['message']
+                ]);
+            }
+        });
+        
+        // Disable any error display
+        @ini_set('display_errors', '0');
+        error_reporting(E_ALL);
+        
+        // Start output buffering
+        while (ob_get_level()) ob_end_clean();
+        ob_start();
+        
+        // Set JSON header
+        header('Content-Type: application/json');
+        
+        error_log("delete_player method called");
+        
+        // Check authentication
+        if (!isLoggedIn() || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'Admin') {
+            error_log("Authentication failed for delete_player");
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]);
+            exit;
+        }
+        
+        try {
+            // Only allow POST requests
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Invalid request method');
+            }
+            
+            // Get JSON input
+            $json = file_get_contents('php://input');
+            error_log("Delete player raw JSON: " . $json);
+            
+            $postData = json_decode($json, true);
+            
+            if (empty($postData) || empty($postData['playerId'])) {
+                throw new Exception('Missing player ID');
+            }
+            
+            $playerId = $postData['playerId'];
+            error_log("Deleting player ID: " . $playerId);
+            
+            // Load user model
+            $userModel = $this->model('M_Users');
+            
+            // Get player info before deletion for logging
+            $player = $userModel->getUserById($playerId);
+            if (!$player) {
+                throw new Exception('Player not found');
+            }
+            
+            // Check if user is actually a player
+            if ($player->Role !== 'Player') {
+                throw new Exception('This user is not a player');
+            }
+            
+            error_log("Deleting player: " . $player->Name);
+            
+            // Delete player (will delete from both User and PlayerProfile tables)
+            $result = $userModel->deleteUser($playerId);
+            
+            if ($result) {
+                // LOG ACTIVITY: Player deleted
+                $userModel->logActivity(
+                    $_SESSION['user_id'] ?? 0,
+                    'Player Deleted',
+                    'Deleted player: ' . $player->Name . ' (ID: ' . $playerId . ')',
+                    $_SERVER['REMOTE_ADDR'] ?? null,
+                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                );
+                
+                error_log("✅ Player deleted successfully: " . $playerId);
+                
+                $output = ob_get_clean();
+                echo json_encode([
+                    'status' => 'success',
+                    'success' => true,
+                    'message' => 'Player deleted successfully!'
+                ]);
+            } else {
+                throw new Exception('Failed to delete player from database');
+            }
+            
+        } catch (Exception $e) {
+            error_log("❌ Player deletion error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            if (ob_get_level()) {
+                $output = ob_get_clean();
+                if (!empty($output)) {
+                    error_log("Buffered output during error: " . $output);
+                }
+            }
+            
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+        
+        exit;
+    }
+
     // Player Management
     public function players() {
         // Fetch all players with their profile information

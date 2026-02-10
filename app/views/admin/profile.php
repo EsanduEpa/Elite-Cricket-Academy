@@ -59,16 +59,16 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Finance Management</span>
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Reports</span>
+                        <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Finance Management</span>
                         </a>
                     </li>
                 </ul>
