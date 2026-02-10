@@ -978,5 +978,115 @@ class M_Users {
         $result = $this->db->single();
         return $result;
     }
+
+    // Update staff member information
+    public function updateStaff($data) {
+        try {
+            // Build the full name
+            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            
+            // Map role values from form to database values
+            $roleMap = [
+                'coach' => 'Coach',
+                'head_coach' => 'Coach',
+                'trainer' => 'Trainer',
+                'admin' => 'Admin',
+                'shopkeeper' => 'ShopEmployee',
+                'shopemployee' => 'ShopEmployee'
+            ];
+            
+            $role = $roleMap[strtolower($data['role'])] ?? $data['role'];
+            
+            // Update User table
+            $this->db->query('UPDATE User SET 
+                Name = :name,
+                Email = :email,
+                PhoneNumber = :phone,
+                Address = :address,
+                Status = :status,
+                Role = :role
+                WHERE UserID = :user_id');
+            
+            $this->db->bind(':name', $fullName);
+            $this->db->bind(':email', $data['email']);
+            $this->db->bind(':phone', $data['phone']);
+            $this->db->bind(':address', $data['address']);
+            $this->db->bind(':status', $data['status']);
+            $this->db->bind(':role', $role);
+            $this->db->bind(':user_id', $data['user_id']);
+            
+            if ($this->db->execute()) {
+                // If specialization is provided, update role-specific profile
+                if (!empty($data['specialization'])) {
+                    if ($role === 'Coach') {
+                        $this->db->query('UPDATE CoachProfile SET 
+                            Specialization = :specialization 
+                            WHERE CoachID = :user_id');
+                        $this->db->bind(':specialization', $data['specialization']);
+                        $this->db->bind(':user_id', $data['user_id']);
+                        $this->db->execute();
+                    } elseif ($role === 'Trainer') {
+                        $this->db->query('UPDATE TrainerProfile SET 
+                            Specialization = :specialization 
+                            WHERE TrainerID = :user_id');
+                        $this->db->bind(':specialization', $data['specialization']);
+                        $this->db->bind(':user_id', $data['user_id']);
+                        $this->db->execute();
+                    }
+                }
+                
+                return true;
+            }
+            
+            return false;
+        } catch (Exception $e) {
+            error_log("Error in updateStaff: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Delete user account
+    public function deleteUser($userId) {
+        try {
+            // First, delete related records based on role
+            $user = $this->getUserById($userId);
+            
+            if (!$user) {
+                return false;
+            }
+            
+            // Delete role-specific profile data
+            if ($user->Role === 'Coach') {
+                $this->db->query('DELETE FROM CoachProfile WHERE CoachID = :user_id');
+                $this->db->bind(':user_id', $userId);
+                $this->db->execute();
+            } elseif ($user->Role === 'Trainer') {
+                $this->db->query('DELETE FROM TrainerProfile WHERE TrainerID = :user_id');
+                $this->db->bind(':user_id', $userId);
+                $this->db->execute();
+            } elseif ($user->Role === 'Player') {
+                $this->db->query('DELETE FROM PlayerProfile WHERE PlayerID = :user_id');
+                $this->db->bind(':user_id', $userId);
+                $this->db->execute();
+            } elseif ($user->Role === 'ShopEmployee') {
+                $this->db->query('DELETE FROM ShopEmployeeProfile WHERE ShopEmployeeID = :user_id');
+                $this->db->bind(':user_id', $userId);
+                $this->db->execute();
+            }
+            
+            // Delete from User table
+            $this->db->query('DELETE FROM User WHERE UserID = :user_id');
+            $this->db->bind(':user_id', $userId);
+            
+            if ($this->db->execute()) {
+                return true;
+            }
+            
+            return false;
+        } catch (Exception $e) {
+            error_log("Error in deleteUser: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?> 

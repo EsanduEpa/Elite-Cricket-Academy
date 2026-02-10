@@ -230,7 +230,6 @@
                                 <th>Description</th>
                                 <th>Date & Time</th>
                                 <th>Status</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="activityTableBody">
@@ -256,16 +255,11 @@
                                         <td><?php echo htmlspecialchars($activity->details); ?></td>
                                         <td><?php echo htmlspecialchars($activity->timestamp); ?></td>
                                         <td><span class="status-badge active">Completed</span></td>
-                                        <td>
-                                            <button class="btn-show-more" onclick="showActivityDetails(<?php echo $activity->id; ?>)">
-                                                Show More
-                                            </button>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 20px; color: #999;">
+                                    <td colspan="4" style="text-align: center; padding: 20px; color: #999;">
                                         <i class="fas fa-info-circle"></i> No recent activities found
                                     </td>
                                 </tr>

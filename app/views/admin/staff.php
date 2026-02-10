@@ -208,13 +208,31 @@
                                 <td><span class="status-badge <?php echo strtolower($staff->Status); ?>"><?php echo ucfirst($staff->Status); ?></span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" title="View Details">
+                                        <button class="action-btn view" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                data-staff-role="<?php echo htmlspecialchars($staff->Role); ?>"
+                                                data-staff-email="<?php echo htmlspecialchars($staff->Email); ?>"
+                                                data-staff-phone="<?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?>"
+                                                data-staff-joined="<?php echo date('M d, Y', strtotime($staff->DateJoined)); ?>"
+                                                data-staff-status="<?php echo htmlspecialchars($staff->Status); ?>"
+                                                title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="action-btn edit" title="Edit">
+                                        <button class="action-btn edit" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                data-staff-role="<?php echo htmlspecialchars($staff->Role); ?>"
+                                                data-staff-email="<?php echo htmlspecialchars($staff->Email); ?>"
+                                                data-staff-phone="<?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?>"
+                                                data-staff-status="<?php echo htmlspecialchars($staff->Status); ?>"
+                                                title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="action-btn delete" title="Delete">
+                                        <button class="action-btn delete" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -592,6 +610,76 @@
         </div>
     </div>
 
+    <!-- View Staff Details Modal -->
+    <div class="modal" id="viewStaffModal">
+        <div class="modal-overlay" id="viewModalOverlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Staff Member Details</h2>
+                <button class="modal-close" id="closeViewModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="staff-details-container">
+                    <div class="staff-header-section">
+                        <div class="staff-avatar-large">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="staff-header-info">
+                            <h3 id="viewStaffName">-</h3>
+                            <p class="staff-role-badge" id="viewStaffRoleBadge">-</p>
+                            <p class="staff-status" id="viewStaffStatusBadge">-</p>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-section">
+                            <h4><i class="fas fa-id-card"></i> Personal Information</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name:</span>
+                                <span class="detail-value" id="viewFullName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value" id="viewEmail">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone:</span>
+                                <span class="detail-value" id="viewPhone">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Date Joined:</span>
+                                <span class="detail-value" id="viewJoined">-</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4><i class="fas fa-briefcase"></i> Role & Status</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Role:</span>
+                                <span class="detail-value" id="viewRole">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Status:</span>
+                                <span class="detail-value" id="viewStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="var modal = document.getElementById('viewStaffModal'); modal.classList.remove('active'); modal.style.display = 'none';">
+                            Close
+                        </button>
+                        <button type="button" class="btn-primary" id="editFromViewBtn">
+                            <i class="fas fa-edit"></i> Edit Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div class="modal" id="deleteStaffModal">
         <div class="modal-overlay" id="deleteModalOverlay"></div>
@@ -664,6 +752,200 @@
             } else {
                 console.error('❌ Add Staff button not found!');
             }
+            
+            // Handle action buttons with event delegation
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.action-btn');
+                if (!target) return;
+                
+                const staffId = target.dataset.staffId;
+                const staffName = target.dataset.staffName;
+                
+                if (target.classList.contains('view')) {
+                    // View staff details in modal
+                    const staffData = {
+                        id: staffId,
+                        name: staffName,
+                        role: target.dataset.staffRole,
+                        email: target.dataset.staffEmail,
+                        phone: target.dataset.staffPhone,
+                        joined: target.dataset.staffJoined,
+                        status: target.dataset.staffStatus
+                    };
+                    
+                    openViewModal(staffData);
+                    
+                } else if (target.classList.contains('edit')) {
+                    // Edit staff - open edit modal
+                    const staffData = {
+                        id: staffId,
+                        name: staffName,
+                        role: target.dataset.staffRole,
+                        email: target.dataset.staffEmail,
+                        phone: target.dataset.staffPhone,
+                        status: target.dataset.staffStatus
+                    };
+                    
+                    openEditModal(staffData);
+                    
+                } else if (target.classList.contains('delete')) {
+                    // Delete staff with confirmation
+                    if (confirm(`Are you sure you want to delete ${staffName}?\n\nThis action cannot be undone.`)) {
+                        // Send delete request
+                        fetch(`${URLROOT}/admin/delete_staff/${staffId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Staff member deleted successfully!');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.message || 'Failed to delete staff member'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        });
+                    }
+                }
+            });
+
+            // Function to open view modal
+            function openViewModal(staffData) {
+                const modal = document.getElementById('viewStaffModal');
+                
+                // Populate modal with data
+                document.getElementById('viewStaffName').textContent = staffData.name;
+                document.getElementById('viewFullName').textContent = staffData.name;
+                document.getElementById('viewStaffRoleBadge').textContent = staffData.role;
+                document.getElementById('viewStaffRoleBadge').className = 'staff-role-badge role-badge ' + staffData.role.toLowerCase();
+                document.getElementById('viewStaffStatusBadge').textContent = staffData.status;
+                document.getElementById('viewStaffStatusBadge').className = 'staff-status status-badge ' + staffData.status.toLowerCase();
+                document.getElementById('viewEmail').textContent = staffData.email;
+                document.getElementById('viewPhone').textContent = staffData.phone;
+                document.getElementById('viewJoined').textContent = staffData.joined;
+                document.getElementById('viewRole').textContent = staffData.role;
+                document.getElementById('viewStatus').textContent = staffData.status.charAt(0).toUpperCase() + staffData.status.slice(1);
+                
+                // Store staff ID for edit button
+                document.getElementById('editFromViewBtn').dataset.staffId = staffData.id;
+                document.getElementById('editFromViewBtn').dataset.staffData = JSON.stringify(staffData);
+                
+                // Show modal
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            }
+
+            // Function to open edit modal
+            function openEditModal(staffData) {
+                const modal = document.getElementById('editStaffModal');
+                
+                // Parse name into first and last name
+                const nameParts = staffData.name.split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                
+                // Populate form with data
+                document.getElementById('editStaffId').value = staffData.id;
+                document.getElementById('editFirstName').value = firstName;
+                document.getElementById('editLastName').value = lastName;
+                document.getElementById('editEmail').value = staffData.email;
+                document.getElementById('editPhone').value = staffData.phone;
+                document.getElementById('editRole').value = staffData.role.toLowerCase().replace(' ', '_');
+                document.getElementById('editStatus').value = staffData.status.toLowerCase();
+                
+                // Show modal
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            }
+
+            // Edit from view modal button
+            document.getElementById('editFromViewBtn').addEventListener('click', function() {
+                const staffData = JSON.parse(this.dataset.staffData);
+                const viewModal = document.getElementById('viewStaffModal');
+                viewModal.classList.remove('active');
+                viewModal.style.display = 'none';
+                openEditModal(staffData);
+            });
+
+            // Close modals
+            document.getElementById('closeViewModal').addEventListener('click', function() {
+                const modal = document.getElementById('viewStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('viewModalOverlay').addEventListener('click', function() {
+                const modal = document.getElementById('viewStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('closeEditModal').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('editModalOverlay').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            // Handle edit form submission
+            document.getElementById('editStaffForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const staffId = document.getElementById('editStaffId').value;
+                
+                // Convert FormData to JSON
+                const data = {
+                    staffId: staffId,
+                    firstName: formData.get('firstName'),
+                    lastName: formData.get('lastName'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    role: formData.get('role'),
+                    status: formData.get('status'),
+                    specialization: formData.get('specialization'),
+                    address: formData.get('address')
+                };
+                
+                // Send update request
+                fetch(`${URLROOT}/admin/update_staff`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Staff member updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to update staff member'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
         });
     </script>
 </body>

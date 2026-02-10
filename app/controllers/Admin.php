@@ -1400,5 +1400,134 @@ class Admin extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
     }
+
+    // Update Staff Member
+    public function update_staff() {
+        // Set JSON response header
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Get JSON data from request body
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
+            if (!$data) {
+                echo json_encode(['success' => false, 'message' => 'Invalid data format']);
+                return;
+            }
+            
+            $staffId = $data['staffId'] ?? null;
+            
+            if (!$staffId) {
+                echo json_encode(['success' => false, 'message' => 'Staff ID is required']);
+                return;
+            }
+            
+            try {
+                $userModel = $this->model('M_Users');
+                
+                // Check if staff member exists
+                $staff = $userModel->getUserById($staffId);
+                
+                if (!$staff) {
+                    echo json_encode(['success' => false, 'message' => 'Staff member not found']);
+                    return;
+                }
+                
+                // Prepare update data
+                $updateData = [
+                    'user_id' => $staffId,
+                    'first_name' => $data['firstName'] ?? '',
+                    'last_name' => $data['lastName'] ?? '',
+                    'email' => $data['email'] ?? '',
+                    'phone' => $data['phone'] ?? '',
+                    'role' => $data['role'] ?? '',
+                    'status' => $data['status'] ?? '',
+                    'address' => $data['address'] ?? ''
+                ];
+                
+                // Validate required fields
+                if (empty($updateData['first_name']) || empty($updateData['last_name']) || 
+                    empty($updateData['email']) || empty($updateData['phone'])) {
+                    echo json_encode(['success' => false, 'message' => 'Please fill in all required fields']);
+                    return;
+                }
+                
+                // Update the staff member
+                if ($userModel->updateStaff($updateData)) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Staff member updated successfully'
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to update staff member']);
+                }
+                
+            } catch (Exception $e) {
+                error_log("Error updating staff: " . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    // Delete Staff Member
+    public function delete_staff($staffId = null) {
+        // Set JSON response header
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Get staff ID from URL parameter or POST data
+            if (!$staffId && isset($_POST['staff_id'])) {
+                $staffId = $_POST['staff_id'];
+            }
+            
+            if (!$staffId) {
+                echo json_encode(['success' => false, 'message' => 'Staff ID is required']);
+                return;
+            }
+            
+            try {
+                $userModel = $this->model('M_Users');
+                
+                // Check if staff member exists and is not an admin
+                $staff = $userModel->getUserById($staffId);
+                
+                if (!$staff) {
+                    echo json_encode(['success' => false, 'message' => 'Staff member not found']);
+                    return;
+                }
+                
+                // Prevent deleting admin accounts
+                if ($staff->Role === 'Admin') {
+                    echo json_encode(['success' => false, 'message' => 'Cannot delete admin accounts']);
+                    return;
+                }
+                
+                // Prevent self-deletion
+                if ($staffId == $_SESSION['user_id']) {
+                    echo json_encode(['success' => false, 'message' => 'You cannot delete your own account']);
+                    return;
+                }
+                
+                // Delete the staff member
+                if ($userModel->deleteUser($staffId)) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Staff member deleted successfully'
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to delete staff member']);
+                }
+                
+            } catch (Exception $e) {
+                error_log("Error deleting staff: " . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
 }
 ?>
