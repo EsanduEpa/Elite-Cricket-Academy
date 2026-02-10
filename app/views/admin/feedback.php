@@ -133,8 +133,8 @@
                     <i class="fas fa-spinner"></i>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-number"><?php echo $data['feedbackStats']['inProgress']; ?></div>
-                    <div class="stat-label">In Progress</div>
+                    <div class="stat-number"><?php echo $data['feedbackStats']['reviewed']; ?></div>
+                    <div class="stat-label">Reviewed</div>
                 </div>
             </div>
             
@@ -162,14 +162,27 @@
                 <span class="stat-text">Today</span>
             </div>
             <div class="quick-stat">
-                <i class="fas fa-hourglass-half"></i>
-                <span class="stat-value"><?php echo $data['feedbackStats']['avgResponseTime']; ?></span>
-                <span class="stat-text">Avg Response</span>
+                <i class="fas fa-star"></i>
+                <span class="stat-value"><?php 
+                    $avgRating = 0;
+                    $ratedCount = 0;
+                    foreach($data['allFeedbacks'] as $f) {
+                        if(isset($f['rating']) && $f['rating'] > 0) {
+                            $avgRating += $f['rating'];
+                            $ratedCount++;
+                        }
+                    }
+                    echo $ratedCount > 0 ? number_format($avgRating / $ratedCount, 1) : 'N/A';
+                ?></span>
+                <span class="stat-text">Avg Rating</span>
             </div>
             <div class="quick-stat">
-                <i class="fas fa-smile"></i>
-                <span class="stat-value"><?php echo $data['feedbackStats']['satisfactionRate']; ?>%</span>
-                <span class="stat-text">Satisfaction</span>
+                <i class="fas fa-comments"></i>
+                <span class="stat-value"><?php 
+                    $byCategory = array_count_values(array_column($data['allFeedbacks'], 'subject'));
+                    echo !empty($byCategory) ? max($byCategory) : 0;
+                ?></span>
+                <span class="stat-text">Most Common</span>
             </div>
         </div>
 
@@ -184,9 +197,9 @@
                     <i class="fas fa-clock"></i> Pending
                     <span class="tab-count"><?php echo $data['feedbackStats']['pending']; ?></span>
                 </button>
-                <button class="filter-tab" data-status="in_progress">
-                    <i class="fas fa-spinner"></i> In Progress
-                    <span class="tab-count"><?php echo $data['feedbackStats']['inProgress']; ?></span>
+                <button class="filter-tab" data-status="reviewed">
+                    <i class="fas fa-spinner"></i> Reviewed
+                    <span class="tab-count"><?php echo $data['feedbackStats']['reviewed']; ?></span>
                 </button>
                 <button class="filter-tab" data-status="resolved">
                     <i class="fas fa-check-circle"></i> Resolved
@@ -204,12 +217,12 @@
                 
                 <select class="filter-select" id="categoryFilter">
                     <option value="all">All Categories</option>
-                    <option value="training">Training</option>
-                    <option value="facilities">Facilities</option>
+                    <option value="coach">Coach</option>
+                    <option value="trainer">Trainer</option>
+                    <option value="facility">Facility</option>
                     <option value="equipment">Equipment</option>
-                    <option value="events">Events</option>
-                    <option value="services">Services</option>
-                    <option value="other">Other</option>
+                    <option value="shop">Shop</option>
+                    <option value="general">General</option>
                 </select>
                 
                 <button class="btn btn-outline" id="clearFiltersBtn">
@@ -233,63 +246,50 @@
                 <table class="feedback-table" id="feedbackTable">
                     <thead>
                         <tr>
-                            <th width="40">
-                                <input type="checkbox" id="selectAll">
-                            </th>
-                            <th width="200">Submitted By</th>
-                            <th>Subject</th>
-                            <th width="120">Status</th>
-                            <th width="140">Date</th>
-                            <th width="120">Actions</th>
+                            <th width="150">User</th>
+                            <th width="120">Category</th>
+                            <th>Message</th>
+                            <th width="100">Rating</th>
+                            <th width="100">Status</th>
+                            <th width="120">Date</th>
+                            <th width="100">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($data['allFeedbacks'] as $feedback): ?>
-                        <tr class="feedback-row" data-status="<?php echo $feedback['status']; ?>" data-priority="<?php echo $feedback['priority']; ?>" data-category="<?php echo $feedback['category']; ?>" data-feedback-id="<?php echo $feedback['id']; ?>">
+                        <?php if(!empty($data['allFeedbacks'])): ?>
+                            <?php foreach ($data['allFeedbacks'] as $feedback): ?>
+                        <tr class="feedback-row" data-status="<?php echo $feedback['status']; ?>" data-priority="<?php echo $feedback['priority']; ?>" data-category="<?php echo $feedback['subject'] ?? 'general'; ?>" data-feedback-id="<?php echo $feedback['id']; ?>">
                             <td>
-                                <input type="checkbox" class="feedback-checkbox" value="<?php echo $feedback['id']; ?>">
+                                <strong><?php echo htmlspecialchars($feedback['user_name'] ?? 'Unknown'); ?></strong>
                             </td>
-                            <td class="user-cell">
-                                <div class="user-info">
-                                    <div class="user-avatar">
-                                        <i class="fas fa-user-circle"></i>
-                                    </div>
-                                    <div class="user-details">
-                                        <div class="user-name"><?php echo $feedback['user_name']; ?></div>
-                                        <div class="user-email"><?php echo $feedback['user_email'] ?? 'N/A'; ?></div>
-                                    </div>
-                                </div>
+                            <td>
+                                <span class="category-badge"><?php echo ucfirst($feedback['subject'] ?? 'General'); ?></span>
                             </td>
-                            <td class="subject-cell">
-                                <div class="subject-text"><?php echo $feedback['subject']; ?></div>
-                                <div class="message-preview"><?php echo substr($feedback['message'], 0, 50) . '...'; ?></div>
+                            <td>
+                                <div class="message-preview"><?php echo htmlspecialchars(substr($feedback['message'], 0, 100)) . (strlen($feedback['message']) > 100 ? '...' : ''); ?></div>
+                            </td>
+                            <td style="text-align: center;">
+                                <?php if($feedback['rating']): ?>
+                                <span class="rating-inline">
+                                    <?php for($i=1; $i<=5; $i++): ?>
+                                        <i class="fas fa-star <?php echo $i <= $feedback['rating'] ? 'filled' : ''; ?>"></i>
+                                    <?php endfor; ?>
+                                </span>
+                                <?php else: ?>
+                                <span style="color: #999;">—</span>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="status-badge <?php echo $feedback['status']; ?>">
-                                    <?php 
-                                        $statusIcons = [
-                                            'pending' => 'fa-clock',
-                                            'in_progress' => 'fa-spinner',
-                                            'resolved' => 'fa-check-circle'
-                                        ];
-                                        $statusText = str_replace('_', ' ', $feedback['status']);
-                                        echo '<i class="fas ' . $statusIcons[$feedback['status']] . '"></i> ';
-                                        echo ucfirst($statusText); 
-                                    ?>
+                                    <?php echo ucfirst($feedback['status']); ?>
                                 </span>
                             </td>
                             <td class="date-cell">
-                                <div class="date-info">
-                                    <div class="date-text"><?php echo date('M d, Y', strtotime($feedback['created_at'])); ?></div>
-                                    <div class="time-text"><?php echo date('h:i A', strtotime($feedback['created_at'])); ?></div>
-                                </div>
+                                <small><?php echo date('M d, Y', strtotime($feedback['created_at'])); ?></small>
                             </td>
                             <td class="actions-cell">
-                                <button class="btn-action-table view" onclick="viewFeedback(<?php echo $feedback['id']; ?>)" title="View Details">
+                                <button class="btn-action-table view" onclick="viewFeedback(<?php echo $feedback['id']; ?>)" title="View">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn-action-table edit" onclick="respondFeedback(<?php echo $feedback['id']; ?>)" title="Respond">
-                                    <i class="fas fa-reply"></i>
                                 </button>
                                 <button class="btn-action-table delete" onclick="deleteFeedback(<?php echo $feedback['id']; ?>)" title="Delete">
                                     <i class="fas fa-trash"></i>
@@ -297,6 +297,15 @@
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php else: ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px 20px;">
+                                <i class="fas fa-inbox" style="font-size: 64px; color: #ddd; margin-bottom: 20px;"></i>
+                                <p style="font-size: 18px; color: #666; margin: 0;">No feedback found</p>
+                                <p style="font-size: 14px; color: #999; margin: 10px 0 0 0;">Feedback from users will appear here</p>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -401,11 +410,11 @@
                         
                         <div class="action-buttons">
                             <div class="status-actions">
-                                <button class="btn btn-warning" onclick="updateFeedbackStatus('in_progress')">
-                                    <i class="fas fa-spinner"></i> Mark In Progress
+                                <button class="btn btn-info" onclick="updateFeedbackStatus('reviewed')">
+                                    <i class="fas fa-eye"></i> Mark as Reviewed
                                 </button>
                                 <button class="btn btn-success" onclick="updateFeedbackStatus('resolved')">
-                                    <i class="fas fa-check"></i> Mark Resolved
+                                    <i class="fas fa-check"></i> Mark as Resolved
                                 </button>
                             </div>
                             <button class="btn btn-danger" onclick="deleteFeedbackFromModal()">
@@ -459,16 +468,10 @@ function viewFeedback(feedbackId) {
         if (feedback) {
             document.getElementById('modalMessage').textContent = feedback.message;
             
-            // Show response if exists
-            if (feedback.admin_response) {
-                document.getElementById('responseSection').style.display = 'block';
-                document.getElementById('modalResponse').textContent = feedback.admin_response;
-                if (feedback.resolved_at) {
-                    document.getElementById('modalResolvedDate').textContent = 
-                        'Responded on ' + new Date(feedback.resolved_at).toLocaleString();
-                }
-            } else {
-                document.getElementById('responseSection').style.display = 'none';
+            // Hide response section since we don't store responses in database
+            const responseSection = document.getElementById('responseSection');
+            if (responseSection) {
+                responseSection.style.display = 'none';
             }
         }
         
@@ -490,27 +493,57 @@ function closeFeedbackModal() {
 function updateFeedbackStatus(status) {
     if (!currentFeedbackId) return;
     
-    const response = document.getElementById('responseText').value;
+    const response = document.getElementById('responseText') ? document.getElementById('responseText').value : '';
     
     if (confirm(`Are you sure you want to mark this feedback as ${status}?`)) {
-        // In real implementation, make AJAX call
-        console.log('Updating feedback', currentFeedbackId, 'to status:', status, 'with response:', response);
-        
-        // Show success message
-        alert('Feedback status updated successfully!');
-        
-        // Close modal and reload
-        closeFeedbackModal();
-        location.reload();
+        // Make AJAX call to update status
+        fetch('<?php echo URLROOT; ?>/admin/updateFeedbackStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `feedback_id=${currentFeedbackId}&status=${status}&response=${encodeURIComponent(response)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Feedback status updated successfully!');
+                closeFeedbackModal();
+                location.reload();
+            } else {
+                alert('Error updating feedback: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error updating feedback');
+        });
     }
 }
 
 function deleteFeedback(feedbackId) {
     if (confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
-        // In real implementation, make AJAX call
-        console.log('Deleting feedback:', feedbackId);
-        alert('Feedback deleted successfully!');
-        location.reload();
+        // Make AJAX call to delete feedback
+        fetch('<?php echo URLROOT; ?>/admin/deleteFeedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `feedback_id=${feedbackId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Feedback deleted successfully!');
+                location.reload();
+            } else {
+                alert('Error deleting feedback: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error deleting feedback');
+        });
     }
 }
 

@@ -1114,6 +1114,75 @@ class M_Users {
         return $this->db->resultSet();
     }
 
+    // Get players for report with filters
+    public function getPlayersForReport($filters = []) {
+        $sql = 'SELECT 
+            u.UserID,
+            u.Name,
+            u.Email,
+            u.PhoneNumber,
+            u.DateOfBirth,
+            u.Status,
+            u.DateJoined,
+            pp.BattingStyle,
+            pp.BowlingStyle,
+            pp.SubscriptionType,
+            pp.JerseyNumber,
+            TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) as Age
+        FROM user u
+        LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+        WHERE u.Role = "Player"';
+        
+        $conditions = [];
+        $params = [];
+        
+        // Status filter
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $conditions[] = 'u.Status = :status';
+            $params[':status'] = $filters['status'];
+        }
+        
+        // Subscription filter
+        if (!empty($filters['subscription']) && $filters['subscription'] !== 'all') {
+            $conditions[] = 'pp.SubscriptionType = :subscription';
+            $params[':subscription'] = $filters['subscription'];
+        }
+        
+        // Batting style filter
+        if (!empty($filters['batting']) && $filters['batting'] !== 'all') {
+            $conditions[] = 'pp.BattingStyle = :batting';
+            $params[':batting'] = $filters['batting'];
+        }
+        
+        // Bowling style filter
+        if (!empty($filters['bowling']) && $filters['bowling'] !== 'all') {
+            $conditions[] = 'pp.BowlingStyle = :bowling';
+            $params[':bowling'] = $filters['bowling'];
+        }
+        
+        // Search filter (name or email)
+        if (!empty($filters['search'])) {
+            $conditions[] = '(u.Name LIKE :search OR u.Email LIKE :search)';
+            $params[':search'] = '%' . $filters['search'] . '%';
+        }
+        
+        // Add conditions to SQL
+        if (!empty($conditions)) {
+            $sql .= ' AND ' . implode(' AND ', $conditions);
+        }
+        
+        $sql .= ' ORDER BY u.Name ASC';
+        
+        $this->db->query($sql);
+        
+        // Bind parameters
+        foreach ($params as $key => $value) {
+            $this->db->bind($key, $value);
+        }
+        
+        return $this->db->resultSet();
+    }
+
     // Get player statistics
     public function getPlayerStats() {
         $this->db->query('SELECT 

@@ -612,155 +612,27 @@ class Admin extends Controller {
     }
 
     public function finance() {
-        // Sample finance data for interface demonstration
+        // Load Finance model for real database data
+        $financeModel = $this->model('Finance');
+        
+        // Get revenue statistics
+        $stats = $financeModel->getRevenueStats();
+        $revenueCategories = $financeModel->getRevenueByCategory();
+        $recentTransactions = $financeModel->getRecentTransactions(15);
+        $monthlyData = $financeModel->getMonthlyData(12);
+        $topSources = $financeModel->getTopRevenueSources(5);
+        
         $data = [
             'title' => 'Finance Management - Elite Cricket Academy',
-            'totalRevenue' => 2450000, // LKR
-            'monthlyRevenue' => 350000, // LKR
-            'yearlyRevenue' => 2450000, // LKR
-            'revenueCategories' => [
-                'shop_sales' => [
-                    'amount' => 650000,
-                    'percentage' => 26.5,
-                    'monthly' => 85000,
-                    'growth' => 12.5
-                ],
-                'equipment_rental' => [
-                    'amount' => 420000,
-                    'percentage' => 17.1,
-                    'monthly' => 55000,
-                    'growth' => 8.3
-                ],
-                'facility_rental' => [
-                    'amount' => 580000,
-                    'percentage' => 23.7,
-                    'monthly' => 75000,
-                    'growth' => 15.2
-                ],
-                'membership_fees' => [
-                    'amount' => 800000,
-                    'percentage' => 32.7,
-                    'monthly' => 135000,
-                    'growth' => 10.8
-                ]
-            ],
-            'recentPayments' => [
-                [
-                    'id' => 'PAY001',
-                    'type' => 'Membership Fee',
-                    'customer' => 'John Doe',
-                    'amount' => 25000,
-                    'date' => '2025-09-16',
-                    'status' => 'completed',
-                    'method' => 'Card'
-                ],
-                [
-                    'id' => 'PAY002',
-                    'type' => 'Equipment Purchase',
-                    'customer' => 'Sarah Wilson',
-                    'amount' => 15750,
-                    'date' => '2025-09-16',
-                    'status' => 'completed',
-                    'method' => 'Cash'
-                ],
-                [
-                    'id' => 'PAY003',
-                    'type' => 'Ground Rental',
-                    'customer' => 'City Sports Club',
-                    'amount' => 45000,
-                    'date' => '2025-09-15',
-                    'status' => 'completed',
-                    'method' => 'Bank Transfer'
-                ],
-                [
-                    'id' => 'PAY004',
-                    'type' => 'Equipment Rental',
-                    'customer' => 'Mike Johnson',
-                    'amount' => 8500,
-                    'date' => '2025-09-15',
-                    'status' => 'pending',
-                    'method' => 'Card'
-                ],
-                [
-                    'id' => 'PAY005',
-                    'type' => 'Membership Fee',
-                    'customer' => 'Emily Rodriguez',
-                    'amount' => 30000,
-                    'date' => '2025-09-14',
-                    'status' => 'completed',
-                    'method' => 'Online'
-                ],
-                [
-                    'id' => 'PAY006',
-                    'type' => 'Bowling Machine Rental',
-                    'customer' => 'Elite Academy Branch',
-                    'amount' => 12000,
-                    'date' => '2025-09-14',
-                    'status' => 'completed',
-                    'method' => 'Cash'
-                ],
-                [
-                    'id' => 'PAY007',
-                    'type' => 'Cricket Bat Purchase',
-                    'customer' => 'David Silva',
-                    'amount' => 22500,
-                    'date' => '2025-09-13',
-                    'status' => 'completed',
-                    'method' => 'Card'
-                ],
-                [
-                    'id' => 'PAY008',
-                    'type' => 'Net Practice Rental',
-                    'customer' => 'Youth Cricket Team',
-                    'amount' => 6000,
-                    'date' => '2025-09-13',
-                    'status' => 'completed',
-                    'method' => 'Cash'
-                ]
-            ],
-            'monthlyData' => [
-                'January' => 185000,
-                'February' => 220000,
-                'March' => 195000,
-                'April' => 240000,
-                'May' => 285000,
-                'June' => 310000,
-                'July' => 295000,
-                'August' => 265000,
-                'September' => 350000
-            ],
-            'topSellingItems' => [
-                [
-                    'item' => 'Cricket Bats',
-                    'quantity' => 45,
-                    'revenue' => 180000,
-                    'category' => 'shop_sales'
-                ],
-                [
-                    'item' => 'Ground Rental',
-                    'quantity' => 28,
-                    'revenue' => 420000,
-                    'category' => 'facility_rental'
-                ],
-                [
-                    'item' => 'Annual Membership',
-                    'quantity' => 35,
-                    'revenue' => 525000,
-                    'category' => 'membership_fees'
-                ],
-                [
-                    'item' => 'Equipment Rental',
-                    'quantity' => 120,
-                    'revenue' => 240000,
-                    'category' => 'equipment_rental'
-                ],
-                [
-                    'item' => 'Protective Gear',
-                    'quantity' => 38,
-                    'revenue' => 152000,
-                    'category' => 'shop_sales'
-                ]
-            ]
+            'totalRevenue' => $stats['total'],
+            'monthlyRevenue' => $stats['monthly'],
+            'dailyAverage' => $stats['daily_average'],
+            'growthRate' => $stats['growth_rate'],
+            'pendingCount' => $stats['pending_count'],
+            'revenueCategories' => $revenueCategories,
+            'recentTransactions' => $recentTransactions,
+            'monthlyData' => $monthlyData,
+            'topSources' => $topSources
         ];
         
         $this->view('admin/finance', $data);
@@ -773,13 +645,13 @@ class Admin extends Controller {
         // Get all feedbacks from database
         $allFeedbacks = $feedbackModel->getAllFeedbacks();
         
-        // Separate by status
+        // Separate by status (database has: pending, reviewed, resolved)
         $pendingFeedbacks = array_filter($allFeedbacks, function($f) {
             return isset($f['status']) && $f['status'] === 'pending';
         });
         
-        $inProgressFeedbacks = array_filter($allFeedbacks, function($f) {
-            return isset($f['status']) && $f['status'] === 'in_progress';
+        $reviewedFeedbacks = array_filter($allFeedbacks, function($f) {
+            return isset($f['status']) && $f['status'] === 'reviewed';
         });
         
         $resolvedFeedbacks = array_filter($allFeedbacks, function($f) {
@@ -790,21 +662,19 @@ class Admin extends Controller {
             'title' => 'Feedback Monitoring - Elite Cricket Academy',
             'allFeedbacks' => $allFeedbacks,
             'pendingFeedbacks' => array_values($pendingFeedbacks),
-            'inProgressFeedbacks' => array_values($inProgressFeedbacks),
+            'reviewedFeedbacks' => array_values($reviewedFeedbacks),
             'resolvedFeedbacks' => array_values($resolvedFeedbacks),
             'feedbackStats' => [
                 'total' => count($allFeedbacks),
                 'pending' => count($pendingFeedbacks),
-                'inProgress' => count($inProgressFeedbacks),
+                'reviewed' => count($reviewedFeedbacks),
                 'resolved' => count($resolvedFeedbacks),
                 'highPriority' => count(array_filter($allFeedbacks, function($f) {
                     return isset($f['priority']) && $f['priority'] === 'high';
                 })),
                 'todayCount' => count(array_filter($allFeedbacks, function($f) {
                     return isset($f['created_at']) && date('Y-m-d', strtotime($f['created_at'])) === date('Y-m-d');
-                })),
-                'avgResponseTime' => '0 hours',
-                'satisfactionRate' => 0
+                }))
             ]
         ];
         
@@ -1555,8 +1425,24 @@ class Admin extends Controller {
 
     // Reports
     public function reports() {
+        // Get filter parameters
+        $filters = [
+            'status' => $_GET['status'] ?? 'all',
+            'subscription' => $_GET['subscription'] ?? 'all',
+            'batting' => $_GET['batting'] ?? 'all',
+            'bowling' => $_GET['bowling'] ?? 'all',
+            'search' => $_GET['search'] ?? ''
+        ];
+        
+        // Get players with filters
+        $userModel = $this->model('M_Users');
+        $players = $userModel->getPlayersForReport($filters);
+        
         $data = [
-            'title' => 'Reports - Elite Cricket Academy'
+            'title' => 'Player Reports - Elite Cricket Academy',
+            'players' => $players,
+            'filters' => $filters,
+            'totalPlayers' => count($players)
         ];
         
         $this->view('admin/reports', $data);
@@ -1702,14 +1588,19 @@ class Admin extends Controller {
             $userModel = $this->model('M_Users');
             $userId = $_SESSION['user_id'] ?? 1;
             
+            // Get current user data to preserve role and status
+            $currentUser = $userModel->getUserWithProfile($userId);
+            
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
                 'name' => trim($_POST['name']),
                 'email' => trim($_POST['email']),
-                'phone' => trim($_POST['phone']),
+                'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address'] ?? ''),
-                'date_of_birth' => $_POST['dateOfBirth'] ?? null
+                'school' => trim($_POST['school'] ?? ''),
+                'role' => $currentUser->Role, // Preserve role
+                'status' => $currentUser->Status ?? 'active' // Preserve status
             ];
             
             if ($userModel->updateUser($userData)) {
