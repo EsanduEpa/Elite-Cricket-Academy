@@ -117,199 +117,70 @@
             </div>
 
             <!-- Communication Content -->
-            <div class="communication-content">
-                <!-- Communication Layout -->
-                <div class="communication-layout">
-                    <!-- Conversations List -->
-                    <div class="conversations-panel">
-                        <div class="conversations-header">
-                            <h3>Messages</h3>
-                            <div class="search-conversations">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="searchConversations" placeholder="Search conversations...">
-                            </div>
-                        </div>
-                        
-                        <div class="conversation-filters">
-                            <button class="filter-btn active" data-filter="all">All</button>
-                            <button class="filter-btn" data-filter="players">Players</button>
-                            <button class="filter-btn" data-filter="trainers">Trainers</button>
-                            <button class="filter-btn" data-filter="admins">Admins</button>
-                        </div>
-                        
-                        <div class="conversations-list" id="conversationsList">
-                            <!-- Conversations will be loaded here -->
-                        </div>
+            <div class="communication-content" style="padding: 20px;">
+                <!-- Feedback Received -->
+                <div style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+                    <div style="padding: 24px; border-bottom: 1px solid rgba(74, 144, 226, 0.2);">
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #333;">
+                            <i class="fas fa-star" style="color: #f59e0b; margin-right: 10px;"></i>
+                            Feedback Received from Players
+                        </h2>
+                        <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;">View feedback and ratings from your assigned players</p>
                     </div>
 
-                    <!-- Chat Area -->
-                    <div class="chat-panel">
-                        <div class="chat-empty" id="chatEmpty">
-                            <i class="fas fa-comments"></i>
-                            <h3>Select a conversation</h3>
-                            <p>Choose a conversation from the list to start messaging</p>
-                        </div>
-                        
-                        <div class="chat-active" id="chatActive" style="display: none;">
-                            <div class="chat-header">
-                                <div class="chat-user-info">
-                                    <div class="user-avatar" id="chatAvatar">
-                                        <i class="fas fa-user"></i>
+                    <?php if (!empty($data['feedbacks'])): ?>
+                        <?php foreach ($data['feedbacks'] as $feedback): ?>
+                        <div style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s;" onmouseover="this.style.backgroundColor='rgba(74,144,226,0.03)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #4A90E2, #357ABD); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                                        <?php echo strtoupper(substr($feedback->FromUserName, 0, 2)); ?>
                                     </div>
                                     <div>
-                                        <h4 id="chatUserName">User Name</h4>
-                                        <span class="user-role" id="chatUserRole">Role</span>
+                                        <div style="font-weight: 600; color: #333; font-size: 16px;"><?php echo htmlspecialchars($feedback->FromUserName); ?></div>
+                                        <div style="font-size: 12px; color: #999;"><?php echo htmlspecialchars($feedback->FromUserEmail); ?></div>
                                     </div>
                                 </div>
-                                <div class="chat-actions">
-                                    <button class="btn-icon" title="Call">
-                                        <i class="fas fa-phone"></i>
-                                    </button>
-                                    <button class="btn-icon" title="Video Call">
-                                        <i class="fas fa-video"></i>
-                                    </button>
-                                    <button class="btn-icon" title="More">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <!-- Rating Stars -->
+                                    <div style="color: #f59e0b;">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <i class="fas fa-star" style="<?php echo $i <= $feedback->Rating ? 'color: #f59e0b;' : 'color: #ddd;'; ?>"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <!-- Status Badge -->
+                                    <?php
+                                    $statusColors = ['pending' => '#f59e0b', 'reviewed' => '#4A90E2', 'resolved' => '#10b981'];
+                                    $sColor = $statusColors[$feedback->Status] ?? '#666';
+                                    ?>
+                                    <span style="background: <?php echo $sColor; ?>20; color: <?php echo $sColor; ?>; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
+                                        <?php echo $feedback->Status; ?>
+                                    </span>
                                 </div>
                             </div>
-                            
-                            <div class="chat-messages" id="chatMessages">
-                                <!-- Messages will be loaded here -->
-                            </div>
-                            
-                            <div class="chat-input">
-                                <button class="btn-icon" title="Attach File">
-                                    <i class="fas fa-paperclip"></i>
-                                </button>
-                                <textarea id="messageInput" placeholder="Type your message..." rows="1"></textarea>
-                                <button class="btn-send" id="sendMessageBtn">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
+                            <p style="margin: 0; color: #555; line-height: 1.6; padding-left: 57px;">
+                                <?php echo htmlspecialchars($feedback->Content); ?>
+                            </p>
+                            <div style="padding-left: 57px; margin-top: 8px; font-size: 12px; color: #999;">
+                                <i class="fas fa-clock" style="margin-right: 4px;"></i>
+                                <?php echo date('M d, Y', strtotime($feedback->CreatedDate)); ?>
+                                <span style="margin: 0 8px;">•</span>
+                                <i class="fas fa-tag" style="margin-right: 4px;"></i>
+                                <?php echo ucfirst($feedback->Category); ?>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Info Panel -->
-                    <div class="info-panel" id="infoPanel">
-                        <div class="info-header">
-                            <h3>Details</h3>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div style="padding: 60px; text-align: center; color: #999;">
+                            <i class="fas fa-comments" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                            <h3 style="margin: 0 0 8px 0; color: #666;">No feedback yet</h3>
+                            <p style="margin: 0;">Feedback from players will appear here</p>
                         </div>
-                        <div class="info-content" id="infoContent">
-                            <div class="info-empty">
-                                <i class="fas fa-info-circle"></i>
-                                <p>Select a conversation to view details</p>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- New Message Modal -->
-    <div class="modal" id="newMessageModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-envelope"></i> New Message</h2>
-                <button class="modal-close" id="closeNewMessageModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="newMessageForm">
-                    <div class="form-group">
-                        <label for="recipientType">Recipient Type *</label>
-                        <select id="recipientType" required>
-                            <option value="">Select type...</option>
-                            <option value="player">Player</option>
-                            <option value="trainer">Trainer</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="recipientSelect">Select Recipient *</label>
-                        <select id="recipientSelect" required>
-                            <option value="">Choose recipient...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="messageSubject">Subject</label>
-                        <input type="text" id="messageSubject" placeholder="Message subject">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="messageContent">Message *</label>
-                        <textarea id="messageContent" rows="6" placeholder="Type your message..." required></textarea>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" id="cancelNewMessage">Cancel</button>
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-paper-plane"></i>
-                            Send Message
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Announcement Modal -->
-    <div class="modal" id="announcementModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-bullhorn"></i> Send Announcement</h2>
-                <button class="modal-close" id="closeAnnouncementModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="announcementForm">
-                    <div class="form-group">
-                        <label for="announcementGroup">Send To *</label>
-                        <select id="announcementGroup" required>
-                            <option value="">Select group...</option>
-                            <option value="all_players">All Players</option>
-                            <option value="junior_group">Junior Group (U-15)</option>
-                            <option value="senior_group">Senior Group (U-19)</option>
-                            <option value="my_players">My Assigned Players</option>
-                            <option value="all_staff">All Staff</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="announcementTitle">Title *</label>
-                        <input type="text" id="announcementTitle" placeholder="Announcement title" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="announcementContent">Message *</label>
-                        <textarea id="announcementContent" rows="6" placeholder="Announcement message..." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="announcementUrgent">
-                            Mark as urgent
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" id="cancelAnnouncement">Cancel</button>
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-bullhorn"></i>
-                            Send Announcement
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-<script src="<?php echo URLROOT; ?>/js/coach-communication.js"></script>
 
 <script>
 // Sidebar Toggle Functionality
@@ -322,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             
-            // Update toggle icon
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
                 icon.classList.remove('fa-angle-left');

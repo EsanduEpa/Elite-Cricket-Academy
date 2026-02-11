@@ -60,17 +60,23 @@ function requireAuth($allowedRoles = []) {
         }
         
         if (!isset($_SESSION['user_id'])) {
-            // Create mock session with REAL admin user ID (1) to avoid foreign key issues
-            $_SESSION['user_id'] = 1;  // Changed from 999 to 1 (real admin user)
-            $_SESSION['user_name'] = 'Admin User';
-            $_SESSION['user_email'] = 'admin@cricketacademy.com';
-            
             // Set role based on what's being accessed
             if (!empty($allowedRoles)) {
-                $_SESSION['user_role'] = $allowedRoles[0]; // Use first allowed role
+                $_SESSION['user_role'] = $allowedRoles[0];
             } else {
-                $_SESSION['user_role'] = 'Admin'; // Default to Admin in dev mode
+                $_SESSION['user_role'] = 'Admin';
             }
+            
+            // Use appropriate real user IDs for each role to avoid empty data
+            $roleUserMap = [
+                'Admin' => 1,
+                'Coach' => 3,
+                'Player' => 6,
+                'Trainer' => 4
+            ];
+            $_SESSION['user_id'] = $roleUserMap[$_SESSION['user_role']] ?? 1;
+            $_SESSION['user_name'] = $_SESSION['user_role'] . ' User';
+            $_SESSION['user_email'] = strtolower($_SESSION['user_role']) . '@cricketacademy.com';
         }
         return; // Skip authentication in dev mode
     }

@@ -239,11 +239,8 @@ class M_Session {
     public function getCalendarSessions($coachId, $start = null, $end = null) {
         $query = 'SELECT 
                 s.*,
-                sd.FacilityType,
-                sd.FacilityNumber,
                 (SELECT COUNT(*) FROM SessionEnrollment WHERE SessionID = s.SessionID AND Status != "cancelled") AS ParticipantCount
             FROM Session s
-            LEFT JOIN SessionDetails sd ON s.SessionID = sd.SessionID
             WHERE s.CoachOrTrainerID = :coach_id
             AND s.Status != "cancelled"';
         
@@ -533,15 +530,7 @@ class M_Session {
         $this->db->bind(':id', $id);
         
         if ($this->db->execute()) {
-            // Update cancel reason in SessionDetails
-            $this->db->query('UPDATE SessionDetails SET
-                CancelReason = :reason
-                WHERE SessionID = :id');
-            
-            $this->db->bind(':id', $id);
-            $this->db->bind(':reason', $reason);
-            
-            return $this->db->execute();
+            return true;
         }
         
         return false;

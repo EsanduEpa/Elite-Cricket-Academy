@@ -195,7 +195,7 @@
                 <button onclick="previousPeriod()">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <h2 class="calendar-title" id="calendarTitle">October 2025</h2>
+                <h2 class="calendar-title" id="calendarTitle"><?php echo date('F Y'); ?></h2>
                 <button onclick="nextPeriod()">
                     <i class="fas fa-chevron-right"></i>
                 </button>
@@ -611,7 +611,7 @@
 // ================================================
 
 const calendarState = {
-    currentDate: new Date(2025, 9, 21), // October 21, 2025
+    currentDate: new Date(), // Use current date
     viewMode: 'month', // month, week, day
     displayMode: 'calendar', // calendar, list
     sessions: [] // Will be populated from database
@@ -1341,7 +1341,7 @@ function nextPeriod() {
 }
 
 function goToToday() {
-    calendarState.currentDate = new Date(2025, 9, 21);
+    calendarState.currentDate = new Date();
     renderCalendar();
 }
 

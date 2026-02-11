@@ -1308,5 +1308,102 @@ class M_Users {
             return false;
         }
     }
+
+    /**
+     * Get players assigned to a specific coach
+     */
+    public function getPlayersAssignedToCoach($coachId) {
+        $this->db->query('SELECT 
+            u.UserID, u.Name, u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
+            u.ProfileImage, u.Address, u.School,
+            pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, pp.SubscriptionType,
+            pca.AssignmentType, pca.AssignedDate, pca.Status as AssignmentStatus, pca.Notes as AssignmentNotes
+        FROM playercoachassignment pca
+        JOIN User u ON pca.PlayerID = u.UserID
+        LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+        WHERE pca.CoachID = :coachId AND pca.Status = "active"
+        ORDER BY u.Name ASC');
+        $this->db->bind(':coachId', $coachId);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Get notifications for a specific user
+     */
+    public function getNotificationsByUser($userId) {
+        $this->db->query('SELECT 
+            NotificationID as id,
+            UserID,
+            Type as type,
+            Title as title,
+            Message as message,
+            IsRead as is_read,
+            CreatedAt,
+            CASE 
+                WHEN TIMESTAMPDIFF(MINUTE, CreatedAt, NOW()) < 60 THEN CONCAT(TIMESTAMPDIFF(MINUTE, CreatedAt, NOW()), " mins ago")
+                WHEN TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) < 24 THEN CONCAT(TIMESTAMPDIFF(HOUR, CreatedAt, NOW()), " hours ago")
+                WHEN TIMESTAMPDIFF(DAY, CreatedAt, NOW()) < 7 THEN CONCAT(TIMESTAMPDIFF(DAY, CreatedAt, NOW()), " days ago")
+                ELSE DATE_FORMAT(CreatedAt, "%b %d, %Y")
+            END as time
+        FROM notification 
+        WHERE UserID = :userId 
+        ORDER BY CreatedAt DESC');
+        $this->db->bind(':userId', $userId);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Get unread notification count for a user
+     */
+    public function getUnreadNotificationCount($userId) {
+        $this->db->query('SELECT COUNT(*) as count FROM notification WHERE UserID = :userId AND IsRead = 0');
+        $this->db->bind(':userId', $userId);
+        $result = $this->db->single();
+        return $result ? (int)$result->count : 0;
+    }
+
+    /**
+     * Mark a notification as read
+     */
+    public function markNotificationRead($notificationId, $userId) {
+        $this->db->query('UPDATE notification SET IsRead = 1, ReadAt = NOW() WHERE NotificationID = :id AND UserID = :userId');
+        $this->db->bind(':id', $notificationId);
+        $this->db->bind(':userId', $userId);
+        return $this->db->execute();
+    }
+
+    /**
+     * Mark all notifications as read for a user
+     */
+    public function markAllNotificationsRead($userId) {
+        $this->db->query('UPDATE notification SET IsRead = 1, ReadAt = NOW() WHERE UserID = :userId AND IsRead = 0');
+        $this->db->bind(':userId', $userId);
+        return $this->db->execute();
+    }
+
+    /**
+     * Delete a notification
+     */
+    public function deleteNotification($notificationId, $userId) {
+        $this->db->query('DELETE FROM notification WHERE NotificationID = :id AND UserID = :userId');
+        $this->db->bind(':id', $notificationId);
+        $this->db->bind(':userId', $userId);
+        return $this->db->execute();
+    }
+
+    /**
+     * Get feedback received by a specific user (coach/trainer)
+     */
+    public function getFeedbackForUser($userId) {
+        $this->db->query('SELECT 
+            f.FeedbackID, f.Content, f.Rating, f.Category, f.Status, f.CreatedDate,
+            u.Name as FromUserName, u.Email as FromUserEmail
+        FROM feedback f
+        JOIN User u ON f.FromUserID = u.UserID
+        WHERE f.ToUserID = :userId
+        ORDER BY f.CreatedDate DESC');
+        $this->db->bind(':userId', $userId);
+        return $this->db->resultSet();
+    }
 }
 ?> 

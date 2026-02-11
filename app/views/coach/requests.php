@@ -106,7 +106,7 @@
                     <div class="header-actions">
                         <div class="stats-badge">
                             <span class="badge-label">Pending:</span>
-                            <span class="badge-value" id="pendingCount">5</span>
+                            <span class="badge-value" id="pendingCount"><?php echo $data['pendingCount']; ?></span>
                         </div>
                     </div>
                 </div>
@@ -116,180 +116,84 @@
             <div class="requests-content">
                 <!-- Filter Tabs -->
                 <div class="filter-tabs">
-                    <button class="tab-btn active" data-filter="pending">
-                        <i class="fas fa-clock"></i>
-                        Pending <span class="count" id="pendingTabCount">5</span>
-                    </button>
-                    <button class="tab-btn" data-filter="approved">
-                        <i class="fas fa-check-circle"></i>
-                        Approved <span class="count" id="approvedTabCount">12</span>
-                    </button>
-                    <button class="tab-btn" data-filter="rejected">
-                        <i class="fas fa-times-circle"></i>
-                        Rejected <span class="count" id="rejectedTabCount">3</span>
-                    </button>
-                    <button class="tab-btn" data-filter="all">
+                    <button class="tab-btn active" data-filter="all">
                         <i class="fas fa-list"></i>
-                        All Requests
+                        All <span class="count"><?php echo count($data['feedbacks']); ?></span>
                     </button>
-                </div>
-
-                <!-- Request Type Filter -->
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>Type:</label>
-                        <select id="typeFilter" class="filter-select">
-                            <option value="all">All Types</option>
-                            <option value="reschedule">Reschedule</option>
-                            <option value="cancellation">Cancellation</option>
-                            <option value="appointment">Appointment</option>
-                            <option value="leave">Leave Request</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>Sort By:</label>
-                        <select id="sortFilter" class="filter-select">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="urgent">Urgent First</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group search-group">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchRequests" placeholder="Search by player name...">
-                    </div>
+                    <button class="tab-btn" data-filter="pending">
+                        <i class="fas fa-clock"></i>
+                        Pending <span class="count"><?php echo $data['pendingCount']; ?></span>
+                    </button>
+                    <button class="tab-btn" data-filter="reviewed">
+                        <i class="fas fa-eye"></i>
+                        Reviewed <span class="count"><?php echo $data['reviewedCount']; ?></span>
+                    </button>
+                    <button class="tab-btn" data-filter="resolved">
+                        <i class="fas fa-check-circle"></i>
+                        Resolved <span class="count"><?php echo $data['resolvedCount']; ?></span>
+                    </button>
                 </div>
 
                 <!-- Requests List -->
                 <div class="requests-list" id="requestsList">
-                    <!-- Requests will be loaded here -->
+                    <?php if (!empty($data['feedbacks'])): ?>
+                        <?php foreach ($data['feedbacks'] as $feedback): ?>
+                        <?php
+                        $statusColors = ['pending' => '#f59e0b', 'reviewed' => '#4A90E2', 'resolved' => '#10b981'];
+                        $sColor = $statusColors[$feedback->Status] ?? '#666';
+                        $statusIcons = ['pending' => 'fa-clock', 'reviewed' => 'fa-eye', 'resolved' => 'fa-check-circle'];
+                        $sIcon = $statusIcons[$feedback->Status] ?? 'fa-circle';
+                        ?>
+                        <div class="request-item" data-status="<?php echo $feedback->Status; ?>" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid <?php echo $sColor; ?>;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="display: flex; gap: 16px; align-items: start;">
+                                    <div style="width: 45px; height: 45px; background: <?php echo $sColor; ?>20; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: <?php echo $sColor; ?>; flex-shrink: 0;">
+                                        <i class="fas <?php echo $sIcon; ?>" style="font-size: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="margin: 0 0 4px 0; color: #333; font-size: 16px;">
+                                            Feedback from <?php echo htmlspecialchars($feedback->FromUserName); ?>
+                                        </h4>
+                                        <p style="margin: 0 0 8px 0; color: #666; line-height: 1.5;">
+                                            <?php echo htmlspecialchars($feedback->Content); ?>
+                                        </p>
+                                        <div style="display: flex; gap: 16px; font-size: 12px; color: #999;">
+                                            <span><i class="fas fa-calendar" style="margin-right: 4px;"></i><?php echo date('M d, Y', strtotime($feedback->CreatedDate)); ?></span>
+                                            <span><i class="fas fa-tag" style="margin-right: 4px;"></i><?php echo ucfirst($feedback->Category); ?></span>
+                                            <span>
+                                                <i class="fas fa-star" style="margin-right: 4px; color: #f59e0b;"></i>
+                                                <?php echo $feedback->Rating; ?>/5
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span style="background: <?php echo $sColor; ?>20; color: <?php echo $sColor; ?>; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: capitalize; white-space: nowrap;">
+                                    <?php echo $feedback->Status; ?>
+                                </span>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div style="text-align: center; padding: 60px; color: #999;">
+                            <i class="fas fa-clipboard-check" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                            <h3 style="margin: 0 0 8px 0; color: #666;">No feedback requests</h3>
+                            <p style="margin: 0;">Feedback from players will appear here</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Request Details Modal -->
-    <div class="modal" id="requestModal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h2><i class="fas fa-clipboard-list"></i> Request Details</h2>
-                <button class="modal-close" id="closeRequestModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="requestDetails">
-                    <!-- Request details will be loaded here -->
-                </div>
-            </div>
-            <div class="modal-footer" id="modalActions">
-                <!-- Action buttons will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Approval Modal -->
-    <div class="modal" id="approvalModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-check-circle"></i> Approve Request</h2>
-                <button class="modal-close" id="closeApprovalModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="approvalForm">
-                    <input type="hidden" id="approveRequestId">
-                    
-                    <div class="form-group">
-                        <label for="approvalNotes">Approval Notes (Optional)</label>
-                        <textarea id="approvalNotes" rows="4" placeholder="Add any notes or conditions for this approval..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="notifyPlayer" checked>
-                            Notify player via email
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" id="cancelApproval">Cancel</button>
-                        <button type="submit" class="btn-success">
-                            <i class="fas fa-check"></i>
-                            Approve Request
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rejection Modal -->
-    <div class="modal" id="rejectionModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-times-circle"></i> Reject Request</h2>
-                <button class="modal-close" id="closeRejectionModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="rejectionForm">
-                    <input type="hidden" id="rejectRequestId">
-                    
-                    <div class="form-group">
-                        <label for="rejectionReason">Reason for Rejection *</label>
-                        <select id="rejectionReason" required>
-                            <option value="">Select reason...</option>
-                            <option value="scheduling_conflict">Scheduling Conflict</option>
-                            <option value="insufficient_notice">Insufficient Notice</option>
-                            <option value="session_full">Session Already Full</option>
-                            <option value="policy_violation">Policy Violation</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="rejectionNotes">Additional Notes *</label>
-                        <textarea id="rejectionNotes" rows="4" placeholder="Explain why this request is being rejected..." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="notifyPlayerReject" checked>
-                            Notify player via email
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" id="cancelRejection">Cancel</button>
-                        <button type="submit" class="btn-danger">
-                            <i class="fas fa-times"></i>
-                            Reject Request
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-<script src="<?php echo URLROOT; ?>/js/coach-requests.js"></script>
 
 <script>
-// Sidebar Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Sidebar Toggle
     const sidebar = document.getElementById('coachSidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const mainContent = document.querySelector('.main-content');
-    
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
-            
-            // Update toggle icon
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
                 icon.classList.remove('fa-angle-left');
@@ -302,6 +206,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Filter Tabs
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const requestItems = document.querySelectorAll('.request-item');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filter = this.getAttribute('data-filter');
+            requestItems.forEach(item => {
+                if (filter === 'all' || item.getAttribute('data-status') === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
 });
 </script>
 

@@ -128,11 +128,8 @@
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="card-info">
-                            <h3 id="totalPlayers">24</h3>
-                            <p>Active Players</p>
-                            <span class="trend positive">
-                                <i class="fas fa-arrow-up"></i> 12% vs last month
-                            </span>
+                            <h3 id="totalPlayers"><?php echo $data['totalPlayers']; ?></h3>
+                            <p>Assigned Players</p>
                         </div>
                     </div>
 
@@ -141,24 +138,18 @@
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="card-info">
-                            <h3 id="totalSessions">48</h3>
-                            <p>Sessions Completed</p>
-                            <span class="trend positive">
-                                <i class="fas fa-arrow-up"></i> 8% vs last month
-                            </span>
+                            <h3 id="totalSessions"><?php echo $data['totalSessions']; ?></h3>
+                            <p>Total Sessions</p>
                         </div>
                     </div>
 
                     <div class="summary-card">
                         <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <i class="fas fa-percentage"></i>
+                            <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="card-info">
-                            <h3 id="avgAttendance">87%</h3>
-                            <p>Avg Attendance</p>
-                            <span class="trend negative">
-                                <i class="fas fa-arrow-down"></i> 3% vs last month
-                            </span>
+                            <h3 id="avgAttendance"><?php echo $data['activeSessions']; ?></h3>
+                            <p>Active Sessions</p>
                         </div>
                     </div>
 
@@ -167,11 +158,8 @@
                             <i class="fas fa-heartbeat"></i>
                         </div>
                         <div class="card-info">
-                            <h3 id="healthScore">92%</h3>
-                            <p>Health Score</p>
-                            <span class="trend positive">
-                                <i class="fas fa-arrow-up"></i> 5% vs last month
-                            </span>
+                            <h3 id="healthScore"><?php echo $data['totalMedical']; ?></h3>
+                            <p>Medical Records</p>
                         </div>
                     </div>
                 </div>
@@ -180,12 +168,7 @@
                 <div class="charts-row">
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3><i class="fas fa-chart-line"></i> Player Performance Trends</h3>
-                            <select id="performanceMetric" class="metric-select">
-                                <option value="batting">Batting Average</option>
-                                <option value="bowling">Bowling Average</option>
-                                <option value="fielding">Fielding Score</option>
-                            </select>
+                            <h3><i class="fas fa-chart-pie"></i> Session Type Breakdown</h3>
                         </div>
                         <div class="chart-container">
                             <canvas id="performanceChart"></canvas>
@@ -194,7 +177,7 @@
 
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3><i class="fas fa-fire"></i> Attendance Heatmap</h3>
+                            <h3><i class="fas fa-chart-bar"></i> Session Status</h3>
                         </div>
                         <div class="chart-container">
                             <canvas id="attendanceChart"></canvas>
@@ -202,52 +185,48 @@
                     </div>
                 </div>
 
-                <!-- Charts Row 2 -->
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-heartbeat"></i> Health Summary</h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="healthChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-calendar-alt"></i> Session Distribution</h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="sessionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance Table -->
+                <!-- Session List -->
                 <div class="table-card">
                     <div class="table-header">
-                        <h3><i class="fas fa-table"></i> Top Performers</h3>
-                        <div class="table-actions">
-                            <input type="text" id="searchPlayers" placeholder="Search players..." class="search-input">
-                            <button class="btn-secondary" id="exportTableBtn">
-                                <i class="fas fa-file-csv"></i> Export CSV
-                            </button>
-                        </div>
+                        <h3><i class="fas fa-table"></i> Session Details</h3>
                     </div>
                     <div class="table-container">
                         <table id="performersTable">
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
-                                    <th>Player Name</th>
-                                    <th>Attendance</th>
-                                    <th>Avg Performance</th>
-                                    <th>Improvement</th>
-                                    <th>Health Status</th>
+                                    <th>Session Name</th>
+                                    <th>Type</th>
+                                    <th>Mode</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="performersTableBody">
-                                <!-- Data will be loaded here -->
+                                <?php if (!empty($data['sessions'])): ?>
+                                    <?php foreach ($data['sessions'] as $session): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($session->Name); ?></td>
+                                        <td><?php echo htmlspecialchars($session->SessionType); ?></td>
+                                        <td><?php echo htmlspecialchars($session->SessionMode); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($session->Date)); ?></td>
+                                        <td><?php echo date('h:i A', strtotime($session->StartTime)); ?> - <?php echo date('h:i A', strtotime($session->EndTime)); ?></td>
+                                        <td><?php echo htmlspecialchars($session->Location ?? 'TBA'); ?></td>
+                                        <td>
+                                            <?php 
+                                            $statusColors = ['active' => '#10b981', 'completed' => '#4A90E2', 'cancelled' => '#ef4444'];
+                                            $color = $statusColors[$session->Status] ?? '#666';
+                                            ?>
+                                            <span style="color: <?php echo $color; ?>; font-weight: 600; text-transform: capitalize;">
+                                                <?php echo $session->Status; ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">No sessions found</td></tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -328,7 +307,62 @@
         </div>
     </div>
 
-<script src="<?php echo URLROOT; ?>/js/coach-reports.js"></script>
+<script>
+// Session Type Chart (Pie)
+const typeCtx = document.getElementById('performanceChart');
+if (typeCtx) {
+    new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Private', 'Group'],
+            datasets: [{
+                data: [<?php echo $data['privateSessions']; ?>, <?php echo $data['groupSessions']; ?>],
+                backgroundColor: ['#8b5cf6', '#4A90E2'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Session Status Chart (Bar)
+const statusCtx = document.getElementById('attendanceChart');
+if (statusCtx) {
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Active', 'Completed', 'Cancelled'],
+            datasets: [{
+                label: 'Sessions',
+                data: [
+                    <?php echo $data['activeSessions']; ?>,
+                    <?php echo $data['completedSessions']; ?>,
+                    <?php echo $data['totalSessions'] - $data['activeSessions'] - $data['completedSessions']; ?>
+                ],
+                backgroundColor: ['#10b981', '#4A90E2', '#ef4444'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+}
+</script>
 
 <script>
 // Sidebar Toggle Functionality

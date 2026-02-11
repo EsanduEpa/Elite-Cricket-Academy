@@ -77,119 +77,102 @@ class Coach extends Controller {
             'upcomingBookings' => $upcomingBookings,
             'allSessions' => $allSessions,
             'weeklySchedule' => $this->generateWeeklySchedule($upcomingSessions),
-            'playerProfiles' => [], // Keep empty for now
-            'tournaments' => [
-                [
-                    'id' => 1,
-                    'name' => 'Junior Championship 2025',
-                    'date' => '2025-09-15',
-                    'players_selected' => ['Alex Smith', 'Emma Davis'],
-                    'status' => 'upcoming'
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Regional Tournament',
-                    'date' => '2025-09-25',
-                    'players_selected' => ['Sarah Wilson'],
-                    'status' => 'upcoming'
-                ]
-            ],
-            'recommendations' => [
-                [
-                    'player_name' => 'Alex Smith',
-                    'recommendation' => 'Focus on improving footwork for off-side shots',
-                    'priority' => 'high',
-                    'date' => '2025-09-05'
-                ],
-                [
-                    'player_name' => 'Sarah Wilson',
-                    'recommendation' => 'Continue working on bowling accuracy',
-                    'priority' => 'medium',
-                    'date' => '2025-09-04'
-                ]
-            ],
-            'medicalRecords' => [
-                [
-                    'player_name' => 'Alex Smith',
-                    'condition' => 'Minor knee strain',
-                    'status' => 'Under observation',
-                    'restrictions' => 'No heavy running for 1 week',
-                    'date' => '2025-09-02'
-                ],
-                [
-                    'player_name' => 'Emma Davis',
-                    'condition' => 'Fitness evaluation',
-                    'status' => 'Cleared for all activities',
-                    'restrictions' => 'None',
-                    'date' => '2025-08-30'
-                ]
-            ]
         ];
         
         $this->view('coach/dashboard', $data);
     }
     
     public function schedules() {
-        $data = [
-            'title' => 'Training Schedules - Coach Dashboard',
-            'schedules' => []
-        ];
-        $this->view('coach/schedules', $data);
+        redirect('coach/sessions');
     }
     
     public function bookings() {
-        $data = [
-            'title' => 'Session Bookings - Coach Dashboard',
-            'bookings' => []
-        ];
-        $this->view('coach/bookings', $data);
+        redirect('coach/sessions');
     }
     
     public function tournaments() {
+        $eventModel = $this->model('Event');
+        $upcomingEvents = $eventModel->getUpcomingEvents(50);
+        $pastEvents = $eventModel->getPastEvents(50);
+        
         $data = [
             'title' => 'Tournaments - Coach Dashboard',
-            'tournaments' => []
+            'upcoming_events' => $upcomingEvents,
+            'past_events' => $pastEvents
         ];
         $this->view('coach/tournaments', $data);
     }
     
     public function players() {
+        $coachId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
+        
+        // Get players assigned to this coach from DB
+        $players = $userModel->getPlayersAssignedToCoach($coachId);
+        
         // Fetch achievements from database
         $achievementModel = $this->model('M_Achievement');
         $achievements = $achievementModel->getAllAchievementsWithPlayerInfo();
         
+        // Calculate stats
+        $totalPlayers = count($players);
+        $activePlayers = count(array_filter($players, function($p) { return $p->Status == 'active'; }));
+        $inactivePlayers = $totalPlayers - $activePlayers;
+        
         $data = [
             'title' => 'Player Management - Coach Dashboard',
-            'players' => [],
-            'achievements' => $achievements
+            'players' => $players,
+            'achievements' => $achievements,
+            'totalPlayers' => $totalPlayers,
+            'activePlayers' => $activePlayers,
+            'inactivePlayers' => $inactivePlayers
         ];
         $this->view('coach/players', $data);
     }
     
     public function recommendations() {
-        $data = [
-            'title' => 'Player Recommendations - Coach Dashboard',
-            'recommendations' => []
-        ];
-        $this->view('coach/recommendations', $data);
+        redirect('coach/players');
     }
     
     public function medical() {
-        $data = [
-            'title' => 'Medical Records - Coach Dashboard',
-            'records' => []
-        ];
-        $this->view('coach/medical', $data);
+        redirect('coach/health');
     }
     
     public function health() {
         // Fetch real medical records from database
         $medicalModel = $this->model('M_Medical');
         $medicalRecords = $medicalModel->getAllMedicalRecordsWithPlayerInfo();
+        
+        // Calculate stats from real data
+        $totalRecords = count($medicalRecords);
+        $recoveredCount = 0;
+        $injuredCount = 0;
+        $severeCount = 0;
+        $pendingCount = 0;
+        
+        foreach ($medicalRecords as $record) {
+            $status = strtolower($record->RecoveryStatus ?? '');
+            if ($status === 'recovered') {
+                $recoveredCount++;
+            } else {
+                $injuredCount++;
+            }
+            if ($status === 'chronic' || (isset($record->RestDaysNeeded) && $record->RestDaysNeeded > 14)) {
+                $severeCount++;
+            }
+            $verifyStatus = strtolower($record->verifyStatus ?? 'pending');
+            if ($verifyStatus === 'pending') {
+                $pendingCount++;
+            }
+        }
 
         $data = [
             'title' => 'Health & Injury Monitoring - Elite Cricket Academy',
-            'medicalRecords' => $medicalRecords
+            'medicalRecords' => $medicalRecords,
+            'injuredCount' => $injuredCount,
+            'recoveredCount' => $recoveredCount,
+            'severeCount' => $severeCount,
+            'pendingCount' => $pendingCount
         ];
         $this->view('coach/health', $data);
     }
@@ -273,114 +256,12 @@ class Coach extends Controller {
     }
     
     public function notifications() {
-        // Dummy notification data
-        $notifications = [
-            (object)[
-                'id' => 1,
-                'type' => 'session',
-                'title' => 'Upcoming Session Reminder',
-                'message' => 'You have a batting training session scheduled tomorrow at 10:00 AM with 12 players',
-                'time' => '2 hours ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-2 hours')),
-                'is_read' => false,
-                'priority' => 'high'
-            ],
-            (object)[
-                'id' => 2,
-                'type' => 'injury',
-                'title' => 'New Injury Report',
-                'message' => 'Kavindu Perera reported an ankle sprain. Medical attention required.',
-                'time' => '5 hours ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-5 hours')),
-                'is_read' => false,
-                'priority' => 'urgent'
-            ],
-            (object)[
-                'id' => 3,
-                'type' => 'event',
-                'title' => 'Tournament Registration Open',
-                'message' => 'Junior Cricket Championship registration is now open. Deadline: Oct 30, 2025',
-                'time' => '1 day ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 day')),
-                'is_read' => true,
-                'priority' => 'medium'
-            ],
-            (object)[
-                'id' => 4,
-                'type' => 'player',
-                'title' => 'Player Performance Update',
-                'message' => 'Sandun Akalanka has achieved 90% attendance this month. Excellent progress!',
-                'time' => '1 day ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 day')),
-                'is_read' => true,
-                'priority' => 'low'
-            ],
-            (object)[
-                'id' => 5,
-                'type' => 'session',
-                'title' => 'Session Cancelled',
-                'message' => 'Evening bowling session on Oct 23 has been cancelled due to weather conditions',
-                'time' => '2 days ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-2 days')),
-                'is_read' => true,
-                'priority' => 'high'
-            ],
-            (object)[
-                'id' => 6,
-                'type' => 'system',
-                'title' => 'System Maintenance',
-                'message' => 'The academy management system will undergo maintenance on Oct 25 from 2:00 AM to 4:00 AM',
-                'time' => '3 days ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-3 days')),
-                'is_read' => true,
-                'priority' => 'medium'
-            ],
-            (object)[
-                'id' => 7,
-                'type' => 'injury',
-                'title' => 'Recovery Update',
-                'message' => 'Ravindu Silva has been cleared for full training after finger fracture recovery',
-                'time' => '3 days ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-3 days')),
-                'is_read' => true,
-                'priority' => 'medium'
-            ],
-            (object)[
-                'id' => 8,
-                'type' => 'event',
-                'title' => 'New Training Workshop',
-                'message' => 'Advanced Batting Techniques workshop scheduled for Nov 5, 2025. Limited slots available.',
-                'time' => '4 days ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-4 days')),
-                'is_read' => true,
-                'priority' => 'medium'
-            ],
-            (object)[
-                'id' => 9,
-                'type' => 'player',
-                'title' => 'New Player Registration',
-                'message' => '3 new players have been assigned to your training group',
-                'time' => '5 days ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-5 days')),
-                'is_read' => true,
-                'priority' => 'low'
-            ],
-            (object)[
-                'id' => 10,
-                'type' => 'session',
-                'title' => 'Session Feedback Pending',
-                'message' => 'Please submit feedback for the batting session conducted on Oct 17',
-                'time' => '1 week ago',
-                'timestamp' => date('Y-m-d H:i:s', strtotime('-1 week')),
-                'is_read' => true,
-                'priority' => 'low'
-            ]
-        ];
+        $userId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
         
-        // Calculate unread count
-        $unreadCount = count(array_filter($notifications, function($n) {
-            return !$n->is_read;
-        }));
+        // Get real notifications from database
+        $notifications = $userModel->getNotificationsByUser($userId);
+        $unreadCount = $userModel->getUnreadNotificationCount($userId);
         
         $data = [
             'title' => 'Notifications - Elite Cricket Academy',
@@ -391,22 +272,78 @@ class Coach extends Controller {
     }
     
     public function communication() {
+        $coachId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
+        
+        // Get feedback received by this coach
+        $feedbacks = $userModel->getFeedbackForUser($coachId);
+        
         $data = [
-            'title' => 'Communication & Feedback - Elite Cricket Academy'
+            'title' => 'Communication & Feedback - Elite Cricket Academy',
+            'feedbacks' => $feedbacks
         ];
         $this->view('coach/communication', $data);
     }
     
     public function reports() {
+        $coachId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
+        $sessionModel = $this->model('M_Session');
+        $medicalModel = $this->model('M_Medical');
+        
+        // Get real stats
+        $players = $userModel->getPlayersAssignedToCoach($coachId);
+        $allSessions = $sessionModel->getSessionsByCoach($coachId);
+        $medicalRecords = $medicalModel->getAllMedicalRecordsWithPlayerInfo();
+        
+        $totalPlayers = count($players);
+        $totalSessions = count($allSessions);
+        $completedSessions = count(array_filter($allSessions, function($s) { return $s->Status == 'completed'; }));
+        $activeSessions = count(array_filter($allSessions, function($s) { return $s->Status == 'active'; }));
+        
+        // Session type breakdown
+        $privateSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Private'; }));
+        $groupSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Group'; }));
+        
+        // Medical stats
+        $totalMedical = count($medicalRecords);
+        $recoveredCount = count(array_filter($medicalRecords, function($m) { 
+            return isset($m->RecoveryStatus) && strtolower($m->RecoveryStatus) == 'recovered'; 
+        }));
+        
         $data = [
-            'title' => 'Reports & Analytics - Elite Cricket Academy'
+            'title' => 'Reports & Analytics - Elite Cricket Academy',
+            'totalPlayers' => $totalPlayers,
+            'totalSessions' => $totalSessions,
+            'completedSessions' => $completedSessions,
+            'activeSessions' => $activeSessions,
+            'privateSessions' => $privateSessions,
+            'groupSessions' => $groupSessions,
+            'totalMedical' => $totalMedical,
+            'recoveredCount' => $recoveredCount,
+            'players' => $players,
+            'sessions' => $allSessions
         ];
         $this->view('coach/reports', $data);
     }
     
     public function requests() {
+        $coachId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
+        
+        // Get feedback/requests for this coach
+        $feedbacks = $userModel->getFeedbackForUser($coachId);
+        
+        $pendingCount = count(array_filter($feedbacks, function($f) { return $f->Status == 'pending'; }));
+        $reviewedCount = count(array_filter($feedbacks, function($f) { return $f->Status == 'reviewed'; }));
+        $resolvedCount = count(array_filter($feedbacks, function($f) { return $f->Status == 'resolved'; }));
+        
         $data = [
-            'title' => 'Requests & Approvals - Elite Cricket Academy'
+            'title' => 'Requests & Approvals - Elite Cricket Academy',
+            'feedbacks' => $feedbacks,
+            'pendingCount' => $pendingCount,
+            'reviewedCount' => $reviewedCount,
+            'resolvedCount' => $resolvedCount
         ];
         $this->view('coach/requests', $data);
     }
@@ -566,8 +503,6 @@ class Coach extends Controller {
                 ];
             } else {
                 // Legacy POST format
-                $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-                
                 $data = [
                     'coach_id' => $_SESSION['user_id'] ?? 1,
                     'session_type' => trim($_POST['session_type'] ?? ''),
@@ -583,7 +518,7 @@ class Coach extends Controller {
                     'price' => floatval($_POST['price'] ?? 0.00),
                     'is_recurring' => filter_var($_POST['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
                     'recurrence_pattern' => trim($_POST['recurrence_pattern'] ?? 'None'),
-                    'recurrence_end' => trim($_POST['recurrence_end'] ?? null),
+                    'recurrence_end' => trim($_POST['recurrence_end'] ?? ''),
                     'selected_players' => $_POST['selected_players'] ?? []
                 ];
             }
@@ -646,7 +581,7 @@ class Coach extends Controller {
         if ($session) {
             // Get participants
             $participants = $sessionModel->getSessionParticipants($id);
-            $session['participants'] = $participants;
+            $session->participants = $participants;
             
             echo json_encode([
                 'success' => true,
@@ -672,21 +607,21 @@ class Coach extends Controller {
         // Format for FullCalendar
         $events = [];
         foreach ($sessions as $session) {
-            $color = $this->getSessionColor($session['SessionType']);
+            $color = $this->getSessionColor($session->SessionType ?? '');
             
             $events[] = [
-                'id' => $session['SessionID'],
-                'title' => $session['Title'],
-                'start' => $session['SessionDate'] . 'T' . $session['StartTime'],
-                'end' => $session['SessionDate'] . 'T' . $session['EndTime'],
+                'id' => $session->SessionID,
+                'title' => $session->Name,
+                'start' => $session->Date . 'T' . $session->StartTime,
+                'end' => $session->Date . 'T' . $session->EndTime,
                 'backgroundColor' => $color,
                 'borderColor' => $color,
                 'extendedProps' => [
-                    'type' => $session['SessionType'],
-                    'facility' => $session['FacilityType'] . ' ' . $session['FacilityNumber'],
-                    'status' => $session['Status'],
-                    'participants' => $session['ParticipantCount'] ?? 0,
-                    'maxParticipants' => $session['MaxParticipants']
+                    'type' => $session->SessionType,
+                    'location' => $session->Location ?? '',
+                    'status' => $session->Status,
+                    'participants' => $session->ParticipantCount ?? 0,
+                    'maxParticipants' => $session->MaxParticipants
                 ]
             ];
         }
@@ -882,9 +817,11 @@ class Coach extends Controller {
     // Reschedule Session
     public function reschedule_session($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $newDate = trim($_POST['new_date'] ?? '');
-            $newStartTime = trim($_POST['new_start_time'] ?? '');
-            $newEndTime = trim($_POST['new_end_time'] ?? '');
+            // Support both JSON and form POST
+            $input = json_decode(file_get_contents('php://input'), true);
+            $newDate = trim($input['new_date'] ?? $input['date'] ?? $_POST['new_date'] ?? '');
+            $newStartTime = trim($input['new_start_time'] ?? $input['startTime'] ?? $_POST['new_start_time'] ?? '');
+            $newEndTime = trim($input['new_end_time'] ?? $input['endTime'] ?? $_POST['new_end_time'] ?? '');
             
             if (empty($newDate) || empty($newStartTime) || empty($newEndTime)) {
                 echo json_encode([
@@ -943,7 +880,8 @@ class Coach extends Controller {
                     'session_id' => $sessionId,
                     'player_id' => $playerId,
                     'status' => $data['status'],
-                    'notes' => $data['notes'] ?? ''
+                    'notes' => $data['notes'] ?? '',
+                    'marked_by' => $_SESSION['user_id'] ?? 1
                 ]);
                 
                 if (!$result) {
@@ -1071,23 +1009,25 @@ class Coach extends Controller {
             return false;
         }
         
+        $title = $session->Name ?? 'Session';
+        $date = $session->Date ?? '';
+        $time = $session->StartTime ?? '';
+        
         // Prepare notification message
         $messages = [
-            'created' => "New session '{$session['Title']}' has been scheduled for {$session['SessionDate']} at {$session['StartTime']}",
-            'updated' => "Session '{$session['Title']}' has been updated. Please check the details.",
-            'cancelled' => "Session '{$session['Title']}' scheduled for {$session['SessionDate']} has been cancelled." . ($reason ? " Reason: $reason" : ""),
-            'rescheduled' => "Session '{$session['Title']}' has been rescheduled to {$session['SessionDate']} at {$session['StartTime']}",
-            'deleted' => "Session '{$session['Title']}' has been removed from the schedule."
+            'created' => "New session '{$title}' has been scheduled for {$date} at {$time}",
+            'updated' => "Session '{$title}' has been updated. Please check the details.",
+            'cancelled' => "Session '{$title}' scheduled for {$date} has been cancelled." . ($reason ? " Reason: $reason" : ""),
+            'rescheduled' => "Session '{$title}' has been rescheduled to {$date} at {$time}",
+            'deleted' => "Session '{$title}' has been removed from the schedule."
         ];
         
         $message = $messages[$action] ?? 'Session notification';
         
-        // Send notifications to each participant
-        // TODO: Implement actual notification system (email, SMS, in-app)
-        // For now, just log the notification
+        // Log notifications for each participant
         foreach ($participants as $participant) {
-            error_log("Notification to Player {$participant['PlayerID']}: $message");
-            // Future: Send email, SMS, or create in-app notification
+            $pid = $participant->PlayerID ?? ($participant['PlayerID'] ?? 'unknown');
+            error_log("Notification to Player {$pid}: $message");
         }
         
         return true;
@@ -1283,6 +1223,54 @@ class Coach extends Controller {
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    // Mark notification as read
+    public function markNotificationRead($id = null) {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
+            $userId = $_SESSION['user_id'] ?? 1;
+            $userModel = $this->model('M_Users');
+            if ($userModel->markNotificationRead($id, $userId)) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to mark as read']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        }
+    }
+
+    // Mark all notifications as read
+    public function markAllNotificationsRead() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $userId = $_SESSION['user_id'] ?? 1;
+            $userModel = $this->model('M_Users');
+            if ($userModel->markAllNotificationsRead($userId)) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to mark all as read']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        }
+    }
+
+    // Delete notification
+    public function deleteNotification($id = null) {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
+            $userId = $_SESSION['user_id'] ?? 1;
+            $userModel = $this->model('M_Users');
+            if ($userModel->deleteNotification($id, $userId)) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
         }
     }
 }

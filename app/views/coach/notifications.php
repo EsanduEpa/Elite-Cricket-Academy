@@ -146,15 +146,14 @@
                                 'injury' => 'heartbeat',
                                 'event' => 'calendar-check',
                                 'player' => 'user',
-                                'system' => 'cog'
+                                'system' => 'cog',
+                                'welcome' => 'hand-peace'
                             ];
                             $icon = $iconMap[$notification->type] ?? 'bell';
                             
-                            // Determine priority class
-                            $priorityClass = $notification->priority ?? 'low';
                             $readClass = $notification->is_read ? 'read' : 'unread';
                     ?>
-                    <div class="notification-item <?php echo $readClass; ?> priority-<?php echo $priorityClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>">
+                    <div class="notification-item <?php echo $readClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>">
                         <div class="notification-icon <?php echo $notification->type; ?>">
                             <i class="fas fa-<?php echo $icon; ?>"></i>
                         </div>
@@ -164,13 +163,9 @@
                                 <span class="notification-time"><?php echo $notification->time; ?></span>
                             </div>
                             <p class="notification-message"><?php echo htmlspecialchars($notification->message); ?></p>
-                            <?php if ($notification->priority === 'urgent'): ?>
-                            <span class="priority-badge urgent">
-                                <i class="fas fa-exclamation-triangle"></i> Urgent
-                            </span>
-                            <?php elseif ($notification->priority === 'high'): ?>
+                            <?php if (!$notification->is_read): ?>
                             <span class="priority-badge high">
-                                <i class="fas fa-exclamation-circle"></i> High Priority
+                                <i class="fas fa-envelope"></i> Unread
                             </span>
                             <?php endif; ?>
                         </div>
@@ -223,20 +218,15 @@
         </div>
     </div>
 
-<script src="<?php echo URLROOT; ?>/js/coach-notifications.js"></script>
-
 <script>
-// Sidebar Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Sidebar Toggle
     const sidebar = document.getElementById('coachSidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const mainContent = document.querySelector('.main-content');
-    
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
-            
-            // Update toggle icon
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
                 icon.classList.remove('fa-angle-left');
@@ -249,7 +239,94 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Filter tabs
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const notificationItems = document.querySelectorAll('.notification-item');
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            filterTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const filter = this.getAttribute('data-filter');
+            notificationItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = 'flex';
+                } else if (filter === 'unread') {
+                    item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+                } else {
+                    const type = item.getAttribute('data-type');
+                    const typeMap = {
+                        'sessions': 'session',
+                        'injuries': 'injury',
+                        'tournaments': 'event',
+                        'messages': 'player'
+                    };
+                    item.style.display = type === typeMap[filter] ? 'flex' : 'none';
+                }
+            });
+            // Toggle empty state
+            const visibleItems = document.querySelectorAll('.notification-item[style*="flex"], .notification-item:not([style])');
+            const emptyState = document.getElementById('emptyState');
+            let anyVisible = false;
+            notificationItems.forEach(item => {
+                if (item.style.display !== 'none') anyVisible = true;
+            });
+            if (emptyState) emptyState.style.display = anyVisible ? 'none' : 'block';
+        });
+    });
+
+    // Mark All Read
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function() {
+            fetch('<?php echo URLROOT; ?>/coach/markAllNotificationsRead', { method: 'POST' })
+            .then(() => {
+                notificationItems.forEach(item => {
+                    item.classList.remove('unread');
+                    item.classList.add('read');
+                    const markBtn = item.querySelector('.btn-mark-read');
+                    if (markBtn) markBtn.remove();
+                    const badge = item.querySelector('.priority-badge');
+                    if (badge) badge.remove();
+                });
+                const unreadCount = document.getElementById('unreadCount');
+                if (unreadCount) unreadCount.textContent = '(0)';
+                const headerCount = document.getElementById('headerNotificationCount');
+                if (headerCount) headerCount.textContent = '(0)';
+            });
+        });
+    }
 });
+
+// Mark single notification as read
+function markAsRead(id) {
+    fetch('<?php echo URLROOT; ?>/coach/markNotificationRead/' + id, { method: 'POST' })
+    .then(() => {
+        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
+        if (item) {
+            item.classList.remove('unread');
+            item.classList.add('read');
+            const markBtn = item.querySelector('.btn-mark-read');
+            if (markBtn) markBtn.remove();
+            const badge = item.querySelector('.priority-badge');
+            if (badge) badge.remove();
+        }
+    }).catch(() => {
+        // Still update UI even if request fails
+        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
+        if (item) { item.classList.remove('unread'); item.classList.add('read'); }
+    });
+}
+
+// Delete notification
+function deleteNotification(id) {
+    if (!confirm('Delete this notification?')) return;
+    fetch('<?php echo URLROOT; ?>/coach/deleteNotification/' + id, { method: 'POST' })
+    .then(() => {
+        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
+        if (item) item.remove();
+    });
+}
 </script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

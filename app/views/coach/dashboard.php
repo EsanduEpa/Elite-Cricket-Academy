@@ -334,26 +334,31 @@
 
                 <div class="player-summary-card">
                     <div class="section-header">
-                        <h3><i class="fas fa-chart-bar"></i> Player Performance Overview</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Weekly Schedule</h3>
                     </div>
                     <div class="player-stats">
-                        <?php if (!empty($data['playerProfiles'])): ?>
-                            <?php foreach (array_slice($data['playerProfiles'], 0, 3) as $player): ?>
+                        <?php if (!empty($data['weeklySchedule'])): ?>
+                            <?php foreach (array_slice($data['weeklySchedule'], 0, 5) as $day): ?>
                                 <div class="player-stat-item">
-                                    <div class="player-avatar">
-                                        <i class="fas fa-user"></i>
+                                    <div class="player-avatar" style="background: linear-gradient(135deg, #4A90E2, #357ABD);">
+                                        <i class="fas fa-calendar-day"></i>
                                     </div>
                                     <div class="player-info">
-                                        <h4><?php echo htmlspecialchars($player['name']); ?></h4>
-                                        <span class="position"><?php echo htmlspecialchars($player['position']); ?></span>
+                                        <h4><?php echo htmlspecialchars($day['day']); ?></h4>
+                                        <span class="position"><?php echo count($day['sessions']); ?> session(s)</span>
                                     </div>
                                     <div class="performance-rating">
                                         <div class="rating-circle">
-                                            <span><?php echo $player['performance_rating']; ?></span>
+                                            <span style="font-size: 12px;"><?php echo $day['sessions'][0]['time'] ?? ''; ?></span>
                                         </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
+                        <?php else: ?>
+                            <div style="text-align: center; padding: 20px; color: #999;">
+                                <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 10px; opacity: 0.5;"></i>
+                                <p>No sessions scheduled this week</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>

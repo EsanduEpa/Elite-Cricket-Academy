@@ -93,7 +93,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Currently Injured</h3>
-                    <div class="stat-number">5</div>
+                    <div class="stat-number"><?php echo $data['injuredCount']; ?></div>
                     <p class="stat-description">Players recovering</p>
                 </div>
             </div>
@@ -104,7 +104,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Recovered</h3>
-                    <div class="stat-number">3</div>
+                    <div class="stat-number"><?php echo $data['recoveredCount']; ?></div>
                     <p class="stat-description">Back to training</p>
                 </div>
             </div>
@@ -115,7 +115,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Severe Cases</h3>
-                    <div class="stat-number">2</div>
+                    <div class="stat-number"><?php echo $data['severeCount']; ?></div>
                     <p class="stat-description">Requires attention</p>
                 </div>
             </div>
@@ -126,7 +126,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Pending Review</h3>
-                    <div class="stat-number">1</div>
+                    <div class="stat-number"><?php echo $data['pendingCount']; ?></div>
                     <p class="stat-description">Awaiting verification</p>
                 </div>
             </div>
