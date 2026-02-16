@@ -51,14 +51,21 @@ function initializePerformanceChart() {
     const ctx = document.getElementById('performanceChart');
     if (!ctx) return;
 
+    // Chart data - injected from server via PHP
+    const serverChartData = window.performanceData?.chartData || {};
+    const defaultLabels = serverChartData.labels || [];
+    const battingData = serverChartData.batting || [];
+    const bowlingData = serverChartData.bowling || [];
+    const strikeRateData = serverChartData.strikeRate || [];
+
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            labels: defaultLabels,
             datasets: [
                 {
                     label: 'Batting Average',
-                    data: [35.2, 38.5, 42.1, 39.8, 45.3, 42.5],
+                    data: battingData,
                     borderColor: '#4A90E2',
                     backgroundColor: 'rgba(74, 144, 226, 0.1)',
                     fill: true,
@@ -66,7 +73,7 @@ function initializePerformanceChart() {
                 },
                 {
                     label: 'Bowling Average',
-                    data: [32.1, 29.8, 31.2, 28.9, 26.5, 28.3],
+                    data: bowlingData,
                     borderColor: '#e74c3c',
                     backgroundColor: 'rgba(231, 76, 60, 0.1)',
                     fill: true,
@@ -74,7 +81,7 @@ function initializePerformanceChart() {
                 },
                 {
                     label: 'Strike Rate',
-                    data: [118.5, 125.2, 132.8, 128.4, 135.6, 130.2],
+                    data: strikeRateData,
                     borderColor: '#27ae60',
                     backgroundColor: 'rgba(39, 174, 96, 0.1)',
                     fill: true,
@@ -140,30 +147,13 @@ function initializePerformanceChart() {
     }
 }
 
-// Update chart data based on period
+// Update chart data based on period - data from server via PHP
 function updateChartData(chart, period) {
-    let labels, battingData, bowlingData, strikeRateData;
-    
-    switch(period) {
-        case '3':
-            labels = ['Oct', 'Nov', 'Dec'];
-            battingData = [39.8, 45.3, 42.5];
-            bowlingData = [28.9, 26.5, 28.3];
-            strikeRateData = [128.4, 135.6, 130.2];
-            break;
-        case '6':
-            labels = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            battingData = [38.2, 41.1, 39.8, 45.3, 42.5, 44.2];
-            bowlingData = [30.1, 29.5, 28.9, 26.5, 28.3, 27.8];
-            strikeRateData = [125.8, 129.3, 128.4, 135.6, 130.2, 133.1];
-            break;
-        case '12':
-            labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            battingData = [35.2, 38.5, 42.1, 39.8, 45.3, 42.5, 38.2, 41.1, 39.8, 45.3, 42.5, 44.2];
-            bowlingData = [32.1, 29.8, 31.2, 28.9, 26.5, 28.3, 30.1, 29.5, 28.9, 26.5, 28.3, 27.8];
-            strikeRateData = [118.5, 125.2, 132.8, 128.4, 135.6, 130.2, 125.8, 129.3, 128.4, 135.6, 130.2, 133.1];
-            break;
-    }
+    const periodData = window.performanceData?.periodData?.[period] || {};
+    const labels = periodData.labels || [];
+    const battingData = periodData.batting || [];
+    const bowlingData = periodData.bowling || [];
+    const strikeRateData = periodData.strikeRate || [];
     
     chart.data.labels = labels;
     chart.data.datasets[0].data = battingData;

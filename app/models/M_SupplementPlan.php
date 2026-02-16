@@ -109,5 +109,17 @@ class M_SupplementPlan {
         
         return $this->db->resultSet();
     }
+
+    // Get supplement plans assigned to a player
+    public function getSupplementPlansByPlayer($playerId) {
+        $this->db->query('SELECT sp.*, u.Name AS trainer_name 
+            FROM supplementplan sp 
+            JOIN supplement_player spp ON sp.PlanID = spp.PlanID
+            JOIN user u ON sp.TrainerID = u.UserID 
+            WHERE spp.PlayerID = :player_id 
+            ORDER BY sp.CreatedDate DESC');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->resultSet();
+    }
 }
 ?>

@@ -181,47 +181,8 @@ function showTournamentDetails(tournamentId) {
 }
 
 function getTournamentData(tournamentId) {
-    // Mock tournament data
-    const tournaments = {
-        '1': {
-            title: 'Elite Cricket Championship',
-            description: 'Annual championship featuring teams from all levels. Compete for the ultimate cricket trophy and showcase your skills on the biggest stage.',
-            date: 'September 25, 2024',
-            time: '9:00 AM - 6:00 PM',
-            location: 'Main Stadium',
-            teams: 16,
-            duration: '2 Days',
-            prize: '$5,000',
-            fee: '$150',
-            level: 'Intermediate',
-            rules: [
-                'Teams must have 11 players minimum',
-                'All players must be registered academy members',
-                'Standard ICC cricket rules apply',
-                'Tournament follows T20 format'
-            ],
-            schedule: [
-                { time: '9:00 AM', event: 'Opening Ceremony' },
-                { time: '10:00 AM', event: 'Quarter Finals (4 matches)' },
-                { time: '2:00 PM', event: 'Semi Finals (2 matches)' },
-                { time: '5:00 PM', event: 'Final Match' }
-            ]
-        },
-        '2': {
-            title: 'Youth Cricket League',
-            description: 'Perfect for young players to showcase their skills in a competitive environment designed for development and fun.',
-            date: 'September 30, 2024',
-            time: '10:00 AM - 4:00 PM',
-            location: 'Practice Ground',
-            teams: 12,
-            duration: '1 Day',
-            prize: 'Medals & Trophies',
-            fee: 'Free',
-            level: 'Beginner',
-            status: 'enrolled'
-        }
-    };
-    
+    // Tournament details - injected from server via PHP
+    const tournaments = window.tournamentData?.details || {};
     return tournaments[tournamentId] || {};
 }
 

@@ -392,10 +392,18 @@
     </div>
 </div>
 
+<!-- Pass cart configuration data from controller to JS -->
+<script>
+    window.cartData = {
+        promoDiscounts: <?= json_encode($data['promoDiscounts'] ?? null) ?>,
+        recommendedProducts: <?= json_encode($data['recommendedProducts'] ?? null) ?>
+    };
+</script>
+
 <script>
 // Shopping cart data and functionality
 let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
-let promoDiscounts = {
+let promoDiscounts = window.cartData?.promoDiscounts || {
     'STUDENT10': 0.10,
     'FIRST15': 0.15,
     'CRICKET20': 0.20,
@@ -404,30 +412,8 @@ let promoDiscounts = {
 let appliedPromo = localStorage.getItem('appliedPromo') || null;
 let currentDiscount = 0;
 
-// Sample product data for recommendations
-const sampleProducts = {
-    'gloves': {
-        id: 'gloves',
-        name: 'Pro Cricket Gloves',
-        price: 65.00,
-        image: 'https://via.placeholder.com/150x100?text=Gloves',
-        category: 'Protective'
-    },
-    'ball': {
-        id: 'ball',
-        name: 'Leather Cricket Ball',
-        price: 25.00,
-        image: 'https://via.placeholder.com/150x100?text=Ball',
-        category: 'Training'
-    },
-    'bag': {
-        id: 'bag',
-        name: 'Equipment Bag',
-        price: 85.00,
-        image: 'https://via.placeholder.com/150x100?text=Bag',
-        category: 'Accessories'
-    }
-};
+// Product data for recommendations - loaded from server
+const sampleProducts = window.cartData?.recommendedProducts || {};
 
 // Initialize cart page
 document.addEventListener('DOMContentLoaded', function() {

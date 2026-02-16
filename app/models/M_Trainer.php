@@ -406,4 +406,29 @@ class M_Trainer {
         
         return $stats;
     }
+
+    // Get workout plans assigned to a player
+    public function getWorkoutPlansByPlayer($playerId) {
+        $this->db->query('SELECT wp.*, u.Name AS trainer_name 
+            FROM workoutplan wp 
+            JOIN workoutplan_player wpp ON wp.PlanID = wpp.PlanID
+            JOIN user u ON wp.TrainerID = u.UserID 
+            WHERE wpp.PlayerID = :player_id 
+            ORDER BY wpp.AssignedDate DESC');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->resultSet();
+    }
+
+    // Get trainer bookings (appointments) from the trainerappointment table  
+    public function getTrainerAppointments($trainerId) {
+        $this->db->query('SELECT ta.*, u.Name AS player_name, u.Email AS player_email,
+            pp.BattingStyle, pp.BowlingStyle, pp.PlayingRole
+            FROM trainerappointment ta
+            JOIN user u ON ta.PlayerID = u.UserID
+            LEFT JOIN playerprofile pp ON ta.PlayerID = pp.PlayerID
+            WHERE ta.TrainerID = :trainer_id
+            ORDER BY ta.AppointmentDate DESC, ta.StartTime ASC');
+        $this->db->bind(':trainer_id', $trainerId);
+        return $this->db->resultSet();
+    }
 }

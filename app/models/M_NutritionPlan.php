@@ -104,5 +104,17 @@ class M_NutritionPlan {
         
         return $this->db->resultSet();
     }
+
+    // Get nutrition plans assigned to a player
+    public function getNutritionPlansByPlayer($playerId) {
+        $this->db->query('SELECT np.*, u.Name AS trainer_name 
+            FROM nutritionplan np 
+            JOIN nutritionplan_player npp ON np.PlanID = npp.PlanID
+            JOIN user u ON np.TrainerID = u.UserID 
+            WHERE npp.PlayerID = :player_id 
+            ORDER BY np.CreatedDate DESC');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->resultSet();
+    }
 }
 ?>

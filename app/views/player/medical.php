@@ -175,7 +175,7 @@
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-capsules"></i> Supplements</h2>
-                            <span class="event-count">3 Active</span>
+                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
                         </div>
                     </div>
                     <div class="card-content">
@@ -188,54 +188,27 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Whey Protein</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-user"></i> Coach Johnson
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">25g</div>
-                                        <div class="table-cell-secondary">2x daily</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">60 days</div>
-                                        <div class="table-cell-secondary">Started Oct 1</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Creatine</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-user"></i> Coach Johnson
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">5g</div>
-                                        <div class="table-cell-secondary">Daily</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">90 days</div>
-                                        <div class="table-cell-secondary">Started Sept 20</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Multivitamin</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-user"></i> Nutritionist Sarah
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">1 tablet</div>
-                                        <div class="table-cell-secondary">Morning</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">30 days</div>
-                                        <div class="table-cell-secondary">Started Oct 8</div>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($data['supplements'])): ?>
+                                    <?php foreach ($data['supplements'] as $supp): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
+                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -359,7 +332,7 @@
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-dumbbell"></i> Workout Plans</h2>
-                            <span class="event-count">2 Active</span>
+                            <span class="event-count"><?= count($data['workoutPlans'] ?? []) ?> Active</span>
                         </div>
                     </div>
                     <div class="card-content">
@@ -373,46 +346,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Strength & Conditioning</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> 3x per week • Started Oct 5
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Coach Johnson</div>
-                                        <div class="table-cell-secondary">Physical Trainer</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Active</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewWorkoutPlan(1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Cricket-Specific Fitness</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> Daily • Started Oct 1
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Trainer Mike</div>
-                                        <div class="table-cell-secondary">Fitness Specialist</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Active</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewWorkoutPlan(2)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($data['workoutPlans'])): ?>
+                                    <?php foreach ($data['workoutPlans'] as $plan): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($plan->workoutname ?? '') ?></div>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-calendar"></i> <?= htmlspecialchars($plan->frequency ?? '') ?> • <?= ($plan->Duration ?? '') ?> days
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($plan->trainer_name ?? '') ?></div>
+                                            </td>
+                                            <td>
+                                                <span class="table-badge status-active">Active</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn-sm" onclick="viewWorkoutPlan(<?= $plan->PlanID ?>)">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="4" class="text-center">No workout plans assigned</td></tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -423,7 +381,7 @@
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-apple-alt"></i> Nutrition Plans</h2>
-                            <span class="event-count">1 Active</span>
+                            <span class="event-count"><?= count($data['nutritionPlans'] ?? []) ?> Active</span>
                         </div>
                     </div>
                     <div class="card-content">
@@ -437,26 +395,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">Performance Diet Plan</div>
-                                        <div class="table-cell-details">
-                                            <i class="fas fa-calendar"></i> 30 days • Started Oct 8
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Nutritionist Sarah</div>
-                                        <div class="table-cell-secondary">Sports Nutritionist</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Active</span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-sm" onclick="viewNutritionPlan(1)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($data['nutritionPlans'])): ?>
+                                    <?php foreach ($data['nutritionPlans'] as $nplan): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($nplan->nutritionPlanName ?? '') ?></div>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-calendar"></i> <?= ($nplan->Duration ?? '') ?> days • Started <?= date('M d', strtotime($nplan->CreatedDate ?? 'now')) ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($nplan->trainer_name ?? '') ?></div>
+                                            </td>
+                                            <td>
+                                                <span class="table-badge status-active">Active</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn-sm" onclick="viewNutritionPlan(<?= $nplan->PlanID ?>)">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="4" class="text-center">No nutrition plans assigned</td></tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -486,58 +449,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">COVID-19 Vaccination</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-virus"></i> mRNA Vaccine
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-up-to-date">
-                                        <i class="fas fa-check-circle"></i> Up to Date
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">March 2025</div>
-                                    <div class="table-cell-secondary">Booster received</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">March 2026</div>
-                                    <div class="table-cell-secondary">Annual booster</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-shield-virus medical-status-protective"></i> Fully vaccinated
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-title">Tetanus Shot</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-bandage"></i> Tetanus Toxoid
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="table-badge status-up-to-date">
-                                        <i class="fas fa-check-circle"></i> Up to Date
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">2018</div>
-                                    <div class="table-cell-secondary">Standard dose</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">2028</div>
-                                    <div class="table-cell-secondary">10-year cycle</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-check-circle medical-status-good"></i> No adverse reactions
-                                    </div>
-                                </td>
-                            </tr>
+                            <tr><td colspan="5" class="text-center">No vaccination records available</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -958,58 +870,8 @@
             const modal = document.getElementById('workoutPlanModal');
             const content = document.getElementById('workoutPlanContent');
             
-            // Sample workout plan content (in real app, this would be fetched from server)
-            const workoutPlans = {
-                1: {
-                    title: 'Strength & Conditioning',
-                    trainer: 'Coach Johnson',
-                    frequency: '3x per week',
-                    duration: '45-60 minutes',
-                    details: `
-                        <h4>Week 1-2: Foundation Phase</h4>
-                        <ul>
-                            <li>Warm-up: 10 minutes dynamic stretching</li>
-                            <li>Squats: 3 sets x 12 reps</li>
-                            <li>Push-ups: 3 sets x 15 reps</li>
-                            <li>Planks: 3 sets x 30 seconds</li>
-                            <li>Pull-ups: 3 sets x 8 reps</li>
-                            <li>Cool-down: 10 minutes static stretching</li>
-                        </ul>
-                        <h4>Week 3-4: Progression Phase</h4>
-                        <ul>
-                            <li>Warm-up: 10 minutes dynamic stretching</li>
-                            <li>Weighted squats: 4 sets x 10 reps</li>
-                            <li>Bench press: 4 sets x 12 reps</li>
-                            <li>Planks: 4 sets x 45 seconds</li>
-                            <li>Chin-ups: 4 sets x 10 reps</li>
-                            <li>Cool-down: 10 minutes static stretching</li>
-                        </ul>
-                    `
-                },
-                2: {
-                    title: 'Cricket-Specific Fitness',
-                    trainer: 'Trainer Mike',
-                    frequency: 'Daily',
-                    duration: '30-45 minutes',
-                    details: `
-                        <h4>Daily Routine</h4>
-                        <ul>
-                            <li>Cricket-specific warm-up: 10 minutes</li>
-                            <li>Agility ladder drills: 15 minutes</li>
-                            <li>Batting stance practice: 10 minutes</li>
-                            <li>Fielding position drills: 15 minutes</li>
-                            <li>Cool-down stretches: 10 minutes</li>
-                        </ul>
-                        <h4>Focus Areas</h4>
-                        <ul>
-                            <li>Hand-eye coordination</li>
-                            <li>Reaction time improvement</li>
-                            <li>Cricket-specific movements</li>
-                            <li>Endurance building</li>
-                        </ul>
-                    `
-                }
-            };
+            // Workout plan data loaded from server via PHP $data
+            const workoutPlans = window.medicalData?.workoutPlans || {};
             
             const plan = workoutPlans[planId];
             if (plan) {
@@ -1034,68 +896,8 @@
             const modal = document.getElementById('nutritionPlanModal');
             const content = document.getElementById('nutritionPlanContent');
             
-            // Sample nutrition plan content
-            const nutritionPlans = {
-                1: {
-                    title: 'Performance Diet Plan',
-                    trainer: 'Nutritionist Sarah',
-                    duration: '30 days',
-                    details: `
-                        <h4>Daily Meal Plan</h4>
-                        <div class="meal-plan">
-                            <h5>Breakfast (7:00 AM)</h5>
-                            <ul>
-                                <li>Oatmeal with berries and nuts</li>
-                                <li>Greek yogurt</li>
-                                <li>Green tea</li>
-                            </ul>
-                            
-                            <h5>Mid-Morning Snack (10:00 AM)</h5>
-                            <ul>
-                                <li>Banana with almond butter</li>
-                                <li>Water (500ml)</li>
-                            </ul>
-                            
-                            <h5>Lunch (1:00 PM)</h5>
-                            <ul>
-                                <li>Grilled chicken breast</li>
-                                <li>Brown rice</li>
-                                <li>Steamed vegetables</li>
-                                <li>Water (500ml)</li>
-                            </ul>
-                            
-                            <h5>Pre-Training Snack (3:30 PM)</h5>
-                            <ul>
-                                <li>Apple with honey</li>
-                                <li>Sports drink</li>
-                            </ul>
-                            
-                            <h5>Post-Training (6:00 PM)</h5>
-                            <ul>
-                                <li>Protein shake</li>
-                                <li>Banana</li>
-                            </ul>
-                            
-                            <h5>Dinner (8:00 PM)</h5>
-                            <ul>
-                                <li>Grilled fish or lean meat</li>
-                                <li>Quinoa or sweet potato</li>
-                                <li>Green salad</li>
-                                <li>Water (500ml)</li>
-                            </ul>
-                        </div>
-                        
-                        <h4>Key Guidelines</h4>
-                        <ul>
-                            <li>Drink at least 3 liters of water daily</li>
-                            <li>Eat every 3-4 hours</li>
-                            <li>Include protein in every meal</li>
-                            <li>Avoid processed foods and sugary drinks</li>
-                            <li>Time carbohydrate intake around training sessions</li>
-                        </ul>
-                    `
-                }
-            };
+            // Nutrition plan data loaded from server via PHP $data
+            const nutritionPlans = window.medicalData?.nutritionPlans || {};
             
             const plan = nutritionPlans[planId];
             if (plan) {
@@ -1227,6 +1029,13 @@
         }
     </script>
 
+    <!-- Pass workout/nutrition plan data from controller to JS -->
+    <script>
+        window.medicalData = {
+            workoutPlans: <?= json_encode($data['workoutPlans'] ?? []) ?>,
+            nutritionPlans: <?= json_encode($data['nutritionPlans'] ?? []) ?>
+        };
+    </script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/medical.js"></script>
 </body>

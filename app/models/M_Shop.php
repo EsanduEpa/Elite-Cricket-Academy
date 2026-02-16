@@ -368,5 +368,114 @@ class M_Shop {
         ');
         return $this->db->resultSet();
     }
+
+    // Get all equipment rentals with details
+    public function getAllRentals() {
+        $this->db->query('SELECT er.*, e.Name AS equipment_name, e.Category, 
+            u.Name AS renter_name
+            FROM equipmentrental er 
+            JOIN equipment e ON er.EquipmentID = e.EquipmentID 
+            JOIN user u ON er.PlayerID = u.UserID 
+            ORDER BY er.RentalDate DESC');
+        return $this->db->resultSet();
+    }
+
+    // Get all product reviews with details
+    public function getAllProductReviews() {
+        $this->db->query('SELECT pr.*, p.Name AS product_name, u.Name AS customer_name
+            FROM productreview pr 
+            JOIN product p ON pr.ProductID = p.ProductID 
+            JOIN user u ON pr.UserID = u.UserID 
+            ORDER BY pr.ReviewDate DESC');
+        return $this->db->resultSet();
+    }
+
+    // Get all facilities
+    public function getAllFacilities() {
+        $this->db->query('SELECT * FROM facility ORDER BY Name ASC');
+        return $this->db->resultSet();
+    }
+
+    // Get supplement prescriptions (supplement plans assigned to players)
+    public function getSupplementPrescriptions() {
+        $this->db->query('SELECT sp.PlanID, sp.SupplementPlanName AS supplements, 
+            sp.Dosage, sp.Duration, sp.CreatedDate AS date,
+            u_player.Name AS patient, u_trainer.Name AS prescribed_by,
+            CASE WHEN DATEDIFF(CURDATE(), sp.CreatedDate) < sp.Duration THEN "active" ELSE "completed" END AS status
+            FROM supplementplan sp
+            JOIN supplement_player spp ON sp.PlanID = spp.PlanID
+            JOIN user u_player ON spp.PlayerID = u_player.UserID
+            JOIN user u_trainer ON sp.TrainerID = u_trainer.UserID
+            ORDER BY sp.CreatedDate DESC');
+        return $this->db->resultSet();
+    }
+
+    // Get all product categories from product table
+    public function getProductCategories() {
+        $this->db->query('SELECT DISTINCT Category AS name, 
+            COUNT(*) AS product_count
+            FROM product WHERE Status = "active" 
+            GROUP BY Category ORDER BY Category ASC');
+        return $this->db->resultSet();
+    }
+
+    // Get all products from product table (real data)
+    public function getAllProductsReal() {
+        $this->db->query('SELECT ProductID AS id, Name AS name, Brand AS brand, 
+            Price AS price, StockQuantity AS stock, Category AS category,
+            Description AS description, Status, SKU, ImagePath AS image,
+            CASE WHEN StockQuantity > 0 THEN 1 ELSE 0 END AS in_stock
+            FROM product WHERE Status = "active" ORDER BY Name ASC');
+        return $this->db->resultSet();
+    }
+
+    // Get featured products from product table (real data)
+    public function getFeaturedProductsReal($limit = 8) {
+        $this->db->query('SELECT ProductID AS id, Name AS name, Brand AS brand, 
+            Price AS price, StockQuantity AS stock, Category AS category,
+            Description AS description, ImagePath AS image
+            FROM product WHERE Status = "active" 
+            ORDER BY ProductID ASC LIMIT :limit');
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    // Get available equipment for rent
+    public function getAvailableEquipmentForRent() {
+        $this->db->query('SELECT * FROM equipment WHERE AvailableQuantity > 0 ORDER BY Name');
+        return $this->db->resultSet();
+    }
+
+    // Get player's current and past rentals
+    public function getPlayerRentals($playerId) {
+        $this->db->query('SELECT er.*, e.Name as EquipmentName, e.Category, e.DailyRate, e.WeeklyRate
+            FROM equipmentrental er
+            JOIN equipment e ON er.EquipmentID = e.EquipmentID
+            WHERE er.PlayerID = :pid
+            ORDER BY er.RentalStartDate DESC');
+        $this->db->bind(':pid', $playerId);
+        return $this->db->resultSet();
+    }
+
+    // Get rental stats for a player
+    public function getPlayerRentalStats($playerId) {
+        $this->db->query('SELECT 
+            (SELECT COUNT(*) FROM equipment WHERE AvailableQuantity > 0) as total_equipment,
+            (SELECT COUNT(*) FROM equipmentrental WHERE PlayerID = :pid1 AND Status = "Active") as active_rentals,
+            (SELECT COALESCE(SUM(TotalCost), 0) FROM equipmentrental WHERE PlayerID = :pid2) as total_spent
+        ');
+        $this->db->bind(':pid1', $playerId);
+        $this->db->bind(':pid2', $playerId);
+        return $this->db->single();
+    }
+
+    // Get facility stats
+    public function getFacilityStats() {
+        $this->db->query('SELECT 
+            (SELECT COUNT(*) FROM facility) as total_facilities,
+            (SELECT COUNT(*) FROM facility WHERE Status = "Available") as available_facilities
+        ');
+        return $this->db->single();
+    }
 }
 ?>

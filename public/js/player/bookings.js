@@ -162,39 +162,8 @@ function loadBookingHistory() {
     const historyContent = document.getElementById('history-content');
     if (!historyContent) return;
     
-    // Mock history data
-    const mockHistory = [
-        {
-            id: 1001,
-            type: 'Coach Session',
-            instructor: 'Coach Johnson',
-            date: '2025-10-15',
-            time: '09:00 AM',
-            status: 'Completed',
-            amount: '₹2,500',
-            rating: 5
-        },
-        {
-            id: 1002,
-            type: 'Trainer Session',
-            instructor: 'Trainer Mike',
-            date: '2025-10-12',
-            time: '06:00 AM',
-            status: 'Completed',
-            amount: '₹2,000',
-            rating: 4
-        },
-        {
-            id: 1003,
-            type: 'Coach Session',
-            instructor: 'Coach Anderson',
-            date: '2025-10-10',
-            time: '02:00 PM',
-            status: 'Cancelled',
-            amount: '₹1,800',
-            refund: '₹1,350'
-        }
-    ];
+    // Booking history - injected from server via PHP
+    const mockHistory = window.bookingData?.history || [];
     
     let historyHTML = '<div class="history-list">';
     

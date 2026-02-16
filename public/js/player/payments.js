@@ -58,13 +58,14 @@ function initializePaymentChart() {
     const ctx = document.getElementById('paymentChart');
     if (!ctx) return;
 
-    // Sample data - in a real app, this would come from the server
+    // Chart data - injected from server via PHP
+    const serverPaymentData = window.paymentData?.chartData || {};
     const chartData = {
-        labels: ['July', 'August', 'September', 'October', 'November', 'December'],
+        labels: serverPaymentData.labels || [],
         datasets: [
             {
                 label: 'Payments Made',
-                data: [5000, 5200, 4800, 5100, 5000, 5300],
+                data: serverPaymentData.payments || [],
                 borderColor: 'rgba(74, 222, 128, 1)',
                 backgroundColor: 'rgba(74, 222, 128, 0.1)',
                 borderWidth: 3,
@@ -73,7 +74,7 @@ function initializePaymentChart() {
             },
             {
                 label: 'Refunds',
-                data: [0, 800, 0, 0, 800, 0],
+                data: serverPaymentData.refunds || [],
                 borderColor: 'rgba(6, 182, 212, 1)',
                 backgroundColor: 'rgba(6, 182, 212, 0.1)',
                 borderWidth: 3,
@@ -156,85 +157,31 @@ function initializePaymentChart() {
 }
 
 function updateChartData(period) {
-    // In a real app, this would fetch data from the server based on the period
-    let newData;
-    
-    switch(period) {
-        case '1year':
-            newData = {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [
-                    {
-                        label: 'Payments Made',
-                        data: [5000, 5000, 5200, 4800, 5100, 5000, 5000, 5200, 4800, 5100, 5000, 5300],
-                        borderColor: 'rgba(74, 222, 128, 1)',
-                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Refunds',
-                        data: [0, 800, 0, 600, 0, 0, 0, 800, 0, 0, 800, 0],
-                        borderColor: 'rgba(6, 182, 212, 1)',
-                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            };
-            break;
-        case 'all':
-            newData = {
-                labels: ['2022', '2023', '2024'],
-                datasets: [
-                    {
-                        label: 'Payments Made',
-                        data: [58000, 62000, 65000],
-                        borderColor: 'rgba(74, 222, 128, 1)',
-                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Refunds',
-                        data: [2400, 1800, 3200],
-                        borderColor: 'rgba(6, 182, 212, 1)',
-                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            };
-            break;
-        default: // 6months
-            newData = {
-                labels: ['July', 'August', 'September', 'October', 'November', 'December'],
-                datasets: [
-                    {
-                        label: 'Payments Made',
-                        data: [5000, 5200, 4800, 5100, 5000, 5300],
-                        borderColor: 'rgba(74, 222, 128, 1)',
-                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Refunds',
-                        data: [0, 800, 0, 0, 800, 0],
-                        borderColor: 'rgba(6, 182, 212, 1)',
-                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            };
-    }
+    // Payment period data - injected from server via PHP
+    const periodData = window.paymentData?.periodData?.[period] || window.paymentData?.chartData || {};
+    const newData = {
+        labels: periodData.labels || [],
+        datasets: [
+            {
+                label: 'Payments Made',
+                data: periodData.payments || [],
+                borderColor: 'rgba(74, 222, 128, 1)',
+                backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Refunds',
+                data: periodData.refunds || [],
+                borderColor: 'rgba(6, 182, 212, 1)',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }
+        ]
+    };
     
     window.paymentChart.data = newData;
     window.paymentChart.update('active');
@@ -515,9 +462,27 @@ function handleDownload(e) {
 }
 
 function showFeeStructure() {
-    // Create a modal or popup showing fee structure
+    // Fee structure data - should come from server via window.paymentData.feeStructure
+    const feeStructure = window.paymentData?.feeStructure || [];
+    
     const feeStructureModal = document.createElement('div');
     feeStructureModal.className = 'modal active';
+    
+    let feeItemsHTML = '';
+    if (feeStructure.length > 0) {
+        feeStructure.forEach(item => {
+            feeItemsHTML += `
+                <div style="padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1f2937;">${item.title}</h4>
+                    <p style="margin: 0; color: #666;">${item.details}</p>
+                    ${item.total ? `<strong style="color: #1f2937;">Total: ${item.total}</strong>` : ''}
+                </div>
+            `;
+        });
+    } else {
+        feeItemsHTML = '<p style="color: #666;">Fee structure information is not available. Please contact the academy.</p>';
+    }
+    
     feeStructureModal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -526,19 +491,7 @@ function showFeeStructure() {
             </div>
             <div class="modal-body">
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: #1f2937;">Monthly Academy Fee</h4>
-                        <p style="margin: 0; color: #666;">Base Fee: ₹4,000<br>Equipment Usage: ₹500<br>Ground Maintenance: ₹300<br>GST (18%): ₹200</p>
-                        <strong style="color: #1f2937;">Total: ₹5,000/month</strong>
-                    </div>
-                    <div style="padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: #1f2937;">Coach Sessions</h4>
-                        <p style="margin: 0; color: #666;">Head Coach: ₹1,500/session<br>Assistant Coach: ₹1,200/session<br>Specialized Training: ₹2,000/session</p>
-                    </div>
-                    <div style="padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: #1f2937;">Equipment Rental</h4>
-                        <p style="margin: 0; color: #666;">Batting Pads: ₹100/day<br>Gloves: ₹50/day<br>Helmet: ₹75/day<br>Complete Kit: ₹200/day</p>
-                    </div>
+                    ${feeItemsHTML}
                 </div>
             </div>
             <div class="modal-footer">

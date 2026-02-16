@@ -17,18 +17,16 @@ document.addEventListener('DOMContentLoaded', function(){
 		});
 	}
 
-	// Create sample datasets from PHP data or fallbacks
+	// Build performance dataset from server data or fallback
 	function buildPerformanceDataset(playerId){
-		// For demo, create synthetic time series
-		const days = 12;
-		const labels = [];
-		const values = [];
-		for(let i=days-1;i>=0;i--){
-			const d = new Date(); d.setDate(d.getDate()-i);
-			labels.push(d.toISOString().slice(0,10));
-			values.push(Math.round((Math.random()*2 + 6) * 10)/10);
+		const perfData = window.__COACH_DASHBOARD_DATA?.performanceData || [];
+		if(perfData.length > 0){
+			const labels = perfData.map(d => d.label || d.date);
+			const values = perfData.map(d => d.value || d.rating || 0);
+			return {labels, values};
 		}
-		return {labels, values};
+		// Fallback: empty dataset
+		return {labels: [], values: []};
 	}
 
 	// Charts
@@ -67,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	function renderAttendance(){
 		const ctx = document.getElementById('attendanceChart').getContext('2d');
 		const labels = ['Week 1','Week 2','Week 3','Week 4'];
-		const values = labels.map(()=> Math.floor(Math.random()*10)+5);
+		const values = window.__COACH_DASHBOARD_DATA?.attendanceData || [0,0,0,0];
 		const cfg = {
 			type: 'bar',
 			data: { labels, datasets:[{ label:'Attendance', data:values, backgroundColor:'rgba(14,165,164,0.7)' }] },
@@ -80,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	function renderHealth(){
 		const ctx = document.getElementById('healthChart').getContext('2d');
 		const labels = ['Fit','Under Observation','Injured'];
-		const values = [Math.floor(Math.random()*50)+20, Math.floor(Math.random()*15)+5, Math.floor(Math.random()*8)+2];
+		const values = window.__COACH_DASHBOARD_DATA?.healthData || [0,0,0];
 		const cfg = {
 			type: 'pie',
 			data: { labels, datasets:[{ data: values, backgroundColor:['#10b981','#f59e0b','#ef4444'] }] },

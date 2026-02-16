@@ -26,6 +26,7 @@ class Admin extends Controller {
         // Each model handles specific database queries for its domain
         $userModel = $this->model('M_Users');      // User-related queries
         $feedbackModel = $this->model('Feedback'); // Feedback queries
+        $financeModel = $this->model('Finance');   // Finance/revenue queries
         
         // STEP 3: FETCH USER STATISTICS FROM DATABASE
         // Query the User table to get real counts for each role
@@ -93,14 +94,12 @@ class Admin extends Controller {
                 // Events happening today (WHERE DATE(StartDate) = CURDATE())
                 'activeEvents' => count($eventModel->getTodayActiveEvents()),
                 
-                // Feedback received today - will need to add this method if needed
-                'feedbackReceived' => 0  // Placeholder - can add getFeedbackToday() method
+                // Feedback received today
+                'feedbackReceived' => $feedbackModel->getTodayFeedback()
             ],
             
-            // MONTHLY REVENUE (Placeholder until Finance model is created)
-            // TODO: Create Finance model with getMonthlyRevenue() method
-            // This should query Order/Transaction table and SUM payments for current month
-            'monthlyRevenue' => 0  // Will show "RS 0" until Finance model implemented
+            // MONTHLY REVENUE from Finance model
+            'monthlyRevenue' => $financeModel->getMonthlyRevenue()
         ];
         
         // STEP 8: LOAD DASHBOARD VIEW
@@ -109,20 +108,24 @@ class Admin extends Controller {
         $this->view('admin/dashboard', $data);
     }
     
-    // AJAX endpoint for refreshing dashboard data (interface demo only)
+    // AJAX endpoint for refreshing dashboard data
     public function refresh() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Content-Type: application/json');
             
-            // Simulate refreshed data with slight variations
+            $userModel = $this->model('M_Users');
+            $feedbackModel = $this->model('Feedback');
+            $financeModel = $this->model('Finance');
+            
             $refreshData = [
-                'totalUsers' => 48, // Simulated increase
-                'totalPendingFeedback' => 4, // Simulated decrease
+                'totalUsers' => $userModel->getTotalUsers(),
+                'totalPendingFeedback' => $feedbackModel->getTotalPendingFeedback(),
                 'todayStats' => [
-                    'newRegistrations' => 4, // Simulated increase
-                    'activeEvents' => 2,
-                    'feedbackReceived' => 2 // Simulated increase
-                ]
+                    'newRegistrations' => $userModel->getTodayRegistrations(),
+                    'activeEvents' => count($this->model('Event')->getTodayActiveEvents()),
+                    'feedbackReceived' => $feedbackModel->getTodayFeedback()
+                ],
+                'monthlyRevenue' => $financeModel->getMonthlyRevenue()
             ];
             
             echo json_encode(['success' => true, 'data' => $refreshData]);

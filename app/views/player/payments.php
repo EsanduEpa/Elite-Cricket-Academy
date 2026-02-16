@@ -89,30 +89,6 @@
                 <p>View your payment history, manage subscriptions, and handle billing.</p>
             </div>
 
-           
-            
-
-            <!-- Subscription Details
-            <div class="schedule-section">
-                <h3>Current Subscription</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-star" style="color: gold; font-size: 20px;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Premium Membership</h4>
-                        <p><i class="fas fa-calendar"></i> Monthly Plan • <i class="fas fa-dollar-sign"></i> $150/month • <i class="fas fa-check"></i> Full access to all facilities</p>
-                    </div>
-                </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-info-circle" style="color: #4A90E2; font-size: 20px;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Plan Benefits</h4>
-                        <p>Unlimited training sessions • Personal coaching • Equipment rental • Tournament participation</p>
-                    </div>
-                </div>
-            </div> -->
-
             <!-- Recent Payments and Upcoming Payments - Two Tables Per Row -->
             <div class="performance-tables-row">
                 <!-- Recent Payments -->
@@ -135,93 +111,48 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 15</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Monthly  Fee</div>
-                                    
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$150.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Visa ****2341</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-paid">Paid</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-view">View</button>
-                                        <button class="btn btn-download">Receipt</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Oct 8</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Private Coaching Session</div>
-                                    
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$75.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Visa ****2341</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-paid">Paid</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-view">View</button>
-                                        <button class="btn btn-download">Receipt</button>
-                                    </div>
-                                </td>
-                            </tr>
-                           
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Sept 5</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Equipment Purchase</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-shopping-bag"></i> Cricket bat and protective gear
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$125.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-university"></i>
-                                        <span>Bank ****7890</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-paid">Paid</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-view">View</button>
-                                        <button class="btn btn-download">Receipt</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['recent_payments'])): ?>
+                                <?php foreach ($data['recent_payments'] as $payment): ?>
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary"><?= htmlspecialchars(date('M j', strtotime($payment['date'] ?? ''))) ?></div>
+                                            <div class="table-cell-secondary"><?= htmlspecialchars(date('Y', strtotime($payment['date'] ?? ''))) ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title"><?= htmlspecialchars($payment['description'] ?? '') ?></div>
+                                            <?php if (!empty($payment['details'])): ?>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-shopping-bag"></i> <?= htmlspecialchars($payment['details']) ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="payment-method">
+                                                <i class="fas fa-<?= ($payment['method_type'] ?? '') === 'bank' ? 'university' : 'credit-card' ?>"></i>
+                                                <span><?= htmlspecialchars($payment['method_label'] ?? 'N/A') ?></span>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge status-<?= htmlspecialchars($payment['status_class'] ?? 'paid') ?>"><?= htmlspecialchars($payment['status'] ?? 'Paid') ?></span>
+                                        </td>
+                                        <td>
+                                            <div class="payment-actions">
+                                                <button class="btn btn-view">View</button>
+                                                <button class="btn btn-download">Receipt</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-info-circle"></i> No recent payments found.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -247,64 +178,48 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Nov 15</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Monthly  Fee</div>
-                                 
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$150.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Visa ****2341</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-due-soon">Due Soon</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-pay">Pay Now</button>
-                                        <button class="btn btn-view">Details</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Dec 1</div>
-                                    <div class="table-cell-secondary">2025</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Equipment Rental Fee</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-clock"></i> Cricket bat rental return
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary payment-amount">$45.00</div>
-                                </td>
-                                <td>
-                                    <div class="payment-method">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Visa ****2341</span>
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-pending">Pending</span>
-                                </td>
-                                <td>
-                                    <div class="payment-actions">
-                                        <button class="btn btn-pay">Pay Now</button>
-                                        <button class="btn btn-view">Details</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['upcoming_payments'])): ?>
+                                <?php foreach ($data['upcoming_payments'] as $payment): ?>
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary"><?= htmlspecialchars(date('M j', strtotime($payment['due_date'] ?? ''))) ?></div>
+                                            <div class="table-cell-secondary"><?= htmlspecialchars(date('Y', strtotime($payment['due_date'] ?? ''))) ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title"><?= htmlspecialchars($payment['description'] ?? '') ?></div>
+                                            <?php if (!empty($payment['details'])): ?>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-clock"></i> <?= htmlspecialchars($payment['details']) ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                        </td>
+                                        <td>
+                                            <div class="payment-method">
+                                                <i class="fas fa-<?= ($payment['method_type'] ?? '') === 'bank' ? 'university' : 'credit-card' ?>"></i>
+                                                <span><?= htmlspecialchars($payment['method_label'] ?? 'N/A') ?></span>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge status-<?= htmlspecialchars($payment['status_class'] ?? 'pending') ?>"><?= htmlspecialchars($payment['status'] ?? 'Pending') ?></span>
+                                        </td>
+                                        <td>
+                                            <div class="payment-actions">
+                                                <button class="btn btn-pay">Pay Now</button>
+                                                <button class="btn btn-view">Details</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-check-circle"></i> No upcoming payments due.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -314,20 +229,26 @@
             <!-- Payment Methods -->
             <div class="schedule-section">
                 <h3>Payment Methods</h3>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-credit-card" style="color: #4A90E2; font-size: 20px;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Visa Credit Card</h4>
-                        <p>****2341 • Expires 12/26 • Default payment method • Auto-payment enabled</p>
+                <?php if (!empty($data['payment_methods'])): ?>
+                    <?php foreach ($data['payment_methods'] as $method): ?>
+                        <div class="schedule-item">
+                            <div class="schedule-time"><i class="fas fa-<?= htmlspecialchars($method['icon'] ?? 'credit-card') ?>" style="color: <?= htmlspecialchars($method['color'] ?? '#4A90E2') ?>; font-size: 20px;"></i></div>
+                            <div class="schedule-details">
+                                <h4><?= htmlspecialchars($method['name'] ?? '') ?></h4>
+                                <p><?= htmlspecialchars($method['details'] ?? '') ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="schedule-item">
+                        <div class="schedule-time"><i class="fas fa-credit-card" style="color: #4A90E2; font-size: 20px;"></i></div>
+                        <div class="schedule-details">
+                            <h4>No Payment Methods</h4>
+                            <p>No payment methods configured yet.</p>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="schedule-item">
-                    <div class="schedule-time"><i class="fas fa-university" style="color: green; font-size: 20px;"></i></div>
-                    <div class="schedule-details">
-                        <h4>Bank Account</h4>
-                        <p>****7890 • Backup payment method • Available for manual payments</p>
+                <?php endif; ?>
+            </div>
                     </div>
                 </div>
             </div>

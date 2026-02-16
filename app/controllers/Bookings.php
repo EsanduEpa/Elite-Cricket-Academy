@@ -7,9 +7,7 @@
 class Bookings extends Controller {
     
     public function __construct() {
-        // Initialize any required models
-        // $this->bookingModel = $this->model('M_Bookings');
-        // $this->userModel = $this->model('M_Users');
+        // Initialize required models
     }
     
     /**
@@ -26,34 +24,22 @@ class Bookings extends Controller {
             redirect('login');
         }
         
-        // Sample data for development
+        $sessionModel = $this->model('M_Session');
+        $paymentModel = $this->model('M_Payment');
+        $playerId = $_SESSION['user_id'];
+        
+        // Get upcoming bookings from database
+        $upcomingBookings = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+        $subscription = $paymentModel->getPlayerSubscription($playerId);
+        
         $data = [
             'title' => 'My Bookings',
             'player' => [
                 'id' => $_SESSION['user_id'],
                 'name' => $_SESSION['user_name'],
-                'membership_level' => 'Premium'
+                'membership_level' => $subscription ? $subscription->PlanName : 'Basic'
             ],
-            'upcomingBookings' => [
-                [
-                    'id' => 1,
-                    'type' => 'Physio Session',
-                    'date' => date('Y-m-d', strtotime('+1 day')),
-                    'time' => '2:00 PM - 3:00 PM',
-                    'practitioner' => 'Dr. Sarah Wilson',
-                    'reason' => 'Injury Recovery',
-                    'status' => 'confirmed'
-                ],
-                [
-                    'id' => 2,
-                    'type' => 'Fitness Assessment',
-                    'date' => date('Y-m-d', strtotime('+3 days')),
-                    'time' => '10:00 AM - 11:30 AM',
-                    'practitioner' => 'Coach Mike Johnson',
-                    'reason' => 'Monthly Check',
-                    'status' => 'confirmed'
-                ]
-            ]
+            'upcomingBookings' => $upcomingBookings
         ];
         
         $this->view('player/bookings', $data);
@@ -137,17 +123,27 @@ class Bookings extends Controller {
             $date = trim($_POST['date']);
             $serviceType = trim($_POST['service_type']);
             
-            // Sample available slots
-            $availableSlots = [
-                '9:00 AM',
-                '10:30 AM', 
-                '2:00 PM',
-                '3:30 PM',
-                '4:00 PM'
-            ];
+            // Get available sessions from database
+            $sessionModel = $this->model('M_Session');
+            $sessions = $sessionModel->getAllSessions([
+                'date' => $date,
+                'status' => 'active'
+            ]);
             
-            // Here you would query database for actual availability
-            // $slots = $this->bookingModel->getAvailableSlots($date, $serviceType);
+            $availableSlots = [];
+            if ($sessions) {
+                foreach ($sessions as $session) {
+                    $startFormatted = date('g:i A', strtotime($session->StartTime));
+                    if (!in_array($startFormatted, $availableSlots)) {
+                        $availableSlots[] = $startFormatted;
+                    }
+                }
+            }
+            
+            // Fallback to default slots if none found
+            if (empty($availableSlots)) {
+                $availableSlots = ['9:00 AM', '10:30 AM', '2:00 PM', '3:30 PM', '4:00 PM'];
+            }
             
             echo json_encode([
                 'success' => true,

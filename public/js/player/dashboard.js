@@ -127,79 +127,8 @@ let dashCalendarDay = new Date().getDate();
 let dashSelectedDate = new Date();
 let dashWeekStart = null;
 
-// Dummy Calendar Events - Training Sessions and Matches
-const dashCalendarEvents = [
-    {
-        id: 1,
-        title: 'Batting Practice',
-        type: 'training',
-        date: '2025-10-23',
-        time: '09:00',
-        duration: '2 hours',
-        coach: 'Coach Michael',
-        location: 'Indoor Nets'
-    },
-    {
-        id: 2,
-        title: 'Bowling Session',
-        type: 'training',
-        date: '2025-10-25',
-        time: '14:00',
-        duration: '1.5 hours',
-        coach: 'Coach Sarah',
-        location: 'Practice Ground'
-    },
-    {
-        id: 3,
-        title: 'Fielding Practice',
-        type: 'training',
-        date: '2025-10-29',
-        time: '10:00',
-        duration: '2 hours',
-        coach: 'Coach David',
-        location: 'Main Ground'
-    },
-    {
-        id: 4,
-        title: 'T20 Match vs City Sports Club',
-        type: 'match',
-        date: '2025-10-26',
-        time: '14:00',
-        duration: '4 hours',
-        opponent: 'City Sports Club',
-        location: 'Elite Stadium'
-    },
-    {
-        id: 5,
-        title: 'ODI Match vs State Academy',
-        type: 'match',
-        date: '2025-11-02',
-        time: '10:00',
-        duration: '8 hours',
-        opponent: 'State Academy',
-        location: 'State Cricket Ground'
-    },
-    {
-        id: 6,
-        title: 'Fitness Training',
-        type: 'fitness',
-        date: '2025-10-27',
-        time: '07:00',
-        duration: '1 hour',
-        coach: 'Trainer John',
-        location: 'Gym'
-    },
-    {
-        id: 7,
-        title: 'Team Practice',
-        type: 'training',
-        date: '2025-10-30',
-        time: '15:00',
-        duration: '3 hours',
-        coach: 'Head Coach',
-        location: 'Main Ground'
-    }
-];
+// Calendar Events - injected from server via PHP
+const dashCalendarEvents = window.dashboardData?.calendarEvents || [];
 
 // Initialize Dashboard Calendar
 if (document.getElementById('dashMonthView')) {

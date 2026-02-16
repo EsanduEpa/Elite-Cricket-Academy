@@ -148,32 +148,8 @@ function updateDaySessions(dayColumn, date, dayName) {
 
 // Function to generate sessions for different weeks
 function getSessionsForDay(dayName, weekOffset) {
-    // Base sessions for current week (weekOffset = 0)
-    const baseSessions = {
-        monday: [
-            { time: '06:00', type: 'batting', icon: 'fas fa-baseball-ball', title: 'Batting Practice', coach: 'Coach Wilson' },
-            { time: '16:00', type: 'fitness', icon: 'fas fa-dumbbell', title: 'Fitness Training', coach: 'Trainer Mike' }
-        ],
-        tuesday: [
-            { time: '07:00', type: 'bowling', icon: 'fas fa-circle', title: 'Bowling Practice', coach: 'Coach Ahmed' }
-        ],
-        wednesday: [
-            { time: '06:00', type: 'fielding', icon: 'fas fa-hand-rock', title: 'Fielding Drills', coach: 'Coach Smith' },
-            { time: '17:00', type: 'fitness', icon: 'fas fa-dumbbell', title: 'Strength Training', coach: 'Trainer Sarah' }
-        ],
-        thursday: [
-            { time: '08:00', type: 'batting', icon: 'fas fa-baseball-ball', title: 'Net Practice', coach: 'Coach Wilson' }
-        ],
-        friday: [
-            { time: '09:00', type: 'match', icon: 'fas fa-trophy', title: 'Practice Match', coach: 'All Coaches' }
-        ],
-        saturday: [
-            { time: '', type: 'rest', icon: 'fas fa-bed', title: 'Rest Day', coach: 'Recovery' }
-        ],
-        sunday: [
-            { time: '10:00', type: 'team', icon: 'fas fa-users', title: 'Team Meeting', coach: 'Coach Wilson' }
-        ]
-    };
+    // Sessions data - injected from server via PHP
+    const baseSessions = window.trainingData?.sessions || {};
     
     // Modify sessions based on week offset
     const sessions = baseSessions[dayName] || [];
@@ -189,30 +165,9 @@ function getSessionsForDay(dayName, weekOffset) {
     return sessions;
 }
 
-// Function to get session variations for different weeks
+// Session variations - injected from server via PHP
 function getSessionVariations(sessionType, weekOffset) {
-    const variations = {
-        batting: [
-            { title: 'Batting Practice', coach: 'Coach Wilson' },
-            { title: 'Advanced Batting', coach: 'Coach Ahmed' },
-            { title: 'Power Hitting', coach: 'Coach Smith' }
-        ],
-        fitness: [
-            { title: 'Fitness Training', coach: 'Trainer Mike' },
-            { title: 'Cardio Workout', coach: 'Trainer Sarah' },
-            { title: 'Strength Building', coach: 'Trainer Mike' }
-        ],
-        bowling: [
-            { title: 'Bowling Practice', coach: 'Coach Ahmed' },
-            { title: 'Spin Bowling', coach: 'Coach Wilson' },
-            { title: 'Fast Bowling', coach: 'Coach Smith' }
-        ],
-        fielding: [
-            { title: 'Fielding Drills', coach: 'Coach Smith' },
-            { title: 'Catching Practice', coach: 'Coach Ahmed' },
-            { title: 'Ground Fielding', coach: 'Coach Wilson' }
-        ]
-    };
+    const variations = window.trainingData?.sessionVariations || {};
     
     const typeVariations = variations[sessionType];
     if (typeVariations) {
@@ -272,131 +227,8 @@ function initializeTrainingSchedule() {
 
 // Daily View Functionality
 let currentDay = 'monday';
-const dailyScheduleData = {
-    monday: {
-        name: 'Monday',
-        date: 'September 13, 2025',
-        sessions: [
-            {
-                time: '06:00 - 07:30',
-                type: 'Batting Practice',
-                icon: 'fas fa-baseball-ball',
-                coach: 'Coach Wilson',
-                location: 'Ground A',
-                groupType: 'Group Session',
-                status: 'attended'
-            },
-            {
-                time: '16:00 - 17:00',
-                type: 'Fitness Training',
-                icon: 'fas fa-dumbbell',
-                coach: 'Trainer Mike',
-                location: 'Gym',
-                groupType: 'Personal Training',
-                status: 'missed'
-            }
-        ]
-    },
-    tuesday: {
-        name: 'Tuesday',
-        date: 'September 14, 2025',
-        sessions: [
-            {
-                time: '07:00 - 08:30',
-                type: 'Bowling Practice',
-                icon: 'fas fa-circle',
-                coach: 'Coach Ahmed',
-                location: 'Ground B',
-                groupType: 'Group Session',
-                status: 'attended'
-            }
-        ]
-    },
-    wednesday: {
-        name: 'Wednesday',
-        date: 'September 15, 2025',
-        sessions: [
-            {
-                time: '06:00 - 07:00',
-                type: 'Fielding Drills',
-                icon: 'fas fa-hand-rock',
-                coach: 'Coach Smith',
-                location: 'Ground A',
-                groupType: 'Team Practice',
-                status: 'upcoming'
-            },
-            {
-                time: '17:00 - 18:00',
-                type: 'Strength Training',
-                icon: 'fas fa-dumbbell',
-                coach: 'Trainer Sarah',
-                location: 'Gym',
-                groupType: 'Group Session',
-                status: 'upcoming'
-            }
-        ]
-    },
-    thursday: {
-        name: 'Thursday',
-        date: 'September 16, 2025',
-        sessions: [
-            {
-                time: '08:00 - 09:30',
-                type: 'Net Practice',
-                icon: 'fas fa-baseball-ball',
-                coach: 'Coach Wilson',
-                location: 'Nets',
-                groupType: 'Individual Session',
-                status: 'upcoming'
-            }
-        ]
-    },
-    friday: {
-        name: 'Friday',
-        date: 'September 17, 2025',
-        sessions: [
-            {
-                time: '09:00 - 12:00',
-                type: 'Practice Match',
-                icon: 'fas fa-trophy',
-                coach: 'All Coaches',
-                location: 'Main Ground',
-                groupType: 'Team Match',
-                status: 'upcoming'
-            }
-        ]
-    },
-    saturday: {
-        name: 'Saturday',
-        date: 'September 18, 2025',
-        sessions: [
-            {
-                time: 'All Day',
-                type: 'Rest Day',
-                icon: 'fas fa-bed',
-                coach: 'Recovery',
-                location: 'Home',
-                groupType: 'Rest',
-                status: 'rest'
-            }
-        ]
-    },
-    sunday: {
-        name: 'Sunday',
-        date: 'September 19, 2025',
-        sessions: [
-            {
-                time: '10:00 - 11:00',
-                type: 'Team Meeting',
-                icon: 'fas fa-users',
-                coach: 'Coach Wilson',
-                location: 'Conference Room',
-                groupType: 'Team Meeting',
-                status: 'upcoming'
-            }
-        ]
-    }
-};
+// Daily schedule data - injected from server via PHP
+const dailyScheduleData = window.trainingData?.dailySchedule || {};
 
 function initializeDailyView() {
     // Day navigation buttons
@@ -526,89 +358,8 @@ let calendarDay = new Date().getDate();
 let selectedCalendarDate = new Date();
 let calendarWeekStart = null;
 
-// Dummy Calendar Events - Training Sessions and Matches
-const calendarEvents = [
-    // Training Sessions
-    {
-        id: 1,
-        title: 'Batting Practice',
-        type: 'training',
-        date: '2025-10-23',
-        time: '09:00',
-        duration: '2 hours',
-        coach: 'Coach Michael',
-        location: 'Indoor Nets',
-        description: 'Focus on cover drives and pull shots'
-    },
-    {
-        id: 2,
-        title: 'Bowling Session',
-        type: 'training',
-        date: '2025-10-25',
-        time: '14:00',
-        duration: '1.5 hours',
-        coach: 'Coach Sarah',
-        location: 'Practice Ground',
-        description: 'Work on yorkers and slower balls'
-    },
-    {
-        id: 3,
-        title: 'Fielding Practice',
-        type: 'training',
-        date: '2025-10-29',
-        time: '10:00',
-        duration: '2 hours',
-        coach: 'Coach David',
-        location: 'Main Ground',
-        description: 'Catching drills and ground fielding'
-    },
-    // Matches
-    {
-        id: 4,
-        title: 'T20 Match vs City Sports Club',
-        type: 'match',
-        date: '2025-10-26',
-        time: '14:00',
-        duration: '4 hours',
-        opponent: 'City Sports Club',
-        location: 'Elite Stadium',
-        description: 'T20 Tournament - Quarter Final'
-    },
-    {
-        id: 5,
-        title: 'ODI Match vs State Academy',
-        type: 'match',
-        date: '2025-11-02',
-        time: '10:00',
-        duration: '8 hours',
-        opponent: 'State Academy',
-        location: 'State Cricket Ground',
-        description: 'Inter-Academy Championship'
-    },
-    // Fitness Sessions
-    {
-        id: 6,
-        title: 'Fitness Training',
-        type: 'fitness',
-        date: '2025-10-27',
-        time: '07:00',
-        duration: '1 hour',
-        coach: 'Trainer John',
-        location: 'Gym',
-        description: 'Cardio and strength training'
-    },
-    {
-        id: 7,
-        title: 'Team Practice',
-        type: 'training',
-        date: '2025-10-30',
-        time: '15:00',
-        duration: '3 hours',
-        coach: 'Head Coach',
-        location: 'Main Ground',
-        description: 'Full team practice session'
-    }
-];
+// Calendar Events - injected from server via PHP
+const calendarEvents = window.trainingData?.calendarEvents || [];
 
 // Initialize Calendar when DOM loads
 if (document.getElementById('monthView')) {

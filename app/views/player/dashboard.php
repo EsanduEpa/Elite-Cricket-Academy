@@ -399,35 +399,6 @@
                                     <p>No payments due at this time</p>
                                 </div>
                             </div>
-                            
-                            <!-- Sample payment for demo -->
-                            <div class="payment-item">
-                                <div class="payment-icon">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div class="payment-info">
-                                    <h4>Monthly Membership</h4>
-                                    <div class="payment-amount">$150.00</div>
-                                    <div class="payment-due">Due: Sep 15, 2025</div>
-                                </div>
-                                <div class="payment-status status-due">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </div>
-                            </div>
-                            
-                            <div class="payment-item">
-                                <div class="payment-icon">
-                                    <i class="fas fa-tools"></i>
-                                </div>
-                                <div class="payment-info">
-                                    <h4>Equipment Rental</h4>
-                                    <div class="payment-amount">$35.00</div>
-                                    <div class="payment-due">Due: Sep 12, 2025</div>
-                                </div>
-                                <div class="payment-status status-upcoming">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
                         <?php endif; ?>
                         
                         <div class="payment-actions">
@@ -448,24 +419,9 @@
     <script>
         // Pass PHP data to JavaScript
         window.dashboardData = {
-            todaySchedule: <?php echo json_encode($data['todaySchedule'] ?? [
-                ['activity' => 'Morning Training Session', 'time' => '10:00 AM', 'coach' => 'Coach Johnson', 'location' => 'Indoor Nets'],
-                ['activity' => 'Fitness Training', 'time' => '2:30 PM', 'coach' => 'Fitness Coach', 'location' => 'Gym Facility'],
-                ['activity' => 'Recovery Session', 'time' => '5:00 PM', 'coach' => 'Physiotherapist', 'location' => 'Recovery Room']
-            ]); ?>,
-            upcomingSchedule: <?php echo json_encode($data['upcomingSchedule'] ?? [
-                ['activity' => 'Match vs Central Cricket Club', 'date' => '2024-12-15', 'time' => '2:00 PM'],
-                ['activity' => 'Batting Practice Session', 'date' => '2024-12-16', 'time' => '10:00 AM'],
-                ['activity' => 'Fitness Assessment', 'date' => '2024-12-17', 'time' => '9:00 AM'],
-                ['activity' => 'Team Meeting', 'date' => '2024-12-18', 'time' => '11:00 AM'],
-                ['activity' => 'Net Practice', 'date' => '2024-12-19', 'time' => '8:30 AM'],
-                ['activity' => 'Bowling Workshop', 'date' => '2024-12-20', 'time' => '3:00 PM'],
-                ['activity' => 'Match vs Elite Academy', 'date' => '2024-12-22', 'time' => '1:30 PM']
-            ]); ?>,
-            upcomingBookings: <?php echo json_encode($data['upcomingBookings'] ?? [
-                ['type' => 'Court Booking', 'date' => '2024-12-21', 'time' => '4:00 PM'],
-                ['type' => 'Equipment Rental', 'date' => '2024-12-23', 'time' => '10:00 AM']
-            ]); ?>,
+            todaySchedule: <?php echo json_encode($data['todaySchedule'] ?? []); ?>,
+            upcomingSchedule: <?php echo json_encode($data['upcomingSchedule'] ?? []); ?>,
+            upcomingBookings: <?php echo json_encode($data['upcomingBookings'] ?? []); ?>,
             currentDate: '<?php echo date('Y-m-d'); ?>',
             currentMonth: <?php echo date('n') - 1; ?>, // JavaScript months are 0-indexed
             currentYear: <?php echo date('Y'); ?>
