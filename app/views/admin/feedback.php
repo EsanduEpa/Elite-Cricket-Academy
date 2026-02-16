@@ -438,28 +438,26 @@ function viewFeedback(feedbackId) {
     const row = document.querySelector(`tr[data-feedback-id="${feedbackId}"]`);
     
     if (row) {
-        // Extract data from row
-        const userInfo = row.querySelector('.user-details');
-        const userName = userInfo.querySelector('.user-name').textContent;
-        const userEmail = userInfo.querySelector('.user-email').textContent;
-        
-        const subject = row.querySelector('.subject-text').textContent;
-        const category = row.querySelector('.category-badge').textContent.trim();
-        const priority = row.querySelector('.priority-badge').textContent.trim();
-        const status = row.querySelector('.status-badge').textContent.trim();
-        const dateInfo = row.querySelector('.date-info');
-        const date = dateInfo.querySelector('.date-text').textContent;
-        const time = dateInfo.querySelector('.time-text').textContent;
+        // Extract data from row cells matching actual table structure
+        const cells = row.querySelectorAll('td');
+        const userName = cells[0] ? cells[0].querySelector('strong')?.textContent || 'Unknown' : 'Unknown';
+        const category = row.querySelector('.category-badge')?.textContent.trim() || 'General';
+        const status = row.querySelector('.status-badge')?.textContent.trim() || 'Pending';
+        const dateCell = row.querySelector('.date-cell small');
+        const date = dateCell ? dateCell.textContent : '';
         
         // Populate modal
         document.getElementById('modalUserName').textContent = userName;
-        document.getElementById('modalUserEmail').textContent = userEmail;
-        document.getElementById('modalDate').textContent = `${date} at ${time}`;
+        const modalEmail = document.getElementById('modalUserEmail');
+        if (modalEmail) modalEmail.textContent = '';
+        document.getElementById('modalDate').textContent = date;
         document.getElementById('modalCategory').textContent = category;
-        document.getElementById('modalPriority').textContent = priority;
+        const modalPriority = document.getElementById('modalPriority');
+        if (modalPriority) modalPriority.textContent = row.getAttribute('data-priority') || 'Normal';
         document.getElementById('modalStatus').textContent = status;
         document.getElementById('modalFeedbackId').textContent = `#${feedbackId}`;
-        document.getElementById('modalSubject').textContent = subject;
+        const modalSubject = document.getElementById('modalSubject');
+        if (modalSubject) modalSubject.textContent = category;
         
         // Get full message (would normally come from AJAX call)
         const feedbackData = <?php echo json_encode($data['allFeedbacks']); ?>;
@@ -573,31 +571,23 @@ document.addEventListener('DOMContentLoaded', function() {
         searchFeedback(this.value);
     });
     
-    // Priority filter
-    const priorityFilter = document.getElementById('priorityFilter');
-    priorityFilter.addEventListener('change', function() {
-        applyFilters();
-    });
-    
     // Category filter
     const categoryFilter = document.getElementById('categoryFilter');
-    categoryFilter.addEventListener('change', function() {
-        applyFilters();
-    });
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            applyFilters();
+        });
+    }
     
     // Clear filters
-    document.getElementById('clearFiltersBtn').addEventListener('click', function() {
-        document.getElementById('feedbackSearch').value = '';
-        document.getElementById('priorityFilter').value = 'all';
-        document.getElementById('categoryFilter').value = 'all';
-        filterTabs[0].click();
-    });
-    
-    // Select all checkbox
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.feedback-checkbox');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            document.getElementById('feedbackSearch').value = '';
+            if (categoryFilter) categoryFilter.value = 'all';
+            filterTabs[0].click();
+        });
+    }
 });
 
 function filterFeedback(status) {
@@ -630,16 +620,12 @@ function searchFeedback(query) {
 }
 
 function applyFilters() {
-    const priority = document.getElementById('priorityFilter').value;
-    const category = document.getElementById('categoryFilter').value;
+    const categoryEl = document.getElementById('categoryFilter');
+    const category = categoryEl ? categoryEl.value : 'all';
     const rows = document.querySelectorAll('.feedback-row');
     
     rows.forEach(row => {
         let showRow = true;
-        
-        if (priority !== 'all' && row.getAttribute('data-priority') !== priority) {
-            showRow = false;
-        }
         
         if (category !== 'all' && row.getAttribute('data-category') !== category) {
             showRow = false;

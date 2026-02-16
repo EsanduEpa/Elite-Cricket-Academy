@@ -662,9 +662,56 @@ document.getElementById('reviewSearch').addEventListener('input', function() {
     searchReviews(this.value);
 });
 
+// Product filter
+const productFilter = document.getElementById('productFilter');
+if (productFilter) {
+    productFilter.addEventListener('change', function() {
+        const product = this.value.toLowerCase();
+        const table = document.getElementById('reviewsTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (product === 'all' || !product) {
+                row.style.display = '';
+            } else {
+                const productCell = row.querySelectorAll('td')[2];
+                const productText = productCell ? productCell.textContent.trim().toLowerCase() : '';
+                row.style.display = productText.includes(product) ? '' : 'none';
+            }
+        });
+    });
+}
+
 function filterReviews(rating) {
-    console.log('Filtering reviews by:', rating);
-    // Implementation would filter the table rows
+    const table = document.getElementById('reviewsTable');
+    if (!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (rating === 'all') {
+            row.style.display = '';
+            return;
+        }
+        
+        // Get the rating value from the row
+        const ratingText = row.querySelectorAll('td')[3];
+        if (!ratingText) { row.style.display = 'none'; return; }
+        
+        const ratingValue = ratingText.textContent.trim();
+        const statusCell = row.querySelectorAll('td')[6];
+        const statusText = statusCell ? statusCell.textContent.trim().toLowerCase() : '';
+        
+        if (rating === 'pending') {
+            row.style.display = statusText.includes('pending') ? '' : 'none';
+        } else if (rating === 'negative') {
+            // Show ratings 1-2
+            const numRating = parseFloat(ratingValue) || 0;
+            row.style.display = numRating <= 2 ? '' : 'none';
+        } else {
+            // Numeric rating filter (4, 5)
+            row.style.display = ratingValue.includes(rating + '.0') || ratingValue.trim() === rating ? '' : 'none';
+        }
+    });
 }
 
 function searchReviews(searchTerm) {

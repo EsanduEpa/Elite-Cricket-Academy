@@ -654,6 +654,44 @@ document.getElementById('equipmentSearch').addEventListener('input', function() 
     filterEquipment(this.value);
 });
 
+// Category filter for rentals table
+const categoryFilter = document.getElementById('categoryFilter');
+if (categoryFilter) {
+    categoryFilter.addEventListener('change', function() {
+        const category = this.value.toLowerCase();
+        const table = document.getElementById('rentalsTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (category === 'all') {
+                row.style.display = '';
+            } else {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(category) ? '' : 'none';
+            }
+        });
+    });
+}
+
+// Category filter for equipment table
+const equipmentCategoryFilter = document.getElementById('equipmentCategoryFilter');
+if (equipmentCategoryFilter) {
+    equipmentCategoryFilter.addEventListener('change', function() {
+        const category = this.value.toLowerCase();
+        const table = document.getElementById('equipmentTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (category === 'all') {
+                row.style.display = '';
+            } else {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(category) ? '' : 'none';
+            }
+        });
+    });
+}
+
 // Cost calculation for new rental
 document.getElementById('equipmentId').addEventListener('change', function() {
     const option = this.options[this.selectedIndex];
@@ -683,8 +721,25 @@ function calculateTotal() {
 }
 
 function filterRentalsByStatus(status) {
-    console.log('Filtering rentals by status:', status);
-    // Implementation would filter the table rows
+    const table = document.getElementById('rentalsTable');
+    if (!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+            return;
+        }
+        // Check for status badge with matching class
+        const badge = row.querySelector('.table-badge, .status-badge');
+        if (badge) {
+            const hasStatus = badge.classList.contains('status-' + status) || 
+                             badge.textContent.trim().toLowerCase() === status;
+            row.style.display = hasStatus ? '' : 'none';
+        } else {
+            row.style.display = 'none';
+        }
+    });
 }
 
 function filterRentals(searchTerm) {

@@ -1452,8 +1452,34 @@ function applyFilters() {
     const status = document.getElementById('filterStatus').value;
     const search = document.getElementById('filterSearch').value.toLowerCase();
     
-    // Filter logic will be implemented when connected to database
-    alert(`Filters Applied:\nType: ${type || 'All'}\nMode: ${mode || 'All'}\nStatus: ${status || 'All'}\nSearch: ${search || 'None'}`);
+    // Filter the calendar sessions
+    const filtered = calendarState.sessions.filter(session => {
+        if (type && session.sessionType !== type) return false;
+        if (mode && session.sessionMode !== mode) return false;
+        if (status && session.status !== status) return false;
+        if (search && !session.name.toLowerCase().includes(search) && !session.location.toLowerCase().includes(search)) return false;
+        return true;
+    });
+    
+    // Re-render table with filtered sessions
+    const tbody = document.getElementById('sessionsTableBody');
+    if (tbody) {
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#999;">No sessions match filters</td></tr>';
+        } else {
+            tbody.innerHTML = filtered.map(session => `
+                <tr>
+                    <td><strong>${session.name}</strong></td>
+                    <td><span class="badge">${session.sessionType}</span></td>
+                    <td><span class="badge">${session.sessionMode}</span></td>
+                    <td>${session.date}</td>
+                    <td>${formatTime(session.startTime)} - ${formatTime(session.endTime)}</td>
+                    <td><span class="status-badge status-${session.status}">${session.status}</span></td>
+                    <td>${session.currentParticipants}/${session.maxParticipants}</td>
+                </tr>
+            `).join('');
+        }
+    }
 }
 
 // ================================================

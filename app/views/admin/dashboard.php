@@ -338,15 +338,25 @@
                     }
                 }
                 
-                // Time filter (simplified - would need actual dates in production)
+                // Time filter
                 if (timeFilter !== 'all' && showRow) {
-                    const dateText = row.cells[2].textContent;
+                    const dateText = row.cells[2].textContent.trim();
                     const today = new Date();
-                    
-                    if (timeFilter === 'today' && !dateText.includes('Oct 19')) {
-                        showRow = false;
-                    } else if (timeFilter === 'week' && !dateText.includes('Oct 1')) {
-                        showRow = false;
+                    today.setHours(0, 0, 0, 0);
+
+                    // Parse the date from cell text (expect formats like "Feb 17, 2026" or "2026-02-17")
+                    const rowDate = new Date(dateText);
+                    if (!isNaN(rowDate.getTime())) {
+                        rowDate.setHours(0, 0, 0, 0);
+                        if (timeFilter === 'today') {
+                            showRow = rowDate.getTime() === today.getTime();
+                        } else if (timeFilter === 'week') {
+                            const weekAgo = new Date(today);
+                            weekAgo.setDate(weekAgo.getDate() - 7);
+                            showRow = rowDate >= weekAgo && rowDate <= today;
+                        } else if (timeFilter === 'month') {
+                            showRow = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+                        }
                     }
                 }
                 

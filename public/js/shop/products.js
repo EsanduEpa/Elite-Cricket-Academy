@@ -628,8 +628,33 @@ function filterProducts(searchTerm) {
 }
 
 function sortProducts(sortBy) {
-    // Implement sorting logic
-    showNotification(`Sorting by ${sortBy}`, 'info');
+    const tbody = document.querySelector('#productsTable tbody');
+    if (!tbody) return;
+    
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if (rows.length <= 1) return;
+    
+    rows.sort((a, b) => {
+        if (sortBy === 'name-asc' || sortBy === 'name-desc') {
+            const nameA = (a.querySelector('.table-cell-title')?.textContent || '').toLowerCase();
+            const nameB = (b.querySelector('.table-cell-title')?.textContent || '').toLowerCase();
+            return sortBy === 'name-asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        } else if (sortBy === 'price-low' || sortBy === 'price-high') {
+            const priceA = parseFloat((a.querySelector('.table-cell-primary')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
+            const priceB = parseFloat((b.querySelector('.table-cell-primary')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
+            return sortBy === 'price-low' ? priceA - priceB : priceB - priceA;
+        } else if (sortBy === 'stock-low' || sortBy === 'stock-high') {
+            const stockA = parseInt((a.querySelector('.stock-level')?.textContent || '0').replace(/[^\d]/g, '')) || 0;
+            const stockB = parseInt((b.querySelector('.stock-level')?.textContent || '0').replace(/[^\d]/g, '')) || 0;
+            return sortBy === 'stock-low' ? stockA - stockB : stockB - stockA;
+        } else if (sortBy === 'newest') {
+            return 0; // Keep original order (newest from DB)
+        }
+        return 0;
+    });
+    
+    rows.forEach(row => tbody.appendChild(row));
+    showNotification(`Sorted by ${sortBy}`, 'info');
 }
 
 // Show notification

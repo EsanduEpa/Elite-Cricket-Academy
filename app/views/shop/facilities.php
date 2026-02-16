@@ -826,6 +826,26 @@ document.getElementById('bookingSearch').addEventListener('input', function() {
     }
 });
 
+// Facility filter
+const facilityFilter = document.getElementById('facilityFilter');
+if (facilityFilter) {
+    facilityFilter.addEventListener('change', function() {
+        const facility = this.value.toLowerCase();
+        const table = document.getElementById('bookingsTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (facility === 'all') {
+                row.style.display = '';
+            } else {
+                const facilityCell = row.querySelectorAll('td')[1];
+                const facilityText = facilityCell ? facilityCell.textContent.toLowerCase() : '';
+                row.style.display = facilityText.includes(facility) ? '' : 'none';
+            }
+        });
+    });
+}
+
 // Form submissions
 document.getElementById('newBookingForm').addEventListener('submit', function(e) {
     e.preventDefault();

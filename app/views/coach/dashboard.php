@@ -372,6 +372,24 @@
     <script>
         // Expose server-side dashboard data to client-side scripts
         window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
+
+        // Session filter for upcoming bookings
+        function filterSessions() {
+            const filter = document.getElementById('sessionFilter').value;
+            const bookingItems = document.querySelectorAll('.booking-item');
+            
+            bookingItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = '';
+                } else if (filter === 'private' && item.classList.contains('private-session')) {
+                    item.style.display = '';
+                } else if (filter === 'normal' && item.classList.contains('normal-session')) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
     </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

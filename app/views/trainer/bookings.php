@@ -837,13 +837,48 @@ function initializeFilters() {
     
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Update active button
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Update active button within same control group
+            const parent = this.closest('.view-controls');
+            if (parent) {
+                parent.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            }
             this.classList.add('active');
             
             // Filter based on the selected option
             const filter = this.getAttribute('data-filter');
-            // Add filter logic here based on your needs
+            const table = this.closest('.schedule-card')?.querySelector('.dashboard-table');
+            if (!table) return;
+            
+            const rows = table.querySelectorAll('tbody tr');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            rows.forEach(row => {
+                if (filter === 'today' || filter === 'completed') {
+                    // Show all rows
+                    row.style.display = '';
+                } else if (filter === 'this-week') {
+                    const dateEl = row.querySelector('.date');
+                    const yearEl = row.querySelector('.year');
+                    if (dateEl && yearEl) {
+                        const rowDate = new Date(dateEl.textContent + ' ' + yearEl.textContent);
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        row.style.display = (rowDate >= weekAgo) ? '' : 'none';
+                    } else {
+                        row.style.display = '';
+                    }
+                } else if (filter === 'this-month') {
+                    const dateEl = row.querySelector('.date');
+                    const yearEl = row.querySelector('.year');
+                    if (dateEl && yearEl) {
+                        const rowDate = new Date(dateEl.textContent + ' ' + yearEl.textContent);
+                        row.style.display = (rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear()) ? '' : 'none';
+                    } else {
+                        row.style.display = '';
+                    }
+                }
+            });
         });
     });
 }

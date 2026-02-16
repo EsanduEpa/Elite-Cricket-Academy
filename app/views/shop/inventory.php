@@ -540,20 +540,28 @@ document.getElementById('categoryFilter').addEventListener('change', function() 
 });
 
 function filterInventoryByStatus(status) {
-    console.log('Filtering by status:', status);
     const rows = document.querySelectorAll('#inventoryTable tbody tr');
     
+    // Map tab data-status values to badge text
+    const statusMap = {
+        'in-stock': 'in stock',
+        'low-stock': 'low stock',
+        'out-of-stock': 'out of stock',
+        'reorder': 'reorder'
+    };
+    const matchText = statusMap[status] || status;
+    
     rows.forEach(row => {
-        const statusCell = row.querySelector('.status-badge');
         if (status === 'all') {
             row.style.display = '';
+            return;
+        }
+        const statusBadge = row.querySelector('.table-badge');
+        if (statusBadge) {
+            const badgeText = statusBadge.textContent.trim().toLowerCase();
+            row.style.display = badgeText.includes(matchText) ? '' : 'none';
         } else {
-            const statusClass = `status-${status.replace('-', '-')}`;
-            if (statusCell && statusCell.classList.contains(statusClass)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = 'none';
         }
     });
 }
@@ -574,8 +582,21 @@ function filterInventory(searchTerm) {
 }
 
 function filterInventoryByCategory(category) {
-    console.log('Filtering by category:', category);
-    // Implementation would filter the table rows
+    const rows = document.querySelectorAll('#inventoryTable tbody tr');
+    
+    rows.forEach(row => {
+        if (category === 'all') {
+            row.style.display = '';
+            return;
+        }
+        const categoryBadge = row.querySelector('.category-badge');
+        if (categoryBadge) {
+            const rowCategory = categoryBadge.textContent.trim().toLowerCase();
+            row.style.display = rowCategory.includes(category.toLowerCase()) ? '' : 'none';
+        } else {
+            row.style.display = 'none';
+        }
+    });
 }
 
 // Action functions

@@ -1231,19 +1231,26 @@ function filterEvents() {
             }
         }
         
-        // Date filter (simplified - would need actual dates in production)
+        // Date filter
         if (dateFilter !== 'all' && showRow) {
-            const dateText = row.querySelector('.date-cell')?.textContent || '';
+            const dateText = row.querySelector('.date-cell')?.textContent.trim() || '';
             const today = new Date();
-            
-            if (dateFilter === 'today' && !dateText.includes(today.getDate().toString())) {
-                showRow = false;
-            } else if (dateFilter === 'week') {
-                // Filter for this week
-                showRow = true; // Simplified
-            } else if (dateFilter === 'month') {
-                // Filter for this month
-                showRow = true; // Simplified
+            today.setHours(0, 0, 0, 0);
+            const rowDate = new Date(dateText);
+
+            if (!isNaN(rowDate.getTime())) {
+                rowDate.setHours(0, 0, 0, 0);
+                if (dateFilter === 'today') {
+                    showRow = rowDate.getTime() === today.getTime();
+                } else if (dateFilter === 'week') {
+                    const weekAgo = new Date(today);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    const weekAhead = new Date(today);
+                    weekAhead.setDate(weekAhead.getDate() + 7);
+                    showRow = rowDate >= weekAgo && rowDate <= weekAhead;
+                } else if (dateFilter === 'month') {
+                    showRow = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+                }
             }
         }
         

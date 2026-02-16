@@ -30,48 +30,8 @@ function validateDateOfBirth(dateOfBirth) {
 // Sample staff data (no database connection) - COMMENTED OUT - Using PHP/Database instead
 let staffMembers = [];
 
-// Role Requests Data (from user registrations)
-let roleRequests = [
-    {
-        id: 1,
-        firstName: 'Rajesh',
-        lastName: 'Kumar',
-        email: 'rajesh.kumar@email.com',
-        phone: '+94 77 123 4567',
-        requestedRole: 'coach',
-        specialization: 'Spin Bowling Coach',
-        experience: '8 years',
-        qualifications: 'Level 3 Cricket Coaching Certificate, Former Provincial Player',
-        requestDate: new Date('2025-10-15T10:30:00'),
-        status: 'pending'
-    },
-    {
-        id: 2,
-        firstName: 'Samantha',
-        lastName: 'Silva',
-        email: 'samantha.silva@email.com',
-        phone: '+94 71 987 6543',
-        requestedRole: 'trainer',
-        specialization: 'Sports Physiotherapist',
-        experience: '5 years',
-        qualifications: 'MSc in Sports Medicine, Certified Physiotherapist',
-        requestDate: new Date('2025-10-17T14:20:00'),
-        status: 'pending'
-    },
-    {
-        id: 3,
-        firstName: 'Kasun',
-        lastName: 'Perera',
-        email: 'kasun.perera@email.com',
-        phone: '+94 76 456 7890',
-        requestedRole: 'coach',
-        specialization: 'Batting Technique Coach',
-        experience: '10 years',
-        qualifications: 'Level 4 Coaching, Ex-First Class Cricketer',
-        requestDate: new Date('2025-10-18T09:15:00'),
-        status: 'pending'
-    }
-];
+// Role Requests Data - loaded from window.roleRequestsData if available
+let roleRequests = window.roleRequestsData || [];
 
 let filteredStaff = [...staffMembers];
 let currentPage = 1;

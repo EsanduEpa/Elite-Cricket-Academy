@@ -296,6 +296,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Sort notifications
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const list = document.getElementById('notificationsList');
+            if (!list) return;
+            const items = Array.from(list.querySelectorAll('.notification-item'));
+            items.sort((a, b) => {
+                const dateA = a.querySelector('.notification-time')?.textContent || '';
+                const dateB = b.querySelector('.notification-time')?.textContent || '';
+                if (this.value === 'oldest') {
+                    return dateA.localeCompare(dateB);
+                }
+                return dateB.localeCompare(dateA);
+            });
+            items.forEach(item => list.appendChild(item));
+        });
+    }
 });
 
 // Mark single notification as read
