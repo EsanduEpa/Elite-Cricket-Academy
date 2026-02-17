@@ -468,3 +468,442 @@ function initializeScrollAnimations() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initializeScrollAnimations, 500);
 });
+
+// ==================== PERFORMANCE STATISTICS FUNCTIONS ====================
+
+// Open Performance Statistics Modal
+function openPerformanceModal() {
+    const modal = document.getElementById('performanceModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        // Load available matches
+        loadAvailableMatches();
+        
+        // Reset form to "add" mode
+        const form = document.getElementById('performanceStatsForm');
+        if (form) {
+            form.reset();
+            form.dataset.mode = 'add';
+            
+            // Remove edit performance ID if it exists
+            const perfIdInput = document.getElementById('performanceIdEdit');
+            if (perfIdInput) {
+                perfIdInput.remove();
+            }
+            
+            // Reset modal title and styling
+            const modalTitle = modal.querySelector('h2');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="fas fa-chart-bar" style="color: #fff;"></i> Add Performance Statistics';
+            }
+            
+            const modalHeader = modal.querySelector('.modal-header');
+            if (modalHeader) {
+                modalHeader.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+            }
+            
+            // Reset submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Submit Performance Statistics';
+            }
+        }
+        
+        // Animate modal in
+        setTimeout(() => {
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.animation = 'slideIn 0.3s ease-out';
+            }
+        }, 10);
+    }
+}
+
+// Close Performance Statistics Modal
+function closePerformanceModal() {
+    const modal = document.getElementById('performanceModal');
+    if (modal) {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'slideOut 0.3s ease-in';
+        }
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    }
+}
+
+// Load Available Matches for dropdown
+function loadAvailableMatches() {
+    const matchSelect = document.getElementById('matchSelect');
+    if (!matchSelect) return;
+    
+    // Show loading state
+    matchSelect.innerHTML = '<option value="">Loading matches...</option>';
+    matchSelect.disabled = true;
+    
+    fetch(`${window.location.origin}/Elite/player/getAvailableMatches`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.matches) {
+                matchSelect.innerHTML = '<option value="">-- Select a match --</option>';
+                
+                data.matches.forEach(match => {
+                    const option = document.createElement('option');
+                    option.value = match.MatchID;
+                    
+                    const date = new Date(match.Date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    
+                    option.textContent = `${date} - ${match.OpponentTeam} at ${match.Venue} (${match.TournamentName})`;
+                    matchSelect.appendChild(option);
+                });
+                
+                matchSelect.disabled = false;
+            } else {
+                matchSelect.innerHTML = '<option value="">No matches available</option>';
+                showNotification('No matches available to add performance for', 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading matches:', error);
+            matchSelect.innerHTML = '<option value="">Error loading matches</option>';
+            showNotification('Failed to load matches. Please try again.', 'error');
+        });
+}
+
+// Handle Performance Statistics Form Submission
+document.addEventListener('DOMContentLoaded', function() {
+    const performanceForm = document.getElementById('performanceStatsForm');
+    if (performanceForm) {
+        performanceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(performanceForm);
+            
+            // Validate required fields
+            const matchId = formData.get('match_id');
+            if (!matchId) {
+                showNotification('Please select a match', 'error');
+                return;
+            }
+            
+            // Disable submit button
+            const submitBtn = performanceForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            // Determine if we're adding or editing based on presence of performance_id
+            const isEditMode = performanceForm.dataset.mode === 'edit';
+            const performanceId = document.getElementById('performanceIdEdit')?.value;
+            
+            const url = isEditMode && performanceId 
+                ? `${window.location.origin}/Elite/player/editPerformanceStats`
+                : `${window.location.origin}/Elite/player/addPerformanceStats`;
+            
+            // Submit form via AJAX
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closePerformanceModal();
+                    
+                    // Reload page after 1.5 seconds to show updated performance
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification(data.message || 'Failed to save performance statistics', 'error');
+                    
+                    // Show validation errors if any
+                    if (data.errors && data.errors.length > 0) {
+                        data.errors.forEach(error => {
+                            showNotification(error, 'error');
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting performance:', error);
+                showNotification('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const performanceModal = document.getElementById('performanceModal');
+    if (event.target === performanceModal) {
+        closePerformanceModal();
+    }
+    
+    const detailsModal = document.getElementById('detailsModal');
+    if (event.target === detailsModal) {
+        closeDetailsModal();
+    }
+});
+
+// Add notification function if not already present
+if (typeof showNotification === 'undefined') {
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 10002;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            min-width: 300px;
+        `;
+        
+        switch(type) {
+            case 'success':
+                notification.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                notification.innerHTML = '<i class="fas fa-check-circle"></i> ' + message;
+                break;
+            case 'error':
+                notification.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                notification.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + message;
+                break;
+            case 'warning':
+                notification.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                notification.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
+                break;
+            default:
+                notification.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+                notification.innerHTML = '<i class="fas fa-info-circle"></i> ' + message;
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+}
+
+// ==================== MATCH PERFORMANCE CRUD FUNCTIONS ====================
+
+// View Match Performance Details
+function viewMatchDetails(performanceId) {
+    fetch(`${window.location.origin}/Elite/player/getPerformanceRecord?id=${performanceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.performance) {
+                const perf = data.performance;
+                
+                // Create details modal
+                const detailsHtml = `
+                    <div class="modal" id="detailsModal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+                        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 5% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                                <h2 style="margin: 0; font-size: 22px; font-weight: 600;">
+                                    <i class="fas fa-chart-line"></i> Match Performance Details
+                                </h2>
+                                <span onclick="closeDetailsModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; padding: 5px; border-radius: 50%; opacity: 0.8;">&times;</span>
+                            </div>
+                            <div class="modal-body" style="padding: 35px;">
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50;"><i class="fas fa-info-circle"></i> Match Information</h3>
+                                    <p><strong>📅 Date:</strong> ${perf.Date ? new Date(perf.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
+                                    <p><strong>🏆 Tournament:</strong> ${perf.TournamentName || 'N/A'}</p>
+                                    <p><strong>⚔️ Opponent:</strong> ${perf.OpponentTeam || 'N/A'}</p>
+                                    <p><strong>📍 Venue:</strong> ${perf.Venue || 'N/A'}</p>
+                                    <p><strong>🎯 Result:</strong> ${perf.Result || 'N/A'}</p>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #3498db;"><i class="fas fa-baseball-ball"></i> Batting</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.RunsScored || 0}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Runs (${perf.BallsFaced || 0} balls)</p>
+                                    </div>
+                                    
+                                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #e74c3c;"><i class="fas fa-fire"></i> Bowling</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.WicketsTaken || 0}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Wickets (${perf.OversBowled || 0} overs)</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 5px 0 0 0;">${perf.RunsConceded || 0} runs conceded</p>
+                                    </div>
+                                    
+                                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #27ae60;"><i class="fas fa-hand-paper"></i> Fielding</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${(perf.Catches || 0) + (perf.Stumpings || 0)}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">C: ${perf.Catches || 0} | S: ${perf.Stumpings || 0}</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                                    <p style="margin: 0; font-size: 14px; color: #856404;"><strong>⭐ Overall Rating:</strong> ${perf.Rating || 0}/10</p>
+                                </div>
+                                
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0; font-size: 13px; color: #7f8c8d;">
+                                        <strong>Status:</strong> 
+                                        ${perf.VerifiedStatus === 'verified' ? '✅ Verified' : perf.VerifiedStatus === 'pending' ? '⏳ Pending Review' : '❌ Rejected'}
+                                    </p>
+                                    ${perf.AddedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Added by:</strong> ${perf.AddedByName}</p>` : ''}
+                                    ${perf.VerifiedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Verified by:</strong> ${perf.VerifiedByName}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', detailsHtml);
+            } else {
+                showNotification('Failed to load performance details', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while loading details', 'error');
+        });
+}
+
+function closeDetailsModal() {
+    const modal = document.getElementById('detailsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Edit Match Performance
+function editMatchPerformance(performanceId) {
+    // Fetch performance data
+    fetch(`${window.location.origin}/Elite/player/getPerformanceRecord?id=${performanceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.performance) {
+                const perf = data.performance;
+                
+                // Open the modal
+                openPerformanceModal();
+                
+                // Wait for modal to be fully loaded
+                setTimeout(() => {
+                    // Change modal title
+                    const modalTitle = document.querySelector('#performanceModal h2');
+                    if (modalTitle) {
+                        modalTitle.innerHTML = '<i class="fas fa-edit" style="color: #fff;"></i> Edit Performance Statistics';
+                    }
+                    
+                    // Change modal header color
+                    const modalHeader = document.querySelector('#performanceModal .modal-header');
+                    if (modalHeader) {
+                        modalHeader.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                    }
+                    
+                    // Populate form fields
+                    document.getElementById('matchSelect').value = perf.MatchID || '';
+                    document.getElementById('runsScored').value = perf.RunsScored || 0;
+                    document.getElementById('ballsFaced').value = perf.BallsFaced || 0;
+                    document.getElementById('wicketsTaken').value = perf.WicketsTaken || 0;
+                    document.getElementById('oversBowled').value = perf.OversBowled || 0;
+                    document.getElementById('runsConceded').value = perf.RunsConceded || 0;
+                    document.getElementById('catches').value = perf.Catches || 0;
+                    document.getElementById('stumpings').value = perf.Stumpings || 0;
+                    document.getElementById('performanceRating').value = perf.Rating || 0;
+                    
+                    // Add hidden field for performance ID
+                    let perfIdInput = document.getElementById('performanceIdEdit');
+                    if (!perfIdInput) {
+                        perfIdInput = document.createElement('input');
+                        perfIdInput.type = 'hidden';
+                        perfIdInput.id = 'performanceIdEdit';
+                        perfIdInput.name = 'performance_id';
+                        document.getElementById('performanceStatsForm').appendChild(perfIdInput);
+                    }
+                    perfIdInput.value = performanceId;
+                    
+                    // Change submit button text
+                    const submitBtn = document.querySelector('#performanceStatsForm button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Performance Statistics';
+                    }
+                    
+                    // Update form action
+                    document.getElementById('performanceStatsForm').dataset.mode = 'edit';
+                }, 300);
+            } else {
+                showNotification('Failed to load performance data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while loading performance data', 'error');
+        });
+}
+
+// Delete Match Performance
+function deleteMatchPerformance(performanceId) {
+    if (!confirm('Are you sure you want to delete this performance record? This action cannot be undone.')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('performance_id', performanceId);
+    
+    fetch(`${window.location.origin}/Elite/player/deletePerformanceStats`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Reload page after 1 second
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Failed to delete performance record', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    });
+}
+

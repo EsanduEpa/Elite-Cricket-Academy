@@ -460,13 +460,18 @@ class Player extends Controller {
     
     // Performance History
     public function performance() {
+        $perfModel = $this->model('M_Performance');
+        $playerId = $_SESSION['user_id'] ?? 1;
+        
         $data = [
             'title' => 'Performance History',
             'player' => $this->getPlayerData(),
             'practiceMatches' => $this->getPracticeMatches(),
             'tournaments' => $this->getTournaments(),
             'performanceStats' => $this->getDetailedPerformanceStats(),
-            'achievements' => $this->getPlayerAchievements()
+            'achievements' => $this->getPlayerAchievements(),
+            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
+            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId)
         ];
         $this->view('player/performance', $data);
     }
@@ -707,6 +712,273 @@ class Player extends Controller {
                 }
             } catch (Exception $e) {
                 error_log("Achievement deletion error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            redirect('player/performance');
+        }
+    }
+
+    // Add Performance Statistics (AJAX method)
+    public function addPerformanceStats() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = [
+                'player_id' => $_SESSION['user_id'] ?? 1,
+                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
+                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
+                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
+                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
+                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
+                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
+                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
+                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
+                'rating' => floatval($_POST['rating'] ?? 0),
+                'added_by' => $_SESSION['user_id'] ?? 1
+            ];
+
+            $errors = [];
+            if (!$data['match_id']) {
+                $errors[] = 'Please select a match';
+            }
+
+            header('Content-Type: application/json');
+            
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $errors
+                ]);
+                return;
+            }
+
+            try {
+                $perfModel = $this->model('M_Performance');
+                $performanceId = $perfModel->addPerformanceStatistics($data);
+                
+                if ($performanceId) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Performance statistics added successfully! It will be reviewed by coaching staff.',
+                        'performance_id' => $performanceId
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to add performance statistics. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Performance statistics creation error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            redirect('player/performance');
+        }
+    }
+
+    // Get available matches for dropdown (AJAX method)
+    public function getAvailableMatches() {
+        header('Content-Type: application/json');
+        
+        try {
+            $perfModel = $this->model('M_Performance');
+            $matches = $perfModel->getAvailableMatches(50);
+            
+            echo json_encode([
+                'success' => true,
+                'matches' => $matches
+            ]);
+        } catch (Exception $e) {
+            error_log("Error fetching matches: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to load matches'
+            ]);
+        }
+    }
+
+    // Get single performance record (AJAX method)
+    public function getPerformanceRecord() {
+        header('Content-Type: application/json');
+        
+        $performanceId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        
+        if (!$performanceId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid performance ID'
+            ]);
+            return;
+        }
+        
+        try {
+            $perfModel = $this->model('M_Performance');
+            $performance = $perfModel->getPerformanceById($performanceId);
+            
+            if ($performance) {
+                echo json_encode([
+                    'success' => true,
+                    'performance' => $performance
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Performance record not found'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Error fetching performance: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to load performance record'
+            ]);
+        }
+    }
+
+    // Edit/Update Performance Statistics (AJAX method)
+    public function editPerformanceStats() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+            $playerId = $_SESSION['user_id'] ?? 1;
+            
+            $data = [
+                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
+                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
+                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
+                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
+                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
+                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
+                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
+                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
+                'rating' => floatval($_POST['rating'] ?? 0)
+            ];
+
+            $errors = [];
+            if (!$performanceId) {
+                $errors[] = 'Invalid performance ID';
+            }
+            if (!$data['match_id']) {
+                $errors[] = 'Please select a match';
+            }
+
+            header('Content-Type: application/json');
+            
+            if (!empty($errors)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $errors
+                ]);
+                return;
+            }
+
+            try {
+                $perfModel = $this->model('M_Performance');
+                
+                // Check if performance exists and belongs to the player
+                $existing = $perfModel->getPerformanceById($performanceId);
+                if (!$existing || $existing->PlayerID != $playerId) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Performance record not found or access denied'
+                    ]);
+                    return;
+                }
+
+                // Check if still pending
+                if ($existing->VerifiedStatus !== 'pending') {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Cannot edit verified or rejected performance records'
+                    ]);
+                    return;
+                }
+
+                $success = $perfModel->updatePerformanceStatistics($performanceId, $data);
+                
+                if ($success) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Performance statistics updated successfully!'
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to update performance statistics. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Performance update error: " . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database error occurred. Please try again later.'
+                ]);
+            }
+        } else {
+            redirect('player/performance');
+        }
+    }
+
+    // Delete Performance Statistics (AJAX method)
+    public function deletePerformanceStats() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+            $playerId = $_SESSION['user_id'] ?? 1;
+
+            header('Content-Type: application/json');
+
+            if (!$performanceId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid performance ID'
+                ]);
+                return;
+            }
+
+            try {
+                $perfModel = $this->model('M_Performance');
+                
+                // Check if performance exists and belongs to the player
+                $existing = $perfModel->getPerformanceById($performanceId);
+                if (!$existing || $existing->PlayerID != $playerId) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Performance record not found or access denied'
+                    ]);
+                    return;
+                }
+
+                // Check if still pending (can only delete pending records)
+                if ($existing->VerifiedStatus !== 'pending') {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Can only delete pending performance records'
+                    ]);
+                    return;
+                }
+
+                $success = $perfModel->deletePerformanceStatistics($performanceId, $playerId);
+                
+                if ($success) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Performance record deleted successfully!'
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Failed to delete performance record. Please try again.'
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log("Performance deletion error: " . $e->getMessage());
                 echo json_encode([
                     'success' => false,
                     'message' => 'Database error occurred. Please try again later.'
