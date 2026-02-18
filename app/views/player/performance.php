@@ -1,6 +1,8 @@
-<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/performance.css">
+<?php 
+// Set page-specific CSS
+$data['page_css'] = 'performance';
+require_once APPROOT . '/views/inc/components/player_dashboard_header.php'; 
+?>
     
     <div class="player-layout">
         <!-- Simple Sidebar -->
