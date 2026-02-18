@@ -52,7 +52,7 @@ class M_Session {
             `CoachOrTrainerID`,
             `Name`,
             `Date`,
-            `StartTime`,
+            `StartTime`, 
             `EndTime`,
             `Location`,
             `Status`,
@@ -239,8 +239,11 @@ class M_Session {
     public function getCalendarSessions($coachId, $start = null, $end = null) {
         $query = 'SELECT 
                 s.*,
+                sd.FacilityType,
+                sd.FacilityNumber,
                 (SELECT COUNT(*) FROM SessionEnrollment WHERE SessionID = s.SessionID AND Status != "cancelled") AS ParticipantCount
             FROM Session s
+            LEFT JOIN SessionDetails sd ON s.SessionID = sd.SessionID
             WHERE s.CoachOrTrainerID = :coach_id
             AND s.Status != "cancelled"';
         
@@ -530,7 +533,15 @@ class M_Session {
         $this->db->bind(':id', $id);
         
         if ($this->db->execute()) {
-            return true;
+            // Update cancel reason in SessionDetails
+            $this->db->query('UPDATE SessionDetails SET
+                CancelReason = :reason
+                WHERE SessionID = :id');
+            
+            $this->db->bind(':id', $id);
+            $this->db->bind(':reason', $reason);
+            
+            return $this->db->execute();
         }
         
         return false;
@@ -686,175 +697,6 @@ class M_Session {
         
         $result = $this->db->single();
         return $result->count > 0;
-    }
-
-    // Get all upcoming bookings for a player (coach + trainer appointments + facility bookings)
-    public function getUpcomingBookingsForPlayer($playerId) {
-        $this->db->query("
-            SELECT 'coach' AS booking_type, ca.AppointmentID AS id, 
-                ca.AppointmentDate AS date, ca.StartTime, ca.EndTime, 
-                ca.Status, ca.Reason AS reason, u.Name AS practitioner_name
-            FROM coachappointment ca 
-            JOIN user u ON ca.CoachID = u.UserID 
-            WHERE ca.PlayerID = :pid1 AND ca.AppointmentDate >= CURDATE() AND ca.Status != 'cancelled'
-            UNION ALL
-            SELECT 'trainer', ta.AppointmentID, 
-                ta.AppointmentDate, ta.StartTime, ta.EndTime, 
-                ta.Status, ta.Reason, u.Name
-            FROM trainerappointment ta 
-            JOIN user u ON ta.TrainerID = u.UserID 
-            WHERE ta.PlayerID = :pid2 AND ta.AppointmentDate >= CURDATE() AND ta.Status != 'cancelled'
-            UNION ALL
-            SELECT 'facility', fb.FacilityBookingID, 
-                fb.BookingDate, fb.StartTime, fb.EndTime, 
-                fb.Status, f.Name, f.Name
-            FROM facilitybooking fb 
-            JOIN facility f ON fb.FacilityID = f.FacilityID 
-            WHERE fb.PlayerID = :pid3 AND fb.BookingDate >= CURDATE() AND fb.Status != 'cancelled'
-            ORDER BY date ASC, StartTime ASC
-        ");
-        $this->db->bind(':pid1', $playerId);
-        $this->db->bind(':pid2', $playerId);
-        $this->db->bind(':pid3', $playerId);
-        return $this->db->resultSet();
-    }
-
-    // Get booking history for a player
-    public function getBookingHistoryForPlayer($playerId) {
-        $this->db->query("
-            SELECT 'coach' AS booking_type, ca.AppointmentID AS id, 
-                ca.AppointmentDate AS date, ca.StartTime, ca.EndTime, 
-                ca.Status, ca.Reason AS reason, u.Name AS practitioner_name
-            FROM coachappointment ca 
-            JOIN user u ON ca.CoachID = u.UserID 
-            WHERE ca.PlayerID = :pid1
-            UNION ALL
-            SELECT 'trainer', ta.AppointmentID, 
-                ta.AppointmentDate, ta.StartTime, ta.EndTime, 
-                ta.Status, ta.Reason, u.Name
-            FROM trainerappointment ta 
-            JOIN user u ON ta.TrainerID = u.UserID 
-            WHERE ta.PlayerID = :pid2
-            UNION ALL
-            SELECT 'facility', fb.FacilityBookingID, 
-                fb.BookingDate, fb.StartTime, fb.EndTime, 
-                fb.Status, f.Name, f.Name
-            FROM facilitybooking fb 
-            JOIN facility f ON fb.FacilityID = f.FacilityID 
-            WHERE fb.PlayerID = :pid3
-            ORDER BY date DESC
-        ");
-        $this->db->bind(':pid1', $playerId);
-        $this->db->bind(':pid2', $playerId);
-        $this->db->bind(':pid3', $playerId);
-        return $this->db->resultSet();
-    }
-
-    // Get facility bookings for a player
-    public function getFacilityBookingsForPlayer($playerId) {
-        $this->db->query('SELECT fb.*, f.Name AS facility_name, f.Location, f.HourlyRate
-            FROM facilitybooking fb 
-            JOIN facility f ON fb.FacilityID = f.FacilityID 
-            WHERE fb.PlayerID = :player_id 
-            ORDER BY fb.BookingDate DESC');
-        $this->db->bind(':player_id', $playerId);
-        return $this->db->resultSet();
-    }
-
-    // Get available facilities and their bookings for a date
-    public function getUnavailableTimes($facilityId, $date) {
-        $this->db->query('SELECT StartTime, EndTime FROM facilitybooking 
-            WHERE FacilityID = :fid AND BookingDate = :date AND Status != "cancelled"
-            ORDER BY StartTime ASC');
-        $this->db->bind(':fid', $facilityId);
-        $this->db->bind(':date', $date);
-        return $this->db->resultSet();
-    }
-
-    // Get today's schedule for a player (sessions + appointments)
-    public function getTodayScheduleForPlayer($playerId) {
-        $this->db->query('SELECT s.SessionID, s.Name as activity, s.Date, s.StartTime as start_time, 
-            s.EndTime as end_time, s.Location as location, s.SessionType as type, u.Name as coach
-            FROM Session s
-            JOIN SessionEnrollment se ON s.SessionID = se.SessionID
-            LEFT JOIN User u ON s.CoachOrTrainerID = u.UserID
-            WHERE se.PlayerID = :pid AND s.Date = CURDATE() AND s.Status != "cancelled"
-            ORDER BY s.StartTime ASC');
-        $this->db->bind(':pid', $playerId);
-        return $this->db->resultSet();
-    }
-
-    // Get available coach sessions for booking
-    public function getAvailableCoachSessions($date = null) {
-        $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as coach_id, u.Name as coach_name, 
-            cp.Specialization as coach_specialization, s.Date as date, s.StartTime as start_time, 
-            s.EndTime as end_time, s.SessionType as session_type, s.MaxParticipants as max_participants,
-            (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
-            s.Location as location, s.Name as description, u.ProfileImage as coach_image
-            FROM Session s
-            JOIN User u ON s.CoachOrTrainerID = u.UserID
-            LEFT JOIN coachprofile cp ON s.CoachOrTrainerID = cp.CoachID
-            WHERE s.Status = "active" AND s.Date >= CURDATE()';
-        if ($date) {
-            $sql .= ' AND s.Date = :date';
-        }
-        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date, s.StartTime';
-        $this->db->query($sql);
-        if ($date) $this->db->bind(':date', $date);
-        return $this->db->resultSet();
-    }
-
-    // Get available trainer sessions for booking
-    public function getAvailableTrainerSessions($date = null) {
-        $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as trainer_id, u.Name as trainer_name,
-            tp.Specialization as trainer_specialization, s.Date as date, s.StartTime as start_time,
-            s.EndTime as end_time, s.SessionType as session_type, s.MaxParticipants as max_participants,
-            (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
-            s.Location as location, s.Name as description, u.ProfileImage as trainer_image
-            FROM Session s
-            JOIN User u ON s.CoachOrTrainerID = u.UserID
-            LEFT JOIN trainerprofile tp ON s.CoachOrTrainerID = tp.TrainerID
-            WHERE s.Status = "active" AND s.Date >= CURDATE()
-            AND u.Role = "Trainer"';
-        if ($date) {
-            $sql .= ' AND s.Date = :date';
-        }
-        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date, s.StartTime';
-        $this->db->query($sql);
-        if ($date) $this->db->bind(':date', $date);
-        return $this->db->resultSet();
-    }
-
-    // Book a coach appointment
-    public function bookCoachAppointment($data) {
-        $this->db->query('INSERT INTO coachappointment (PlayerID, CoachID, AppointmentDate, StartTime, EndTime, Status, Notes) 
-            VALUES (:pid, :cid, :date, :start, :end, :status, :notes)');
-        $this->db->bind(':pid', $data['player_id']);
-        $this->db->bind(':cid', $data['coach_id']);
-        $this->db->bind(':date', $data['date']);
-        $this->db->bind(':start', $data['start_time']);
-        $this->db->bind(':end', $data['end_time']);
-        $this->db->bind(':status', $data['status'] ?? 'Scheduled');
-        $this->db->bind(':notes', $data['notes'] ?? '');
-        if ($this->db->execute()) {
-            return $this->db->lastInsertId();
-        }
-        return false;
-    }
-
-    // Cancel an appointment
-    public function cancelAppointment($appointmentId, $playerId) {
-        $this->db->query('UPDATE coachappointment SET Status = "Cancelled" 
-            WHERE AppointmentID = :id AND PlayerID = :pid');
-        $this->db->bind(':id', $appointmentId);
-        $this->db->bind(':pid', $playerId);
-        return $this->db->execute();
-    }
-
-    // Get session types available
-    public function getSessionTypes() {
-        $this->db->query('SELECT DISTINCT SessionType FROM Session WHERE Status = "active" ORDER BY SessionType');
-        return $this->db->resultSet();
     }
 }
 ?>
