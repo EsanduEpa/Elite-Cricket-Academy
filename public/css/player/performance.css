@@ -1,6 +1,5 @@
 ﻿/* Performance Page - Uses Standard Dashboard Components */
-/* Import base dashboard styles */
-@import url('dashboard.css');
+/* Base dashboard styles loaded in header */
 
 /* Two Tables Per Row Layout */
 .performance-tables-row {

@@ -1,10 +1,5 @@
-<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
-<!-- Mobile-specific meta tags -->
-<meta name="theme-color" content="#2c3e50">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
+<?php require_once APPROOT . '/views/inc/components/player_dashboard_header.php'; ?>
+
     <!-- Player Dashboard Layout -->
     <div class="player-layout">
         <!-- Left Sidebar Panel -->
