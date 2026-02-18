@@ -8,9 +8,71 @@ class M_Performance {
 
     // Get overall stats for a player
     public function getOverallStats($playerId) {
+        // Try to get from playeroverallstats table first
         $this->db->query('SELECT * FROM playeroverallstats WHERE PlayerID = :player_id');
         $this->db->bind(':player_id', $playerId);
-        return $this->db->single();
+        $stats = $this->db->single();
+        
+        // If no stats found in overall table, calculate from match history
+        if (!$stats) {
+            return $this->calculateOverallStats($playerId);
+        }
+        
+        return $stats;
+    }
+    
+    // Calculate overall stats from match history (fallback method)
+    private function calculateOverallStats($playerId) {
+        $this->db->query('SELECT 
+            COUNT(*) as MatchesPlayed,
+            SUM(RunsScored) as TotalRuns,
+            SUM(BallsFaced) as TotalBalls,
+            MAX(RunsScored) as HighestScore,
+            SUM(WicketsTaken) as Wickets,
+            SUM(OversBowled) as TotalOvers,
+            SUM(RunsConceded) as TotalRunsConceded,
+            SUM(CASE WHEN RunsScored >= 100 THEN 1 ELSE 0 END) as Centuries,
+            SUM(CASE WHEN RunsScored >= 50 AND RunsScored < 100 THEN 1 ELSE 0 END) as HalfCenturies,
+            SUM(CASE WHEN WicketsTaken >= 5 THEN 1 ELSE 0 END) as FiveWickets,
+            SUM(CASE WHEN WicketsTaken >= 4 AND WicketsTaken < 5 THEN 1 ELSE 0 END) as FourWickets
+            FROM playermatchperformance
+            WHERE PlayerID = :player_id');
+        $this->db->bind(':player_id', $playerId);
+        $result = $this->db->single();
+        
+        if ($result && $result->MatchesPlayed > 0) {
+            // Calculate averages
+            $battingAvg = $result->TotalRuns > 0 && $result->MatchesPlayed > 0 ? 
+                round($result->TotalRuns / $result->MatchesPlayed, 2) : 0;
+            $strikeRate = $result->TotalBalls > 0 ? 
+                round(($result->TotalRuns / $result->TotalBalls) * 100, 2) : 0;
+            $bowlingAvg = $result->Wickets > 0 ? 
+                round($result->TotalRunsConceded / $result->Wickets, 2) : 0;
+            $economyRate = $result->TotalOvers > 0 ? 
+                round($result->TotalRunsConceded / $result->TotalOvers, 2) : 0;
+            
+            // Create a stats object
+            $stats = new stdClass();
+            $stats->PlayerID = $playerId;
+            $stats->MatchesPlayed = $result->MatchesPlayed;
+            $stats->TotalRuns = $result->TotalRuns ?? 0;
+            $stats->BattingAvg = $battingAvg;
+            $stats->StrikeRate = $strikeRate;
+            $stats->HighestScore = $result->HighestScore ?? 0;
+            $stats->Centuries = $result->Centuries ?? 0;
+            $stats->HalfCenturies = $result->HalfCenturies ?? 0;
+            $stats->Wickets = $result->Wickets ?? 0;
+            $stats->BowlingAvg = $bowlingAvg;
+            $stats->EconomyRate = $economyRate;
+            $stats->BestBowling = 'N/A'; // Can't easily calculate from aggregates
+            $stats->FiveWickets = $result->FiveWickets ?? 0;
+            $stats->FourWickets = $result->FourWickets ?? 0;
+            $stats->Wins = 0; // Would need match result tracking
+            
+            return $stats;
+        }
+        
+        return false;
     }
 
     // Get match history for a player
@@ -152,29 +214,64 @@ class M_Performance {
 
     // Add new performance statistics (by player)
     public function addPerformanceStatistics($data) {
-        $this->db->query('INSERT INTO playermatchperformance 
-            (MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, 
-             RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy) 
-            VALUES (:match_id, :player_id, :runs, :balls, :wickets, :overs, 
-                    :runs_conceded, :catches, :stumpings, :rating, :verified_status, :added_by)');
+        // First, check if VerifiedStatus column exists (for backward compatibility)
+        $hasVerificationColumns = $this->checkVerificationColumns();
         
-        $this->db->bind(':match_id', $data['match_id']);
-        $this->db->bind(':player_id', $data['player_id']);
-        $this->db->bind(':runs', $data['runs_scored']);
-        $this->db->bind(':balls', $data['balls_faced']);
-        $this->db->bind(':wickets', $data['wickets_taken']);
-        $this->db->bind(':overs', $data['overs_bowled']);
-        $this->db->bind(':runs_conceded', $data['runs_conceded']);
-        $this->db->bind(':catches', $data['catches']);
-        $this->db->bind(':stumpings', $data['stumpings']);
-        $this->db->bind(':rating', $data['rating'] ?? 0);
-        $this->db->bind(':verified_status', 'pending'); // Default to pending
-        $this->db->bind(':added_by', $data['added_by']);
+        if ($hasVerificationColumns) {
+            // Use new schema with verification columns
+            $this->db->query('INSERT INTO playermatchperformance 
+                (MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, 
+                 RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy) 
+                VALUES (:match_id, :player_id, :runs, :balls, :wickets, :overs, 
+                        :runs_conceded, :catches, :stumpings, :rating, :verified_status, :added_by)');
+            
+            $this->db->bind(':match_id', $data['match_id']);
+            $this->db->bind(':player_id', $data['player_id']);
+            $this->db->bind(':runs', $data['runs_scored']);
+            $this->db->bind(':balls', $data['balls_faced']);
+            $this->db->bind(':wickets', $data['wickets_taken']);
+            $this->db->bind(':overs', $data['overs_bowled']);
+            $this->db->bind(':runs_conceded', $data['runs_conceded']);
+            $this->db->bind(':catches', $data['catches']);
+            $this->db->bind(':stumpings', $data['stumpings']);
+            $this->db->bind(':rating', $data['rating'] ?? 0);
+            $this->db->bind(':verified_status', 'pending');
+            $this->db->bind(':added_by', $data['added_by']);
+        } else {
+            // Use old schema without verification columns (fallback)
+            $this->db->query('INSERT INTO playermatchperformance 
+                (MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, 
+                 RunsConceded, Catches, Stumpings, Rating) 
+                VALUES (:match_id, :player_id, :runs, :balls, :wickets, :overs, 
+                        :runs_conceded, :catches, :stumpings, :rating)');
+            
+            $this->db->bind(':match_id', $data['match_id']);
+            $this->db->bind(':player_id', $data['player_id']);
+            $this->db->bind(':runs', $data['runs_scored']);
+            $this->db->bind(':balls', $data['balls_faced']);
+            $this->db->bind(':wickets', $data['wickets_taken']);
+            $this->db->bind(':overs', $data['overs_bowled']);
+            $this->db->bind(':runs_conceded', $data['runs_conceded']);
+            $this->db->bind(':catches', $data['catches']);
+            $this->db->bind(':stumpings', $data['stumpings']);
+            $this->db->bind(':rating', $data['rating'] ?? 0);
+        }
         
         if ($this->db->execute()) {
             return $this->db->lastInsertId();
         }
         return false;
+    }
+    
+    // Check if verification columns exist in the database
+    private function checkVerificationColumns() {
+        try {
+            $this->db->query("SHOW COLUMNS FROM playermatchperformance LIKE 'VerifiedStatus'");
+            $result = $this->db->single();
+            return $result !== false;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     // Get performance statistics with verification status

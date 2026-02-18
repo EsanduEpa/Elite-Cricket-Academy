@@ -1,9 +1,7 @@
-<?php 
-// Set page-specific CSS
-$data['page_css'] = 'performance';
-require_once APPROOT . '/views/inc/components/player_dashboard_header.php'; 
-?>
-    
+<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/performance.css?v=<?php echo time(); ?>">
+
     <div class="player-layout">
         <!-- Simple Sidebar -->
         <div class="player-sidebar" id="playerSidebar">
@@ -109,87 +107,108 @@ require_once APPROOT . '/views/inc/components/player_dashboard_header.php';
                                 <tr>
                                     <th>Statistic</th>
                                     <th>Value</th>
-                                    <th>Rank</th>
-                                    <th>Improvement</th>
+                                    <th style="width: 20%;">Details</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-baseball-ball"></i> Batting Average
-                                        </div>
-                                        <div class="table-cell-details">Runs per dismissal</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">45.2</div>
-                                        <div class="table-cell-secondary">runs</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#8</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #28a745; color: white;">+5.2</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-running"></i> Total Runs
-                                        </div>
-                                        <div class="table-cell-details">Career runs scored</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">1,245</div>
-                                        <div class="table-cell-secondary">runs</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#5</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #28a745; color: white;">+185</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-bullseye"></i> Highest Score
-                                        </div>
-                                        <div class="table-cell-details">Best individual innings</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">85</div>
-                                        <div class="table-cell-secondary">not out</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#12</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-percentage"></i> Strike Rate
-                                        </div>
-                                        <div class="table-cell-details">Runs per 100 balls</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">78%</div>
-                                        <div class="table-cell-secondary">per 100 balls</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#6</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #ffc107; color: black;">-2%</span>
-                                    </td>
-                                </tr>
+                                <?php if (isset($data['performanceStats']['batting'])): 
+                                    $batting = $data['performanceStats']['batting'];
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-baseball-ball"></i> Batting Average
+                                            </div>
+                                            <div class="table-cell-details">Runs per dismissal</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #4A90E2;">
+                                                <?php echo number_format($batting['average'], 2); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">runs</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Average</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-running"></i> Total Runs
+                                            </div>
+                                            <div class="table-cell-details">Career runs scored</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #27ae60;">
+                                                <?php echo number_format($batting['total_runs']); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">runs</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">All Matches</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-bullseye"></i> Highest Score
+                                            </div>
+                                            <div class="table-cell-details">Best individual innings</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #e67e22;">
+                                                <?php echo $batting['highest_score'] > 0 ? $batting['highest_score'] : 'N/A'; ?>
+                                            </div>
+                                            <div class="table-cell-secondary">runs</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Personal Best</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-percentage"></i> Strike Rate
+                                            </div>
+                                            <div class="table-cell-details">Runs per 100 balls</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #9b59b6;">
+                                                <?php echo number_format($batting['strike_rate'], 2); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">per 100 balls</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Strike Rate</div>
+                                        </td>
+                                    </tr>
+                                    <?php if ($batting['centuries'] > 0 || $batting['half_centuries'] > 0): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-star"></i> Milestones
+                                            </div>
+                                            <div class="table-cell-details">Centuries and half-centuries</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary">
+                                                <?php echo $batting['centuries']; ?> / <?php echo $batting['half_centuries']; ?>
+                                            </div>
+                                            <div class="table-cell-secondary">100s / 50s</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Milestones</div>
+                                        </td>
+                                    </tr>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; padding: 40px; color: #888;">
+                                            <i class="fas fa-info-circle" style="font-size: 24px; display: block; margin-bottom: 10px;"></i>
+                                            No batting statistics available yet. Add performance data to see your stats.
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -211,87 +230,115 @@ require_once APPROOT . '/views/inc/components/player_dashboard_header.php';
                                 <tr>
                                     <th>Statistic</th>
                                     <th>Value</th>
-                                    <th>Rank</th>
-                                    <th>Improvement</th>
+                                    <th style="width: 20%;">Details</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-fire"></i> Wickets Taken
-                                        </div>
-                                        <div class="table-cell-details">Total career wickets</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">15</div>
-                                        <div class="table-cell-secondary">wickets</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#4</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #28a745; color: white;">+3</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-chart-bar"></i> Economy Rate
-                                        </div>
-                                        <div class="table-cell-details">Runs per over</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">3.2</div>
-                                        <div class="table-cell-secondary">runs/over</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#3</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #28a745; color: white;">-0.5</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-bullseye"></i> Best Figures
-                                        </div>
-                                        <div class="table-cell-details">Best bowling in an innings</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">4/25</div>
-                                        <div class="table-cell-secondary">wickets/runs</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#2</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #17a2b8; color: white;">New</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title">
-                                            <i class="fas fa-crosshairs"></i> Bowling Average
-                                        </div>
-                                        <div class="table-cell-details">Runs per wicket</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">24.8</div>
-                                        <div class="table-cell-secondary">runs/wicket</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary">#5</div>
-                                        <div class="table-cell-secondary">in team</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge" style="background: #28a745; color: white;">-3.2</span>
-                                    </td>
-                                </tr>
+                                <?php if (isset($data['performanceStats']['bowling'])): 
+                                    $bowling = $data['performanceStats']['bowling'];
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-fire"></i> Wickets Taken
+                                            </div>
+                                            <div class="table-cell-details">Total career wickets</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #e74c3c;">
+                                                <?php echo $bowling['total_wickets']; ?>
+                                            </div>
+                                            <div class="table-cell-secondary">wickets</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Total</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-chart-bar"></i> Economy Rate
+                                            </div>
+                                            <div class="table-cell-details">Runs per over</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: <?php echo $bowling['economy_rate'] <= 6 ? '#27ae60' : ($bowling['economy_rate'] > 9 ? '#e74c3c' : '#4A90E2'); ?>;">
+                                                <?php echo number_format($bowling['economy_rate'], 2); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">runs/over</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">
+                                                <?php 
+                                                if ($bowling['economy_rate'] <= 6) echo 'Excellent';
+                                                elseif ($bowling['economy_rate'] <= 8) echo 'Good';
+                                                elseif ($bowling['economy_rate'] <= 10) echo 'Average';
+                                                else echo 'Needs Work';
+                                                ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-bullseye"></i> Best Figures
+                                            </div>
+                                            <div class="table-cell-details">Best bowling in an innings</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #f39c12;">
+                                                <?php echo htmlspecialchars($bowling['best_figures']); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">wickets/runs</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Personal Best</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-crosshairs"></i> Bowling Average
+                                            </div>
+                                            <div class="table-cell-details">Runs per wicket</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary" style="font-size: 20px; color: #9b59b6;">
+                                                <?php echo number_format($bowling['average'], 2); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">runs/wicket</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Average</div>
+                                        </td>
+                                    </tr>
+                                    <?php if ($bowling['five_wickets'] > 0 || $bowling['four_wickets'] > 0): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <i class="fas fa-star"></i> Milestones
+                                            </div>
+                                            <div class="table-cell-details">5-wicket and 4-wicket hauls</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary">
+                                                <?php echo $bowling['five_wickets']; ?> / <?php echo $bowling['four_wickets']; ?>
+                                            </div>
+                                            <div class="table-cell-secondary">5-W / 4-W</div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-secondary">Career Hauls</div>
+                                        </td>
+                                    </tr>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; padding: 40px; color: #888;">
+                                            <i class="fas fa-info-circle" style="font-size: 24px; display: block; margin-bottom: 10px;"></i>
+                                            No bowling statistics available yet. Add performance data to see your stats.
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
