@@ -49,6 +49,8 @@ class Player extends Controller {
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
             'performanceStats' => $this->getPerformanceStats(),
+            'battingStats' => $this->getBattingStats(),
+            'bowlingStats' => $this->getBowlingStats(),
             'coachSessions' => $coachSessions
         ];
 
@@ -775,7 +777,8 @@ class Player extends Controller {
                 error_log("Performance statistics creation error: " . $e->getMessage());
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
+                    'message' => 'Database error: ' . $e->getMessage(),
+                    'error_details' => 'Check if database schema is up to date. Run check_performance_schema.php'
                 ]);
             }
         } else {
@@ -1205,6 +1208,63 @@ class Player extends Controller {
         }
         return ['batting_avg'=>0,'strike_rate'=>0,'total_runs'=>0,'total_wickets'=>0,
                 'bowling_avg'=>0,'economy_rate'=>0,'matches_played'=>0,'wins'=>0];
+    }
+    
+    private function getBattingStats() {
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $perfModel = $this->model('M_Performance');
+        $matches = $perfModel->getMatchHistory($playerId, 10);
+        
+        $battingData = [];
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                if ($match->RunsScored > 0 || $match->BallsFaced > 0) {
+                    $strikeRate = $match->BallsFaced > 0 ? 
+                        round(($match->RunsScored / $match->BallsFaced) * 100, 2) : 0;
+                    
+                    $battingData[] = [
+                        'match_date' => $match->Date,
+                        'opponent' => $match->OpponentTeam,
+                        'tournament' => $match->TournamentName,
+                        'runs' => $match->RunsScored,
+                        'balls' => $match->BallsFaced,
+                        'strike_rate' => $strikeRate,
+                        'result' => $match->Result,
+                        'venue' => $match->Venue
+                    ];
+                }
+            }
+        }
+        return $battingData;
+    }
+    
+    private function getBowlingStats() {
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $perfModel = $this->model('M_Performance');
+        $matches = $perfModel->getMatchHistory($playerId, 10);
+        
+        $bowlingData = [];
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                if ($match->WicketsTaken > 0 || $match->OversBowled > 0) {
+                    $economy = $match->OversBowled > 0 ? 
+                        round($match->RunsConceded / $match->OversBowled, 2) : 0;
+                    
+                    $bowlingData[] = [
+                        'match_date' => $match->Date,
+                        'opponent' => $match->OpponentTeam,
+                        'tournament' => $match->TournamentName,
+                        'wickets' => $match->WicketsTaken,
+                        'overs' => $match->OversBowled,
+                        'runs_conceded' => $match->RunsConceded,
+                        'economy' => $economy,
+                        'result' => $match->Result,
+                        'venue' => $match->Venue
+                    ];
+                }
+            }
+        }
+        return $bowlingData;
     }
     
     private function getTodaySchedule() {

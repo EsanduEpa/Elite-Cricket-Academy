@@ -1695,3 +1695,78 @@ body {
         height: 3px;
     }
 }
+
+/* Badge Styles */
+.badge-info {
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Enhanced color-coded table badges */
+.table-badge.status-active {
+    background: rgba(39, 174, 96, 0.15);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.table-badge.status-cancelled {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.table-badge.status-upcoming {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f39c12;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+/* Table cell styling enhancements */
+.table-cell-primary {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.table-cell-secondary {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 3px;
+}
+
+.table-cell-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.table-cell-details {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* Stat cards hover effects */
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+}
+
+/* Table row hover */
+.dashboard-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.05);
+    cursor: default;
+}
+
+/* Empty state styling */
+.dashboard-table tbody td[colspan] {
+    background: rgba(0, 0, 0, 0.02);
+    font-style: italic;
+}
