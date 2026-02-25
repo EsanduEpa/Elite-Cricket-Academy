@@ -463,7 +463,7 @@ class Player extends Controller {
     // Performance History
     public function performance() {
         $perfModel = $this->model('M_Performance');
-        $playerId = $_SESSION['user_id'] ?? 1;
+        $playerId = $_SESSION['user_id'] ?? 6;
         
         $data = [
             'title' => 'Performance History',
@@ -483,7 +483,7 @@ class Player extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Sanitize input data
             $data = [
-                'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
+                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
                 'date' => trim($_POST['date'] ?? ''),
                 'match_name' => trim($_POST['match_name'] ?? ''),
                 'tournament' => trim($_POST['tournament'] ?? ''),
@@ -553,7 +553,7 @@ class Player extends Controller {
             // Sanitize input data
             $data = [
                 'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
-                'player_id' => $_SESSION['user_id'] ?? 1, // Default to 1 for testing
+                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
                 'date' => trim($_POST['date'] ?? ''),
                 'match_name' => trim($_POST['match_name'] ?? ''),
                 'tournament' => trim($_POST['tournament'] ?? ''),
@@ -623,7 +623,7 @@ class Player extends Controller {
     public function getAchievement() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $achievementId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+            $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
 
             header('Content-Type: application/json');
 
@@ -665,7 +665,7 @@ class Player extends Controller {
     public function deleteAchievement() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $achievementId = filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+            $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
 
             header('Content-Type: application/json');
 
@@ -728,7 +728,7 @@ class Player extends Controller {
     public function addPerformanceStats() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
-                'player_id' => $_SESSION['user_id'] ?? 1,
+                'player_id' => $_SESSION['user_id'] ?? 6,
                 'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
                 'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
                 'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
@@ -738,7 +738,7 @@ class Player extends Controller {
                 'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
                 'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
                 'rating' => floatval($_POST['rating'] ?? 0),
-                'added_by' => $_SESSION['user_id'] ?? 1
+                'added_by' => $_SESSION['user_id'] ?? 6
             ];
 
             $errors = [];
@@ -849,7 +849,7 @@ class Player extends Controller {
     public function editPerformanceStats() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 1;
+            $playerId = $_SESSION['user_id'] ?? 6;
             
             $data = [
                 'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
@@ -933,7 +933,7 @@ class Player extends Controller {
     public function deletePerformanceStats() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 1;
+            $playerId = $_SESSION['user_id'] ?? 6;
 
             header('Content-Type: application/json');
 
@@ -994,7 +994,7 @@ class Player extends Controller {
 
     // Get player achievements (for display)
     private function getPlayerAchievements() {
-        $playerId = $_SESSION['user_id'] ?? 1; // Default to 1 for testing
+        $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
         
         // First, try to get data from database
         try {
