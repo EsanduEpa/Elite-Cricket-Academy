@@ -1310,20 +1310,37 @@ class M_Users {
     }
 
     /**
-     * Get players assigned to a specific coach
+     * Get assignments from playercoachassignment table
+     * @param int $userId - The user ID to look up
+     * @param string $lookupBy - 'coach' to get players for a coach, 'player' to get coaches for a player
+     * @return array - Result set of assigned users
      */
-    public function getPlayersAssignedToCoach($coachId) {
-        $this->db->query('SELECT 
-            u.UserID, u.Name, u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
-            u.ProfileImage, u.Address, u.School,
-            pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, pp.SubscriptionType,
-            pca.AssignmentType, pca.AssignedDate, pca.Status as AssignmentStatus, pca.Notes as AssignmentNotes
-        FROM playercoachassignment pca
-        JOIN User u ON pca.PlayerID = u.UserID
-        LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
-        WHERE pca.CoachID = :coachId AND pca.Status = "active"
-        ORDER BY u.Name ASC');
-        $this->db->bind(':coachId', $coachId);
+    public function getPlayersAssignedToCoach($userId, $lookupBy = 'coach') {
+        if ($lookupBy === 'player') {
+            // Get coaches assigned to this player
+            $this->db->query('SELECT 
+                u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
+                cp.Specialization as specialization, cp.ExperienceYears as experience_years, cp.Certifications,
+                pca.AssignmentType, pca.Status as AssignmentStatus
+            FROM playercoachassignment pca
+            JOIN User u ON pca.CoachID = u.UserID
+            JOIN coachprofile cp ON u.UserID = cp.CoachID
+            WHERE pca.PlayerID = :userId AND pca.Status = "active" AND u.Status = "active"
+            ORDER BY u.Name ASC');
+        } else {
+            // Default: Get players assigned to this coach
+            $this->db->query('SELECT 
+                u.UserID, u.Name, u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
+                u.ProfileImage, u.Address, u.School,
+                pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, pp.SubscriptionType,
+                pca.AssignmentType, pca.AssignedDate, pca.Status as AssignmentStatus, pca.Notes as AssignmentNotes
+            FROM playercoachassignment pca
+            JOIN User u ON pca.PlayerID = u.UserID
+            LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+            WHERE pca.CoachID = :userId AND pca.Status = "active"
+            ORDER BY u.Name ASC');
+        }
+        $this->db->bind(':userId', $userId);
         return $this->db->resultSet();
     }
 

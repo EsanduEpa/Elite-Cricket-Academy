@@ -184,108 +184,84 @@
                             </tr>
                         </thead>
                         <tbody id="sessions-tbody">
-                            <!-- Coach Session Example -->
-                            <tr data-type="coach" data-status="confirmed">
-                                <td>
-                                    <div class="table-cell-title">Batting Technique Session</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user-tie"></i> Coach Session
-                                    </div>
-                                    <span class="table-badge">Coach</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Coach Johnson</div>
-                                    <div class="table-cell-secondary">Cricket Coach</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Oct 20, 2025</div>
-                                    <div class="table-cell-secondary">9:00 AM - 10:00 AM</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Indoor Net 1</div>
-                                    <div class="table-cell-secondary">Premium Facility</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn btn-sm" onclick="viewSession(1)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Trainer Session Example -->
-                            <tr data-type="trainer" data-status="confirmed">
-                                <td>
-                                    <div class="table-cell-title">Strength & Conditioning</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-dumbbell"></i> Trainer Session
-                                    </div>
-                                    <span class="table-badge">Trainer</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Trainer Williams</div>
-                                    <div class="table-cell-secondary">Fitness Trainer</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Oct 21, 2025</div>
-                                    <div class="table-cell-secondary">6:00 AM - 7:00 AM</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Fitness Center</div>
-                                    <div class="table-cell-secondary">Gym Facility</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-confirmed">Confirmed</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn btn-sm" onclick="viewSession(2)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Pending Coach Session -->
-                            <tr data-type="coach" data-status="pending">
-                                <td>
-                                    <div class="table-cell-title">Bowling Technique Session</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user-tie"></i> Coach Session
-                                    </div>
-                                    <span class="table-badge">Coach</span>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Coach Anderson</div>
-                                    <div class="table-cell-secondary">Cricket Coach</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Oct 22, 2025</div>
-                                    <div class="table-cell-secondary">2:00 PM - 3:00 PM</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-primary">Practice Ground B</div>
-                                    <div class="table-cell-secondary">Outdoor Field</div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-pending">Pending</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn btn-sm" onclick="makePayment(3)">
-                                        <i class="fas fa-credit-card"></i> Pay
-                                    </button>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['upcomingBookings'])): ?>
+                                <?php foreach ($data['upcomingBookings'] as $booking): 
+                                    $type = $booking->booking_type; // 'coach', 'trainer', 'facility'
+                                    $status = strtolower($booking->Status);
+                                    $dateFormatted = date('M d, Y', strtotime($booking->date));
+                                    $startTime = date('g:i A', strtotime($booking->StartTime));
+                                    $endTime = date('g:i A', strtotime($booking->EndTime));
+                                    
+                                    // Icon and label based on type
+                                    if ($type === 'coach') {
+                                        $icon = 'fa-user-tie';
+                                        $typeLabel = 'Coach Session';
+                                        $badgeLabel = 'Coach';
+                                        $roleLabel = 'Cricket Coach';
+                                    } elseif ($type === 'trainer') {
+                                        $icon = 'fa-dumbbell';
+                                        $typeLabel = 'Trainer Session';
+                                        $badgeLabel = 'Trainer';
+                                        $roleLabel = 'Fitness Trainer';
+                                    } else {
+                                        $icon = 'fa-building';
+                                        $typeLabel = 'Facility Booking';
+                                        $badgeLabel = 'Facility';
+                                        $roleLabel = 'Facility';
+                                    }
+                                    
+                                    // Status class
+                                    $statusClass = 'status-' . $status;
+                                    $statusLabel = ucfirst($status);
+                                ?>
+                                <tr data-type="<?= $type ?>" data-status="<?= $status ?>">
+                                    <td>
+                                        <div class="table-cell-title"><?= htmlspecialchars($booking->reason ?? $typeLabel) ?></div>
+                                        <div class="table-cell-details">
+                                            <i class="fas <?= $icon ?>"></i> <?= $typeLabel ?>
+                                        </div>
+                                        <span class="table-badge"><?= $badgeLabel ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?= htmlspecialchars($booking->practitioner_name) ?></div>
+                                        <div class="table-cell-secondary"><?= $roleLabel ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?= $dateFormatted ?></div>
+                                        <div class="table-cell-secondary"><?= $startTime ?> - <?= $endTime ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">-</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge <?= $statusClass ?>"><?= $statusLabel ?></span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <?php if ($status === 'scheduled' || $status === 'confirmed'): ?>
+                                            <button class="action-btn btn-sm" onclick="viewSession(<?= $booking->id ?>)">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        <?php elseif ($status === 'pending'): ?>
+                                            <button class="action-btn btn-sm" onclick="makePayment(<?= $booking->id ?>)">
+                                                <i class="fas fa-credit-card"></i> Pay
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="table-cell-secondary"><?= $statusLabel ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                     
                     <!-- Empty State -->
-                    <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-state" id="empty-state" style="display: <?= empty($data['upcomingBookings']) ? 'block' : 'none' ?>;">
                         <div class="empty-icon">
                             <i class="fas fa-calendar-times"></i>
                         </div>
                         <h3>No Sessions Found</h3>
-                        <p>No sessions match your current filter criteria.</p>
+                        <p>No upcoming sessions. Book a coach or trainer session to get started!</p>
                         <button class="action-btn" onclick="clearFilters()">
                             <i class="fas fa-filter"></i> Clear Filters
                         </button>

@@ -801,13 +801,15 @@ return $result->count > 0;
     public function getAvailableCoachSessions($date = null) {
         $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as coach_id, u.Name as coach_name, 
             cp.Specialization as coach_specialization, s.Date as date, s.StartTime as start_time, 
-            s.EndTime as end_time, s.SessionType as session_type, s.MaxParticipants as max_participants,
+            s.EndTime as end_time, s.SessionType as session_type, s.SessionMode as session_mode,
+            s.MaxParticipants as max_participants,
             (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
-            s.Location as location, s.Name as description, u.ProfileImage as coach_image
+            s.Location as location, s.Name as description, u.ProfileImage as coach_image,
+            s.PricePerSession as price
             FROM Session s
             JOIN User u ON s.CoachOrTrainerID = u.UserID
             LEFT JOIN coachprofile cp ON s.CoachOrTrainerID = cp.CoachID
-            WHERE s.Status = "active" AND s.Date >= CURDATE()';
+            WHERE s.Status = "active" AND s.Date >= CURDATE() AND s.SessionType = "Coaching"';
         if ($date) {
             $sql .= ' AND s.Date = :date';
         }

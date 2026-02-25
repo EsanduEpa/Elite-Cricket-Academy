@@ -1023,24 +1023,7 @@ class Player extends Controller {
                 'VerifiedStatus' => 'verified',
                 'CreatedAt' => '2024-10-15 15:30:00'
             ],
-            (object)[
-                'AchievementID' => 2,
-                'Date' => '2024-10-12',
-                'MatchName' => 'vs City Warriors',
-                'Tournament' => 'Championship',
-                'Achievement' => 'Hot Streak - 5 consecutive match wins',
-                'VerifiedStatus' => 'verified',
-                'CreatedAt' => '2024-10-12 14:20:00'
-            ],
-            (object)[
-                'AchievementID' => 3,
-                'Date' => '2024-10-08',
-                'MatchName' => 'vs Thunder Bolts',
-                'Tournament' => 'Local Cup',
-                'Achievement' => 'Perfect Aim - Hit 3 sixes in a row',
-                'VerifiedStatus' => 'pending',
-                'CreatedAt' => '2024-10-08 16:45:00'
-            ]
+            
         ];
     }
     
@@ -1124,12 +1107,35 @@ class Player extends Controller {
     // Coach Sessions Page
     public function coach_sessions() {
         $this->requireLogin();
+        $playerId = $_SESSION['user_id'] ?? 6;
+        
+        // Get player subscription to determine access level
+        $paymentModel = $this->model('M_Payment');
+        $subscription = $paymentModel->getPlayerSubscription($playerId);
+        $planName = $subscription->PlanName ?? '';
+        $privateSessionsIncluded = (int)($subscription->PrivateSessionsIncluded ?? 0);
+        
+        // Determine if player can see all coaches or only assigned
+        // If plan includes private sessions (PrivateSessionsIncluded > 0) or is Premium → all coaches
+        // Otherwise (Basic, Junior, no subscription) → assigned coach only
+        $canAccessAllCoaches = ($privateSessionsIncluded > 0);
+        
+        $userModel = $this->model('M_Users');
+        if ($canAccessAllCoaches) {
+            $coaches = $userModel->getAllCoachProfiles();
+        } else {
+            $coaches = $userModel->getPlayersAssignedToCoach($playerId, 'player');
+        }
+        
         $data = [
             'title' => 'Coach Sessions',
             'player' => $this->getPlayerData(),
-            'coaches' => $this->getAllCoaches(),
+            'coaches' => $coaches,
             'availableSlots' => $this->getAvailableCoachSlots(),
-            'sessionTypes' => $this->getSessionTypes()
+            'sessionTypes' => ['Group', 'Private'],
+            'subscription' => $subscription,
+            'canAccessAllCoaches' => $canAccessAllCoaches,
+            'planName' => $planName
         ];
         $this->view('player/coach_sessions', $data);
     }
@@ -1324,7 +1330,7 @@ class Player extends Controller {
         $bookings = $sessionModel->getUpcomingBookingsForPlayer($playerId);
         // Filter to only coach sessions
         return array_values(array_filter($bookings, function($b) {
-            return (isset($b->booking_type) && $b->booking_type === 'Coach Session');
+            return (isset($b->booking_type) && $b->booking_type === 'coach');
         }));
     }
     
