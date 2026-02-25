@@ -33,11 +33,14 @@ class M_Payment {
 
     // Get active subscription for a player
     public function getPlayerSubscription($playerId) {
-        $this->db->query('SELECT ps.*, mp.PlanName, mp.Description, mp.MonthlyFee, 
+        $this->db->query('SELECT ps.SubscriptionID, ps.PlayerID, ps.PlanID, ps.StartDate, ps.EndDate,
+            ps.Status, ps.MonthlyFee AS SubscriptionFee, ps.PaymentDay, ps.AutoRenewal,
+            mp.PlanName, mp.Description, mp.MonthlyFee AS PlanFee, 
             mp.SessionsPerWeek, mp.PrivateSessionsIncluded, mp.FacilityAccessIncluded
             FROM playersubscription ps 
             JOIN membershipplan mp ON ps.PlanID = mp.PlanID 
-            WHERE ps.PlayerID = :player_id AND ps.Status = "active"');
+            WHERE ps.PlayerID = :player_id AND ps.Status = "active"
+            ORDER BY ps.StartDate DESC LIMIT 1');
         $this->db->bind(':player_id', $playerId);
         return $this->db->single();
     }
