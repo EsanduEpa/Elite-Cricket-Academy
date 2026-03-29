@@ -830,7 +830,7 @@ CREATE TABLE `performanceupdate` (
 --
 -- Triggers `performanceupdate`
 --
-DELIMITER $$
+/*DELIMITER $$
 CREATE TRIGGER `tr_performance_update_logging` AFTER INSERT ON `performanceupdate` FOR EACH ROW BEGIN
     -- Log the performance update
     INSERT INTO ActivityLog (UserID, Action, Description) 
@@ -885,32 +885,32 @@ CREATE TRIGGER `tr_performance_update_validation` BEFORE INSERT ON `performanceu
 END
 $$
 DELIMITER ;
+*/
 DELIMITER $$
-CREATE TRIGGER `tr_update_overall_stats` AFTER UPDATE ON `performanceupdate` FOR EACH ROW BEGIN
-    IF NEW.Status = 'approved' AND OLD.Status != 'approved' THEN
-        -- Update overall statistics
+CREATE TRIGGER `tr_update_overall_stats` AFTER UPDATE ON `playermatchperformance` FOR EACH ROW BEGIN
+    IF NEW.VerifiedStatus = 'approved' 
+        -- Update overall statistics (only on first approval)
         UPDATE PlayerOverallStats 
         SET 
             TotalRuns = TotalRuns + COALESCE(NEW.RunsScored, 0),
             TotalWickets = TotalWickets + COALESCE(NEW.WicketsTaken, 0),
             HighestScore = GREATEST(HighestScore, COALESCE(NEW.RunsScored, 0)),
-            LastUpdatedBy = NEW.CoachID
+            LastUpdatedBy = NEW.VerifiedBy
         WHERE PlayerID = NEW.PlayerID;
         
         -- Log stats update
         INSERT INTO ActivityLog (UserID, Action, Description) 
         VALUES (NEW.PlayerID, 'stats_updated_by_coach', 
-                CONCAT('Overall stats updated by coach ID: ', NEW.CoachID, ' based on performance update ID: ', NEW.UpdateID));
+                CONCAT('Overall stats updated by coach ID: ', NEW.VerifiedBy, ' based on performance ID: ', NEW.PerformanceID));
         
         -- Notify player about stats update
         INSERT INTO Notification (UserID, Type, Title, Message) 
         VALUES (NEW.PlayerID, 'stats_updated', 'Performance Statistics Updated',
-                'Your overall performance statistics have been updated based on recent coaching assessments.');
+                'Your overall performance statistics have been updated based on your match performance approval.');
     END IF;
 END
 $$
 DELIMITER ;
-
 -- --------------------------------------------------------
 
 --

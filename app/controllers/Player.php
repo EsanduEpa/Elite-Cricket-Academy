@@ -1197,25 +1197,25 @@ class Player extends Controller {
     }
     
     private function getPerformanceStats() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        $stats = $perfModel->getOverallStats($playerId);
-        if ($stats) {
-            return [
-                'batting_avg' => $stats->BattingAvg ?? 0,
-                'strike_rate' => $stats->StrikeRate ?? 0,
-                'total_runs' => $stats->TotalRuns ?? 0,
-                'total_wickets' => $stats->Wickets ?? 0,
-                'bowling_avg' => $stats->BowlingAvg ?? 0,
-                'economy_rate' => $stats->EconomyRate ?? 0,
-                'matches_played' => $stats->MatchesPlayed ?? 0,
-                'wins' => $stats->Wins ?? 0
-            ];
-        }
-        return ['batting_avg'=>0,'strike_rate'=>0,'total_runs'=>0,'total_wickets'=>0,
-                'bowling_avg'=>0,'economy_rate'=>0,'matches_played'=>0,'wins'=>0];
+    $playerId = $_SESSION['user_id'] ?? 6;
+    $perfModel = $this->model('M_Performance');
+    $stats = $perfModel->getOverallStats($playerId);
+    if ($stats) {
+        return [
+            'batting_avg' => $stats->BattingAverage ?? 0,  // Changed from BattingAvg
+            'strike_rate' => $stats->StrikeRate ?? 0,
+            'total_runs' => $stats->TotalRuns ?? 0,
+            'total_wickets' => $stats->TotalWickets ?? 0,  // Changed from Wickets
+            'bowling_avg' => $stats->BowlingAverage ?? 0,
+            'economy_rate' => $stats->EconomyRate ?? 0,
+            'matches_played' => $stats->MatchesPlayed ?? 0,
+            'wins' => $stats->Wins ?? 0
+        ];
     }
-    
+    return ['batting_avg'=>0,'strike_rate'=>0,'total_runs'=>0,'total_wickets'=>0,
+            'bowling_avg'=>0,'economy_rate'=>0,'matches_played'=>0,'wins'=>0];
+}
+
     private function getBattingStats() {
         $playerId = $_SESSION['user_id'] ?? 6;
         $perfModel = $this->model('M_Performance');
@@ -1378,7 +1378,7 @@ class Player extends Controller {
             return [
                 'batting' => [
                     'total_runs' => $stats->TotalRuns ?? 0,
-                    'average' => $stats->BattingAvg ?? 0,
+                    'average' => $stats->BattingAverage ?? 0,
                     'strike_rate' => $stats->StrikeRate ?? 0,
                     'centuries' => $stats->Centuries ?? 0,
                     'half_centuries' => $stats->HalfCenturies ?? 0,
@@ -1386,7 +1386,7 @@ class Player extends Controller {
                 ],
                 'bowling' => [
                     'total_wickets' => $stats->Wickets ?? 0,
-                    'average' => $stats->BowlingAvg ?? 0,
+                    'average' => $stats->BowlingAverage ?? 0,
                     'economy_rate' => $stats->EconomyRate ?? 0,
                     'best_figures' => $stats->BestBowling ?? 'N/A',
                     'five_wickets' => $stats->FiveWickets ?? 0,
