@@ -17,63 +17,124 @@ class M_Performance {
         if (!$stats) {
             return $this->calculateOverallStats($playerId);
         }
-        
+
+        // If the row exists but is still empty,
+        // In that case, refresh from playermatchperformance.
+        $matchesPlayed = (int)($stats->MatchesPlayed ?? 0);
+        if ($matchesPlayed === 0 && $this->hasAnyRelevantPerformanceRecords($playerId)) {
+            $recalculated = $this->calculateOverallStats($playerId);
+            return $recalculated ?: $stats;
+        }
+
         return $stats;
     }
+
+    private function hasAnyRelevantPerformanceRecords($playerId) {
+        $hasVerificationColumns = $this->checkVerificationColumns();
+
+        if ($hasVerificationColumns) {
+            $this->db->query('SELECT COUNT(*) AS cnt
+                FROM playermatchperformance
+                WHERE PlayerID = :player_id AND VerifiedStatus = "verified"');
+        } 
+
+        $this->db->bind(':player_id', $playerId);
+        $row = $this->db->single();
+        return (int)($row->cnt ?? 0) > 0;
+    }
     
-    // Calculate overall stats from match history (fallback method)
+
+    // Calculate overall stats from match history and persist into playeroverallstats
     private function calculateOverallStats($playerId) {
+        $hasVerificationColumns = $this->checkVerificationColumns();
+        $verificationFilter = $hasVerificationColumns ? ' AND VerifiedStatus = "verified"' : '';
+
         $this->db->query('SELECT 
             COUNT(*) as MatchesPlayed,
-            SUM(RunsScored) as TotalRuns,
-            SUM(BallsFaced) as TotalBalls,
-            MAX(RunsScored) as HighestScore,
-            SUM(WicketsTaken) as Wickets,
-            SUM(OversBowled) as TotalOvers,
-            SUM(RunsConceded) as TotalRunsConceded,
-            SUM(CASE WHEN RunsScored >= 100 THEN 1 ELSE 0 END) as Centuries,
-            SUM(CASE WHEN RunsScored >= 50 AND RunsScored < 100 THEN 1 ELSE 0 END) as HalfCenturies,
-            SUM(CASE WHEN WicketsTaken >= 5 THEN 1 ELSE 0 END) as FiveWickets,
-            SUM(CASE WHEN WicketsTaken >= 4 AND WicketsTaken < 5 THEN 1 ELSE 0 END) as FourWickets
+            COALESCE(SUM(RunsScored), 0) as TotalRuns,
+            COALESCE(SUM(BallsFaced), 0) as TotalBalls,
+            COALESCE(MAX(RunsScored), 0) as HighestScore,
+            COALESCE(SUM(WicketsTaken), 0) as Wickets,
+            COALESCE(SUM(OversBowled), 0) as TotalOvers,
+            COALESCE(SUM(RunsConceded), 0) as TotalRunsConceded
             FROM playermatchperformance
-            WHERE PlayerID = :player_id');
+            WHERE PlayerID = :player_id' . $verificationFilter);
         $this->db->bind(':player_id', $playerId);
         $result = $this->db->single();
-        
-        if ($result && $result->MatchesPlayed > 0) {
-            // Calculate averages
-            $battingAvg = $result->TotalRuns > 0 && $result->MatchesPlayed > 0 ? 
-                round($result->TotalRuns / $result->MatchesPlayed, 2) : 0;
-            $strikeRate = $result->TotalBalls > 0 ? 
-                round(($result->TotalRuns / $result->TotalBalls) * 100, 2) : 0;
-            $bowlingAvg = $result->Wickets > 0 ? 
-                round($result->TotalRunsConceded / $result->Wickets, 2) : 0;
-            $economyRate = $result->TotalOvers > 0 ? 
-                round($result->TotalRunsConceded / $result->TotalOvers, 2) : 0;
-            
-            // Create a stats object
-            $stats = new stdClass();
-            $stats->PlayerID = $playerId;
-            $stats->MatchesPlayed = $result->MatchesPlayed;
-            $stats->TotalRuns = $result->TotalRuns ?? 0;
-            $stats->BattingAvg = $battingAvg;
-            $stats->StrikeRate = $strikeRate;
-            $stats->HighestScore = $result->HighestScore ?? 0;
-            $stats->Centuries = $result->Centuries ?? 0;
-            $stats->HalfCenturies = $result->HalfCenturies ?? 0;
-            $stats->Wickets = $result->Wickets ?? 0;
-            $stats->BowlingAvg = $bowlingAvg;
-            $stats->EconomyRate = $economyRate;
-            $stats->BestBowling = 'N/A'; // Can't easily calculate from aggregates
-            $stats->FiveWickets = $result->FiveWickets ?? 0;
-            $stats->FourWickets = $result->FourWickets ?? 0;
-            $stats->Wins = 0; // Would need match result tracking
-            
-            return $stats;
+
+        if (!$result) {
+            return false;
         }
-        
-        return false;
+
+        $matchesPlayed = (int)($result->MatchesPlayed ?? 0);
+        $totalRuns = (int)($result->TotalRuns ?? 0);
+        $totalBalls = (float)($result->TotalBalls ?? 0);
+        $highestScore = (int)($result->HighestScore ?? 0);
+        $totalWickets = (int)($result->Wickets ?? 0);
+        $totalOvers = (float)($result->TotalOvers ?? 0);
+        $totalRunsConceded = (int)($result->TotalRunsConceded ?? 0);
+
+        $battingAvg = $matchesPlayed > 0 ? round($totalRuns / $matchesPlayed, 2) : 0;
+        $strikeRate = $totalBalls > 0 ? round(($totalRuns / $totalBalls) * 100, 2) : 0;
+        $bowlingAvg = $totalWickets > 0 ? round($totalRunsConceded / $totalWickets, 2) : 0;
+        $economyRate = $totalOvers > 0 ? round($totalRunsConceded / $totalOvers, 2) : 0;
+
+        // Persist computed stats (works whether row is pre-created or not).
+        $this->db->query('INSERT INTO playeroverallstats
+            (PlayerID, MatchesPlayed, TotalRuns, TotalWickets, HighestScore,
+             BattingAverage, BowlingAverage, StrikeRate, EconomyRate)
+            VALUES
+            (:player_id, :matches_played, :total_runs, :total_wickets, :highest_score,
+             :batting_avg, :bowling_avg, :strike_rate, :economy_rate)
+            ON DUPLICATE KEY UPDATE
+                MatchesPlayed = VALUES(MatchesPlayed),
+                TotalRuns = VALUES(TotalRuns),
+                TotalWickets = VALUES(TotalWickets),
+                HighestScore = VALUES(HighestScore),
+                BattingAverage = VALUES(BattingAverage),
+                BowlingAverage = VALUES(BowlingAverage),
+                StrikeRate = VALUES(StrikeRate),
+                EconomyRate = VALUES(EconomyRate)');
+
+        $this->db->bind(':player_id', $playerId);
+        $this->db->bind(':matches_played', $matchesPlayed);
+        $this->db->bind(':total_runs', $totalRuns);
+        $this->db->bind(':total_wickets', $totalWickets);
+        $this->db->bind(':highest_score', $highestScore);
+        $this->db->bind(':batting_avg', $battingAvg);
+        $this->db->bind(':bowling_avg', $bowlingAvg);
+        $this->db->bind(':strike_rate', $strikeRate);
+        $this->db->bind(':economy_rate', $economyRate);
+
+        $persisted = $this->db->execute();
+        if (!$persisted) {
+            error_log('Failed to persist playeroverallstats for PlayerID=' . $playerId . ' error=' . print_r($this->db->getError(), true));
+        }
+
+        // Return object with both legacy and schema-accurate property names (for existing controller code).
+        $stats = new stdClass();
+        $stats->PlayerID = $playerId;
+        $stats->MatchesPlayed = $matchesPlayed;
+        $stats->TotalRuns = $totalRuns;
+        $stats->HighestScore = $highestScore;
+        $stats->TotalWickets = $totalWickets;
+        $stats->BattingAverage = $battingAvg;
+        $stats->BowlingAverage = $bowlingAvg;
+        $stats->StrikeRate = $strikeRate;
+        $stats->EconomyRate = $economyRate;
+
+        // Legacy aliases
+        $stats->BattingAvg = $battingAvg;
+        $stats->BowlingAvg = $bowlingAvg;
+        $stats->Wickets = $totalWickets;
+
+        return $stats;
     }
+
+
+
+
+
 
     // Get match history for a player
     public function getMatchHistory($playerId, $limit = 20) {
@@ -82,7 +143,7 @@ class M_Performance {
             FROM playermatchperformance pmp 
             JOIN crimatch cm ON pmp.MatchID = cm.MatchID 
             JOIN tournament t ON cm.TournamentID = t.TournamentID 
-            WHERE pmp.PlayerID = :player_id 
+            WHERE pmp.PlayerID = :player_id and pmp.VerifiedStatus = "verified"
             ORDER BY cm.Date DESC LIMIT :limit');
         $this->db->bind(':player_id', $playerId);
         $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
@@ -112,7 +173,7 @@ class M_Performance {
         return $this->db->resultSet();
     }
 
-    // Get performance updates/assessments from coaches
+    /*// Get performance updates/assessments from coaches
     public function getPerformanceUpdates($playerId, $limit = 10) {
         $this->db->query('SELECT pu.*, u.Name AS CoachName, s.Name AS SessionName
             FROM performanceupdate pu
@@ -123,7 +184,7 @@ class M_Performance {
         $this->db->bind(':player_id', $playerId);
         $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
         return $this->db->resultSet();
-    }
+    }*/
 
     // Get all tournaments a player is participating in
     public function getPlayerTournaments($playerId) {
@@ -334,19 +395,39 @@ class M_Performance {
     }
 
     // Verify/Reject performance statistics (for coaches/admins)
-    public function updatePerformanceVerification($performanceId, $status, $verifiedBy) {
-        $this->db->query('UPDATE playermatchperformance 
-            SET VerifiedStatus = :status, 
-                VerifiedBy = :verified_by, 
-                VerifiedAt = NOW() 
-            WHERE PerformanceID = :performance_id');
-        
-        $this->db->bind(':status', $status);
-        $this->db->bind(':verified_by', $verifiedBy);
-        $this->db->bind(':performance_id', $performanceId);
-        
-        return $this->db->execute();
+   
+public function updatePerformanceVerification($performanceId, $status, $verifiedBy) {
+    // Get PlayerID first
+    $this->db->query('SELECT PlayerID FROM playermatchperformance WHERE PerformanceID = :performance_id');
+    $this->db->bind(':performance_id', $performanceId);
+    $record = $this->db->single();
+    
+    if (!$record) {
+        return false;
     }
+    
+    // Update verification status
+    $this->db->query('UPDATE playermatchperformance 
+        SET VerifiedStatus = :status, 
+            VerifiedBy = :verified_by, 
+            VerifiedAt = NOW() 
+        WHERE PerformanceID = :performance_id');
+    
+    $this->db->bind(':status', $status);
+    $this->db->bind(':verified_by', $verifiedBy);
+    $this->db->bind(':performance_id', $performanceId);
+    
+    if (!$this->db->execute()) {
+        return false;
+    }
+    
+    // Recalculate overall stats after verification
+    if ($status === 'verified') {
+        $this->calculateOverallStats($record->PlayerID);
+    }
+    
+    return true;
+}
 
     // Get available matches (for dropdown when adding performance)
     public function getAvailableMatches($limit = 50) {
