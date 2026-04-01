@@ -124,7 +124,10 @@ function initFilters() {
     const priceFilter = document.getElementById('price-filter');
     
     if (categoryFilter) {
-        categoryFilter.addEventListener('change', filterProducts);
+        categoryFilter.addEventListener('change', function () {
+            updateProductCategoryNavButtons(this.value);
+            filterProducts();
+        });
     }
     if (brandFilter) {
         brandFilter.addEventListener('change', filterProducts);
@@ -132,6 +135,9 @@ function initFilters() {
     if (priceFilter) {
         priceFilter.addEventListener('change', filterProducts);
     }
+
+    // Rentals-style category navigation buttons (Shopping page)
+    initProductCategoryNavigation();
     
     // Rental filters
     const rentalCategoryFilter = document.getElementById('rental-category-filter');
@@ -157,6 +163,55 @@ function initFilters() {
     }
 }
 
+function initProductCategoryNavigation() {
+    const nav = document.getElementById('product-category-navigation');
+    if (!nav) return;
+
+    const buttons = nav.querySelectorAll('.product-category-btn');
+    if (!buttons.length) return;
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const category = (this.dataset && this.dataset.category) ? this.dataset.category : 'all';
+            const categoryFilter = document.getElementById('category-filter');
+            if (categoryFilter) {
+                categoryFilter.value = category;
+            }
+            updateProductCategoryNavButtons(category);
+            filterProducts();
+        });
+    });
+
+    // Initial sync from dropdown if present
+    const categoryFilter = document.getElementById('category-filter');
+    const initialCategory = categoryFilter ? categoryFilter.value : 'all';
+    updateProductCategoryNavButtons(initialCategory);
+}
+
+function updateProductCategoryNavButtons(activeCategory) {
+    const nav = document.getElementById('product-category-navigation');
+    if (!nav) return;
+
+    const normalized = (activeCategory || 'all').toString();
+    const buttons = nav.querySelectorAll('.product-category-btn');
+    let anyMatched = false;
+
+    buttons.forEach(btn => {
+        const btnCategory = (btn.dataset && btn.dataset.category) ? btn.dataset.category : '';
+        const isActive = (btnCategory === normalized);
+        btn.classList.toggle('active', isActive);
+        if (isActive) anyMatched = true;
+    });
+
+    if (!anyMatched) {
+        // Fallback to All
+        buttons.forEach(btn => {
+            const btnCategory = (btn.dataset && btn.dataset.category) ? btn.dataset.category : '';
+            btn.classList.toggle('active', btnCategory === 'all');
+        });
+    }
+}
+
 // Filter products based on category, brand, and price
 function filterProducts() {
     const categoryFilter = document.getElementById('category-filter');
@@ -167,7 +222,8 @@ function filterProducts() {
     const selectedBrand = brandFilter ? brandFilter.value : 'all';
     const selectedPrice = priceFilter ? priceFilter.value : 'all';
     
-    const productCards = document.querySelectorAll('.product-card');
+    const grid = document.getElementById('products-grid');
+    const productCards = grid ? grid.querySelectorAll('.product-card') : document.querySelectorAll('.product-card');
     
     productCards.forEach(card => {
         const cardCategory = card.dataset.category;

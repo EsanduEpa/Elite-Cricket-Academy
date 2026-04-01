@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Feb 16, 2026 at 06:56 PM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Host: 127.0.0.1
+-- Generation Time: Apr 01, 2026 at 09:35 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -189,17 +189,23 @@ INSERT INTO `activitylog` (`ActivityID`, `UserID`, `Action`, `Description`, `IPA
 (18, 17, 'account_created', 'New Coach account created', NULL, NULL, '2025-10-22 13:55:27'),
 (19, 18, 'account_created', 'New Player account created', NULL, NULL, '2025-10-22 21:19:54'),
 (20, 18, 'account_created', 'New player account registered', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '2025-10-22 21:19:54'),
+(21, 19, 'account_created', 'New Trainer account created', NULL, NULL, '2025-10-22 21:30:39'),
 (22, 20, 'account_created', 'New Player account created', NULL, NULL, '2025-10-23 10:08:20'),
 (23, 20, 'account_created', 'New player account registered', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '2025-10-23 10:08:20'),
+(24, 21, 'account_created', 'New Player account created', NULL, NULL, '2026-01-17 09:19:41'),
+(25, 21, 'account_created', 'New player account registered', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-17 09:19:41'),
 (26, 1, 'Event Created', 'Created new event: Mu2 (Match)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-17 10:08:22'),
 (27, 1, 'Event Updated', 'Updated event: Mu2456 (Match)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-17 10:15:57'),
-(30, 23, 'account_created', 'New Coach account created', NULL, NULL, '2026-02-10 15:40:17'),
-(31, 1, 'Staff Created', 'Added new staff member: Esandu Epa (Coach)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 15:40:17'),
-(41, 1, 'Player Created', 'Added new player: Esandu Epa', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 16:52:54'),
-(42, 1, 'Player Deleted', 'Deleted player: Esandu Epa (ID: 22)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 17:18:18'),
-(43, 1, 'Player Deleted', 'Deleted player: Esandu Epa (ID: 32)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 17:22:06'),
-(44, 1, 'Player Deleted', 'Deleted player: Esandu Epa (ID: 21)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 17:22:18'),
-(45, 1, 'Event Created', 'Created new event: ABC23 (Training Camp)', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-10 17:32:05');
+(28, 22, 'account_created', 'New Player account created', NULL, NULL, '2026-02-03 14:11:50'),
+(29, 22, 'account_created', 'New player account registered', '::1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-02-03 14:11:50'),
+(31, 6, 'Staff Created', 'Added new staff member: shalitha (Trainer)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 13:44:43'),
+(33, 6, 'Staff Created', 'Added new staff member: hjxbhzvculo (Trainer)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 13:48:55'),
+(34, 25, 'account_created', 'New Player account created', NULL, NULL, '2026-02-17 13:57:36'),
+(35, 6, 'Player Created', 'Added new player: shalitha', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 13:57:36'),
+(36, 3, 'Event Updated', 'Updated event: Mu2456 (Match)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 14:35:40'),
+(37, 15, 'stats_updated_by_coach', 'Overall stats updated by coach ID: 0 based on performance ID: 22', NULL, NULL, '2026-03-29 01:04:09'),
+(38, 15, 'stats_updated_by_coach', 'Overall stats updated by coach ID: 0 based on performance ID: 23', NULL, NULL, '2026-03-29 03:02:04'),
+(39, 25, 'stats_updated_by_coach', 'Overall stats updated by coach ID: 0 based on performance ID: 4', NULL, NULL, '2026-03-29 09:08:27');
 
 -- --------------------------------------------------------
 
@@ -229,6 +235,13 @@ CREATE TABLE `coachappointment` (
   `Status` enum('scheduled','completed','cancelled','rescheduled') DEFAULT 'scheduled',
   `Reason` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='One-on-one appointments between coaches and players';
+
+--
+-- Dumping data for table `coachappointment`
+--
+
+INSERT INTO `coachappointment` (`AppointmentID`, `CoachID`, `PlayerID`, `AppointmentDate`, `StartTime`, `EndTime`, `Status`, `Reason`) VALUES
+(1, 9, 15, '2026-03-01', '08:00:00', '09:00:00', 'scheduled', 'Batting technique improvement');
 
 -- --------------------------------------------------------
 
@@ -338,8 +351,7 @@ INSERT INTO `coachprofile` (`CoachID`, `Specialization`, `Experience`, `Certific
 (9, 'Batting', 5, NULL, 0),
 (11, 'Bowling', 10, NULL, 0),
 (12, 'Bowling', 7, NULL, 0),
-(17, 'Bowling', 0, NULL, 0),
-(23, NULL, NULL, NULL, 0);
+(17, 'Bowling', 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -421,6 +433,7 @@ CREATE TABLE `contactus` (
 CREATE TABLE `crimatch` (
   `MatchID` int(11) NOT NULL,
   `TournamentID` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
   `Date` date NOT NULL,
   `Venue` varchar(255) DEFAULT NULL,
   `OpponentTeam` varchar(255) NOT NULL,
@@ -428,6 +441,29 @@ CREATE TABLE `crimatch` (
   `OurScore` varchar(50) DEFAULT NULL,
   `OpponentScore` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Individual matches within tournaments';
+
+--
+-- Dumping data for table `crimatch`
+--
+
+INSERT INTO `crimatch` (`MatchID`, `TournamentID`, `name`, `Date`, `Venue`, `OpponentTeam`, `Result`, `OurScore`, `OpponentScore`) VALUES
+(1, 7, 'Elite League - Round 1', '2026-01-15', 'Main Cricket Ground', 'Thunder Warriors', 'win', '185/8 (20 overs)', '178/10 (19.4 overs)'),
+(2, 7, 'Elite League - Round 2', '2026-01-22', 'City Sports Complex', 'Royal Knights', 'loss', '142/10 (18.2 overs)', '145/6 (20 overs)'),
+(3, 7, 'Elite League - Round 3', '2026-01-29', 'Main Cricket Ground', 'Falcon Strikers', 'win', '198/5 (20 overs)', '192/8 (20 overs)'),
+(4, 7, 'Elite League - Semi Final', '2026-02-05', 'Stadium Ground', 'Phoenix Blazers', 'win', '167/7 (20 overs)', '160/9 (20 overs)'),
+(5, 7, 'Elite League - Final', '2026-02-12', 'Championship Stadium', 'Cobra Kings', 'loss', '155/10 (19.1 overs)', '158/6 (19.5 overs)'),
+(6, 8, 'Championship - Group A', '2026-01-18', 'Green Park Ground', 'Eagle Warriors', 'win', '205/6 (20 overs)', '198/9 (20 overs)'),
+(7, 8, 'Championship - Group B', '2026-01-25', 'Oval Cricket Ground', 'Lions Pride', 'win', '178/5 (18 overs)', '175/10 (17.4 overs)'),
+(8, 8, 'Championship - Quarter Final', '2026-02-01', 'Memorial Ground', 'Dragon Fire', 'win', '189/7 (20 overs)', '182/8 (20 overs)'),
+(9, 8, 'Championship - Semi Final', '2026-02-08', 'City Sports Complex', 'Viper Squad', 'loss', '165/10 (19.2 overs)', '168/7 (19.5 overs)'),
+(10, 9, 'Local Cup - Round 1', '2026-01-20', 'Community Ground', 'Blue Tigers', 'win', '156/6 (20 overs)', '148/10 (18.3 overs)'),
+(11, 9, 'Local Cup - Round 2', '2026-01-27', 'Town Cricket Field', 'Red Panthers', 'win', '172/5 (20 overs)', '168/9 (20 overs)'),
+(12, 9, 'Local Cup - Final', '2026-02-03', 'Main Cricket Ground', 'Golden Hawks', 'win', '195/4 (20 overs)', '188/8 (20 overs)'),
+(13, 10, 'Elite League - Round 4', '2026-02-19', 'Main Cricket Ground', 'Storm Chasers', 'pending', NULL, NULL),
+(14, 10, 'Elite League - Round 5', '2026-02-22', 'Stadium Ground', 'Thunder Warriors', 'pending', NULL, NULL),
+(15, 10, 'Championship - Round 3', '2026-02-25', 'City Sports Complex', 'Falcon Strikers', 'pending', NULL, NULL),
+(16, 10, 'Local Cup - Semi Final', '2026-02-28', 'Memorial Ground', 'Silver Sharks', 'pending', NULL, NULL),
+(17, 10, 'Local Cup - Final', '2026-03-05', 'Championship Stadium', 'TBD', 'pending', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -470,20 +506,13 @@ INSERT INTO `emaillog` (`EmailID`, `UserID`, `RecipientEmail`, `Subject`, `Email
 (16, 16, 'e@g.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-22 13:22:54'),
 (17, 17, 'v3@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-22 13:55:27'),
 (18, 18, 'jini.a.lm2@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-22 21:19:54'),
-(19, NULL, 'coach@cricketacademy.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-22 21:30:39'),
+(19, 19, 'coach@cricketacademy.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-22 21:30:39'),
 (20, 20, 'esanduepa0225@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2025-10-23 10:08:20'),
-(21, NULL, 'esanduepa022555@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-01-17 09:19:41'),
-(22, NULL, 'esanduepa0225777@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-03 14:11:50'),
-(23, 23, 'esanduepa0225111@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 15:40:17'),
-(24, NULL, 'esanduepa0225hvj@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:37:16'),
-(25, NULL, 'esanduepa0225hvj@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:41:20'),
-(26, NULL, 'esanduepa0225gugkgf@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:41:52'),
-(27, NULL, 'esanduepa0225gugkgf@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:42:07'),
-(28, NULL, 'esanduepa02258888@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:44:35'),
-(29, NULL, 'esanduepa02256677@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:45:43'),
-(30, NULL, 'esanduepa0225787@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:48:37'),
-(31, NULL, 'esanduepa0225787@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:49:02'),
-(32, NULL, 'esanduepa0225787@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-10 16:52:54');
+(21, 21, 'esanduepa022555@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-01-17 09:19:41'),
+(22, 22, 'esanduepa0225777@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-03 14:11:50'),
+(23, NULL, 'shalitha@eliteca.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-17 13:44:43'),
+(24, NULL, 'jin@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-17 13:48:55'),
+(25, 25, 'jina.lm2@gmail.com', 'Welcome to Cricket Academy', 'welcome', 'queued', NULL, NULL, '2026-02-17 13:57:36');
 
 -- --------------------------------------------------------
 
@@ -500,28 +529,29 @@ CREATE TABLE `equipment` (
   `RentalPrice` decimal(10,2) NOT NULL,
   `PurchasePrice` decimal(10,2) DEFAULT NULL,
   `Stock` int(11) NOT NULL DEFAULT 0 COMMENT 'Quantity of equipment items available in inventory',
-  `EqCondition` enum('new','good','fair','poor') DEFAULT 'good'
+  `EqCondition` enum('new','good','fair','poor') DEFAULT 'good',
+  `equipmentImage` varchar(255) DEFAULT NULL COMMENT 'Relative path to product image (e.g., uploads/shop_product/product_1_123456789.jpg)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cricket equipment available for rental or purchase';
 
 --
 -- Dumping data for table `equipment`
 --
 
-INSERT INTO `equipment` (`EquipmentID`, `Name`, `Description`, `Category`, `AvailabilityStatus`, `RentalPrice`, `PurchasePrice`, `Stock`, `EqCondition`) VALUES
-(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'rented', 25.00, 150.00, 0, 'new'),
-(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'rented', 5.00, 15.00, 0, 'new'),
-(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'rented', 15.00, 80.00, 0, 'new'),
-(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good'),
-(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good'),
-(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 150.00, 0, 'new'),
-(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 15.00, 0, 'new'),
-(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 80.00, 0, 'new'),
-(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good'),
-(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good'),
-(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 25.00, 150.00, 0, ''),
-(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 20.00, 100.00, 0, 'good'),
-(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 22.00, 80.00, 0, ''),
-(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 18.00, 75.00, 0, 'good');
+INSERT INTO `equipment` (`EquipmentID`, `Name`, `Description`, `Category`, `AvailabilityStatus`, `RentalPrice`, `PurchasePrice`, `Stock`, `EqCondition`, `equipmentImage`) VALUES
+(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'rented', 25.00, 150.00, 0, 'new', NULL),
+(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'rented', 5.00, 15.00, 0, 'new', NULL),
+(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'rented', 15.00, 80.00, 0, 'new', NULL),
+(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good', NULL),
+(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good', NULL),
+(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 150.00, 0, 'new', NULL),
+(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 15.00, 0, 'new', NULL),
+(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 80.00, 0, 'new', NULL),
+(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good', NULL),
+(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good', NULL),
+(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 25.00, 150.00, 0, '', NULL),
+(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 20.00, 100.00, 0, 'good', NULL),
+(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 22.00, 80.00, 0, '', NULL),
+(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 18.00, 75.00, 0, 'good', NULL);
 
 -- --------------------------------------------------------
 
@@ -566,11 +596,11 @@ CREATE TABLE `equipmentrental` (
 --
 
 INSERT INTO `equipmentrental` (`RentalID`, `EquipmentID`, `PlayerID`, `RentalDate`, `StartTime`, `EndTime`, `Status`, `TotalCost`, `ProcessedBy`, `ReturnInspectedBy`, `ReturnNotes`, `LateFee`) VALUES
-(1, 1, 7, '2026-01-15', '2026-01-17 18:47:36', '2026-01-17 23:47:36', 'active', 500.00, 7, NULL, NULL, 0.00),
-(2, 2, 16, '2026-01-16', '2026-01-17 19:47:36', '2026-01-18 00:47:36', 'active', 300.00, 7, NULL, NULL, 0.00),
-(3, 3, 20, '2026-01-17', '2026-01-17 20:17:36', '2026-01-18 02:47:36', 'active', 450.00, 7, NULL, NULL, 0.00),
-(4, 4, 7, '2026-01-12', '2026-01-15 20:47:36', '2026-01-16 20:47:36', 'returned', 500.00, 7, NULL, NULL, 0.00),
-(5, 5, 16, '2026-01-10', '2026-01-12 20:47:36', '2026-01-14 20:47:36', 'returned', 300.00, 7, NULL, NULL, 0.00);
+(1, 1, 7, '2026-01-15', '2026-01-17 18:47:36', '2026-01-17 23:47:36', 'active', 500.00, 5, NULL, NULL, 0.00),
+(2, 2, 15, '2026-01-16', '2026-01-17 19:47:36', '2026-01-18 00:47:36', 'active', 300.00, 5, NULL, NULL, 0.00),
+(3, 3, 20, '2026-01-17', '2026-01-17 20:17:36', '2026-01-18 02:47:36', 'active', 450.00, 5, NULL, NULL, 0.00),
+(4, 4, 7, '2026-01-12', '2026-01-15 20:47:36', '2026-01-16 20:47:36', 'returned', 500.00, 5, NULL, NULL, 0.00),
+(5, 5, 15, '2026-01-10', '2026-01-12 20:47:36', '2026-01-14 20:47:36', 'returned', 300.00, 5, NULL, NULL, 0.00);
 
 --
 -- Triggers `equipmentrental`
@@ -644,15 +674,14 @@ CREATE TABLE `event` (
 --
 
 INSERT INTO `event` (`EventID`, `Name`, `Type`, `Category`, `Description`, `StartDate`, `EndDate`, `Location`, `Status`, `RegistrationStart`, `RegistrationEnd`, `PrimaryContact`, `ContactEmail`, `ContactPhone`, `MaxParticipants`, `RegistrationFee`) VALUES
-(4, 'elite summer training', 'Training Camp', 'junior', NULL, '2025-10-31 07:00:00', '2025-10-31 17:00:00', 'main ground', 'upcoming', '2025-10-22 16:41:00', '2025-10-23 15:41:00', 'esandu', 'esandu@gmail.com', '0987654321', NULL, NULL),
-(5, 'summer camp', 'Training Camp', 'junior', NULL, '2025-10-30 20:59:00', '2025-10-31 03:04:00', 'main ground two', 'upcoming', '2025-10-23 20:00:00', '2025-10-24 20:02:00', 'esandu', 'e@gmail.com', '0987654321', 10000, 1000000.00),
-(7, 'Music Fest', 'Trial', 'academy', 'Relaxation', '2025-10-23 01:04:00', '2025-10-23 01:35:00', 'Ground', 'ongoing', '2025-10-23 01:03:00', '2025-10-23 01:04:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 100, NULL),
-(8, 'Music Fest23', 'Seminar', 'senior', 'Relaxation', '2025-10-23 04:05:00', '2025-10-23 07:05:00', 'Ground', 'upcoming', '2025-10-23 01:05:00', '2025-10-23 01:10:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, NULL),
-(9, 'Music Fest12356', 'Training Camp', 'youth', 'good', '2025-10-24 10:34:00', '2025-10-28 15:33:00', '2Ground', 'upcoming', '2025-10-23 10:35:00', '2025-10-23 10:39:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 11, 1.00),
-(10, 'Mu3', 'Training Camp', 'senior', 'dcvfrverv', '2025-10-28 00:49:00', '2025-10-29 00:52:00', 'Jwddd', 'upcoming', '2025-10-27 00:47:00', '2025-10-27 00:50:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 7, 0.04),
-(11, 'Mu55555910', 'Training Camp', 'junior', 'ycjjfufu', '2026-01-18 09:51:00', '2026-01-28 09:51:00', 'Ground', 'upcoming', '2026-01-17 09:53:00', '2026-01-18 09:51:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, 65.00),
-(12, 'Mu2456', 'Match', 'senior', 'wevrvev', '2026-01-17 14:08:00', '2026-01-18 10:11:00', 'Ground', 'upcoming', '2026-01-17 10:08:00', '2026-01-17 10:11:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, NULL),
-(13, 'ABC23', 'Training Camp', 'senior', 'Good', '2026-02-11 17:31:00', '2026-02-19 17:34:00', 'Ground', 'upcoming', '2026-02-10 17:31:00', '2026-02-10 17:33:00', 'Esandu', 'esanduepa0225@gmail.com', '+94774267307', NULL, NULL);
+(4, 'elite summer training', 'Training Camp', 'junior', NULL, '2025-10-31 07:00:00', '2025-10-31 17:00:00', 'main ground', 'completed', '2025-10-22 16:41:00', '2025-10-23 15:41:00', 'esandu', 'esandu@gmail.com', '0987654321', NULL, NULL),
+(5, 'summer camp', 'Training Camp', 'junior', NULL, '2025-10-30 20:59:00', '2025-10-31 03:04:00', 'main ground two', 'completed', '2025-10-23 20:00:00', '2025-10-24 20:02:00', 'esandu', 'e@gmail.com', '0987654321', 10000, 1000000.00),
+(7, 'Music Fest', 'Trial', 'academy', 'Relaxation', '2025-10-23 01:04:00', '2025-10-23 01:35:00', 'Ground', 'completed', '2025-10-23 01:03:00', '2025-10-23 01:04:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 100, NULL),
+(8, 'Music Fest23', 'Seminar', 'senior', 'Relaxation', '2025-10-23 04:05:00', '2025-10-23 07:05:00', 'Ground', 'completed', '2025-10-23 01:05:00', '2025-10-23 01:10:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, NULL),
+(9, 'Music Fest12356', 'Training Camp', 'youth', 'good', '2025-10-24 10:34:00', '2025-10-28 15:33:00', '2Ground', 'completed', '2025-10-23 10:35:00', '2025-10-23 10:39:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 11, 1.00),
+(10, 'Mu3', 'Training Camp', 'senior', 'dcvfrverv', '2025-10-28 00:49:00', '2025-10-29 00:52:00', 'Jwddd', 'completed', '2025-10-27 00:47:00', '2025-10-27 00:50:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', 7, 0.04),
+(11, 'Mu55555910', 'Training Camp', 'junior', 'ycjjfufu', '2026-01-18 09:51:00', '2026-01-28 09:51:00', 'Ground', 'completed', '2026-01-17 09:53:00', '2026-01-18 09:51:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, 65.00),
+(12, 'Mu2456', 'Match', 'senior', 'wevrvev', '2026-04-17 14:08:00', '2026-05-18 10:11:00', 'Ground', 'completed', '2026-06-17 10:08:00', '2026-07-17 10:11:00', 'Esandu Epa', 'esanduepa0225@gmail.com', '+94774267307', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -680,24 +709,25 @@ CREATE TABLE `facility` (
   `Location` varchar(255) DEFAULT NULL,
   `Capacity` int(11) NOT NULL,
   `AvailabilityStatus` enum('available','occupied','maintenance') DEFAULT 'available',
-  `HourlyRate` decimal(10,2) DEFAULT 0.00
+  `HourlyRate` decimal(10,2) DEFAULT 0.00,
+  `facilityImage` varchar(255) DEFAULT NULL COMMENT 'Relative path to product image (e.g., uploads/shop_product/product_1_123456789.jpg)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cricket facilities like nets, bowling machines, grounds';
 
 --
 -- Dumping data for table `facility`
 --
 
-INSERT INTO `facility` (`FacilityID`, `Name`, `Location`, `Capacity`, `AvailabilityStatus`, `HourlyRate`) VALUES
-(1, 'Practice Net 1', 'North Ground', 6, 'available', 50.00),
-(2, 'Practice Net 2', 'North Ground', 6, 'available', 50.00),
-(3, 'Bowling Machine', 'Training Center', 1, 'available', 75.00),
-(4, 'Main Ground', 'Center Field', 22, 'available', 200.00),
-(5, 'Indoor Training Hall', 'Building A', 20, 'available', 100.00),
-(6, 'Practice Net 1', 'North Ground', 6, 'available', 50.00),
-(7, 'Practice Net 2', 'North Ground', 6, 'available', 50.00),
-(8, 'Bowling Machine', 'Training Center', 1, 'available', 75.00),
-(9, 'Main Ground', 'Center Field', 22, 'available', 200.00),
-(10, 'Indoor Training Hall', 'Building A', 20, 'available', 100.00);
+INSERT INTO `facility` (`FacilityID`, `Name`, `Location`, `Capacity`, `AvailabilityStatus`, `HourlyRate`, `facilityImage`) VALUES
+(1, 'Practice Net 1', 'North Ground', 6, 'available', 50.00, NULL),
+(2, 'Practice Net 2', 'North Ground', 6, 'available', 50.00, NULL),
+(3, 'Bowling Machine', 'Training Center', 1, 'available', 75.00, NULL),
+(4, 'Main Ground', 'Center Field', 22, 'available', 200.00, NULL),
+(5, 'Indoor Training Hall', 'Building A', 20, 'available', 100.00, NULL),
+(6, 'Practice Net 1', 'North Ground', 6, 'available', 50.00, NULL),
+(7, 'Practice Net 2', 'North Ground', 6, 'available', 50.00, NULL),
+(8, 'Bowling Machine', 'Training Center', 1, 'available', 75.00, NULL),
+(9, 'Main Ground', 'Center Field', 22, 'available', 200.00, NULL),
+(10, 'Indoor Training Hall', 'Building A', 20, 'available', 100.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -739,11 +769,10 @@ CREATE TABLE `feedback` (
 --
 
 INSERT INTO `feedback` (`FeedbackID`, `FromUserID`, `ToUserID`, `Content`, `Rating`, `Category`, `CreatedDate`, `Status`) VALUES
-(11, 2, 3, 'The training sessions have been excellent. Coach really knows how to motivate the team.', 5, 'coach', '2026-02-05 18:12:38', 'resolved'),
-(12, 6, 3, 'Coach Sarath explains techniques very clearly. Batting improved significantly.', 5, 'coach', '2026-02-11 13:33:48', 'pending'),
-(13, 7, 3, 'Great group sessions, could use more individual feedback during practice.', 4, 'coach', '2026-02-11 13:33:48', 'pending'),
-(14, 15, 3, 'The bowling drills are very effective. Would like more advanced sessions.', 4, 'coach', '2026-02-11 13:33:48', 'reviewed'),
-(15, 18, 3, 'Excellent coaching style. Very motivating and patient with beginners.', 5, 'coach', '2026-02-11 13:33:48', 'resolved');
+(1, 6, 3, 'Coach Sarath explains techniques very clearly. Batting improved significantly.', 5, 'coach', '2026-02-13 12:19:31', 'pending'),
+(2, 7, 3, 'Great group sessions, could use more individual feedback during practice.', 4, 'coach', '2026-02-13 12:19:31', 'pending'),
+(3, 15, 3, 'The bowling drills are very effective. Would like more advanced sessions.', 4, 'coach', '2026-02-13 12:19:31', 'reviewed'),
+(4, 18, 3, 'Excellent coaching style. Very motivating and patient with beginners.', 5, 'coach', '2026-02-13 12:19:31', 'resolved');
 
 -- --------------------------------------------------------
 
@@ -777,6 +806,15 @@ CREATE TABLE `membershipplan` (
   `FacilityAccessIncluded` tinyint(1) DEFAULT 0,
   `Status` enum('active','inactive') DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Different membership plans with varying benefits';
+
+--
+-- Dumping data for table `membershipplan`
+--
+
+INSERT INTO `membershipplan` (`PlanID`, `PlanName`, `Description`, `MonthlyFee`, `SessionsPerWeek`, `PrivateSessionsIncluded`, `FacilityAccessIncluded`, `Status`) VALUES
+(1, 'general', 'group only', 4500.00, 2, 0, 0, 'active'),
+(2, 'private', 'private only', 7000.00, 2, 2, 1, 'active'),
+(3, 'pro', 'both', 10000.00, 4, 2, 1, 'active');
 
 -- --------------------------------------------------------
 
@@ -820,14 +858,20 @@ INSERT INTO `notification` (`NotificationID`, `UserID`, `Type`, `Title`, `Messag
 (16, 16, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2025-10-22 13:22:54'),
 (17, 17, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2025-10-22 13:55:27'),
 (18, 18, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2025-10-22 21:19:54'),
+(19, 19, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2025-10-22 21:30:39'),
 (20, 20, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2025-10-23 10:08:20'),
-(23, 23, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2026-02-10 15:40:17'),
-(33, 3, 'session', 'New Session Booking', 'Player Esandu has enrolled in your batting session', NULL, NULL, 0, NULL, '2026-02-11 12:33:48'),
-(34, 3, 'injury', 'Injury Report Filed', 'Swairi reported a minor knee strain during practice', NULL, NULL, 0, NULL, '2026-02-11 10:33:48'),
-(35, 3, 'event', 'Tournament Update', 'Junior Championship registration deadline extended to March 1', NULL, NULL, 0, NULL, '2026-02-10 13:33:48'),
-(36, 3, 'player', 'Player Achievement', 'Vijini achieved Man of the Match in elite league', NULL, NULL, 1, NULL, '2026-02-09 13:33:48'),
-(37, 3, 'session', 'Session Feedback', 'Please provide feedback for your completed sessions this week', NULL, NULL, 1, NULL, '2026-02-08 13:33:48'),
-(38, 3, 'system', 'Profile Update Reminder', 'Please update your coaching certifications for the new term', NULL, NULL, 1, NULL, '2026-02-06 13:33:48');
+(21, 21, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2026-01-17 09:19:41'),
+(22, 22, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2026-02-03 14:11:50'),
+(23, 3, 'session', 'New Session Booking', 'Player Esandu has enrolled in your batting session', NULL, NULL, 0, NULL, '2026-02-13 11:19:31'),
+(24, 3, 'injury', 'Injury Report Filed', 'Swairi reported a minor knee strain during practice', NULL, NULL, 0, NULL, '2026-02-13 09:19:31'),
+(25, 3, 'event', 'Tournament Update', 'Junior Championship registration deadline extended to March 1', NULL, NULL, 0, NULL, '2026-02-12 12:19:31'),
+(26, 3, 'player', 'Player Achievement', 'Vijini achieved Man of the Match in elite league', NULL, NULL, 1, NULL, '2026-02-11 12:19:31'),
+(27, 3, 'session', 'Session Feedback', 'Please provide feedback for your completed sessions this week', NULL, NULL, 1, NULL, '2026-02-10 12:19:31'),
+(28, 3, 'system', 'Profile Update Reminder', 'Please update your coaching certifications for the new term', NULL, NULL, 1, NULL, '2026-02-08 12:19:31'),
+(31, 25, 'welcome', 'Welcome to Cricket Academy', 'Your account has been created successfully. Please complete your profile setup.', NULL, NULL, 0, NULL, '2026-02-17 13:57:36'),
+(32, 15, 'stats_updated', 'Performance Statistics Updated', 'Your overall performance statistics have been updated based on your verified match performance.', NULL, NULL, 0, NULL, '2026-03-29 01:04:09'),
+(33, 15, 'stats_updated', 'Performance Statistics Updated', 'Your overall performance statistics have been updated based on your verified match performance.', NULL, NULL, 0, NULL, '2026-03-29 03:02:04'),
+(34, 25, 'stats_updated', 'Performance Statistics Updated', 'Your overall performance statistics have been updated based on your verified match performance.', NULL, NULL, 0, NULL, '2026-03-29 09:08:27');
 
 -- --------------------------------------------------------
 
@@ -944,31 +988,6 @@ CREATE TRIGGER `tr_performance_update_validation` BEFORE INSERT ON `performanceu
 END
 $$
 DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `tr_update_overall_stats` AFTER UPDATE ON `performanceupdate` FOR EACH ROW BEGIN
-    IF NEW.Status = 'approved' AND OLD.Status != 'approved' THEN
-        -- Update overall statistics
-        UPDATE PlayerOverallStats 
-        SET 
-            TotalRuns = TotalRuns + COALESCE(NEW.RunsScored, 0),
-            TotalWickets = TotalWickets + COALESCE(NEW.WicketsTaken, 0),
-            HighestScore = GREATEST(HighestScore, COALESCE(NEW.RunsScored, 0)),
-            LastUpdatedBy = NEW.CoachID
-        WHERE PlayerID = NEW.PlayerID;
-        
-        -- Log stats update
-        INSERT INTO ActivityLog (UserID, Action, Description) 
-        VALUES (NEW.PlayerID, 'stats_updated_by_coach', 
-                CONCAT('Overall stats updated by coach ID: ', NEW.CoachID, ' based on performance update ID: ', NEW.UpdateID));
-        
-        -- Notify player about stats update
-        INSERT INTO Notification (UserID, Type, Title, Message) 
-        VALUES (NEW.PlayerID, 'stats_updated', 'Performance Statistics Updated',
-                'Your overall performance statistics have been updated based on recent coaching assessments.');
-    END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1024,12 +1043,12 @@ CREATE TABLE `playercoachassignment` (
 --
 
 INSERT INTO `playercoachassignment` (`AssignmentID`, `PlayerID`, `CoachID`, `AssignmentType`, `AssignedDate`, `Status`, `Notes`) VALUES
-(1, 6, 3, 'regular', '2026-02-11 13:33:48', 'active', 'Regular training group'),
-(2, 7, 3, 'regular', '2026-02-11 13:33:48', 'active', 'Regular training group'),
-(3, 15, 3, 'private', '2026-02-11 13:33:48', 'active', 'Private batting sessions'),
-(4, 16, 3, 'regular', '2026-02-11 13:33:48', 'active', 'Regular training group'),
-(5, 18, 3, 'both', '2026-02-11 13:33:48', 'active', 'Private and group sessions'),
-(6, 20, 3, 'regular', '2026-02-11 13:33:48', 'active', 'Regular training group');
+(1, 6, 1, 'regular', '2026-02-13 12:19:31', 'active', 'Regular training group'),
+(2, 7, 3, 'regular', '2026-02-13 12:19:31', 'active', 'Regular training group'),
+(3, 15, 3, 'private', '2026-02-13 12:19:31', 'active', 'Private batting sessions'),
+(4, 16, 3, 'regular', '2026-02-13 12:19:31', 'active', 'Regular training group'),
+(5, 18, 3, 'both', '2026-02-13 12:19:31', 'active', 'Private and group sessions'),
+(6, 20, 3, 'regular', '2026-02-13 12:19:31', 'active', 'Regular training group');
 
 -- --------------------------------------------------------
 
@@ -1071,8 +1090,92 @@ CREATE TABLE `playermatchperformance` (
   `RunsConceded` int(11) DEFAULT 0,
   `Catches` int(11) DEFAULT 0,
   `Stumpings` int(11) DEFAULT 0,
-  `Rating` decimal(3,1) DEFAULT 0.0 COMMENT 'Performance rating out of 10'
+  `Rating` decimal(3,1) DEFAULT 0.0 COMMENT 'Performance rating out of 10',
+  `VerifiedStatus` enum('pending','verified','rejected') DEFAULT 'pending' COMMENT 'Verification status of performance statistics',
+  `AddedBy` int(11) DEFAULT NULL COMMENT 'User who added this performance record',
+  `VerifiedBy` int(11) DEFAULT NULL COMMENT 'Coach/Admin who verified this record',
+  `VerifiedAt` datetime DEFAULT NULL COMMENT 'When the record was verified',
+  `CreatedAt` datetime DEFAULT current_timestamp() COMMENT 'When the record was created',
+  `UpdatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'When the record was last updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Individual player performance in matches';
+
+--
+-- Dumping data for table `playermatchperformance`
+--
+
+INSERT INTO `playermatchperformance` (`PerformanceID`, `MatchID`, `PlayerID`, `RunsScored`, `BallsFaced`, `WicketsTaken`, `OversBowled`, `RunsConceded`, `Catches`, `Stumpings`, `Rating`, `VerifiedStatus`, `AddedBy`, `VerifiedBy`, `VerifiedAt`, `CreatedAt`, `UpdatedAt`) VALUES
+(4, 4, 25, 56, 39, 0, 0.0, 0, 0, 0, 0.0, 'verified', 25, NULL, NULL, '2026-02-18 21:03:21', '2026-03-29 09:08:27'),
+(5, 8, 25, 10, 3, 4, 5.0, 30, 1, 0, 0.0, 'pending', 25, NULL, NULL, '2026-02-18 21:03:58', '2026-02-18 21:03:58'),
+(6, 7, 25, 0, 0, 0, 0.0, 0, 0, 0, 0.0, 'pending', 25, NULL, NULL, '2026-02-18 21:24:09', '2026-02-18 21:24:09'),
+(13, 15, 25, 45, 0, 0, 0.0, 0, 0, 0, 0.0, 'pending', 25, NULL, NULL, '2026-02-25 09:33:14', '2026-02-25 09:33:14'),
+(15, 3, 7, 51, 15, 1, 3.0, 25, 0, 0, 0.0, 'pending', 7, NULL, NULL, '2026-02-25 09:51:14', '2026-03-29 09:00:58'),
+(17, 7, 15, 5, 10, 1, 3.0, 21, 0, 0, 0.0, 'verified', 15, NULL, NULL, '2026-02-25 09:53:43', '2026-03-28 23:32:05'),
+(21, 15, 15, 7, 8, 0, 0.0, 0, 0, 0, 0.0, 'verified', 15, NULL, NULL, '2026-03-29 00:37:35', '2026-03-29 00:37:58'),
+(22, 14, 15, 0, 150, 0, 0.0, 0, 0, 0, 0.0, 'verified', 15, NULL, NULL, '2026-03-29 00:42:24', '2026-03-29 01:04:09'),
+(23, 9, 15, 20, 21, 1, 2.0, 15, 0, 0, 0.0, 'pending', 15, NULL, NULL, '2026-03-29 03:01:41', '2026-03-29 09:06:40');
+
+--
+-- Triggers `playermatchperformance`
+--
+DELIMITER $$
+CREATE TRIGGER `tr_update_overall_stats` AFTER UPDATE ON `playermatchperformance` FOR EACH ROW BEGIN
+    -- Only run once when record transitions to verified
+    IF NEW.VerifiedStatus = 'verified' AND OLD.VerifiedStatus <> 'verified' THEN
+
+        UPDATE PlayerOverallStats
+        SET
+            MatchesPlayed = MatchesPlayed + 1,
+            TotalRuns = TotalRuns + COALESCE(NEW.RunsScored, 0),
+            TotalWickets = TotalWickets + COALESCE(NEW.WicketsTaken, 0),
+            HighestScore = GREATEST(HighestScore, COALESCE(NEW.RunsScored, 0)),
+            BattingAverage = CASE
+                WHEN (MatchesPlayed + 1) > 0
+                    THEN ROUND((TotalRuns + COALESCE(NEW.RunsScored, 0)) / (MatchesPlayed + 1), 2)
+                ELSE 0
+            END,
+            BowlingAverage = CASE
+                WHEN (TotalWickets + COALESCE(NEW.WicketsTaken, 0)) > 0
+                    THEN ROUND((TotalRuns + COALESCE(NEW.RunsScored, 0)) / (TotalWickets + COALESCE(NEW.WicketsTaken, 0)), 2)
+                ELSE 0
+            END,
+            StrikeRate = CASE
+                WHEN (COALESCE(NEW.BallsFaced, 0)) > 0
+                    THEN ROUND((COALESCE(NEW.RunsScored, 0) / COALESCE(NEW.BallsFaced, 0)) * 100, 2)
+                ELSE StrikeRate
+            END,
+            EconomyRate = CASE
+                WHEN COALESCE(NEW.OversBowled, 0) > 0
+                    THEN ROUND(COALESCE(NEW.RunsConceded, 0) / COALESCE(NEW.OversBowled, 0), 2)
+                ELSE EconomyRate
+            END,
+            LastUpdatedBy = NEW.VerifiedBy,
+            LastUpdated = NOW()
+        WHERE PlayerID = NEW.PlayerID;
+
+        INSERT INTO ActivityLog (UserID, Action, Description)
+        VALUES (
+            NEW.PlayerID,
+            'stats_updated_by_coach',
+            CONCAT(
+                'Overall stats updated by coach ID: ',
+                COALESCE(NEW.VerifiedBy, 0),
+                ' based on performance ID: ',
+                NEW.PerformanceID
+            )
+        );
+
+        INSERT INTO Notification (UserID, Type, Title, Message)
+        VALUES (
+            NEW.PlayerID,
+            'stats_updated',
+            'Performance Statistics Updated',
+            'Your overall performance statistics have been updated based on your verified match performance.'
+        );
+
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1106,7 +1209,8 @@ INSERT INTO `playermedicalrecord` (`RecordID`, `PlayerID`, `InjuryDetails`, `Dia
 (10, 15, 'knee injury', 'thinner thigh muscles has caused the limb bones to be contact with the knee cap, making painful to walk.', 'exercises and calcium pills', 'ongoing', '2025-10-08', 'no', 3, 'uploads/medical_receipts/receipt_15_1761138553.png', '2025-10-22', 15, 'rejected'),
 (11, 15, 'skull fracture', 'skull fracture', 'stitches', 'recovered', '2025-10-15', 'no', 2, 'uploads/medical_receipts/receipt_15_1761147506.pdf', '2025-10-22', 15, 'pending'),
 (12, 18, 'back pain for 3 days', 'displaced disk', 'physio therapy', 'recovered', '2025-10-15', 'no', 23, 'uploads/medical_receipts/receipt_18_1761148482.png', '2025-10-22', 18, 'rejected'),
-(13, 15, 'Yes well', 'no no no', '', 'recovered', '2025-10-22', 'yes', 5, NULL, '2025-10-23', 15, 'pending');
+(13, 15, 'Yes well', 'no no no', '', 'recovered', '2025-10-22', 'yes', 5, NULL, '2025-10-23', 15, 'pending'),
+(15, 15, 'gfv jhg', 'nvn   gjfjgv', 'vb hgkh', 'recovering', '2026-02-04', 'no', 0, 'uploads/medical_receipts/receipt_15_1771999461.pdf', '2026-02-25', 15, 'pending');
 
 -- --------------------------------------------------------
 
@@ -1135,11 +1239,13 @@ CREATE TABLE `playeroverallstats` (
 
 INSERT INTO `playeroverallstats` (`StatsID`, `PlayerID`, `MatchesPlayed`, `TotalRuns`, `TotalWickets`, `HighestScore`, `BattingAverage`, `BowlingAverage`, `StrikeRate`, `EconomyRate`, `LastUpdated`, `LastUpdatedBy`) VALUES
 (1, 7, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2025-10-18 16:08:42', NULL),
-(2, 15, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2025-10-19 21:30:13', NULL),
+(2, 15, 4, 32, 2, 20, 10.40, 17.33, 95.24, 7.50, '2026-03-29 03:02:04', NULL),
 (3, 16, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2025-10-22 13:22:54', NULL),
 (4, 18, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2025-10-22 21:19:54', NULL),
 (5, 20, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2025-10-23 10:08:20', NULL),
-(18, 6, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2026-02-11 14:15:36', NULL);
+(6, 21, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2026-01-17 09:19:41', NULL),
+(7, 22, 0, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, '2026-02-03 14:11:50', NULL),
+(9, 25, 1, 56, 0, 56, 56.00, 0.00, 143.59, 0.00, '2026-03-29 09:08:27', NULL);
 
 -- --------------------------------------------------------
 
@@ -1168,12 +1274,14 @@ CREATE TABLE `playerprofile` (
 --
 
 INSERT INTO `playerprofile` (`PlayerID`, `BattingStyle`, `BowlingStyle`, `JerseyNumber`, `SubscriptionType`, `EmergencyContactName`, `EmergencyContactPhone`, `ParentGuardianName`, `ParentGuardianPhone`, `SchoolInstitution`, `PreviousExperience`, `MedicalConditions`, `HowHeardAboutUs`) VALUES
-(6, 'Left-handed', 'Spin', 45, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (7, NULL, NULL, NULL, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, 'Right-handed', 'Fast', 78, 'basic', 'gamage', '0986123456', 'gamage .S', '0986123456', 'Elite Cricket Academy', 'none', 'none', 'Social Media'),
+(15, 'Right-handed', 'Fast', 78, 'private_only', 'gamage', '0986123456', 'gamage .S', '0986123456', 'Elite Cricket Academy', 'none', 'none', 'Social Media'),
 (16, '', '', NULL, 'basic', 'waa', '', '', '', 'SLIIT', '', '', ''),
 (18, 'Right-handed', 'Medium', 21, 'basic', '', '', '', '', 'SLIIT', '', '', ''),
-(20, NULL, NULL, NULL, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+(20, NULL, NULL, NULL, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(21, 'Left-handed', 'Leg-spin', NULL, 'basic', '', '', '', '', 'RCG', '', '', ''),
+(22, NULL, NULL, NULL, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(25, NULL, NULL, 45, 'basic', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Triggers `playerprofile`
@@ -1202,6 +1310,13 @@ CREATE TABLE `playersubscription` (
   `PaymentDay` int(11) DEFAULT 1 COMMENT 'Day of month when payment is due',
   `AutoRenewal` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Player membership subscriptions for regular group sessions';
+
+--
+-- Dumping data for table `playersubscription`
+--
+
+INSERT INTO `playersubscription` (`SubscriptionID`, `PlayerID`, `PlanID`, `StartDate`, `EndDate`, `Status`, `MonthlyFee`, `PaymentDay`, `AutoRenewal`) VALUES
+(1, 15, 2, '2026-01-01', '2026-12-31', 'active', 7000.00, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -1281,7 +1396,16 @@ CREATE TABLE `product` (
 INSERT INTO `product` (`ProductID`, `Name`, `Description`, `Category`, `Brand`, `Price`, `StockQuantity`, `Status`, `SKU`, `Weight`, `Dimensions`, `AddedDate`, `UpdatedBy`, `ProductImage`) VALUES
 (9, 'sssssss', 'sss', 'Protective', 'www', 99999999.99, 2, 'active', 'd', 22.000, '222', '2025-10-22 13:16:14', NULL, 'uploads/shop_product/product_9_1761119174.png'),
 (12, 'Essa2', 'aa', 'Protective', '111', 1.00, 5, 'active', NULL, 11.000, '2 X 3 X 6', '2025-10-23 02:17:53', NULL, NULL),
-(13, 'essa2', 'gofojasiocilaebg', 'Batting', 'aaa', 90.00, 3, 'active', NULL, 23.000, '2 X 3 X 6', '2025-10-23 10:45:17', NULL, NULL);
+(13, 'essa2', 'gofojasiocilaebg', 'Batting', 'aaa', 90.00, 3, 'active', NULL, 23.000, '2 X 3 X 6', '2025-10-23 10:45:17', NULL, NULL),
+(14, 'Elite Pro English Willow Bat', 'Hand-selected English willow bat designed for balanced pickup and strong stroke play.', 'Batting', 'Elite', 12500.00, 18, 'active', 'BAT-ELITE-001', 1.180, '85 x 11 x 7 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_8_1761117247.jpg'),
+(15, 'Performance Batting Gloves (Pair)', 'Breathable batting gloves with reinforced palm and flexible finger protection.', 'Batting', 'Elite', 1900.00, 40, 'active', 'GLV-ELITE-002', 0.260, '30 x 15 x 8 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(16, 'Cricket Helmet with Steel Grill', 'Lightweight protective helmet with adjustable strap and impact-absorbing inner padding.', 'Protective', 'Elite', 4200.00, 12, 'active', 'HLMT-ELITE-003', 0.820, '35 x 25 x 25 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(17, 'Leather Cricket Ball (Red) - Match', 'Premium stitched leather ball suitable for match and club level play.', 'Bowling', 'Elite', 650.00, 120, 'active', 'BALL-ELITE-004', 0.160, '8 x 8 x 8 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(18, 'Training Cones Set (20 pcs)', 'Set of 20 durable cones for fielding drills, agility training, and boundary marking.', 'Training', 'Elite', 850.00, 55, 'active', 'TRN-ELITE-005', 0.900, '32 x 32 x 20 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(19, 'Kit Bag (Wheel) - Large', 'Spacious kit bag with wheels, reinforced base, and multiple compartments.', 'Accessories', 'Elite', 5600.00, 9, 'active', 'BAG-ELITE-006', 3.800, '95 x 40 x 38 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(20, 'Academy Training Jersey', 'Moisture-wicking jersey ideal for training sessions and warm-ups.', 'Merchandise', 'Elite', 1450.00, 30, 'active', 'MERCH-ELITE-007', 0.220, '35 x 25 x 2 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(21, 'Arm Guard (Batting)', 'Comfort-fit arm guard with padded protection for confident front-foot play.', 'Protective', 'Elite', 1100.00, 25, 'active', 'PRT-ELITE-008', 0.180, '30 x 12 x 6 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png'),
+(22, 'Thigh Pad Set (Pair)', 'Padded thigh guards for batting protection. Includes both left and right pads.', 'Protective', 'Elite', 1750.00, 22, 'active', 'PRT-ELITE-009', 0.420, '28 x 20 x 10 cm', '2026-04-01 08:22:59', NULL, 'uploads/shop_product/product_9_1761119174.png');
 
 -- --------------------------------------------------------
 
@@ -1320,9 +1444,9 @@ CREATE TABLE `productorder` (
 --
 
 INSERT INTO `productorder` (`OrderID`, `PlayerID`, `OrderDate`, `TotalAmount`, `PaymentMethod`, `Status`, `ProcessedBy`, `ShippingAddress`, `OrderNotes`) VALUES
-(11, 7, '2026-01-12 20:47:36', 4500.00, 'card', 'completed', 7, NULL, 'First order - Cricket bat and gloves'),
-(12, 16, '2026-01-14 20:47:36', 2800.00, 'cash', 'completed', 7, NULL, 'Protective gear purchase'),
-(13, 7, '2026-01-15 20:47:36', 6200.00, 'online', 'processing', 7, NULL, 'Complete cricket kit'),
+(11, 7, '2026-01-12 20:47:36', 4500.00, 'card', 'completed', 5, NULL, 'First order - Cricket bat and gloves'),
+(12, 16, '2026-01-14 20:47:36', 2800.00, 'cash', 'completed', 5, NULL, 'Protective gear purchase'),
+(13, 7, '2026-01-15 20:47:36', 6200.00, 'online', 'processing', 5, NULL, 'Complete cricket kit'),
 (14, 20, '2026-01-16 20:47:36', 1500.00, 'card', 'pending', NULL, NULL, 'Cricket balls order');
 
 -- --------------------------------------------------------
@@ -1417,27 +1541,13 @@ INSERT INTO `session` (`SessionID`, `SessionType`, `SessionMode`, `CoachOrTraine
 (4, 'Coaching', 'Group', 1, 'u15 batting2', '2025-10-23', '10:29:00', '15:30:00', 'ground', 'active', 10, 0.00, 1),
 (7, 'Coaching', 'Group', 3, 'ABC2', '2025-10-28', '11:07:00', '11:46:00', 'Ground2', 'active', 40, 0.00, 1),
 (8, 'Coaching', 'Group', 3, 'ABC', '2025-10-28', '00:49:00', '05:47:00', 'Ground', 'active', 10, 0.00, 1),
-(9, 'Coaching', 'Group', 3, 'Morning Batting Practice', '2026-02-11', '09:00:00', '11:00:00', 'Main Ground', 'active', 15, 500.00, 1),
-(10, 'Coaching', 'Private', 3, 'Advanced Bowling Technique', '2026-02-11', '14:00:00', '15:30:00', 'Indoor Net 1', 'active', 3, 1500.00, 0),
-(11, 'Coaching', 'Group', 3, 'Fielding Drills', '2026-02-12', '08:00:00', '10:00:00', 'Practice Ground', 'active', 20, 500.00, 1),
-(12, 'Coaching', 'Private', 3, 'Spin Bowling Masterclass', '2026-02-13', '10:00:00', '11:30:00', 'Indoor Net 2', 'active', 5, 2000.00, 0),
-(13, 'Coaching', 'Group', 3, 'Match Simulation', '2026-02-14', '07:00:00', '12:00:00', 'Main Ground', 'active', 22, 750.00, 0),
-(14, 'Coaching', 'Group', 3, 'Weekend Fitness and Cricket', '2026-02-16', '06:00:00', '08:00:00', 'Fitness Center', 'active', 25, 500.00, 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `SessionAttendance`
---
-
-CREATE TABLE `SessionAttendance` (
-  `AttendanceID` int(11) NOT NULL,
-  `EnrollmentID` int(11) NOT NULL,
-  `AttendanceStatus` enum('present','absent','late','excused') NOT NULL DEFAULT 'present',
-  `AttendanceNotes` text DEFAULT NULL,
-  `MarkedBy` int(11) DEFAULT NULL,
-  `MarkedAt` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(9, 'Coaching', 'Group', 11, 'under13 batting', '2026-02-10', '15:30:00', '16:30:00', 'main ground', 'active', 10, 0.00, 1),
+(10, 'Coaching', 'Group', 3, 'Morning Batting Practice', '2026-02-13', '09:00:00', '11:00:00', 'Main Ground', 'active', 15, 500.00, 1),
+(11, 'Coaching', 'Private', 3, 'Advanced Bowling Technique', '2026-02-13', '14:00:00', '15:30:00', 'Indoor Net 1', 'active', 3, 1500.00, 0),
+(12, 'Coaching', 'Group', 3, 'Fielding Drills', '2026-02-14', '08:00:00', '10:00:00', 'Practice Ground', 'active', 20, 500.00, 1),
+(13, 'Coaching', 'Private', 3, 'Spin Bowling Masterclass', '2026-02-28', '10:00:00', '11:30:00', 'Indoor Net 2', 'active', 5, 2000.00, 0),
+(14, 'Coaching', 'Group', 3, 'Match Simulation', '2026-02-16', '07:00:00', '12:00:00', 'Main Ground', 'active', 22, 750.00, 0),
+(15, 'Coaching', 'Group', 3, 'Weekend Fitness and Cricket', '2026-02-18', '06:00:00', '08:00:00', 'Fitness Center', 'active', 25, 500.00, 1);
 
 -- --------------------------------------------------------
 
@@ -1452,35 +1562,6 @@ CREATE TABLE `sessionenrollment` (
   `EnrollmentDate` datetime DEFAULT current_timestamp(),
   `Status` enum('enrolled','attended','missed','cancelled') DEFAULT 'enrolled'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Player enrollment in training sessions';
-
---
--- Dumping data for table `sessionenrollment`
---
-
-INSERT INTO `sessionenrollment` (`EnrollmentID`, `SessionID`, `PlayerID`, `EnrollmentDate`, `Status`) VALUES
-(24, 9, 6, '2026-02-11 14:15:36', 'enrolled'),
-(25, 9, 7, '2026-02-11 14:15:36', 'enrolled'),
-(26, 9, 15, '2026-02-11 14:15:36', 'enrolled'),
-(27, 9, 16, '2026-02-11 14:15:36', 'enrolled'),
-(28, 9, 18, '2026-02-11 14:15:36', 'attended'),
-(29, 10, 6, '2026-02-11 14:15:36', 'enrolled'),
-(30, 10, 15, '2026-02-11 14:15:36', 'enrolled'),
-(31, 11, 7, '2026-02-11 14:15:36', 'enrolled'),
-(32, 11, 16, '2026-02-11 14:15:36', 'enrolled'),
-(33, 11, 18, '2026-02-11 14:15:36', 'enrolled'),
-(34, 11, 20, '2026-02-11 14:15:36', 'enrolled'),
-(35, 12, 6, '2026-02-11 14:15:36', 'enrolled'),
-(36, 12, 15, '2026-02-11 14:15:36', 'enrolled'),
-(37, 13, 6, '2026-02-11 14:15:36', 'enrolled'),
-(38, 13, 7, '2026-02-11 14:15:36', 'enrolled'),
-(39, 13, 15, '2026-02-11 14:15:36', 'enrolled'),
-(40, 13, 16, '2026-02-11 14:15:36', 'enrolled'),
-(41, 13, 18, '2026-02-11 14:15:36', 'enrolled'),
-(42, 13, 20, '2026-02-11 14:15:36', 'enrolled'),
-(43, 14, 7, '2026-02-11 14:15:36', 'enrolled'),
-(44, 14, 16, '2026-02-11 14:15:36', 'enrolled'),
-(45, 14, 18, '2026-02-11 14:15:36', 'enrolled'),
-(46, 14, 20, '2026-02-11 14:15:36', 'enrolled');
 
 -- --------------------------------------------------------
 
@@ -1499,9 +1580,7 @@ CREATE TABLE `shopemployeeprofile` (
 --
 
 INSERT INTO `shopemployeeprofile` (`ShopEmployeeID`, `Department`, `HireDate`) VALUES
-(5, 'General', '2024-01-15'),
-(7, 'General', '2024-01-01'),
-(9, 'Equipment', '2024-03-01');
+(5, 'General', '2024-01-01');
 
 -- --------------------------------------------------------
 
@@ -1565,6 +1644,17 @@ CREATE TABLE `tournament` (
   `PrizePool` decimal(12,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cricket tournaments';
 
+--
+-- Dumping data for table `tournament`
+--
+
+INSERT INTO `tournament` (`TournamentID`, `Name`, `tdate`, `Location`, `CreatedBy`, `Status`, `PrizePool`) VALUES
+(6, 'Monsoon Cricket League', '2026-06-15', 'Riverside Cricket Ground', 1, 'upcoming', 30000.00),
+(7, 'Premier Division T20', '2026-04-01', 'Central Stadium', 1, 'upcoming', 80000.00),
+(8, 'Academy Invitational Cup', '2026-05-10', 'Training Complex A', 1, 'upcoming', 20000.00),
+(9, 'District Cricket Championship', '2026-02-28', 'District Sports Arena', 1, 'upcoming', 40000.00),
+(10, 'Veterans Cricket Tournament', '2026-03-15', 'Memorial Ground', 1, 'upcoming', 10000.00);
+
 -- --------------------------------------------------------
 
 --
@@ -1613,7 +1703,8 @@ CREATE TABLE `trainerprofile` (
 --
 
 INSERT INTO `trainerprofile` (`TrainerID`, `Experience`, `Certifications`) VALUES
-(10, NULL, NULL);
+(10, NULL, NULL),
+(19, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1673,7 +1764,7 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`UserID`, `Name`, `DateOfBirth`, `PhoneNumber`, `Email`, `Address`, `School`, `Role`, `Username`, `PasswordHash`, `DateJoined`, `Status`, `RequiresPasswordChange`, `PasswordChangeDeadline`, `LastLoginAt`, `LoginAttempts`, `AccountLockedUntil`, `CreatedBy`, `Notes`, `ProfileImage`) VALUES
-(1, 'Admin User', '1990-01-01', '+1234567891', 'admin@cricketacademy.com', 'Academy Headquarters', '', 'Admin', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2025-10-18 13:02:42', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(1, 'Admin User', '1990-01-01', '+1234567890', 'admin@cricketacademy.com', 'Academy Headquarters', 'Visakha Vidyalaya', 'Admin', 'admin', '$2y$10$uxNNNmvcYhBxqIzjZb6VmeUAkRRRSGq0ikEsabLFexzDPhNpGyLSq', '2025-10-18 13:02:42', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, 'uploads/profile_images/profile_1_1771315014.png'),
 (2, 'Academy manager', '1990-01-01', '+1234567890', 'manager@eliteca.com', 'Elite CA', 'Elite Cricket Academy', 'Admin', 'Manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2025-10-18 13:10:39', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
 (3, 'Coach Sarath', '1990-01-01', '+1234567890', 'coach001@eliteca.com', 'Elite CA', 'Elite Cricket Academy', 'Coach', 'coach001', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2025-10-18 13:10:39', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
 (4, 'Trainer Hasitha', '1990-01-01', '+1234567890', 'trainer001@eliteca.com', 'Elite CA', 'Elite Cricket Academy', 'Trainer', 'trainer001', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2025-10-18 13:10:39', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
@@ -1687,12 +1778,15 @@ INSERT INTO `user` (`UserID`, `Name`, `DateOfBirth`, `PhoneNumber`, `Email`, `Ad
 (12, 'Kumara Darmasena', '1980-01-01', '0771234567', 'kumara.darmasena@eliteacademy.com', NULL, NULL, 'Coach', 'kdarmasena', '$2y$10$.UJUjUwSObzJmzTGsJcL8.VfyJZ1f88FhX6Hl6RWbKyXCQf/lViPq', '2025-10-18 23:44:38', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
 (13, 'Ben Carter', '1980-01-01', '0771234567', 'ben.carter@eliteacademy.com', NULL, NULL, 'Coach', 'bcarter', '$2y$10$vlnExCdpdUaOrioO1BYegu2OEhqSUwfwAMGM.o4hK46NL9GkaEPBe', '2025-10-18 23:44:38', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
 (14, 'Kumar Sangakkara', '1980-01-01', '0771234567', 'kumar.sangakkara@eliteacademy.com', NULL, NULL, 'Coach', 'ksangakkara', '$2y$10$.UW163sEsWJ8e9NT/wnfi.6mf.cG0asQqhzBd5aZo9b12avkfEJX2', '2025-10-18 23:44:38', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(15, 'Swairi', '1990-01-01', '+1234567890', 'swairi@eliteca.com', 'Academy Address', 'Elite Cricket Academy', 'Player', 'Swairi', '$2y$10$JkEuF9xPMokzILpUV/fZ7OU.jYspHBkBOv3U6Deprgci1BjamM4uO', '2025-10-19 21:30:13', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, 'uploads/profile_images/profile_15_1761129401.jpeg'),
+(15, 'Swairi', '1990-01-01', '+1234567890', 'swairi@eliteca.com', 'Academy Address', 'Elite Cricket Academy', 'Player', 'Swairi', '$2y$10$GRyoc1IyfcpNy9dB.g0cHeVZRgf4EiX6igVL3Y3KcKm.06fzVi.Py', '2025-10-19 21:30:13', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, 'uploads/profile_images/profile_15_1761129401.jpeg'),
 (16, 'esandu', '2003-06-04', '0123456789', 'e@g.com', '193/55,nugegoda', 'SLIIT', 'Player', 'esandu', '$2y$10$wzIcyBsyqcjG0KLOe5MUA.pPr33Vv704h2N27KW7a3IS3VupuzQ0m', '2025-10-22 13:22:54', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(17, 'Kumara Dharmasena', '1800-09-01', '0774267567', 'v3@gmail.com', '', '', 'Coach', 'kumarad', '$2y$10$fCpoynnqCDiRcRVJ3t.ltOVWh9T8rb6pWT8CKL7UQjCti9xkUpGcm', '2025-10-22 13:55:27', 'active', 0, NULL, NULL, 0, NULL, 8, NULL, 'uploads/profile_images/profile_17_1761123053.png'),
+(17, 'Kumara Dharmasena', '1800-09-01', '', 'v3@gmail.com', '12/8 , nugegoda', '', 'Coach', 'kumarad', '$2y$10$fCpoynnqCDiRcRVJ3t.ltOVWh9T8rb6pWT8CKL7UQjCti9xkUpGcm', '2025-10-22 13:55:27', 'active', 0, NULL, NULL, 0, NULL, 8, NULL, 'uploads/profile_images/profile_17_1761123053.png'),
 (18, 'vijini liyanamana', '2002-07-10', '0123456789', 'jini.a.lm2@gmail.com', '193/55,nugegoda', 'SLIIT', 'Player', 'vijinia', '$2y$10$r6Oe1uymncsattPzIRvxVu7gT8Cdf28rbc0YSYDfilYpEwxiwQr1q', '2025-10-22 21:19:54', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, 'uploads/profile_images/profile_18_1761148566.png'),
+(19, 'Kumara Dharmasena', '2002-06-22', '+94755748105', 'coach@cricketacademy.com', '123/5 , kottawa', 'Elite Cricket Academy', 'Trainer', 'kumar2', '$2y$10$xJcohxTmXRnX3TacRRfvs..U7uu9nDueeGVe02LvLkT3VOTpR9pVS', '2025-10-22 21:30:39', 'active', 0, NULL, NULL, 0, NULL, 8, NULL, NULL),
 (20, 'esandu yapa', '2000-03-05', '0774267307', 'esanduepa0225@gmail.com', 'Deiyandarawatta, Panvila', 'RCG', 'Player', 'esandu12', '$2y$10$U1rmUEsrO85uogg0/U7HbeRYM.WSGgZNumnBy8o0ba535z3S/oqTm', '2025-10-23 10:08:20', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(23, 'Esandu Epa', '1999-02-25', '+94774267307', 'esanduepa0225111@gmail.com', 'Deiyandarawatta, Panvila', 'Example', 'Coach', 'user23', '$2y$10$zI1ErUZVCQA065uLPSFEs.Dq4eBYv0gTNgzXaZHd7upXElzL9oL5y', '2026-02-10 15:40:17', 'active', 0, NULL, NULL, 0, NULL, 1, NULL, NULL);
+(21, 'Esandu Epa', '2003-02-25', '+94774267307', 'esanduepa022555@gmail.com', 'Deiyandarawatta, Panvila', 'RCG', 'Player', 'essa1234', '$2y$10$LX1eoz9bIOx.FhApFOFMBOGNrPQ61pQ6hqaMNmb.wDX/0N.gv4c3.', '2026-01-17 09:19:41', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(22, 'Esandu Epa', '2003-02-25', '+94774267307', 'esanduepa0225777@gmail.com', 'Deiyandarawatta, Panvila', 'RCG', 'Player', 'essa234', '$2y$10$QFq5Z39i8dbGcHpyqSHMDO9NfgNxENwEfHdxv8lBFr3Pj6aCgAwa2', '2026-02-03 14:11:50', 'active', 0, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(25, 'shalitha', '2003-02-17', '0765948665', 'jina.lm2@gmail.com', 'marar', NULL, 'Player', 'mara', '$2y$10$qv2qb6moG.vnEkrCJJihceu4.zWy5oohEZ0zdddAeWhiVaELa9bFK', '2026-02-17 13:57:36', 'active', 0, NULL, NULL, 0, NULL, 6, NULL, NULL);
 
 --
 -- Triggers `user`
@@ -2188,7 +2282,10 @@ ALTER TABLE `playermatchperformance`
   ADD PRIMARY KEY (`PerformanceID`),
   ADD UNIQUE KEY `unique_match_performance` (`MatchID`,`PlayerID`),
   ADD KEY `idx_player_performance` (`PlayerID`),
-  ADD KEY `idx_rating` (`Rating`);
+  ADD KEY `idx_rating` (`Rating`),
+  ADD KEY `idx_verified_status` (`VerifiedStatus`),
+  ADD KEY `idx_added_by` (`AddedBy`),
+  ADD KEY `idx_verified_by` (`VerifiedBy`);
 
 --
 -- Indexes for table `playermedicalrecord`
@@ -2315,13 +2412,6 @@ ALTER TABLE `session`
   ADD KEY `idx_coach_trainer` (`CoachOrTrainerID`),
   ADD KEY `idx_status` (`Status`),
   ADD KEY `idx_session_mode` (`SessionMode`);
-
---
--- Indexes for table `SessionAttendance`
---
-ALTER TABLE `SessionAttendance`
-  ADD PRIMARY KEY (`AttendanceID`),
-  ADD UNIQUE KEY `unique_enrollment` (`EnrollmentID`);
 
 --
 -- Indexes for table `sessionenrollment`
@@ -2453,13 +2543,13 @@ ALTER TABLE `achievements`
 -- AUTO_INCREMENT for table `activitylog`
 --
 ALTER TABLE `activitylog`
-  MODIFY `ActivityID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `ActivityID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `coachappointment`
 --
 ALTER TABLE `coachappointment`
-  MODIFY `AppointmentID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `AppointmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `coachingsession`
@@ -2489,13 +2579,13 @@ ALTER TABLE `contactus`
 -- AUTO_INCREMENT for table `crimatch`
 --
 ALTER TABLE `crimatch`
-  MODIFY `MatchID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MatchID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `emaillog`
 --
 ALTER TABLE `emaillog`
-  MODIFY `EmailID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `EmailID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `equipment`
@@ -2525,7 +2615,7 @@ ALTER TABLE `equipmentreview`
 -- AUTO_INCREMENT for table `event`
 --
 ALTER TABLE `event`
-  MODIFY `EventID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `EventID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `eventenrollment`
@@ -2549,7 +2639,7 @@ ALTER TABLE `facilitybooking`
 -- AUTO_INCREMENT for table `feedback`
 --
 ALTER TABLE `feedback`
-  MODIFY `FeedbackID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `FeedbackID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `livenotification`
@@ -2561,13 +2651,13 @@ ALTER TABLE `livenotification`
 -- AUTO_INCREMENT for table `membershipplan`
 --
 ALTER TABLE `membershipplan`
-  MODIFY `PlanID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `PlanID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `notification`
 --
 ALTER TABLE `notification`
-  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `nutritionplan`
@@ -2597,19 +2687,19 @@ ALTER TABLE `playercoachassignment`
 -- AUTO_INCREMENT for table `playermatchperformance`
 --
 ALTER TABLE `playermatchperformance`
-  MODIFY `PerformanceID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `PerformanceID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `playermedicalrecord`
 --
 ALTER TABLE `playermedicalrecord`
-  MODIFY `RecordID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `RecordID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `playeroverallstats`
 --
 ALTER TABLE `playeroverallstats`
-  MODIFY `StatsID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `StatsID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `playersubscription`
@@ -2639,7 +2729,7 @@ ALTER TABLE `playertrainerassignment`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `ProductID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `ProductID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `productcart`
@@ -2651,7 +2741,7 @@ ALTER TABLE `productcart`
 -- AUTO_INCREMENT for table `productorder`
 --
 ALTER TABLE `productorder`
-  MODIFY `OrderID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `OrderID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `productorderitem`
@@ -2669,25 +2759,19 @@ ALTER TABLE `productreview`
 -- AUTO_INCREMENT for table `session`
 --
 ALTER TABLE `session`
-  MODIFY `SessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
-
---
--- AUTO_INCREMENT for table `SessionAttendance`
---
-ALTER TABLE `SessionAttendance`
-  MODIFY `AttendanceID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `SessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `sessionenrollment`
 --
 ALTER TABLE `sessionenrollment`
-  MODIFY `EnrollmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `EnrollmentID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `subscriptionpayment`
 --
 ALTER TABLE `subscriptionpayment`
-  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `supplementplan`
@@ -2699,7 +2783,7 @@ ALTER TABLE `supplementplan`
 -- AUTO_INCREMENT for table `tournament`
 --
 ALTER TABLE `tournament`
-  MODIFY `TournamentID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `TournamentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `trainerappointment`
@@ -2717,7 +2801,7 @@ ALTER TABLE `trainerreview`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `UserID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `UserID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `workoutplan`
@@ -2900,6 +2984,8 @@ ALTER TABLE `playercoachassignment`
 -- Constraints for table `playermatchperformance`
 --
 ALTER TABLE `playermatchperformance`
+  ADD CONSTRAINT `fk_performance_added_by` FOREIGN KEY (`AddedBy`) REFERENCES `user` (`UserID`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_performance_verified_by` FOREIGN KEY (`VerifiedBy`) REFERENCES `user` (`UserID`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `playermatchperformance_ibfk_1` FOREIGN KEY (`MatchID`) REFERENCES `crimatch` (`MatchID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `playermatchperformance_ibfk_2` FOREIGN KEY (`PlayerID`) REFERENCES `playerprofile` (`PlayerID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -2992,12 +3078,6 @@ ALTER TABLE `productreview`
 --
 ALTER TABLE `session`
   ADD CONSTRAINT `session_ibfk_1` FOREIGN KEY (`CoachOrTrainerID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `SessionAttendance`
---
-ALTER TABLE `SessionAttendance`
-  ADD CONSTRAINT `sessionattendance_ibfk_1` FOREIGN KEY (`EnrollmentID`) REFERENCES `sessionenrollment` (`EnrollmentID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `sessionenrollment`

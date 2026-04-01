@@ -191,12 +191,12 @@ function createRentalModal() {
                         <label for="rental-pickup">Pickup Method:</label>
                         <select id="rental-pickup" required>
                             <option value="pickup">Pickup from Academy</option>
-                            <option value="delivery">Home Delivery (+$5)</option>
+                            <option value="delivery">Home Delivery (+Rs. 5)</option>
                         </select>
                     </div>
                 </form>
                 <div class="rental-total">
-                    <strong>Total: $<span id="rental-total-amount">0.00</span></strong>
+                    <strong>Total: Rs. <span id="rental-total-amount">0.00</span></strong>
                 </div>
             </div>
             <div class="rental-modal-actions">
@@ -212,14 +212,14 @@ function createRentalModal() {
 function populateRentalDetails(rentalData) {
     const detailsDiv = document.getElementById('rental-details');
     if (!detailsDiv) return;
+
+    const dailyRate = parseFloat(rentalData.rate || '0');
     
     detailsDiv.innerHTML = `
         <div class="rental-equipment-info">
             <h4>${rentalData.name}</h4>
             <p><strong>Condition:</strong> ${rentalData.condition || 'Excellent'}</p>
-            <p><strong>Daily Rate:</strong> $${rentalData.daily || '15.00'}</p>
-            <p><strong>Weekly Rate:</strong> $${rentalData.weekly || '75.00'}</p>
-            <p><strong>Monthly Rate:</strong> $${rentalData.monthly || '200.00'}</p>
+            <p><strong>Rate:</strong> Rs. ${Number.isFinite(dailyRate) ? dailyRate.toFixed(2) : '0.00'} / day</p>
         </div>
     `;
 }
@@ -250,21 +250,8 @@ function calculateRentalTotal(rentalData) {
     const pickup = document.getElementById('rental-pickup').value;
     const totalSpan = document.getElementById('rental-total-amount');
     
-    let baseRate = parseFloat(rentalData.daily || '15.00');
-    let multiplier = 1;
-    
-    // Calculate rate based on duration
-    if (duration >= 30) {
-        baseRate = parseFloat(rentalData.monthly || '200.00');
-        multiplier = Math.ceil(duration / 30);
-    } else if (duration >= 7) {
-        baseRate = parseFloat(rentalData.weekly || '75.00');
-        multiplier = Math.ceil(duration / 7);
-    } else {
-        multiplier = duration;
-    }
-    
-    let total = baseRate * multiplier * quantity;
+    const dailyRate = parseFloat(rentalData.rate || '0');
+    let total = (Number.isFinite(dailyRate) ? dailyRate : 0) * duration * quantity;
     
     // Add delivery fee
     if (pickup === 'delivery') {
@@ -324,7 +311,7 @@ Start Date: ${rentalDetails.startDate}
 Duration: ${durationText}
 Quantity: ${rentalDetails.quantity}
 Pickup: ${pickupText}
-Total: $${rentalDetails.total}
+Total: Rs. ${rentalDetails.total}
 
 You will receive a confirmation email shortly with pickup/delivery details.`);
 }
@@ -346,9 +333,7 @@ function addToRentalCart(equipmentData) {
         cart.push({
             id: equipmentData.id,
             name: equipmentData.name,
-            daily: equipmentData.daily,
-            weekly: equipmentData.weekly,
-            monthly: equipmentData.monthly,
+            rate: equipmentData.rate,
             condition: equipmentData.condition,
             image: equipmentData.image,
             quantity: 1

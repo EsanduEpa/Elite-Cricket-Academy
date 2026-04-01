@@ -112,232 +112,115 @@
                 <i class="fas fa-th-large"></i>
                 All Equipment
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('batting')">
+            <button class="rental-nav-btn" onclick="filterRentalsByCategory('batting')">
                 <i class="fas fa-baseball-ball"></i>
                 Batting
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('bowling')">
+            <button class="rental-nav-btn" onclick="filterRentalsByCategory('bowling')">
                 <i class="fas fa-bullseye"></i>
                 Bowling
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('training')">
+            <button class="rental-nav-btn" onclick="filterRentalsByCategory('training')">
                 <i class="fas fa-dumbbell"></i>
                 Training
+            </button>
+            <button class="rental-nav-btn" onclick="filterRentalsByCategory('protective')">
+                <i class="fas fa-shield-alt"></i>
+                Protective
+            </button>
+            <button class="rental-nav-btn" onclick="filterRentalsByCategory('other')">
+                <i class="fas fa-ellipsis-h"></i>
+                Other
             </button>
         </div>
 
         
         
-        <div class="products-grid" id="rental-grid">
-            <!-- Professional Cricket Bat Set -->
-            <div class="product-card" data-category="batting" data-condition="excellent">
-                <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Professional Bat Rental" onerror="this.src='https://via.placeholder.com/300x200?text=Professional+Bat+Set'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Premium Rental</div>
-                    <h3 class="product-title">Professional Cricket Bat Set</h3>
-                    <p class="product-description">Premium English willow bat with matching pads, gloves, and helmet for complete protection</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Excellent condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">English Willow</span>
-                        <span class="feature-tag">Complete Set</span>
-                        <span class="feature-tag">Professional Grade</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 25/day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 150/week)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('bat-set-pro')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="bat-set-pro" data-name="Professional Cricket Bat Set" data-daily="25" data-weekly="150">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+        <div class="products-grid" id="rentals-grid">
+            <?php
+                $rentals = $data['rentals'] ?? [];
+                $escape = function ($value) {
+                    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+                };
 
-            <!-- Automatic Bowling Machine -->
-            <div class="product-card" data-category="bowling" data-condition="excellent">
-                <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Bowling Machine" onerror="this.src='https://via.placeholder.com/300x200?text=Bowling+Machine'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Professional Equipment</div>
-                    <h3 class="product-title">Automatic Bowling Machine</h3>
-                    <p class="product-description">Professional bowling machine with variable speed and swing settings for practice sessions</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Excellent condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Variable Speed</span>
-                        <span class="feature-tag">Swing Control</span>
-                        <span class="feature-tag">Remote Control</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 15/hour</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 80/day)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('bowling-machine')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="bowling-machine" data-name="Automatic Bowling Machine" data-hourly="15" data-daily="80">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+                $categoryKey = function ($category) {
+                    $c = strtolower(trim((string)$category));
+                    if ($c === 'batting') return 'batting';
+                    if ($c === 'bowling') return 'bowling';
+                    if ($c === 'training') return 'training';
+                    if ($c === 'protective') return 'protective';
+                    return 'other';
+                };
 
-            <!-- Complete Training Kit -->
-            <div class="product-card" data-category="training" data-condition="good">
-                <div class="condition-badge condition-good">Good</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Training Kit" onerror="this.src='https://via.placeholder.com/300x200?text=Training+Kit'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Training Equipment</div>
-                    <h3 class="product-title">Complete Training Kit</h3>
-                    <p class="product-description">Includes cones, stumps, practice balls, and agility equipment for comprehensive training</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star"></i>
-                        <span class="rating-text">(Good condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Complete Set</span>
-                        <span class="feature-tag">Portable</span>
-                        <span class="feature-tag">Multi-Purpose</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 20/day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 120/week)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('training-kit')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="training-kit" data-name="Complete Training Kit" data-daily="20" data-weekly="120">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+                $conditionMeta = function ($condition) {
+                    $c = strtolower(trim((string)$condition));
+                    if ($c === 'new') return ['excellent', 'Excellent'];
+                    if ($c === 'good') return ['good', 'Good'];
+                    return ['fair', 'Fair'];
+                };
 
-            <!-- Junior Cricket Set -->
-            <div class="product-card" data-category="batting" data-condition="good">
-                <div class="condition-badge condition-good">Good</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Junior Cricket Set" onerror="this.src='https://via.placeholder.com/300x200?text=Junior+Cricket+Set'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Youth Equipment</div>
-                    <h3 class="product-title">Junior Cricket Set</h3>
-                    <p class="product-description">Perfect starter set for young players including lightweight bat, pads, and safety gear</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star"></i>
-                        <span class="rating-text">(Good condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Youth Size</span>
-                        <span class="feature-tag">Lightweight</span>
-                        <span class="feature-tag">Safety First</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 15/day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 90/week)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('junior-set')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="junior-set" data-name="Junior Cricket Set" data-daily="15" data-weekly="90">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+                $placeholderUrl = function ($label) {
+                    return 'https://via.placeholder.com/300x200?text=' . urlencode((string)$label);
+                };
+            ?>
 
-            <!-- Wicket Keeping Set -->
-            <div class="product-card" data-category="fielding" data-condition="excellent">
-                <div class="condition-badge condition-excellent">Excellent</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Wicket Keeping Set" onerror="this.src='https://via.placeholder.com/300x200?text=Wicket+Keeping+Set'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Specialist Equipment</div>
-                    <h3 class="product-title">Professional Wicket Keeping Set</h3>
-                    <p class="product-description">Complete wicket keeper gear including pads, gloves, and inner gloves for maximum protection</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Excellent condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Professional Grade</span>
-                        <span class="feature-tag">Complete Set</span>
-                        <span class="feature-tag">Comfortable Fit</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 22/day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 130/week)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('wicket-keeping')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="wicket-keeping" data-name="Professional Wicket Keeping Set" data-daily="22" data-weekly="130">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+            <?php if (!empty($rentals)) : ?>
+                <?php foreach ($rentals as $equipment) : ?>
+                    <?php
+                        $name = $equipment->Name ?? 'Equipment';
+                        $category = $equipment->Category ?? 'Other';
+                        $categoryFilterKey = $categoryKey($category);
 
-            <!-- Practice Stumps Set -->
-            <div class="product-card" data-category="training" data-condition="good">
-                <div class="condition-badge condition-good">Good</div>
-                <div class="rental-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Practice Stumps" onerror="this.src='https://via.placeholder.com/300x200?text=Practice+Stumps'" />
+                        $availability = strtolower((string)($equipment->AvailabilityStatus ?? 'available'));
+                        $stock = (int)($equipment->Stock ?? 0);
+                        $canRent = ($availability === 'available' && $stock > 0);
+
+                        [$conditionClass, $conditionLabel] = $conditionMeta($equipment->EqCondition ?? 'good');
+
+                        $dailyRate = (float)($equipment->RentalPrice ?? 0);
+
+                        $dbImage = trim((string)($equipment->equipmentImage ?? ''));
+                        $image = $dbImage !== ''
+                            ? (URLROOT . '/' . ltrim($dbImage, '/'))
+                            : $placeholderUrl($name);
+
+                        $imageFallback = $placeholderUrl($name);
+                    ?>
+
+                    <div class="product-card" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
+                        <div class="condition-badge condition-<?php echo $escape($conditionClass); ?>"><?php echo $escape($conditionLabel); ?></div>
+                        <div class="rental-image">
+                            <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" onerror="this.src='<?php echo $escape($imageFallback); ?>'" />
+                        </div>
+                        <div class="product-info">
+                            <div class="product-brand"><?php echo $escape($category); ?></div>
+                            <h3 class="product-title"><?php echo $escape($name); ?></h3>
+                            <?php if (!empty($equipment->Description)) : ?>
+                                <p class="product-description"><?php echo $escape($equipment->Description); ?></p>
+                            <?php endif; ?>
+                            <div class="product-price">
+                                <span class="price-current">Rs. <?php echo number_format($dailyRate, 2); ?>/day</span>
+                            </div>
+                            <div class="product-stock">
+                                <?php if ($canRent) : ?>
+                                    ✓ Available (<?php echo (int)$stock; ?> in stock)
+                                <?php else : ?>
+                                    Unavailable
+                                <?php endif; ?>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-cart rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
+                                    Rent Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <div class="payment-card" style="grid-column: 1 / -1;">
+                    <p>No equipment found in the database.</p>
                 </div>
-                <div class="product-info">
-                    <div class="product-brand">Training Equipment</div>
-                    <h3 class="product-title">Practice Stumps & Balls Set</h3>
-                    <p class="product-description">Multiple sets of stumps with practice balls for batting and bowling practice sessions</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star"></i>
-                        <span class="rating-text">(Good condition)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Multiple Sets</span>
-                        <span class="feature-tag">Durable</span>
-                        <span class="feature-tag">Easy Setup</span>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 12/day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 70/week)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for pickup</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewRentalDetails('stumps-set')">View Details</button>
-                        <button class="btn btn-cart rent-equipment" data-equipment="stumps-set" data-name="Practice Stumps & Balls Set" data-daily="12" data-weekly="70">Rent Now</button>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Rental Information -->
@@ -371,43 +254,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Equipment Rental Modal -->
-<div id="rentalModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Equipment Rental</h3>
-            <button class="close-btn" onclick="closeRentalModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div id="rental-details"></div>
-            <form id="rental-form">
-                <div class="form-group">
-                    <label for="rental-start">Start Date:</label>
-                    <input type="date" id="rental-start" required>
-                </div>
-                <div class="form-group">
-                    <label for="rental-end">End Date:</label>
-                    <input type="date" id="rental-end" required>
-                </div>
-                <div class="form-group">
-                    <label for="rental-period">Rental Period:</label>
-                    <select id="rental-period">
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                    </select>
-                </div>
-            </form>
-            <div class="rental-total">
-                <strong>Total: Rs. <span id="rental-total">0.00</span></strong>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeRentalModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="confirmRental()">Confirm Rental</button>
         </div>
     </div>
 </div>
@@ -455,7 +301,6 @@
 }
 </style>
 
-<script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/rentals.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

@@ -137,6 +137,41 @@
     box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
+/* Product Category Navigation (rentals-style buttons) */
+.product-category-navigation {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.product-category-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid transparent;
+    color: #4A90E2;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-category-btn:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-category-btn.active {
+    background: #4A90E2;
+    color: white;
+    border-color: #357ABD;
+}
+
 
 
 /* Shop Filters */
