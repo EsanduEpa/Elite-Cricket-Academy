@@ -53,7 +53,6 @@ $this->db->query('INSERT INTO `Session` (
            `Name`,
            `Date`,
             `StartTime`,
-            `StartTime`, 
            `EndTime`,
            `Location`,
            `Status`,
@@ -527,26 +526,23 @@ return false;
     * @return bool
     */
 public function cancelSession($id, $reason = '') {
-$this->db->query('UPDATE Session SET
-           Status = "cancelled"
-           WHERE SessionID = :id');
+    $this->db->query('UPDATE Session SET Status = "cancelled" WHERE SessionID = :id');
+    $this->db->bind(':id', $id);
 
-$this->db->bind(':id', $id);
+    if (!$this->db->execute()) {
+        return false;
+    }
 
-if ($this->db->execute()) {
-            return true;
-            // Update cancel reason in SessionDetails
-            $this->db->query('UPDATE SessionDetails SET
-                CancelReason = :reason
-                WHERE SessionID = :id');
-            
-            $this->db->bind(':id', $id);
-            $this->db->bind(':reason', $reason);
-            
-            return $this->db->execute();
-}
+    // Store cancel reason in SessionDetails (table now exists)
+    $this->db->query('INSERT INTO sessiondetails (SessionID, CancelReason)
+        VALUES (:id, :reason)
+        ON DUPLICATE KEY UPDATE CancelReason = :reason2');
+    $this->db->bind(':id', $id);
+    $this->db->bind(':reason', $reason);
+    $this->db->bind(':reason2', $reason);
+    $this->db->execute();
 
-return false;
+    return true;
 }
 
 /**
@@ -724,11 +720,21 @@ return $result->count > 0;
             FROM facilitybooking fb 
             JOIN facility f ON fb.FacilityID = f.FacilityID 
             WHERE fb.PlayerID = :pid3 AND fb.BookingDate >= CURDATE() AND fb.Status != 'cancelled'
+            UNION ALL
+            SELECT 'session' AS booking_type, se.EnrollmentID AS id,
+                s.Date AS date, s.StartTime, s.EndTime,
+                se.Status, s.Name AS reason, u.Name AS practitioner_name
+            FROM sessionenrollment se
+            JOIN session s ON se.SessionID = s.SessionID
+            LEFT JOIN user u ON s.CoachOrTrainerID = u.UserID
+            WHERE se.PlayerID = :pid4 AND s.Date >= CURDATE()
+              AND se.Status = 'enrolled' AND s.Status = 'active'
             ORDER BY date ASC, StartTime ASC
         ");
         $this->db->bind(':pid1', $playerId);
         $this->db->bind(':pid2', $playerId);
         $this->db->bind(':pid3', $playerId);
+        $this->db->bind(':pid4', $playerId);
         return $this->db->resultSet();
     }
 
@@ -755,11 +761,20 @@ return $result->count > 0;
             FROM facilitybooking fb 
             JOIN facility f ON fb.FacilityID = f.FacilityID 
             WHERE fb.PlayerID = :pid3
+            UNION ALL
+            SELECT 'session' AS booking_type, se.EnrollmentID AS id,
+                s.Date AS date, s.StartTime, s.EndTime,
+                se.Status, s.Name AS reason, u.Name AS practitioner_name
+            FROM sessionenrollment se
+            JOIN session s ON se.SessionID = s.SessionID
+            LEFT JOIN user u ON s.CoachOrTrainerID = u.UserID
+            WHERE se.PlayerID = :pid4
             ORDER BY date DESC
         ");
         $this->db->bind(':pid1', $playerId);
         $this->db->bind(':pid2', $playerId);
         $this->db->bind(':pid3', $playerId);
+        $this->db->bind(':pid4', $playerId);
         return $this->db->resultSet();
     }
 
@@ -822,7 +837,7 @@ return $result->count > 0;
     // Get available trainer sessions for booking
     public function getAvailableTrainerSessions($date = null) {
         $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as trainer_id, u.Name as trainer_name,
-            tp.Specialization as trainer_specialization, s.Date as date, s.StartTime as start_time,
+            s.Date as date, s.StartTime as start_time,
             s.EndTime as end_time, s.SessionType as session_type, s.MaxParticipants as max_participants,
             (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
             s.Location as location, s.Name as description, u.ProfileImage as trainer_image
@@ -842,15 +857,15 @@ return $result->count > 0;
 
     // Book a coach appointment
     public function bookCoachAppointment($data) {
-        $this->db->query('INSERT INTO coachappointment (PlayerID, CoachID, AppointmentDate, StartTime, EndTime, Status, Notes) 
-            VALUES (:pid, :cid, :date, :start, :end, :status, :notes)');
+        $this->db->query('INSERT INTO coachappointment (PlayerID, CoachID, AppointmentDate, StartTime, EndTime, Status, Reason)
+            VALUES (:pid, :cid, :date, :start, :end, :status, :reason)');
         $this->db->bind(':pid', $data['player_id']);
         $this->db->bind(':cid', $data['coach_id']);
         $this->db->bind(':date', $data['date']);
         $this->db->bind(':start', $data['start_time']);
         $this->db->bind(':end', $data['end_time']);
-        $this->db->bind(':status', $data['status'] ?? 'Scheduled');
-        $this->db->bind(':notes', $data['notes'] ?? '');
+        $this->db->bind(':status', $data['status'] ?? 'scheduled');
+        $this->db->bind(':reason', $data['notes'] ?? '');
         if ($this->db->execute()) {
             return $this->db->lastInsertId();
         }
@@ -870,6 +885,275 @@ return $result->count > 0;
     public function getSessionTypes() {
         $this->db->query('SELECT DISTINCT SessionType FROM Session WHERE Status = "active" ORDER BY SessionType');
         return $this->db->resultSet();
+    }
+
+    // ==================== ADMIN SLOT MANAGEMENT ====================
+
+    /**
+     * Create an admin-created empty slot (no coach/trainer assigned yet)
+     */
+    public function createAdminSlot(array $data) {
+        $this->db->query('INSERT INTO `Session` (
+            `SessionType`, `SessionMode`, `CoachOrTrainerID`, `Name`,
+            `Date`, `StartTime`, `EndTime`, `Location`, `Status`,
+            `MaxParticipants`, `PricePerSession`, `IsRecurring`
+        ) VALUES (
+            :session_type, :session_mode, NULL, :name,
+            :date, :start_time, :end_time, :location, "open",
+            :max_participants, :price, :is_recurring
+        )');
+        $this->db->bind(':session_type', $data['session_type'], PDO::PARAM_STR);
+        $this->db->bind(':session_mode', $data['session_mode'] ?? 'Group', PDO::PARAM_STR);
+        $this->db->bind(':name', $data['name'], PDO::PARAM_STR);
+        $this->db->bind(':date', $data['date'], PDO::PARAM_STR);
+        $this->db->bind(':start_time', $data['start_time'], PDO::PARAM_STR);
+        $this->db->bind(':end_time', $data['end_time'], PDO::PARAM_STR);
+        $this->db->bind(':location', $data['location'] ?? '', PDO::PARAM_STR);
+        $this->db->bind(':max_participants', (int)($data['max_participants'] ?? 10), PDO::PARAM_INT);
+        $this->db->bind(':price', (float)($data['price'] ?? 0.00), PDO::PARAM_STR);
+        $isRecurring = filter_var($data['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $this->db->bind(':is_recurring', $isRecurring ? 1 : 0, PDO::PARAM_INT);
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    /**
+     * Get open (unclaimed) slots with optional type filter
+     */
+    public function getOpenSlots(array $filters = []): array {
+        $query = 'SELECT s.*, sd.FacilityType, sd.FacilityNumber
+            FROM Session s
+            LEFT JOIN sessiondetails sd ON s.SessionID = sd.SessionID
+            WHERE s.Status = "open" AND s.Date >= CURDATE()';
+        if (!empty($filters['type'])) {
+            $query .= ' AND s.SessionType = :type';
+        }
+        $query .= ' ORDER BY s.Date ASC, s.StartTime ASC';
+        $this->db->query($query);
+        if (!empty($filters['type'])) {
+            $this->db->bind(':type', $filters['type'], PDO::PARAM_STR);
+        }
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Claim a slot — assigns a coach/trainer and marks it active
+     * AND Status = 'open' guard prevents double-claiming
+     */
+    public function claimSlot(int $sessionId, int $userId): bool {
+        $this->db->query('UPDATE `Session`
+            SET CoachOrTrainerID = :uid, Status = "active"
+            WHERE SessionID = :sid AND Status = "open"');
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':sid', $sessionId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Check if a slot has already been claimed
+     */
+    public function isSlotClaimed(int $sessionId): bool {
+        $this->db->query('SELECT Status FROM `Session` WHERE SessionID = :sid');
+        $this->db->bind(':sid', $sessionId, PDO::PARAM_INT);
+        $result = $this->db->single();
+        if (!$result) return true; // treat missing as unavailable
+        return $result->Status !== 'open';
+    }
+
+    /**
+     * Soft-delete an admin slot (only if still open/unclaimed)
+     */
+    public function cancelAdminSlot(int $sessionId): bool {
+        $this->db->query('UPDATE `Session` SET Status = "cancelled"
+            WHERE SessionID = :id AND Status = "open"');
+        $this->db->bind(':id', $sessionId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Count open (unclaimed) future slots — for admin dashboard stats
+     */
+    public function getOpenSlotsCount(): int {
+        $this->db->query('SELECT COUNT(*) as count FROM `Session`
+            WHERE Status = "open" AND Date >= CURDATE()');
+        $result = $this->db->single();
+        return (int)($result->count ?? 0);
+    }
+
+    // ==================== CANCEL & RESCHEDULE ====================
+
+    /**
+     * Count how many cancellations a player has made this calendar month
+     * across session enrollments + coach appointments + trainer appointments
+     */
+    public function getPlayerMonthlyCancellationCount(int $playerId): int {
+        $month = date('Y-m');
+
+        $this->db->query("SELECT COUNT(*) as cnt FROM sessionenrollment
+            WHERE PlayerID = :pid AND Status = 'cancelled'
+              AND DATE_FORMAT(UpdatedAt, '%Y-%m') = :month");
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':month', $month, PDO::PARAM_STR);
+        $r1 = $this->db->single();
+
+        $this->db->query("SELECT COUNT(*) as cnt FROM coachappointment
+            WHERE PlayerID = :pid AND Status = 'cancelled'
+              AND DATE_FORMAT(UpdatedAt, '%Y-%m') = :month");
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':month', $month, PDO::PARAM_STR);
+        $r2 = $this->db->single();
+
+        $this->db->query("SELECT COUNT(*) as cnt FROM trainerappointment
+            WHERE PlayerID = :pid AND Status = 'cancelled'
+              AND DATE_FORMAT(UpdatedAt, '%Y-%m') = :month");
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':month', $month, PDO::PARAM_STR);
+        $r3 = $this->db->single();
+
+        return (int)($r1->cnt ?? 0) + (int)($r2->cnt ?? 0) + (int)($r3->cnt ?? 0);
+    }
+
+    /**
+     * Cancel a session enrollment — only if it belongs to the player
+     */
+    public function cancelSessionEnrollment(int $enrollmentId, int $playerId): bool {
+        $this->db->query("UPDATE sessionenrollment SET Status = 'cancelled', UpdatedAt = NOW()
+            WHERE EnrollmentID = :id AND PlayerID = :pid AND Status = 'enrolled'");
+        $this->db->bind(':id', $enrollmentId, PDO::PARAM_INT);
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Cancel a coach appointment — only if it belongs to the player
+     */
+    public function cancelCoachAppointment(int $appointmentId, int $playerId): bool {
+        $this->db->query("UPDATE coachappointment SET Status = 'cancelled', UpdatedAt = NOW()
+            WHERE AppointmentID = :id AND PlayerID = :pid AND Status != 'cancelled'");
+        $this->db->bind(':id', $appointmentId, PDO::PARAM_INT);
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Cancel a trainer appointment — only if it belongs to the player
+     */
+    public function cancelTrainerAppointment(int $appointmentId, int $playerId): bool {
+        $this->db->query("UPDATE trainerappointment SET Status = 'cancelled', UpdatedAt = NOW()
+            WHERE AppointmentID = :id AND PlayerID = :pid AND Status != 'cancelled'");
+        $this->db->bind(':id', $appointmentId, PDO::PARAM_INT);
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Get session/appointment date+time for the 24-hour rule check.
+     * Returns an object with ->date and ->start_time, or false.
+     */
+    public function getBookingDateTime(int $id, string $type): mixed {
+        if ($type === 'session') {
+            $this->db->query('SELECT s.Date as date, s.StartTime as start_time
+                FROM sessionenrollment se JOIN session s ON se.SessionID = s.SessionID
+                WHERE se.EnrollmentID = :id');
+        } elseif ($type === 'coach') {
+            $this->db->query('SELECT AppointmentDate as date, StartTime as start_time
+                FROM coachappointment WHERE AppointmentID = :id');
+        } elseif ($type === 'trainer') {
+            $this->db->query('SELECT AppointmentDate as date, StartTime as start_time
+                FROM trainerappointment WHERE AppointmentID = :id');
+        } else {
+            return false;
+        }
+        $this->db->bind(':id', $id, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    // ==================== BOOKING RULES ====================
+
+    /**
+     * Count how many coach OR trainer bookings a player has on a given date.
+     * Covers both group session enrollments and 1-on-1 appointments.
+     * @param string $type  'coach' | 'trainer'
+     */
+    public function playerDailyBookingCount(int $playerId, string $date, string $type): int {
+        if ($type === 'coach') {
+            $this->db->query('SELECT COUNT(*) as cnt
+                FROM sessionenrollment se
+                JOIN session s ON se.SessionID = s.SessionID
+                WHERE se.PlayerID = :pid AND s.Date = :date
+                  AND s.SessionType = "Coaching"
+                  AND se.Status = "enrolled" AND s.Status = "active"');
+            $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+            $this->db->bind(':date', $date, PDO::PARAM_STR);
+            $r1 = $this->db->single();
+
+            $this->db->query('SELECT COUNT(*) as cnt FROM coachappointment
+                WHERE PlayerID = :pid AND AppointmentDate = :date AND Status != "cancelled"');
+            $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+            $this->db->bind(':date', $date, PDO::PARAM_STR);
+            $r2 = $this->db->single();
+
+            return (int)($r1->cnt ?? 0) + (int)($r2->cnt ?? 0);
+        } else {
+            $this->db->query('SELECT COUNT(*) as cnt
+                FROM sessionenrollment se
+                JOIN session s ON se.SessionID = s.SessionID
+                WHERE se.PlayerID = :pid AND s.Date = :date
+                  AND s.SessionType = "Physical Training"
+                  AND se.Status = "enrolled" AND s.Status = "active"');
+            $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+            $this->db->bind(':date', $date, PDO::PARAM_STR);
+            $r1 = $this->db->single();
+
+            $this->db->query('SELECT COUNT(*) as cnt FROM trainerappointment
+                WHERE PlayerID = :pid AND AppointmentDate = :date AND Status != "cancelled"');
+            $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+            $this->db->bind(':date', $date, PDO::PARAM_STR);
+            $r2 = $this->db->single();
+
+            return (int)($r1->cnt ?? 0) + (int)($r2->cnt ?? 0);
+        }
+    }
+
+    /**
+     * Check if a player has any booking that overlaps a given date + time window.
+     * Checks group session enrollments, coach appointments, and trainer appointments.
+     */
+    public function playerHasTimeOverlap(int $playerId, string $date, string $startTime, string $endTime): bool {
+        $this->db->query('SELECT COUNT(*) as cnt
+            FROM sessionenrollment se
+            JOIN session s ON se.SessionID = s.SessionID
+            WHERE se.PlayerID = :pid AND s.Date = :date
+              AND se.Status = "enrolled" AND s.Status = "active"
+              AND s.StartTime < :end AND s.EndTime > :start');
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':date', $date, PDO::PARAM_STR);
+        $this->db->bind(':start', $startTime, PDO::PARAM_STR);
+        $this->db->bind(':end', $endTime, PDO::PARAM_STR);
+        $r = $this->db->single();
+        if ((int)($r->cnt ?? 0) > 0) return true;
+
+        $this->db->query('SELECT COUNT(*) as cnt FROM coachappointment
+            WHERE PlayerID = :pid AND AppointmentDate = :date AND Status != "cancelled"
+              AND StartTime < :end AND EndTime > :start');
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':date', $date, PDO::PARAM_STR);
+        $this->db->bind(':start', $startTime, PDO::PARAM_STR);
+        $this->db->bind(':end', $endTime, PDO::PARAM_STR);
+        $r = $this->db->single();
+        if ((int)($r->cnt ?? 0) > 0) return true;
+
+        $this->db->query('SELECT COUNT(*) as cnt FROM trainerappointment
+            WHERE PlayerID = :pid AND AppointmentDate = :date AND Status != "cancelled"
+              AND StartTime < :end AND EndTime > :start');
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':date', $date, PDO::PARAM_STR);
+        $this->db->bind(':start', $startTime, PDO::PARAM_STR);
+        $this->db->bind(':end', $endTime, PDO::PARAM_STR);
+        $r = $this->db->single();
+        return (int)($r->cnt ?? 0) > 0;
     }
 }
 ?>

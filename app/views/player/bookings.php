@@ -203,6 +203,11 @@
                                         $typeLabel = 'Trainer Session';
                                         $badgeLabel = 'Trainer';
                                         $roleLabel = 'Fitness Trainer';
+                                    } elseif ($type === 'session') {
+                                        $icon = 'fa-users';
+                                        $typeLabel = 'Group Session';
+                                        $badgeLabel = 'Session';
+                                        $roleLabel = 'Coach / Trainer';
                                     } else {
                                         $icon = 'fa-building';
                                         $typeLabel = 'Facility Booking';
@@ -237,9 +242,9 @@
                                         <span class="table-badge <?= $statusClass ?>"><?= $statusLabel ?></span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <?php if ($status === 'scheduled' || $status === 'confirmed'): ?>
-                                            <button class="action-btn btn-sm" onclick="viewSession(<?= $booking->id ?>)">
-                                                <i class="fas fa-eye"></i> View
+                                        <?php if (in_array($status, ['scheduled', 'confirmed', 'enrolled'])): ?>
+                                            <button class="action-btn btn-sm btn-danger" onclick="confirmCancel(<?= $booking->id ?>, '<?= $type ?>')">
+                                                <i class="fas fa-times"></i> Cancel
                                             </button>
                                         <?php elseif ($status === 'pending'): ?>
                                             <button class="action-btn btn-sm" onclick="makePayment(<?= $booking->id ?>)">
@@ -274,8 +279,80 @@
 
    
 
+    <!-- Cancel Confirmation Modal -->
+    <div id="cancelModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:32px; max-width:420px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size:48px; color:#e74c3c; margin-bottom:16px;"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 style="margin:0 0 10px; color:#2c3e50;">Cancel Booking?</h3>
+            <p style="color:#666; margin:0 0 8px;">This action cannot be undone.</p>
+            <p style="color:#888; font-size:13px; margin:0 0 24px;">
+                Cancellations must be made <strong>at least 24 hours</strong> before the session.<br>
+                Maximum <strong>3 cancellations per month</strong> allowed.
+            </p>
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button onclick="closeCancelModal()" style="padding:10px 24px; border:2px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; font-size:14px;">Keep Booking</button>
+                <button id="confirmCancelBtn" onclick="doCancel()" style="padding:10px 24px; background:#e74c3c; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">Yes, Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/bookings.js"></script>
+
+    <script>
+    const CANCEL_URL = '<?php echo URLROOT; ?>/player/cancel_booking';
+    let _cancelId = null, _cancelType = null;
+
+    function confirmCancel(id, type) {
+        _cancelId = id;
+        _cancelType = type;
+        const modal = document.getElementById('cancelModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').style.display = 'none';
+        _cancelId = null; _cancelType = null;
+    }
+
+    function doCancel() {
+        const btn = document.getElementById('confirmCancelBtn');
+        btn.disabled = true;
+        btn.textContent = 'Cancelling...';
+
+        fetch(CANCEL_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'booking_id=' + _cancelId + '&booking_type=' + _cancelType
+        })
+        .then(r => r.json())
+        .then(data => {
+            closeCancelModal();
+            showBookingNotification(data.message || (data.success ? 'Cancelled' : 'Failed'), data.success ? 'success' : 'error');
+            if (data.success) setTimeout(() => location.reload(), 1500);
+        })
+        .catch(() => {
+            closeCancelModal();
+            showBookingNotification('An error occurred. Please try again.', 'error');
+        });
+    }
+
+    function showBookingNotification(message, type) {
+        const n = document.createElement('div');
+        const bg = type === 'success' ? 'linear-gradient(135deg,#27ae60,#2ecc71)' : 'linear-gradient(135deg,#e74c3c,#c0392b)';
+        const icon = type === 'success' ? 'check-circle' : 'times-circle';
+        n.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
+        n.style.cssText = 'position:fixed;top:20px;right:20px;background:' + bg + ';color:#fff;padding:14px 20px;border-radius:10px;z-index:10001;transform:translateX(400px);transition:transform 0.3s ease;max-width:380px;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,0.2);';
+        document.body.appendChild(n);
+        setTimeout(() => n.style.transform = 'translateX(0)', 50);
+        setTimeout(() => { n.style.transform = 'translateX(400px)'; setTimeout(() => n.remove(), 300); }, 3500);
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('cancelModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCancelModal();
+    });
+    </script>
 </body>
 </html>

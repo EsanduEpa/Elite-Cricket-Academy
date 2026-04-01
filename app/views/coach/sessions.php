@@ -32,7 +32,14 @@
                         <span>Sessions</span>
                     </a>
                 </li>
-                
+
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/available_slots" class="nav-link" data-tooltip="Available Slots">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Available Slots</span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
                         <i class="fas fa-users"></i>

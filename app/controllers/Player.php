@@ -128,6 +128,7 @@ class Player extends Controller {
     
     // My Bookings
     public function bookings() {
+        $this->requireLogin();
         $data = [
             'title' => 'My Bookings',
             'player' => $this->getPlayerData(),
@@ -136,6 +137,60 @@ class Player extends Controller {
             'upcomingBookings' => $this->getUpcomingBookings()
         ];
         $this->view('player/bookings', $data);
+    }
+
+    // AJAX: Cancel a booking (session enrollment, coach appt, or trainer appt)
+    public function cancel_booking() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $playerId   = (int)$_SESSION['user_id'];
+        $bookingId  = (int)($_POST['booking_id'] ?? 0);
+        $type       = $_POST['booking_type'] ?? '';
+
+        if (!$bookingId || !in_array($type, ['session', 'coach', 'trainer'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            ob_end_flush(); exit;
+        }
+
+        $sessionModel = $this->model('M_Session');
+
+        // 24-hour rule
+        $booking = $sessionModel->getBookingDateTime($bookingId, $type);
+        if (!$booking) {
+            echo json_encode(['success' => false, 'message' => 'Booking not found']);
+            ob_end_flush(); exit;
+        }
+        $sessionDateTime = strtotime($booking->date . ' ' . $booking->start_time);
+        $hoursUntil = ($sessionDateTime - time()) / 3600;
+        if ($hoursUntil < 24) {
+            echo json_encode(['success' => false, 'message' => 'Cancellations must be made at least 24 hours before the session.']);
+            ob_end_flush(); exit;
+        }
+
+        // Max 3 cancellations per month
+        $monthlyCount = $sessionModel->getPlayerMonthlyCancellationCount($playerId);
+        if ($monthlyCount >= 3) {
+            echo json_encode(['success' => false, 'message' => 'You have reached the maximum of 3 cancellations this month.']);
+            ob_end_flush(); exit;
+        }
+
+        // Perform cancellation
+        if ($type === 'session') {
+            $ok = $sessionModel->cancelSessionEnrollment($bookingId, $playerId);
+        } elseif ($type === 'coach') {
+            $ok = $sessionModel->cancelCoachAppointment($bookingId, $playerId);
+        } else {
+            $ok = $sessionModel->cancelTrainerAppointment($bookingId, $playerId);
+        }
+
+        if ($ok) {
+            echo json_encode(['success' => true, 'message' => 'Booking cancelled successfully.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Cancellation failed. The booking may already be cancelled.']);
+        }
+        ob_end_flush(); exit;
     }
 
     // Coach Booking System
@@ -176,6 +231,15 @@ class Player extends Controller {
                     
                 case 'book_session':
                     $result = $this->bookCoachSession(
+                        $_POST['slot_id'],
+                        $_SESSION['user_id'],
+                        $_POST['special_requests'] ?? ''
+                    );
+                    echo json_encode($result);
+                    break;
+
+                case 'book_trainer_session':
+                    $result = $this->bookTrainerSession(
                         $_POST['slot_id'],
                         $_SESSION['user_id'],
                         $_POST['special_requests'] ?? ''
@@ -1166,6 +1230,10 @@ class Player extends Controller {
     // Trainer Sessions Page
     public function trainer_sessions() {
         $this->requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->handleCoachBookingAjax();
+            return;
+        }
         $data = [
             'title' => 'Trainer Sessions',
             'player' => $this->getPlayerData(),
@@ -1632,33 +1700,76 @@ class Player extends Controller {
     private function bookCoachSession($slotId, $playerId, $specialRequests = '') {
         try {
             $sessionModel = $this->model('M_Session');
-            // Get the session details
             $session = $sessionModel->getSessionById($slotId);
             if (!$session) {
-                return ['success' => false, 'message' => 'Session slot not found'];
+                return ['success' => false, 'message' => 'Session not found'];
             }
-            
-            // Book the appointment
-            $data = [
-                'player_id' => $playerId,
-                'coach_id' => $session->CoachOrTrainerID ?? $session->CoachID ?? 0,
-                'date' => $session->Date,
-                'start_time' => $session->StartTime,
-                'end_time' => $session->EndTime,
-                'status' => 'Scheduled',
-                'notes' => $specialRequests
-            ];
-            
-            $bookingId = $sessionModel->bookCoachAppointment($data);
-            if ($bookingId) {
-                return [
-                    'success' => true,
-                    'booking_id' => $bookingId,
-                    'message' => 'Booking created successfully. Please complete payment to confirm.',
-                    'payment_required' => true
-                ];
+            if ($session->Status !== 'active') {
+                return ['success' => false, 'message' => 'Session is not available for booking'];
             }
-            return ['success' => false, 'message' => 'Failed to create booking'];
+
+            // Operating hours: 06:00 – 21:00
+            $startH = (int)date('H', strtotime($session->StartTime));
+            $endH   = (int)date('H', strtotime($session->EndTime));
+            $endM   = (int)date('i', strtotime($session->EndTime));
+            if ($startH < 6 || $endH > 21 || ($endH === 21 && $endM > 0)) {
+                return ['success' => false, 'message' => 'Session is outside academy operating hours (6 AM – 9 PM)'];
+            }
+
+            // Max 1 coach session per day
+            if ($sessionModel->playerDailyBookingCount($playerId, $session->Date, 'coach') >= 1) {
+                return ['success' => false, 'message' => 'You already have a coach session on this day. Maximum 1 per day allowed.'];
+            }
+
+            // No time overlap with existing bookings
+            if ($sessionModel->playerHasTimeOverlap($playerId, $session->Date, $session->StartTime, $session->EndTime)) {
+                return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
+            }
+
+            $enrolled = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrolled) {
+                return ['success' => true, 'message' => 'You have been enrolled in this session.', 'session_id' => $slotId];
+            }
+            return ['success' => false, 'message' => 'Enrollment failed'];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Booking failed: ' . $e->getMessage()];
+        }
+    }
+
+    private function bookTrainerSession($slotId, $playerId, $specialRequests = '') {
+        try {
+            $sessionModel = $this->model('M_Session');
+            $session = $sessionModel->getSessionById($slotId);
+            if (!$session) {
+                return ['success' => false, 'message' => 'Session not found'];
+            }
+            if ($session->Status !== 'active') {
+                return ['success' => false, 'message' => 'Session is not available for booking'];
+            }
+
+            // Operating hours: 06:00 – 21:00
+            $startH = (int)date('H', strtotime($session->StartTime));
+            $endH   = (int)date('H', strtotime($session->EndTime));
+            $endM   = (int)date('i', strtotime($session->EndTime));
+            if ($startH < 6 || $endH > 21 || ($endH === 21 && $endM > 0)) {
+                return ['success' => false, 'message' => 'Session is outside academy operating hours (6 AM – 9 PM)'];
+            }
+
+            // Max 1 trainer session per day
+            if ($sessionModel->playerDailyBookingCount($playerId, $session->Date, 'trainer') >= 1) {
+                return ['success' => false, 'message' => 'You already have a trainer session on this day. Maximum 1 per day allowed.'];
+            }
+
+            // No time overlap with existing bookings
+            if ($sessionModel->playerHasTimeOverlap($playerId, $session->Date, $session->StartTime, $session->EndTime)) {
+                return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
+            }
+
+            $enrolled = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrolled) {
+                return ['success' => true, 'message' => 'You have been enrolled in this trainer session.', 'session_id' => $slotId];
+            }
+            return ['success' => false, 'message' => 'Enrollment failed'];
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Booking failed: ' . $e->getMessage()];
         }
