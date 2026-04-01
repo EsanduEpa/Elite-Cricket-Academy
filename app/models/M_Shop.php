@@ -442,17 +442,17 @@ class M_Shop {
 
     // Get available equipment for rent
     public function getAvailableEquipmentForRent() {
-        $this->db->query('SELECT * FROM equipment WHERE AvailableQuantity > 0 ORDER BY Name');
+        $this->db->query('SELECT * FROM equipment ORDER BY Name ASC');
         return $this->db->resultSet();
     }
 
     // Get player's current and past rentals
     public function getPlayerRentals($playerId) {
-        $this->db->query('SELECT er.*, e.Name as EquipmentName, e.Category, e.DailyRate, e.WeeklyRate
+        $this->db->query('SELECT er.*, e.Name as EquipmentName, e.Category, e.RentalPrice, e.EqCondition
             FROM equipmentrental er
             JOIN equipment e ON er.EquipmentID = e.EquipmentID
             WHERE er.PlayerID = :pid
-            ORDER BY er.RentalStartDate DESC');
+            ORDER BY er.StartTime DESC');
         $this->db->bind(':pid', $playerId);
         return $this->db->resultSet();
     }
@@ -460,8 +460,8 @@ class M_Shop {
     // Get rental stats for a player
     public function getPlayerRentalStats($playerId) {
         $this->db->query('SELECT 
-            (SELECT COUNT(*) FROM equipment WHERE AvailableQuantity > 0) as total_equipment,
-            (SELECT COUNT(*) FROM equipmentrental WHERE PlayerID = :pid1 AND Status = "Active") as active_rentals,
+            (SELECT COUNT(*) FROM equipment WHERE AvailabilityStatus = "available") as total_equipment,
+            (SELECT COUNT(*) FROM equipmentrental WHERE PlayerID = :pid1 AND Status = "active") as active_rentals,
             (SELECT COALESCE(SUM(TotalCost), 0) FROM equipmentrental WHERE PlayerID = :pid2) as total_spent
         ');
         $this->db->bind(':pid1', $playerId);
@@ -473,7 +473,7 @@ class M_Shop {
     public function getFacilityStats() {
         $this->db->query('SELECT 
             (SELECT COUNT(*) FROM facility) as total_facilities,
-            (SELECT COUNT(*) FROM facility WHERE Status = "Available") as available_facilities
+            (SELECT COUNT(*) FROM facility WHERE AvailabilityStatus = "available") as available_facilities
         ');
         return $this->db->single();
     }

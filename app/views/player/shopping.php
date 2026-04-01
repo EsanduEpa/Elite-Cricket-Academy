@@ -114,6 +114,53 @@
 
         <!-- Products Section -->
         <div id="products-section" class="shop-section active">
+            <?php
+                $products = $data['products'] ?? [];
+
+                $normKey = function ($value) {
+                    return strtolower(trim((string)$value));
+                };
+
+                $categoryOptions = [];
+                $brandOptions = [];
+                if (!empty($products)) {
+                    foreach ($products as $p) {
+                        if (!empty($p->Category)) {
+                            $categoryOptions[(string)$p->Category] = true;
+                        }
+                        if (!empty($p->Brand)) {
+                            $brandOptions[(string)$p->Brand] = true;
+                        }
+                    }
+                }
+                ksort($categoryOptions);
+                ksort($brandOptions);
+
+                $categoryIconClass = function ($categoryLabel) {
+                    $c = strtolower(trim((string)$categoryLabel));
+                    if ($c === 'batting') return 'fas fa-baseball-ball';
+                    if ($c === 'bowling') return 'fas fa-bullseye';
+                    if ($c === 'training') return 'fas fa-dumbbell';
+                    if ($c === 'protective') return 'fas fa-shield-alt';
+                    return 'fas fa-tag';
+                };
+            ?>
+
+            <!-- Category Navigation (rentals-style) -->
+            <div class="product-category-navigation" id="product-category-navigation">
+                <button type="button" class="product-category-btn active" data-category="all">
+                    <i class="fas fa-th-large"></i>
+                    All Categories
+                </button>
+                <?php foreach (array_keys($categoryOptions) as $category) : ?>
+                    <?php $categoryKey = $normKey($category); ?>
+                    <button type="button" class="product-category-btn" data-category="<?php echo htmlspecialchars($categoryKey, ENT_QUOTES, 'UTF-8'); ?>">
+                        <i class="<?php echo htmlspecialchars($categoryIconClass($category), ENT_QUOTES, 'UTF-8'); ?>"></i>
+                        <?php echo htmlspecialchars((string)$category, ENT_QUOTES, 'UTF-8'); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+
             <div class="section-header">
                 <div>
                     <h2>Cricket Equipment & Gear</h2>
@@ -122,34 +169,14 @@
                 <div class="shop-filters">
                     <select class="filter-select" id="category-filter">
                         <option value="all">All Categories</option>
-                        <?php
-                        $categoryOptions = [];
-                        if (!empty($data['products'])) {
-                            foreach ($data['products'] as $p) {
-                                if (!empty($p->Category)) {
-                                    $categoryOptions[$p->Category] = true;
-                                }
-                            }
-                        }
-                        foreach (array_keys($categoryOptions) as $category):
-                        ?>
-                            <option value="<?php echo htmlspecialchars(strtolower($category)); ?>"><?php echo htmlspecialchars($category); ?></option>
+                        <?php foreach (array_keys($categoryOptions) as $category): ?>
+                            <option value="<?php echo htmlspecialchars($normKey($category), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($category, ENT_QUOTES, 'UTF-8'); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <select class="filter-select" id="brand-filter">
                         <option value="all">All Brands</option>
-                        <?php
-                        $brandOptions = [];
-                        if (!empty($data['products'])) {
-                            foreach ($data['products'] as $p) {
-                                if (!empty($p->Brand)) {
-                                    $brandOptions[$p->Brand] = true;
-                                }
-                            }
-                        }
-                        foreach (array_keys($brandOptions) as $brand):
-                        ?>
-                            <option value="<?php echo htmlspecialchars(strtolower($brand)); ?>"><?php echo htmlspecialchars($brand); ?></option>
+                        <?php foreach (array_keys($brandOptions) as $brand): ?>
+                            <option value="<?php echo htmlspecialchars($normKey($brand), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <select class="filter-select" id="price-filter">
@@ -166,9 +193,9 @@
             <div class="products-grid" id="products-grid">
                 <?php if (!empty($data['products'])): ?>
                     <?php foreach ($data['products'] as $product): ?>
-                        <div class="product-card" 
-                             data-category="<?php echo strtolower($product->Category ?? ''); ?>" 
-                             data-brand="<?php echo strtolower($product->Brand ?? ''); ?>" 
+                            <div class="product-card" 
+                                data-category="<?php echo htmlspecialchars($normKey($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>" 
+                                data-brand="<?php echo htmlspecialchars($normKey($product->Brand ?? ''), ENT_QUOTES, 'UTF-8'); ?>" 
                              data-price="<?php echo $product->Price ?? 0; ?>"
                              data-product-id="<?php echo $product->ProductID; ?>">
                             
