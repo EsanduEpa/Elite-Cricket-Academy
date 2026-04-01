@@ -281,6 +281,7 @@
     </div>
 </div>
 
+<script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
 <script src="<?php echo URLROOT; ?>/js/player/facilities.js"></script>
 
 <style>

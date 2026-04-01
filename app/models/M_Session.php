@@ -791,12 +791,61 @@ return $result->count > 0;
 
     // Get available facilities and their bookings for a date
     public function getUnavailableTimes($facilityId, $date) {
-        $this->db->query('SELECT StartTime, EndTime FROM facilitybooking 
+        $this->db->query('SELECT StartTime, EndTime FROM facilitybooking
             WHERE FacilityID = :fid AND BookingDate = :date AND Status != "cancelled"
             ORDER BY StartTime ASC');
         $this->db->bind(':fid', $facilityId);
         $this->db->bind(':date', $date);
         return $this->db->resultSet();
+    }
+
+    /**
+     * Total hours a player has booked for a given facility on a given date (non-cancelled)
+     */
+    public function getPlayerDailyFacilityHours(int $playerId, int $facilityId, string $date): float {
+        $this->db->query('SELECT SUM(TIMESTAMPDIFF(MINUTE, StartTime, EndTime)) as total_minutes
+            FROM facilitybooking
+            WHERE PlayerID = :pid AND FacilityID = :fid AND BookingDate = :date AND Status != "cancelled"');
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':fid', $facilityId, PDO::PARAM_INT);
+        $this->db->bind(':date', $date, PDO::PARAM_STR);
+        $result = $this->db->single();
+        return round((float)($result->total_minutes ?? 0) / 60, 2);
+    }
+
+    /**
+     * Insert a confirmed facility booking
+     */
+    public function bookFacility(array $data): int|false {
+        $this->db->query('INSERT INTO facilitybooking
+            (FacilityID, PlayerID, BookingDate, StartTime, EndTime, Status, TotalCost, BookedBy)
+            VALUES (:fid, :pid, :date, :start, :end, "confirmed", :cost, :booked_by)');
+        $this->db->bind(':fid',       (int)$data['facility_id'], PDO::PARAM_INT);
+        $this->db->bind(':pid',       (int)$data['player_id'],   PDO::PARAM_INT);
+        $this->db->bind(':date',      $data['date'],             PDO::PARAM_STR);
+        $this->db->bind(':start',     $data['start_time'],       PDO::PARAM_STR);
+        $this->db->bind(':end',       $data['end_time'],         PDO::PARAM_STR);
+        $this->db->bind(':cost',      $data['total_cost'],       PDO::PARAM_STR);
+        $this->db->bind(':booked_by', (int)$data['player_id'],   PDO::PARAM_INT);
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    /**
+     * Check if the facility is already booked for an overlapping time slot on that date
+     */
+    public function facilityHasTimeConflict(int $facilityId, string $date, string $startTime, string $endTime): bool {
+        $this->db->query('SELECT COUNT(*) as cnt FROM facilitybooking
+            WHERE FacilityID = :fid AND BookingDate = :date AND Status != "cancelled"
+              AND StartTime < :end AND EndTime > :start');
+        $this->db->bind(':fid',   $facilityId, PDO::PARAM_INT);
+        $this->db->bind(':date',  $date,        PDO::PARAM_STR);
+        $this->db->bind(':start', $startTime,   PDO::PARAM_STR);
+        $this->db->bind(':end',   $endTime,     PDO::PARAM_STR);
+        $result = $this->db->single();
+        return (int)($result->cnt ?? 0) > 0;
     }
 
     // Get today's schedule for a player (sessions + appointments)
@@ -1066,6 +1115,29 @@ return $result->count > 0;
         } else {
             return false;
         }
+        $this->db->bind(':id', $id, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    /** Get enrollment with its session data (for notification on cancel) */
+    public function getEnrollmentWithSession(int $enrollmentId): mixed {
+        $this->db->query('SELECT se.*, s.Date, s.StartTime, s.CoachOrTrainerID
+            FROM sessionenrollment se JOIN session s ON se.SessionID = s.SessionID
+            WHERE se.EnrollmentID = :id');
+        $this->db->bind(':id', $enrollmentId, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    /** Get a coach appointment by ID */
+    public function getCoachAppointmentById(int $id): mixed {
+        $this->db->query('SELECT * FROM coachappointment WHERE AppointmentID = :id');
+        $this->db->bind(':id', $id, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    /** Get a trainer appointment by ID */
+    public function getTrainerAppointmentById(int $id): mixed {
+        $this->db->query('SELECT * FROM trainerappointment WHERE AppointmentID = :id');
         $this->db->bind(':id', $id, PDO::PARAM_INT);
         return $this->db->single();
     }

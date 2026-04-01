@@ -126,6 +126,75 @@ class Player extends Controller {
         $this->checkout();
     }
     
+    // AJAX: Get notifications for the logged-in player
+    public function notifications() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+        $userId = (int)$_SESSION['user_id'];
+        $notifModel = $this->model('M_Notification');
+        echo json_encode([
+            'notifications' => $notifModel->getForUser($userId, 15),
+            'unread_count'  => $notifModel->countUnread($userId),
+        ]);
+        ob_end_flush(); exit;
+    }
+
+    // AJAX: Mark notification(s) read
+    public function mark_notifications_read() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+        $userId = (int)$_SESSION['user_id'];
+        $notifModel = $this->model('M_Notification');
+        $id = (int)($_POST['notification_id'] ?? 0);
+        if ($id) {
+            $notifModel->markRead($id, $userId);
+        } else {
+            $notifModel->markAllRead($userId);
+        }
+        echo json_encode(['success' => true, 'unread_count' => $notifModel->countUnread($userId)]);
+        ob_end_flush(); exit;
+    }
+
+    // Session Calendar
+    public function calendar() {
+        $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $bookings     = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+
+        // Format for FullCalendar JSON
+        $events = [];
+        $typeColors = [
+            'coach'   => '#4A90E2',
+            'trainer' => '#27ae60',
+            'session' => '#9b59b6',
+            'facility'=> '#e67e22',
+        ];
+        foreach ($bookings as $b) {
+            $color = $typeColors[$b->booking_type] ?? '#7f8c8d';
+            $events[] = [
+                'id'    => $b->booking_type . '_' . $b->id,
+                'title' => ($b->reason ?: ucfirst($b->booking_type) . ' Session')
+                           . ' — ' . ($b->practitioner_name ?? ''),
+                'start' => $b->date . 'T' . $b->StartTime,
+                'end'   => $b->date . 'T' . $b->EndTime,
+                'color' => $color,
+                'extendedProps' => [
+                    'type'   => $b->booking_type,
+                    'status' => $b->Status,
+                ],
+            ];
+        }
+        $data = [
+            'title'  => 'My Session Calendar',
+            'player' => $this->getPlayerData(),
+            'events' => $events,
+        ];
+        $this->view('player/calendar', $data);
+    }
+
     // My Bookings
     public function bookings() {
         $this->requireLogin();
@@ -186,11 +255,69 @@ class Player extends Controller {
         }
 
         if ($ok) {
-            echo json_encode(['success' => true, 'message' => 'Booking cancelled successfully.']);
+            $refundMsg = '';
+            // Refund session payment if one exists (only for session enrollments)
+            if ($type === 'session') {
+                $paymentModel = $this->model('M_Payment');
+                $refunded = $paymentModel->refundSessionPayment($bookingId);
+                if ($refunded) {
+                    $refundMsg = ' Your payment has been refunded.';
+                }
+            }
+            // Send notification to coach/trainer
+            $this->sendCancellationNotification($bookingId, $type, $playerId);
+            echo json_encode(['success' => true, 'message' => 'Booking cancelled successfully.' . $refundMsg]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Cancellation failed. The booking may already be cancelled.']);
         }
         ob_end_flush(); exit;
+    }
+
+    private function sendBookingConfirmedNotification(int $playerId, object $session): void {
+        try {
+            $notifModel = $this->model('M_Notification');
+            $date = date('M d, Y', strtotime($session->Date));
+            $time = date('g:i A', strtotime($session->StartTime));
+            $notifModel->create($playerId, 'booking_confirmed',
+                'Session Booked',
+                'Your session "' . ($session->Name ?? 'Session') . '" on ' . $date . ' at ' . $time . ' is confirmed.',
+                URLROOT . '/player/bookings');
+        } catch (Exception $e) {}
+    }
+
+    private function sendCancellationNotification(int $bookingId, string $type, int $playerId): void {
+        try {
+            $notifModel   = $this->model('M_Notification');
+            $sessionModel = $this->model('M_Session');
+            $userModel    = $this->model('M_Users');
+            $player       = $userModel->getUserById($playerId);
+            $playerName   = $player->Name ?? 'A player';
+
+            if ($type === 'session') {
+                $row = $sessionModel->getEnrollmentWithSession($bookingId);
+                if ($row && !empty($row->CoachOrTrainerID)) {
+                    $notifModel->create($row->CoachOrTrainerID, 'cancellation',
+                        'Session Cancellation',
+                        $playerName . ' has cancelled their session on ' . date('M d, Y', strtotime($row->Date)) . '.');
+                }
+            } elseif ($type === 'coach') {
+                $appt = $sessionModel->getCoachAppointmentById($bookingId);
+                if ($appt) {
+                    $notifModel->create($appt->CoachID, 'cancellation',
+                        'Appointment Cancelled',
+                        $playerName . ' has cancelled their coaching appointment.');
+                }
+            } elseif ($type === 'trainer') {
+                $appt = $sessionModel->getTrainerAppointmentById($bookingId);
+                if ($appt) {
+                    $notifModel->create($appt->TrainerID, 'cancellation',
+                        'Appointment Cancelled',
+                        $playerName . ' has cancelled their training appointment.');
+                }
+            }
+        } catch (Exception $e) {
+            // Notification failure must not break the cancellation
+        }
     }
 
     // Coach Booking System
@@ -1181,6 +1308,7 @@ class Player extends Controller {
 
     // Facilities
     public function facilities() {
+        $this->requireLogin();
         $data = [
             'title' => 'Facility Booking',
             'player' => $this->getPlayerData(),
@@ -1189,6 +1317,103 @@ class Player extends Controller {
             'facilityStats' => $this->getFacilityStats()
         ];
         $this->view('player/facilities', $data);
+    }
+
+    // AJAX: Book a facility slot
+    public function book_facility() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $playerId   = (int)$_SESSION['user_id'];
+        $facilityId = (int)($_POST['facility_id'] ?? 0);
+        $date       = trim($_POST['date'] ?? '');
+        $startTime  = trim($_POST['start_time'] ?? '');
+        $duration   = (int)($_POST['duration'] ?? 0);  // hours
+
+        if (!$facilityId || !$date || !$startTime || $duration < 1) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            ob_end_flush(); exit;
+        }
+
+        // Must be a future date
+        if ($date < date('Y-m-d')) {
+            echo json_encode(['success' => false, 'message' => 'Cannot book a past date']);
+            ob_end_flush(); exit;
+        }
+
+        // Operating hours: 06:00 – 21:00
+        $endTime = date('H:i:s', strtotime($startTime) + $duration * 3600);
+        if ($startTime < '06:00:00' || $endTime > '21:00:00') {
+            echo json_encode(['success' => false, 'message' => 'Booking must be within operating hours (6 AM – 9 PM)']);
+            ob_end_flush(); exit;
+        }
+
+        // Max 2 hours per day per facility per player
+        $sessionModel = $this->model('M_Session');
+        $hoursAlready = $sessionModel->getPlayerDailyFacilityHours($playerId, $facilityId, $date);
+        if (($hoursAlready + $duration) > 2) {
+            $remaining = max(0, 2 - $hoursAlready);
+            echo json_encode(['success' => false, 'message' => 'Maximum 2 hours per facility per day. You have ' . $remaining . 'h remaining today.']);
+            ob_end_flush(); exit;
+        }
+
+        // No double-booking of the same facility slot
+        if ($sessionModel->facilityHasTimeConflict($facilityId, $date, $startTime, $endTime)) {
+            echo json_encode(['success' => false, 'message' => 'This facility is already booked for the selected time slot. Please choose a different time.']);
+            ob_end_flush(); exit;
+        }
+
+        // Calculate cost
+        $shopModel = $this->model('M_Shop');
+        $facility  = $shopModel->getFacilityById($facilityId);
+        $hourlyRate = (float)($facility->HourlyRate ?? 0);
+        $totalCost  = $hourlyRate * $duration;
+
+        $id = $sessionModel->bookFacility([
+            'facility_id' => $facilityId,
+            'player_id'   => $playerId,
+            'date'        => $date,
+            'start_time'  => $startTime,
+            'end_time'    => $endTime,
+            'total_cost'  => $totalCost,
+        ]);
+
+        if ($id) {
+            echo json_encode([
+                'success'    => true,
+                'message'    => 'Facility booked successfully!',
+                'booking_id' => $id,
+                'total_cost' => 'Rs. ' . number_format($totalCost, 2),
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Booking failed. Please try again.']);
+        }
+        ob_end_flush(); exit;
+    }
+
+    // AJAX: Return unavailable time slots for a facility on a date
+    public function facility_times() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $facilityId = (int)($_GET['facility_id'] ?? 0);
+        $date       = trim($_GET['date'] ?? '');
+
+        if (!$facilityId || !$date) {
+            echo json_encode([]);
+            ob_end_flush(); exit;
+        }
+
+        $sessionModel = $this->model('M_Session');
+        $rows = $sessionModel->getUnavailableTimes($facilityId, $date);
+        $result = [];
+        foreach ($rows as $r) {
+            $result[] = ['start' => $r->StartTime, 'end' => $r->EndTime];
+        }
+        echo json_encode($result);
+        ob_end_flush(); exit;
     }
 
     // Coach Sessions Page
@@ -1726,9 +1951,36 @@ class Player extends Controller {
                 return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
             }
 
-            $enrolled = $sessionModel->addPlayerToSession($slotId, $playerId);
-            if ($enrolled) {
-                return ['success' => true, 'message' => 'You have been enrolled in this session.', 'session_id' => $slotId];
+            $price = (float)($session->PricePerSession ?? 0);
+            // If paid session, require payment_method in POST
+            if ($price > 0 && empty($_POST['payment_method'])) {
+                return [
+                    'success'        => false,
+                    'requires_payment' => true,
+                    'amount'         => $price,
+                    'message'        => 'This session requires payment of Rs. ' . number_format($price, 2),
+                ];
+            }
+
+            $enrollmentId = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrollmentId) {
+                if ($price > 0) {
+                    $paymentModel = $this->model('M_Payment');
+                    $paymentModel->createSessionPayment([
+                        'enrollment_id'  => $enrollmentId,
+                        'player_id'      => $playerId,
+                        'session_id'     => $slotId,
+                        'amount'         => $price,
+                        'payment_method' => $_POST['payment_method'] ?? 'online',
+                        'status'         => 'completed',
+                        'paid_at'        => date('Y-m-d H:i:s'),
+                    ]);
+                }
+                $this->sendBookingConfirmedNotification($playerId, $session);
+                $msg = $price > 0
+                    ? 'Enrolled and payment of Rs. ' . number_format($price, 2) . ' recorded.'
+                    : 'You have been enrolled in this session.';
+                return ['success' => true, 'message' => $msg, 'session_id' => $slotId];
             }
             return ['success' => false, 'message' => 'Enrollment failed'];
         } catch (Exception $e) {
@@ -1765,16 +2017,42 @@ class Player extends Controller {
                 return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
             }
 
-            $enrolled = $sessionModel->addPlayerToSession($slotId, $playerId);
-            if ($enrolled) {
-                return ['success' => true, 'message' => 'You have been enrolled in this trainer session.', 'session_id' => $slotId];
+            $price = (float)($session->PricePerSession ?? 0);
+            if ($price > 0 && empty($_POST['payment_method'])) {
+                return [
+                    'success'          => false,
+                    'requires_payment' => true,
+                    'amount'           => $price,
+                    'message'          => 'This session requires payment of Rs. ' . number_format($price, 2),
+                ];
+            }
+
+            $enrollmentId = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrollmentId) {
+                if ($price > 0) {
+                    $paymentModel = $this->model('M_Payment');
+                    $paymentModel->createSessionPayment([
+                        'enrollment_id'  => $enrollmentId,
+                        'player_id'      => $playerId,
+                        'session_id'     => $slotId,
+                        'amount'         => $price,
+                        'payment_method' => $_POST['payment_method'] ?? 'online',
+                        'status'         => 'completed',
+                        'paid_at'        => date('Y-m-d H:i:s'),
+                    ]);
+                }
+                $this->sendBookingConfirmedNotification($playerId, $session);
+                $msg = $price > 0
+                    ? 'Enrolled and payment of Rs. ' . number_format($price, 2) . ' recorded.'
+                    : 'You have been enrolled in this trainer session.';
+                return ['success' => true, 'message' => $msg, 'session_id' => $slotId];
             }
             return ['success' => false, 'message' => 'Enrollment failed'];
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Booking failed: ' . $e->getMessage()];
         }
     }
-    
+
     private function processBookingPayment($bookingId, $paymentMethod, $paymentDetails = []) {
         try {
             $transactionId = 'TXN_' . date('Ymd') . '_' . str_pad($bookingId, 6, '0', STR_PAD_LEFT);
