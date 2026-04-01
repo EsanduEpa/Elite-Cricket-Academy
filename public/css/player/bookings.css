@@ -88,3 +88,11 @@
         font-size: 12px;
     }
 }
+.btn-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+    color: #fff !important;
+    border-color: #c0392b !important;
+}
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226) !important;
+}
