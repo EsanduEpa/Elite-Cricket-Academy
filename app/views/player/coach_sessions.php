@@ -291,17 +291,14 @@
 <!-- Coach Session Booking Modal -->
 
 
-<script>
-    // Pass PHP data to JavaScript
-    window.coachSessionData = {
-        coaches: <?= json_encode($data['coaches']) ?>,
-        availableSlots: <?= json_encode($data['availableSlots'] ?? []) ?>,
-        sessionTypes: <?= json_encode($data['sessionTypes']) ?>,
-        canAccessAllCoaches: <?= json_encode($data['canAccessAllCoaches']) ?>,
-        planName: <?= json_encode($data['planName']) ?>,
-        urlRoot: '<?= URLROOT ?>'
-    };
-</script>
+<script type="application/json" id="coachSessionData"><?php echo json_encode([
+    'coaches' => $data['coaches'],
+    'availableSlots' => $data['availableSlots'] ?? [],
+    'sessionTypes' => $data['sessionTypes'],
+    'canAccessAllCoaches' => $data['canAccessAllCoaches'],
+    'planName' => $data['planName'],
+    'urlRoot' => URLROOT,
+], JSON_UNESCAPED_SLASHES); ?></script>
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/coach-sessions.js"></script>

@@ -323,12 +323,11 @@
         </div>
     </div>
 
+    <script type="application/json" id="trainerPlansData"><?php echo json_encode([
+        'workoutPlans' => $data['workoutPlans'],
+        'nutritionGuides' => $data['nutritionGuides'],
+        'supplementInfo' => $data['supplementInfo'],
+    ], JSON_UNESCAPED_SLASHES); ?></script>
     <script src="<?php echo URLROOT; ?>/js/player/trainer-plans.js"></script>
-    <script>
-        // Pass data to JavaScript
-        const workoutPlans = <?php echo json_encode($data['workoutPlans']); ?>;
-        const nutritionGuides = <?php echo json_encode($data['nutritionGuides']); ?>;
-        const supplementInfo = <?php echo json_encode($data['supplementInfo']); ?>;
-    </script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
