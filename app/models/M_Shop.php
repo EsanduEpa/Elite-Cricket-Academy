@@ -396,6 +396,12 @@ class M_Shop {
         return $this->db->resultSet();
     }
 
+    public function getFacilityById(int $id) {
+        $this->db->query('SELECT * FROM facility WHERE FacilityID = :id');
+        $this->db->bind(':id', $id, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
     // Get supplement prescriptions (supplement plans assigned to players)
     public function getSupplementPrescriptions() {
         $this->db->query('SELECT sp.PlanID, sp.SupplementPlanName AS supplements, 

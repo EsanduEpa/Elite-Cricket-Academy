@@ -582,6 +582,7 @@
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- Pass PHP data to JavaScript (data-only) -->
+    <script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
     <script type="application/json" id="dashboardData"><?php echo json_encode([
         'todaySchedule' => $data['todaySchedule'] ?? [],
         'upcomingSchedule' => $data['upcomingSchedule'] ?? [],
@@ -590,6 +591,7 @@
         'currentDate' => date('Y-m-d'),
         'currentMonth' => (int)date('n') - 1,
         'currentYear' => (int)date('Y'),
+        'urlRoot' => URLROOT,
     ], JSON_UNESCAPED_SLASHES); ?></script>
 
     <!-- JavaScript for Dashboard -->

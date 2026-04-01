@@ -511,3 +511,147 @@ function formatDashTime(time) {
 }
 
 console.log('Player Dashboard with Calendar loaded successfully');
+
+// =========================================================================
+// NOTIFICATION BELL — injected on every player page
+// =========================================================================
+(function initNotificationBell() {
+    const URLROOT = window.URLROOT_FACILITY || (window.coachSessionData && window.coachSessionData.urlRoot) || '';
+
+    function getUrlRoot() {
+        // Try various globals set by different pages
+        return window.URLROOT_FACILITY
+            || (window.coachSessionData && window.coachSessionData.urlRoot)
+            || (window.dashboardData && window.dashboardData.urlRoot)
+            || '';
+    }
+
+    function injectBell() {
+        if (document.getElementById('notif-bell-widget')) return;
+        const widget = document.createElement('div');
+        widget.id = 'notif-bell-widget';
+        widget.style.cssText = 'position:fixed;top:16px;right:20px;z-index:9000;';
+        widget.innerHTML = `
+            <button id="notif-bell-btn" style="background:#fff;border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.15);position:relative;display:flex;align-items:center;justify-content:center;font-size:18px;color:#4A90E2;" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;background:#e74c3c;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;line-height:18px;text-align:center;"></span>
+            </button>
+            <div id="notif-dropdown" style="display:none;position:absolute;top:52px;right:0;width:340px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.18);overflow:hidden;">
+                <div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;">
+                    <strong style="font-size:15px;color:#2c3e50;">Notifications</strong>
+                    <button onclick="markAllNotifsRead()" style="background:none;border:none;color:#4A90E2;cursor:pointer;font-size:12px;">Mark all read</button>
+                </div>
+                <div id="notif-list" style="max-height:340px;overflow-y:auto;"></div>
+            </div>
+        `;
+        document.body.appendChild(widget);
+
+        document.getElementById('notif-bell-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('notif-dropdown');
+            const open = dd.style.display === 'block';
+            dd.style.display = open ? 'none' : 'block';
+            if (!open) loadNotifications();
+        });
+        document.addEventListener('click', function() {
+            const dd = document.getElementById('notif-dropdown');
+            if (dd) dd.style.display = 'none';
+        });
+    }
+
+    function loadNotifications() {
+        const root = getUrlRoot();
+        fetch(root + '/player/notifications')
+            .then(r => r.json())
+            .then(data => {
+                updateBadge(data.unread_count || 0);
+                renderNotifications(data.notifications || []);
+            })
+            .catch(() => {});
+    }
+
+    function updateBadge(count) {
+        const badge = document.getElementById('notif-badge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.style.display = 'block';
+            badge.textContent = count > 9 ? '9+' : count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderNotifications(items) {
+        const list = document.getElementById('notif-list');
+        if (!list) return;
+        if (!items.length) {
+            list.innerHTML = '<div style="padding:24px;text-align:center;color:#999;"><i class="fas fa-bell-slash" style="font-size:32px;margin-bottom:8px;display:block;"></i>No notifications</div>';
+            return;
+        }
+        const icons = { booking_confirmed: 'check-circle', cancellation: 'times-circle', reminder: 'clock' };
+        const colors = { booking_confirmed: '#27ae60', cancellation: '#e74c3c', reminder: '#f39c12' };
+        list.innerHTML = items.map(n => `
+            <div onclick="markOneNotifRead(${n.NotificationID}, this)"
+                 style="padding:12px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;background:${n.IsRead ? '#fff' : '#f0f7ff'};transition:background 0.2s;">
+                <div style="display:flex;gap:10px;align-items:flex-start;">
+                    <i class="fas fa-${icons[n.Type] || 'info-circle'}" style="color:${colors[n.Type] || '#4A90E2'};margin-top:2px;flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-weight:${n.IsRead ? '400' : '600'};font-size:13px;color:#2c3e50;">${n.Title}</div>
+                        <div style="font-size:12px;color:#666;margin-top:2px;">${n.Message}</div>
+                        <div style="font-size:11px;color:#aaa;margin-top:4px;">${timeAgo(n.CreatedAt)}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.markAllNotifsRead = function() {
+        const root = getUrlRoot();
+        fetch(root + '/player/mark_notifications_read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: ''
+        }).then(r => r.json()).then(d => {
+            updateBadge(0);
+            document.querySelectorAll('#notif-list > div').forEach(el => {
+                el.style.background = '#fff';
+                el.querySelector('div > div:first-child')?.style && (el.querySelector('div > div > div')?.style.fontWeight = '400');
+            });
+        }).catch(() => {});
+    };
+
+    window.markOneNotifRead = function(id, el) {
+        const root = getUrlRoot();
+        fetch(root + '/player/mark_notifications_read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'notification_id=' + id
+        }).then(r => r.json()).then(d => {
+            el.style.background = '#fff';
+            updateBadge(d.unread_count || 0);
+        }).catch(() => {});
+    };
+
+    function timeAgo(dateStr) {
+        const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+        return Math.floor(diff/86400) + 'd ago';
+    }
+
+    // Init bell after DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { injectBell(); loadNotifications(); });
+    } else {
+        injectBell(); loadNotifications();
+    }
+    // Refresh unread count every 60 seconds
+    setInterval(function() {
+        const root = getUrlRoot();
+        fetch(root + '/player/notifications')
+            .then(r => r.json())
+            .then(d => updateBadge(d.unread_count || 0))
+            .catch(() => {});
+    }, 60000);
+})();

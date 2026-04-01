@@ -42,6 +42,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/player/calendar" class="nav-link">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Calendar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>
@@ -296,6 +302,7 @@
         </div>
     </div>
 
+    <script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/bookings.js"></script>

@@ -65,6 +65,53 @@ class M_Payment {
         return $this->db->single();
     }
 
+    // ==================== SESSION PAYMENTS ====================
+
+    /**
+     * Record a session payment (pending until confirmed)
+     */
+    public function createSessionPayment(array $data): int|false {
+        $this->db->query('INSERT INTO sessionpayment
+            (EnrollmentID, PlayerID, SessionID, Amount, PaymentMethod, Status, PaidAt)
+            VALUES (:eid, :pid, :sid, :amount, :method, :status, :paid_at)');
+        $this->db->bind(':eid',     (int)$data['enrollment_id'], PDO::PARAM_INT);
+        $this->db->bind(':pid',     (int)$data['player_id'],     PDO::PARAM_INT);
+        $this->db->bind(':sid',     (int)$data['session_id'],    PDO::PARAM_INT);
+        $this->db->bind(':amount',  $data['amount'],             PDO::PARAM_STR);
+        $this->db->bind(':method',  $data['payment_method'] ?? 'online', PDO::PARAM_STR);
+        $this->db->bind(':status',  $data['status'] ?? 'completed', PDO::PARAM_STR);
+        $this->db->bind(':paid_at', $data['paid_at'] ?? date('Y-m-d H:i:s'), PDO::PARAM_STR);
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    /**
+     * Mark a session payment as refunded
+     */
+    public function refundSessionPayment(int $enrollmentId): bool {
+        $this->db->query("UPDATE sessionpayment
+            SET Status = 'refunded', RefundedAt = NOW()
+            WHERE EnrollmentID = :eid AND Status = 'completed'");
+        $this->db->bind(':eid', $enrollmentId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    /**
+     * Get session payments for a player
+     */
+    public function getSessionPaymentsForPlayer(int $playerId): array {
+        $this->db->query('SELECT sp.*, s.Name AS session_name, s.Date AS session_date,
+            s.PricePerSession
+            FROM sessionpayment sp
+            JOIN session s ON sp.SessionID = s.SessionID
+            WHERE sp.PlayerID = :pid
+            ORDER BY sp.CreatedAt DESC');
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     // Get equipment rental payments due for player
     public function getRentalPaymentsDue($playerId) {
         $this->db->query('SELECT e.Name AS item, DATE(er.EndDate) AS due_date, er.TotalCost AS fee
