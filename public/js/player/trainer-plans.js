@@ -1,5 +1,25 @@
 // Trainer Plans JavaScript
 
+// Hydrate data (replaces inline scripts in the view)
+var workoutPlans = [];
+var nutritionGuides = [];
+var supplementInfo = [];
+
+(function hydrateTrainerPlansData() {
+    const el = document.getElementById('trainerPlansData');
+    if (!el) return;
+    try {
+        const data = JSON.parse(el.textContent || '{}');
+        workoutPlans = Array.isArray(data.workoutPlans) ? data.workoutPlans : [];
+        nutritionGuides = Array.isArray(data.nutritionGuides) ? data.nutritionGuides : [];
+        supplementInfo = Array.isArray(data.supplementInfo) ? data.supplementInfo : [];
+    } catch (_err) {
+        workoutPlans = [];
+        nutritionGuides = [];
+        supplementInfo = [];
+    }
+})();
+
 // Tab Switching Function
 function showTab(tabName) {
     // Hide all tab contents

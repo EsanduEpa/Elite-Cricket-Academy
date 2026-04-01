@@ -102,6 +102,29 @@ class Player extends Controller {
         ];
         $this->view('player/shopping', $data);
     }
+
+    // Shopping Cart
+    public function cart() {
+        $data = [
+            'title' => 'Shopping Cart',
+            'player' => $this->getPlayerData()
+        ];
+        $this->view('player/cart', $data);
+    }
+
+    // Checkout (formerly payment page)
+    public function checkout() {
+        $data = [
+            'title' => 'Checkout',
+            'player' => $this->getPlayerData()
+        ];
+        $this->view('player/checkout', $data);
+    }
+
+    // Backwards-compatible route for older links
+    public function payment() {
+        $this->checkout();
+    }
     
     // My Bookings
     public function bookings() {

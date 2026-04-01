@@ -126,28 +126,7 @@
             </button>
         </div>
 
-        <!-- Equipment Rentals Content -->
-        <div class="section-header">
-            <div>
-                <h2>Available Equipment</h2>
-                <p>Professional-grade equipment for all your cricket needs</p>
-            </div>
-            <div class="shop-filters">
-                <select class="filter-select" id="rental-category-filter">
-                    <option value="all">All Equipment</option>
-                    <option value="batting">Batting Equipment</option>
-                    <option value="bowling">Bowling Equipment</option>
-                    <option value="fielding">Fielding Equipment</option>
-                    <option value="training">Training Equipment</option>
-                </select>
-                <select class="filter-select" id="rental-condition-filter">
-                    <option value="all">All Conditions</option>
-                    <option value="excellent">Excellent</option>
-                    <option value="good">Good</option>
-                    <option value="fair">Fair</option>
-                </select>
-            </div>
-        </div>
+        
         
         <div class="products-grid" id="rental-grid">
             <!-- Professional Cricket Bat Set -->

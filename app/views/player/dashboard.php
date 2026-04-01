@@ -581,20 +581,16 @@
     <!-- Include Footer -->
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
-    <!-- Pass PHP data to JavaScript -->
-    <script>
-        // Pass PHP data to JavaScript
-        window.dashboardData = {
-            todaySchedule: <?php echo json_encode($data['todaySchedule'] ?? []); ?>,
-            upcomingSchedule: <?php echo json_encode($data['upcomingSchedule'] ?? []); ?>,
-            upcomingBookings: <?php echo json_encode($data['upcomingBookings'] ?? []); ?>,
-            currentDate: '<?php echo date('Y-m-d'); ?>',
-            currentMonth: <?php echo date('n') - 1; ?>, // JavaScript months are 0-indexed
-            currentYear: <?php echo date('Y'); ?>
-        };
-        
-        console.log('Dashboard data loaded:', window.dashboardData);
-    </script>
+    <!-- Pass PHP data to JavaScript (data-only) -->
+    <script type="application/json" id="dashboardData"><?php echo json_encode([
+        'todaySchedule' => $data['todaySchedule'] ?? [],
+        'upcomingSchedule' => $data['upcomingSchedule'] ?? [],
+        'upcomingBookings' => $data['upcomingBookings'] ?? [],
+        'calendarEvents' => $data['calendarEvents'] ?? [],
+        'currentDate' => date('Y-m-d'),
+        'currentMonth' => (int)date('n') - 1,
+        'currentYear' => (int)date('Y'),
+    ], JSON_UNESCAPED_SLASHES); ?></script>
 
     <!-- JavaScript for Dashboard -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>

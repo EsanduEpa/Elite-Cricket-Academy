@@ -1,6 +1,17 @@
 /**
  * Coach Sessions - Filter Logic, Date Validation & Coach Selection
  */
+(function hydrateCoachSessionData() {
+    if (window.coachSessionData) return;
+    const el = document.getElementById('coachSessionData');
+    if (!el) return;
+    try {
+        window.coachSessionData = JSON.parse(el.textContent || '{}');
+    } catch (_err) {
+        window.coachSessionData = {};
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeDateValidation();
     initializeFilters();

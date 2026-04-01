@@ -561,23 +561,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
         </div>
     </div>
 
-    <script>
-        function confirmDeactivation() {
-            document.getElementById('deactivationModal').style.display = 'block';
-        }
-
-        function closeDeactivationModal() {
-            document.getElementById('deactivationModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('deactivationModal');
-            if (event.target === modal) {
-                closeDeactivationModal();
-            }
-        }
-    </script>
     <?php endif; ?>
 
     <!-- Include Sidebar JavaScript -->

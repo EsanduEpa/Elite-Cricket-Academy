@@ -1,6 +1,18 @@
 // Simplified Player Dashboard JavaScript - Matching Homepage Simplicity
 // Basic interactions only, similar to homepage functionality
 
+// Hydrate server-provided dashboard data (replaces inline scripts in the view)
+(function hydrateDashboardData() {
+    if (window.dashboardData) return;
+    const el = document.getElementById('dashboardData');
+    if (!el) return;
+    try {
+        window.dashboardData = JSON.parse(el.textContent || '{}');
+    } catch (_err) {
+        window.dashboardData = {};
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeSimplePlayerDashboard();
 });

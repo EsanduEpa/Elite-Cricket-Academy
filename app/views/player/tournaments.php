@@ -422,11 +422,7 @@
         </div>
     </div>
 
-    <script>
-        function showTournamentDetails(tournamentId) {
-            alert('Tournament details for ' + tournamentId + ' coming soon!');
-        }
-    </script>
+    <script src="<?php echo URLROOT; ?>/js/player/tournaments.js"></script>
 
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
