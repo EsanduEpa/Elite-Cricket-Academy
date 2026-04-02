@@ -1,6 +1,92 @@
 /* Trainer Bookings Page Specific Styles */
 @import url('dashboard.css');
 
+/* ════════════════════════════════════════════════════════════════════════════
+   ADD SESSION MODAL  — form validation styles
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Red asterisk on required labels */
+.as-required {
+    color: #e74c3c;
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+/* Inline error text under each field */
+.as-field-error {
+    display: block;
+    color: #e74c3c;
+    font-size: 0.775rem;
+    font-weight: 500;
+    margin-top: 5px;
+    min-height: 1.1em;
+    line-height: 1.3;
+}
+
+/* Red border + soft glow on invalid fields */
+.form-input.input-error {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+    background-color: #fff8f8 !important;
+}
+
+/* Error summary banner (both PHP-rendered & JS-toggled) */
+.as-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fdf0f0;
+    border: 1px solid #f5c6cb;
+    border-left: 4px solid #e74c3c;
+    border-radius: 6px;
+    color: #c0392b;
+    padding: 11px 16px;
+    margin-bottom: 18px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.as-error-banner i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Success flash auto-appended after session is saved */
+.flash-message.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-left: 4px solid #28a745;
+    border-radius: 6px;
+    color: #155724;
+    padding: 12px 18px;
+    margin: 0 0 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeInSlide 0.3s ease;
+}
+.flash-message.error {
+    background: #fdf0f0;
+    border: 1px solid #f5c6cb;
+    border-left: 4px solid #e74c3c;
+    border-radius: 6px;
+    color: #721c24;
+    padding: 12px 18px;
+    margin: 0 0 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeInSlide 0.3s ease;
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
 /* Controls Bar */
 .controls-bar {
     padding: 20px 25px;
@@ -960,4 +1046,186 @@ textarea.form-input {
         flex-direction: column;
         text-align: center;
     }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   IMPROVED BUTTON STYLES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── "+ Add New Session" header button ───────────────────────────────────── */
+.btn-add-session {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+    color: #fff !important;
+    padding: 11px 22px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+    border: none !important;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add-session i {
+    font-size: 13px;
+    transition: transform 0.25s ease;
+}
+
+.btn-add-session:hover {
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%) !important;
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.5) !important;
+    transform: translateY(-2px) !important;
+    color: #fff !important;
+}
+
+.btn-add-session:hover i {
+    transform: rotate(90deg);
+}
+
+.btn-add-session:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3) !important;
+}
+
+/* ── Refresh / time button ───────────────────────────────────────────────── */
+.btn-refresh-improved {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease, border-color 0.2s ease,
+                transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.btn-refresh-improved:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-refresh-improved:hover .fa-sync-alt {
+    animation: spin-once 0.5s ease;
+}
+
+.btn-refresh-improved:active {
+    transform: translateY(0) !important;
+}
+
+@keyframes spin-once {
+    from { transform: rotate(0deg);   }
+    to   { transform: rotate(360deg); }
+}
+
+/* ── Icon-only action buttons (check / view-notes in Today's Sessions) ────── */
+.profile-action {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 9px !important;
+    border: 1.5px solid transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    font-size: 14px !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease,
+                background 0.18s ease, border-color 0.18s ease !important;
+}
+
+.profile-action.complete {
+    background: rgba(46, 213, 115, 0.12) !important;
+    color: #27ae60 !important;
+    border-color: rgba(39, 174, 96, 0.2) !important;
+}
+
+.profile-action.complete:hover {
+    background: #27ae60 !important;
+    color: #fff !important;
+    border-color: #27ae60 !important;
+    transform: translateY(-2px) scale(1.08) !important;
+    box-shadow: 0 5px 14px rgba(39, 174, 96, 0.4) !important;
+}
+
+.profile-action.view {
+    background: rgba(74, 144, 226, 0.12) !important;
+    color: #4A90E2 !important;
+    border-color: rgba(74, 144, 226, 0.2) !important;
+}
+
+.profile-action.view:hover {
+    background: #4A90E2 !important;
+    color: #fff !important;
+    border-color: #4A90E2 !important;
+    transform: translateY(-2px) scale(1.08) !important;
+    box-shadow: 0 5px 14px rgba(74, 144, 226, 0.4) !important;
+}
+
+/* ── Plan assignment buttons (Workout / Nutrition / Supplements) ─────────── */
+.plan-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 7px 13px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid transparent !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.18s ease, box-shadow 0.18s ease,
+                background 0.18s ease, border-color 0.18s ease !important;
+}
+
+.plan-btn.workout {
+    background: rgba(52, 152, 219, 0.1) !important;
+    color: #2980b9 !important;
+    border-color: rgba(41, 128, 185, 0.2) !important;
+}
+
+.plan-btn.workout:hover {
+    background: #2980b9 !important;
+    color: #fff !important;
+    border-color: #2980b9 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 14px rgba(41, 128, 185, 0.4) !important;
+}
+
+.plan-btn.nutrition {
+    background: rgba(46, 213, 115, 0.1) !important;
+    color: #27ae60 !important;
+    border-color: rgba(39, 174, 96, 0.2) !important;
+}
+
+.plan-btn.nutrition:hover {
+    background: #27ae60 !important;
+    color: #fff !important;
+    border-color: #27ae60 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 14px rgba(39, 174, 96, 0.4) !important;
+}
+
+.plan-btn.supplement {
+    background: rgba(155, 89, 182, 0.1) !important;
+    color: #8e44ad !important;
+    border-color: rgba(142, 68, 173, 0.2) !important;
+}
+
+.plan-btn.supplement:hover {
+    background: #8e44ad !important;
+    color: #fff !important;
+    border-color: #8e44ad !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 14px rgba(142, 68, 173, 0.4) !important;
 }
