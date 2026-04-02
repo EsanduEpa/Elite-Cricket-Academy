@@ -585,6 +585,8 @@ body {
 }
 
 /* Footer */
+.footer { margin-left: 280px; position: relative; z-index: 1; }
+@media (max-width: 1024px) { .footer { margin-left: 0; } }
 .footer {
     background: #333;
     color: white;

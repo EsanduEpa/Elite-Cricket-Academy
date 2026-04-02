@@ -108,14 +108,14 @@ OR run directly in phpMyAdmin/MySQL client:
 ### Player Controller Endpoints:
 
 1. **Add Performance Statistics**
-   - URL: `/player/addPerformanceStats`
+   - URL: `/performance/addPerformanceStats`
    - Method: POST
    - Headers: Content-Type: multipart/form-data
    - Body: FormData with performance fields
    - Response: JSON with success status
 
 2. **Get Available Matches**
-   - URL: `/player/getAvailableMatches`
+   - URL: `/performance/getAvailableMatches`
    - Method: GET
    - Response: JSON array of matches
 

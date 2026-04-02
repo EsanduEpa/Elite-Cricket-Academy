@@ -37,7 +37,7 @@ You should see these new columns:
 ### Step 3: Test the Feature
 
 1. **Access the Performance Page**:
-   - Navigate to: `http://localhost/Elite/player/performance`
+   - Navigate to: `http://localhost/Elite/performance`
    - Or click "Performance" in the player sidebar
 
 2. **Add Performance Statistics**:
@@ -83,7 +83,7 @@ If no matches exist, you need to add some test matches first.
 ### Issue: Dropdown doesn't load matches
 **Solution**: 
 1. Open browser console
-2. Check the AJAX request to `/player/getAvailableMatches`
+2. Check the AJAX request to `/performance/getAvailableMatches`
 3. Verify the controller method exists and is accessible
 
 ## Testing with Sample Data

@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -371,10 +371,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (isset($data['practiceMatches']) && !empty($data['practiceMatches'])): ?>
-                                    <?php 
-                                    $recentMatches = array_slice($data['practiceMatches'], 0, 5); // Show only 5 most recent
-                                    foreach ($recentMatches as $match): 
+                                <?php if (isset($data['playerPerformanceRecords']) && !empty($data['playerPerformanceRecords'])): ?>
+                                    <?php
+                                    $recentMatches = array_slice($data['playerPerformanceRecords'], 0, 5); // Show only 5 most recent
+                                    foreach ($recentMatches as $match):
                                     ?>
                                         <tr>
                                             <td style="text-align: center;">

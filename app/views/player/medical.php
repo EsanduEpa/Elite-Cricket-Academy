@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -91,129 +91,7 @@
 
             <?php flash('medical_message'); ?>
 
-            <!-- Health Overview and Supplements - Two Tables Per Row -->
-            <div class="performance-tables-row">
-                <!-- Health Overview - Compact Table -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-heartbeat"></i> Health Overview</h2>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Value</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-weight"></i> Weight</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">75 kg</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Normal</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-ruler-vertical"></i> Height</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">178 cm</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Normal</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-heart"></i> Resting HR</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">68 bpm</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Excellent</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-percentage"></i> Body Fat</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">12%</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Athletic</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-lungs"></i> Lung Capacity</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">4.2 L</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Above Avg</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Current Supplement Plans -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
-                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Supplement</th>
-                                    <th>Dosage</th>
-                                    <th>Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($data['supplements'])): ?>
-                                    <?php foreach ($data['supplements'] as $supp): ?>
-                                        <tr>
-                                            <td>
-                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
-                                                <div class="table-cell-details">
-                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
-                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+           
 
 
             <div class="schedule-card">
@@ -427,11 +305,11 @@
             </div>
 
             <!-- Recent Medical Records -->
-            
-           
-            <!-- Vaccinations & Immunizations -->
-            <div class="schedule-card">
-                <div class="card-header">
+             <!-- Health Overview and Supplements - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Health Overview - Compact Table -->
+                <div class="schedule-card">
+                      <div class="card-header">
                     <div class="header-content">
                         <h2><i class="fas fa-syringe"></i> Vaccinations & Immunizations</h2>
                         <span class="event-count">Up to Date</span>
@@ -453,6 +331,57 @@
                         </tbody>
                     </table>
                 </div>
+                    
+                </div>
+
+                <!-- Current Supplement Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
+                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Supplement</th>
+                                    <th>Dosage</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['supplements'])): ?>
+                                    <?php foreach ($data['supplements'] as $supp): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
+                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+           
+            <!-- Vaccinations & Immunizations -->
+            <div class="schedule-card">
+              
             </div>
 
             <!-- Quick Medical Actions -->

@@ -546,7 +546,7 @@ function loadAvailableMatches() {
     matchSelect.innerHTML = '<option value="">Loading matches...</option>';
     matchSelect.disabled = true;
     
-    fetch(`${window.location.origin}/Elite/player/getAvailableMatches`)
+    fetch(`${window.location.origin}/Elite/performance/getAvailableMatches`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.matches) {
@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const url = isEditMode && performanceId 
                 ? `${window.location.origin}/Elite/player/editPerformanceStats`
-                : `${window.location.origin}/Elite/player/addPerformanceStats`;
+                : `${window.location.origin}/Elite/performance/addPerformanceStats`;
             
             // Submit form via AJAX
             fetch(url, {

@@ -18,7 +18,7 @@
             <ul class="nav-menu">
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training" class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/player/calendar" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link"><i class="fas fa-calendar"></i><span>Bookings</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
