@@ -57,7 +57,7 @@
                         <i class="fas fa-user-circle"></i>
                         <span>My Profile</span>
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="dropdown-item">
+                    <a href="<?php echo URLROOT; ?>/performance" class="dropdown-item">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>

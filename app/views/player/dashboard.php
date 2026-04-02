@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -106,6 +106,14 @@
             </div>
 
             <!-- Performance Statistics -->
+            <?php
+                $performanceStats = $data['performanceStats'] ?? [
+                    'batting_avg' => 0,
+                    'strike_rate' => 0,
+                    'total_runs' => 0,
+                    'total_wickets' => 0,
+                ];
+            ?>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -113,7 +121,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Batting Average</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['batting_avg']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['batting_avg']; ?>">0</div>
                        
                     </div>
                 </div>
@@ -124,7 +132,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Strike Rate</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['strike_rate']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['strike_rate']; ?>">0</div>
                        
                     </div>
                 </div>
@@ -135,7 +143,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Total Runs</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_runs']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['total_runs']; ?>">0</div>
                         
                     </div>
                 </div>
@@ -146,7 +154,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Wickets Taken</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_wickets']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['total_wickets']; ?>">0</div>
                         
                     </div>
                 </div>
@@ -505,7 +513,7 @@
                                 <h4>Performance</h4>
                                 <p>View detailed statistics</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/player/performance" class="quick-btn">View</a>
+                            <a href="<?php echo URLROOT; ?>/performance" class="quick-btn">View</a>
                         </div>
 
                         <div class="quick-action-card">

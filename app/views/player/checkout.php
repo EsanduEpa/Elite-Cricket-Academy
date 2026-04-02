@@ -32,7 +32,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>
