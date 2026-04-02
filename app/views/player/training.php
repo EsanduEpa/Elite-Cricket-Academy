@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -318,7 +318,7 @@
                     <a href="<?php echo URLROOT; ?>/player/bookings" class="action-btn">
                         <i class="fas fa-plus"></i> Book Session
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="action-btn">
+                    <a href="<?php echo URLROOT; ?>/performance" class="action-btn">
                         <i class="fas fa-chart-line"></i> View Progress
                     </a>
                     <a href="#" class="action-btn" onclick="alert('Training notes feature coming soon!')">

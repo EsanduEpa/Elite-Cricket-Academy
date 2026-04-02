@@ -157,4 +157,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add any additional validation here if needed
         });
     }
+
+    // Account deactivation modal controls (called by onclick attributes in the view)
+    function confirmDeactivation() {
+        const modal = document.getElementById('deactivationModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeDeactivationModal() {
+        const modal = document.getElementById('deactivationModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    window.confirmDeactivation = confirmDeactivation;
+    window.closeDeactivationModal = closeDeactivationModal;
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('deactivationModal');
+        if (modal && event.target === modal) {
+            closeDeactivationModal();
+        }
+    });
 });

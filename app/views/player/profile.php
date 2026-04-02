@@ -38,7 +38,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -561,23 +561,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
         </div>
     </div>
 
-    <script>
-        function confirmDeactivation() {
-            document.getElementById('deactivationModal').style.display = 'block';
-        }
-
-        function closeDeactivationModal() {
-            document.getElementById('deactivationModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('deactivationModal');
-            if (event.target === modal) {
-                closeDeactivationModal();
-            }
-        }
-    </script>
     <?php endif; ?>
 
     <!-- Include Sidebar JavaScript -->

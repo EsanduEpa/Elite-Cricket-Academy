@@ -31,7 +31,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -422,11 +422,7 @@
         </div>
     </div>
 
-    <script>
-        function showTournamentDetails(tournamentId) {
-            alert('Tournament details for ' + tournamentId + ' coming soon!');
-        }
-    </script>
+    <script src="<?php echo URLROOT; ?>/js/player/tournaments.js"></script>
 
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>

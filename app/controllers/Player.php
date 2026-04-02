@@ -49,8 +49,8 @@ class Player extends Controller {
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
             'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->getBattingStats(),
-            'bowlingStats' => $this->getBowlingStats(),
+            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
+            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6),
             'coachSessions' => $coachSessions
         ];
 
@@ -70,9 +70,11 @@ class Player extends Controller {
             'upcomingBookings' => $this->getUpcomingBookings(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats()
+            'performanceStats' => $this->getPerformanceStats(),
+            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
+            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6)
         ];
-        
+
         $this->view('player/dashboard', $data);
     }
     
@@ -90,21 +92,48 @@ class Player extends Controller {
         ];
         $this->view('player/training', $data);
     }
-    
-    // Shopping and Rental Info
-    public function shopping() {
-        $data = [
-            'title' => 'Shopping & Rentals',
-            'player' => $this->getPlayerData(),
-            'products' => $this->getAvailableProducts(),
-            'rentals' => $this->getRentalEquipment(),
-            'myRentals' => $this->getMyRentals()
+
+    // Calendar View
+    public function calendar() {
+        $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $bookings     = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+
+        // Format for FullCalendar JSON
+        $events = [];
+        $typeColors = [
+            'coach'   => '#4A90E2',
+            'trainer' => '#27ae60',
+            'session' => '#9b59b6',
+            'facility'=> '#e67e22',
         ];
-        $this->view('player/shopping', $data);
+        foreach ($bookings as $b) {
+            $color = $typeColors[$b->booking_type] ?? '#7f8c8d';
+            $events[] = [
+                'id'    => $b->booking_type . '_' . $b->id,
+                'title' => ($b->reason ?: ucfirst($b->booking_type) . ' Session')
+                           . ' — ' . ($b->practitioner_name ?? ''),
+                'start' => $b->date . 'T' . $b->StartTime,
+                'end'   => $b->date . 'T' . $b->EndTime,
+                'color' => $color,
+                'extendedProps' => [
+                    'type'   => $b->booking_type,
+                    'status' => $b->Status,
+                ],
+            ];
+        }
+        $data = [
+            'title'  => 'My Session Calendar',
+            'player' => $this->getPlayerData(),
+            'events' => $events,
+        ];
+        $this->view('player/calendar', $data);
     }
-    
+
     // My Bookings
     public function bookings() {
+        $this->requireLogin();
         $data = [
             'title' => 'My Bookings',
             'player' => $this->getPlayerData(),
@@ -113,6 +142,118 @@ class Player extends Controller {
             'upcomingBookings' => $this->getUpcomingBookings()
         ];
         $this->view('player/bookings', $data);
+    }
+
+    // AJAX: Cancel a booking (session enrollment, coach appt, or trainer appt)
+    public function cancel_booking() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $playerId   = (int)$_SESSION['user_id'];
+        $bookingId  = (int)($_POST['booking_id'] ?? 0);
+        $type       = $_POST['booking_type'] ?? '';
+
+        if (!$bookingId || !in_array($type, ['session', 'coach', 'trainer'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            ob_end_flush(); exit;
+        }
+
+        $sessionModel = $this->model('M_Session');
+
+        // 24-hour rule
+        $booking = $sessionModel->getBookingDateTime($bookingId, $type);
+        if (!$booking) {
+            echo json_encode(['success' => false, 'message' => 'Booking not found']);
+            ob_end_flush(); exit;
+        }
+        $sessionDateTime = strtotime($booking->date . ' ' . $booking->start_time);
+        $hoursUntil = ($sessionDateTime - time()) / 3600;
+        if ($hoursUntil < 24) {
+            echo json_encode(['success' => false, 'message' => 'Cancellations must be made at least 24 hours before the session.']);
+            ob_end_flush(); exit;
+        }
+
+        // Max 3 cancellations per month
+        $monthlyCount = $sessionModel->getPlayerMonthlyCancellationCount($playerId);
+        if ($monthlyCount >= 3) {
+            echo json_encode(['success' => false, 'message' => 'You have reached the maximum of 3 cancellations this month.']);
+            ob_end_flush(); exit;
+        }
+
+        // Perform cancellation
+        if ($type === 'session') {
+            $ok = $sessionModel->cancelSessionEnrollment($bookingId, $playerId);
+        } elseif ($type === 'coach') {
+            $ok = $sessionModel->cancelCoachAppointment($bookingId, $playerId);
+        } else {
+            $ok = $sessionModel->cancelTrainerAppointment($bookingId, $playerId);
+        }
+
+        if ($ok) {
+            $refundMsg = '';
+            // Refund session payment if one exists (only for session enrollments)
+            if ($type === 'session') {
+                $paymentModel = $this->model('M_Payment');
+                $refunded = $paymentModel->refundSessionPayment($bookingId);
+                if ($refunded) {
+                    $refundMsg = ' Your payment has been refunded.';
+                }
+            }
+            // Send notification to coach/trainer
+            $this->sendCancellationNotification($bookingId, $type, $playerId);
+            echo json_encode(['success' => true, 'message' => 'Booking cancelled successfully.' . $refundMsg]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Cancellation failed. The booking may already be cancelled.']);
+        }
+        ob_end_flush(); exit;
+    }
+
+    private function sendBookingConfirmedNotification(int $playerId, object $session): void {
+        try {
+            $notifModel = $this->model('M_Notification');
+            $date = date('M d, Y', strtotime($session->Date));
+            $time = date('g:i A', strtotime($session->StartTime));
+            $notifModel->create($playerId, 'booking_confirmed',
+                'Session Booked',
+                'Your session "' . ($session->Name ?? 'Session') . '" on ' . $date . ' at ' . $time . ' is confirmed.',
+                URLROOT . '/player/bookings');
+        } catch (Exception $e) {}
+    }
+
+    private function sendCancellationNotification(int $bookingId, string $type, int $playerId): void {
+        try {
+            $notifModel   = $this->model('M_Notification');
+            $sessionModel = $this->model('M_Session');
+            $userModel    = $this->model('M_Users');
+            $player       = $userModel->getUserById($playerId);
+            $playerName   = $player->Name ?? 'A player';
+
+            if ($type === 'session') {
+                $row = $sessionModel->getEnrollmentWithSession($bookingId);
+                if ($row && !empty($row->CoachOrTrainerID)) {
+                    $notifModel->create($row->CoachOrTrainerID, 'cancellation',
+                        'Session Cancellation',
+                        $playerName . ' has cancelled their session on ' . date('M d, Y', strtotime($row->Date)) . '.');
+                }
+            } elseif ($type === 'coach') {
+                $appt = $sessionModel->getCoachAppointmentById($bookingId);
+                if ($appt) {
+                    $notifModel->create($appt->CoachID, 'cancellation',
+                        'Appointment Cancelled',
+                        $playerName . ' has cancelled their coaching appointment.');
+                }
+            } elseif ($type === 'trainer') {
+                $appt = $sessionModel->getTrainerAppointmentById($bookingId);
+                if ($appt) {
+                    $notifModel->create($appt->TrainerID, 'cancellation',
+                        'Appointment Cancelled',
+                        $playerName . ' has cancelled their training appointment.');
+                }
+            }
+        } catch (Exception $e) {
+            // Notification failure must not break the cancellation
+        }
     }
 
     // Coach Booking System
@@ -153,6 +294,15 @@ class Player extends Controller {
                     
                 case 'book_session':
                     $result = $this->bookCoachSession(
+                        $_POST['slot_id'],
+                        $_SESSION['user_id'],
+                        $_POST['special_requests'] ?? ''
+                    );
+                    echo json_encode($result);
+                    break;
+
+                case 'book_trainer_session':
+                    $result = $this->bookTrainerSession(
                         $_POST['slot_id'],
                         $_SESSION['user_id'],
                         $_POST['special_requests'] ?? ''
@@ -460,585 +610,6 @@ class Player extends Controller {
         }
     }
     
-    // Performance History
-    public function performance() {
-        $perfModel = $this->model('M_Performance');
-        $playerId = $_SESSION['user_id'] ?? 6;
-        
-        $data = [
-            'title' => 'Performance History',
-            'player' => $this->getPlayerData(),
-            'practiceMatches' => $this->getPracticeMatches(),
-            'tournaments' => $this->getTournaments(),
-            'performanceStats' => $this->getDetailedPerformanceStats(),
-            'achievements' => $this->getPlayerAchievements(),
-            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
-            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId)
-        ];
-        $this->view('player/performance', $data);
-    }
-
-    // Add Achievement (AJAX method)
-    public function addAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize input data
-            $data = [
-                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
-                'date' => trim($_POST['date'] ?? ''),
-                'match_name' => trim($_POST['match_name'] ?? ''),
-                'tournament' => trim($_POST['tournament'] ?? ''),
-                'achievement' => trim($_POST['achievement'] ?? ''),
-                'verified_status' => 'pending' // New achievements start as pending
-            ];
-
-            // Validate required fields
-            $errors = [];
-            if (empty($data['date'])) {
-                $errors[] = 'Date is required';
-            }
-            if (empty($data['match_name'])) {
-                $errors[] = 'Match name is required';
-            }
-            if (empty($data['tournament'])) {
-                $errors[] = 'Tournament is required';
-            }
-            if (empty($data['achievement'])) {
-                $errors[] = 'Achievement description is required';
-            }
-
-            // Return JSON response
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            // Try to add achievement to database
-            try {
-                $achievementId = $this->achievementModel->addAchievement($data);
-                
-                if ($achievementId) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Achievement added successfully! It will be reviewed by coaching staff.',
-                        'achievement_id' => $achievementId
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to add achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement creation error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            // Redirect if not POST request
-            redirect('player/performance');
-        }
-    }
-
-    // Edit Achievement (AJAX method)
-    public function editAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize input data
-            $data = [
-                'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
-                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
-                'date' => trim($_POST['date'] ?? ''),
-                'match_name' => trim($_POST['match_name'] ?? ''),
-                'tournament' => trim($_POST['tournament'] ?? ''),
-                'achievement' => trim($_POST['achievement'] ?? ''),
-                'verified_status' => trim($_POST['verified_status'] ?? 'pending')
-            ];
-
-            // Validate required fields
-            $errors = [];
-            if (empty($data['achievement_id'])) {
-                $errors[] = 'Achievement ID is required';
-            }
-            if (empty($data['date'])) {
-                $errors[] = 'Date is required';
-            }
-            if (empty($data['match_name'])) {
-                $errors[] = 'Match name is required';
-            }
-            if (empty($data['tournament'])) {
-                $errors[] = 'Tournament is required';
-            }
-            if (empty($data['achievement'])) {
-                $errors[] = 'Achievement description is required';
-            }
-
-            // Return JSON response
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            // Try to update achievement in database
-            try {
-                $success = $this->achievementModel->updateAchievement($data);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Achievement updated successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to update achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement update error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            // Redirect if not POST request
-            redirect('player/performance');
-        }
-    }
-
-    // Get Achievement (AJAX method)
-    public function getAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            $achievementId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
-
-            header('Content-Type: application/json');
-
-            if (!$achievementId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid achievement ID'
-                ]);
-                return;
-            }
-
-            try {
-                $achievement = $this->achievementModel->getAchievementById($achievementId);
-                
-                if ($achievement && $achievement->PlayerID == $playerId) {
-                    echo json_encode([
-                        'success' => true,
-                        'achievement' => $achievement
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Achievement not found or access denied'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement retrieval error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred'
-                ]);
-            }
-        } else {
-            redirect('player/performance');
-        }
-    }
-
-    // Delete Achievement (AJAX method)
-    public function deleteAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $achievementId = filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
-
-            header('Content-Type: application/json');
-
-            if (!$achievementId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid achievement ID'
-                ]);
-                return;
-            }
-
-            try {
-                // First check if the achievement exists and belongs to the player
-                $achievement = $this->achievementModel->getAchievementById($achievementId);
-                
-                if (!$achievement || $achievement->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Achievement not found or access denied'
-                    ]);
-                    return;
-                }
-
-                // Check if the achievement is rejected (only rejected achievements can be deleted)
-                if ($achievement->VerifiedStatus !== 'rejected') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Only rejected achievements can be deleted'
-                    ]);
-                    return;
-                }
-
-                // Delete the achievement
-                $success = $this->achievementModel->deleteAchievement($achievementId, $playerId);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Rejected achievement deleted successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to delete achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement deletion error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            redirect('player/performance');
-        }
-    }
-
-    // Add Performance Statistics (AJAX method)
-    public function addPerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'player_id' => $_SESSION['user_id'] ?? 6,
-                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
-                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
-                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
-                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
-                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
-                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
-                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
-                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
-                'rating' => floatval($_POST['rating'] ?? 0),
-                'added_by' => $_SESSION['user_id'] ?? 6
-            ];
-
-            $errors = [];
-            if (!$data['match_id']) {
-                $errors[] = 'Please select a match';
-            }
-
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            try {
-                $perfModel = $this->model('M_Performance');
-                $performanceId = $perfModel->addPerformanceStatistics($data);
-                
-                if ($performanceId) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance statistics added successfully! It will be reviewed by coaching staff.',
-                        'performance_id' => $performanceId
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to add performance statistics. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance statistics creation error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error: ' . $e->getMessage(),
-                    'error_details' => 'Check if database schema is up to date. Run check_performance_schema.php'
-                ]);
-            }
-        } else {
-            redirect('player/performance');
-        }
-    }
-
-    // Get available matches for dropdown (AJAX method)
-    public function getAvailableMatches() {
-        header('Content-Type: application/json');
-        
-        try {
-            $perfModel = $this->model('M_Performance');
-            $matches = $perfModel->getAvailableMatches(50);
-            
-            echo json_encode([
-                'success' => true,
-                'matches' => $matches
-            ]);
-        } catch (Exception $e) {
-            error_log("Error fetching matches: " . $e->getMessage());
-            echo json_encode([
-                'success' => false,
-                'message' => 'Failed to load matches'
-            ]);
-        }
-    }
-
-    // Get single performance record (AJAX method)
-    public function getPerformanceRecord() {
-        header('Content-Type: application/json');
-        
-        $performanceId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-        
-        if (!$performanceId) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid performance ID'
-            ]);
-            return;
-        }
-        
-        try {
-            $perfModel = $this->model('M_Performance');
-            $performance = $perfModel->getPerformanceById($performanceId);
-            
-            if ($performance) {
-                echo json_encode([
-                    'success' => true,
-                    'performance' => $performance
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Performance record not found'
-                ]);
-            }
-        } catch (Exception $e) {
-            error_log("Error fetching performance: " . $e->getMessage());
-            echo json_encode([
-                'success' => false,
-                'message' => 'Failed to load performance record'
-            ]);
-        }
-    }
-
-    // Edit/Update Performance Statistics (AJAX method)
-    public function editPerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6;
-            
-            $data = [
-                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
-                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
-                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
-                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
-                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
-                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
-                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
-                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
-                'rating' => floatval($_POST['rating'] ?? 0)
-            ];
-
-            $errors = [];
-            if (!$performanceId) {
-                $errors[] = 'Invalid performance ID';
-            }
-            if (!$data['match_id']) {
-                $errors[] = 'Please select a match';
-            }
-
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            try {
-                $perfModel = $this->model('M_Performance');
-                
-                // Check if performance exists and belongs to the player
-                $existing = $perfModel->getPerformanceById($performanceId);
-                if (!$existing || $existing->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Performance record not found or access denied'
-                    ]);
-                    return;
-                }
-
-                // Check if still pending
-                if ($existing->VerifiedStatus !== 'pending') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Cannot edit verified or rejected performance records'
-                    ]);
-                    return;
-                }
-
-                $success = $perfModel->updatePerformanceStatistics($performanceId, $data);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance statistics updated successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to update performance statistics. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance update error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            redirect('player/performance');
-        }
-    }
-
-    // Delete Performance Statistics (AJAX method)
-    public function deletePerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6;
-
-            header('Content-Type: application/json');
-
-            if (!$performanceId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid performance ID'
-                ]);
-                return;
-            }
-
-            try {
-                $perfModel = $this->model('M_Performance');
-                
-                // Check if performance exists and belongs to the player
-                $existing = $perfModel->getPerformanceById($performanceId);
-                if (!$existing || $existing->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Performance record not found or access denied'
-                    ]);
-                    return;
-                }
-
-                // Check if still pending (can only delete pending records)
-                if ($existing->VerifiedStatus !== 'pending') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Can only delete pending performance records'
-                    ]);
-                    return;
-                }
-
-                $success = $perfModel->deletePerformanceStatistics($performanceId, $playerId);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance record deleted successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to delete performance record. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance deletion error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            redirect('player/performance');
-        }
-    }
-
-    // Get player achievements (for display)
-    private function getPlayerAchievements() {
-        $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
-        
-        // First, try to get data from database
-        try {
-            $achievements = $this->achievementModel->getAchievementsByPlayer($playerId);
-            
-            // If we get successful results from database, return them
-            if ($achievements !== false) {
-                error_log("Successfully fetched " . count($achievements) . " achievements from database");
-                return $achievements;
-            }
-            
-        } catch (Exception $e) {
-            error_log("Database error fetching achievements: " . $e->getMessage());
-            // Continue to fallback data
-        }
-        
-        // If database fails or returns false, provide fallback data for testing
-        error_log("Using fallback achievement data");
-        return [
-            (object)[
-                'AchievementID' => 1,
-                'Date' => '2024-10-15',
-                'MatchName' => 'vs Team Alpha',
-                'Tournament' => 'Elite League',
-                'Achievement' => 'Century Maker - Scored 100+ runs in single match',
-                'VerifiedStatus' => 'verified',
-                'CreatedAt' => '2024-10-15 15:30:00'
-            ],
-            
-        ];
-    }
-    
-    // Achievements
-    public function achievements() {
-        $data = [
-            'title' => 'Achievements',
-            'player' => $this->getPlayerData(),
-            'awards' => $this->getAwards(),
-            'records' => $this->getRecords(),
-            'certificates' => $this->getCertificates()
-        ];
-        $this->view('player/achievements', $data);
-    }
-    
     // Payment History
     public function payments() {
         $data = [
@@ -1094,6 +665,7 @@ class Player extends Controller {
 
     // Facilities
     public function facilities() {
+        $this->requireLogin();
         $data = [
             'title' => 'Facility Booking',
             'player' => $this->getPlayerData(),
@@ -1102,6 +674,103 @@ class Player extends Controller {
             'facilityStats' => $this->getFacilityStats()
         ];
         $this->view('player/facilities', $data);
+    }
+
+    // AJAX: Book a facility slot
+    public function book_facility() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $playerId   = (int)$_SESSION['user_id'];
+        $facilityId = (int)($_POST['facility_id'] ?? 0);
+        $date       = trim($_POST['date'] ?? '');
+        $startTime  = trim($_POST['start_time'] ?? '');
+        $duration   = (int)($_POST['duration'] ?? 0);  // hours
+
+        if (!$facilityId || !$date || !$startTime || $duration < 1) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            ob_end_flush(); exit;
+        }
+
+        // Must be a future date
+        if ($date < date('Y-m-d')) {
+            echo json_encode(['success' => false, 'message' => 'Cannot book a past date']);
+            ob_end_flush(); exit;
+        }
+
+        // Operating hours: 06:00 – 21:00
+        $endTime = date('H:i:s', strtotime($startTime) + $duration * 3600);
+        if ($startTime < '06:00:00' || $endTime > '21:00:00') {
+            echo json_encode(['success' => false, 'message' => 'Booking must be within operating hours (6 AM – 9 PM)']);
+            ob_end_flush(); exit;
+        }
+
+        // Max 2 hours per day per facility per player
+        $sessionModel = $this->model('M_Session');
+        $hoursAlready = $sessionModel->getPlayerDailyFacilityHours($playerId, $facilityId, $date);
+        if (($hoursAlready + $duration) > 2) {
+            $remaining = max(0, 2 - $hoursAlready);
+            echo json_encode(['success' => false, 'message' => 'Maximum 2 hours per facility per day. You have ' . $remaining . 'h remaining today.']);
+            ob_end_flush(); exit;
+        }
+
+        // No double-booking of the same facility slot
+        if ($sessionModel->facilityHasTimeConflict($facilityId, $date, $startTime, $endTime)) {
+            echo json_encode(['success' => false, 'message' => 'This facility is already booked for the selected time slot. Please choose a different time.']);
+            ob_end_flush(); exit;
+        }
+
+        // Calculate cost
+        $shopModel = $this->model('M_Shop');
+        $facility  = $shopModel->getFacilityById($facilityId);
+        $hourlyRate = (float)($facility->HourlyRate ?? 0);
+        $totalCost  = $hourlyRate * $duration;
+
+        $id = $sessionModel->bookFacility([
+            'facility_id' => $facilityId,
+            'player_id'   => $playerId,
+            'date'        => $date,
+            'start_time'  => $startTime,
+            'end_time'    => $endTime,
+            'total_cost'  => $totalCost,
+        ]);
+
+        if ($id) {
+            echo json_encode([
+                'success'    => true,
+                'message'    => 'Facility booked successfully!',
+                'booking_id' => $id,
+                'total_cost' => 'Rs. ' . number_format($totalCost, 2),
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Booking failed. Please try again.']);
+        }
+        ob_end_flush(); exit;
+    }
+
+    // AJAX: Return unavailable time slots for a facility on a date
+    public function facility_times() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+
+        $facilityId = (int)($_GET['facility_id'] ?? 0);
+        $date       = trim($_GET['date'] ?? '');
+
+        if (!$facilityId || !$date) {
+            echo json_encode([]);
+            ob_end_flush(); exit;
+        }
+
+        $sessionModel = $this->model('M_Session');
+        $rows = $sessionModel->getUnavailableTimes($facilityId, $date);
+        $result = [];
+        foreach ($rows as $r) {
+            $result[] = ['start' => $r->StartTime, 'end' => $r->EndTime];
+        }
+        echo json_encode($result);
+        ob_end_flush(); exit;
     }
 
     // Coach Sessions Page
@@ -1143,6 +812,10 @@ class Player extends Controller {
     // Trainer Sessions Page
     public function trainer_sessions() {
         $this->requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->handleCoachBookingAjax();
+            return;
+        }
         $data = [
             'title' => 'Trainer Sessions',
             'player' => $this->getPlayerData(),
@@ -1195,82 +868,35 @@ class Player extends Controller {
             'joined_date' => date('Y-m-d')
         ];
     }
-    
+
     private function getPerformanceStats() {
-    $playerId = $_SESSION['user_id'] ?? 6;
-    $perfModel = $this->model('M_Performance');
-    $stats = $perfModel->getOverallStats($playerId);
-    if ($stats) {
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $perfModel = $this->model('M_Performance');
+        $stats = $perfModel->getOverallStats($playerId);
+
+        if (!$stats) {
+            return [
+                'batting_avg' => 0,
+                'strike_rate' => 0,
+                'total_runs' => 0,
+                'total_wickets' => 0,
+                'bowling_avg' => 0,
+                'economy_rate' => 0,
+                'matches_played' => 0,
+                'wins' => 0
+            ];
+        }
+
         return [
-            'batting_avg' => $stats->BattingAverage ?? 0,  // Changed from BattingAvg
+            'batting_avg' => $stats->BattingAverage ?? 0,
             'strike_rate' => $stats->StrikeRate ?? 0,
             'total_runs' => $stats->TotalRuns ?? 0,
-            'total_wickets' => $stats->TotalWickets ?? 0,  // Changed from Wickets
+            'total_wickets' => $stats->TotalWickets ?? 0,
             'bowling_avg' => $stats->BowlingAverage ?? 0,
             'economy_rate' => $stats->EconomyRate ?? 0,
             'matches_played' => $stats->MatchesPlayed ?? 0,
             'wins' => $stats->Wins ?? 0
         ];
-    }
-    return ['batting_avg'=>0,'strike_rate'=>0,'total_runs'=>0,'total_wickets'=>0,
-            'bowling_avg'=>0,'economy_rate'=>0,'matches_played'=>0,'wins'=>0];
-}
-
-    private function getBattingStats() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        $matches = $perfModel->getMatchHistory($playerId, 10);
-        
-        $battingData = [];
-        if (!empty($matches)) {
-            foreach ($matches as $match) {
-                if ($match->RunsScored > 0 || $match->BallsFaced > 0) {
-                    $strikeRate = $match->BallsFaced > 0 ? 
-                        round(($match->RunsScored / $match->BallsFaced) * 100, 2) : 0;
-                    
-                    $battingData[] = [
-                        'match_date' => $match->Date,
-                        'opponent' => $match->OpponentTeam,
-                        'tournament' => $match->TournamentName,
-                        'runs' => $match->RunsScored,
-                        'balls' => $match->BallsFaced,
-                        'strike_rate' => $strikeRate,
-                        'result' => $match->Result,
-                        'venue' => $match->Venue
-                    ];
-                }
-            }
-        }
-        return $battingData;
-    }
-    
-    private function getBowlingStats() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        $matches = $perfModel->getMatchHistory($playerId, 10);
-        
-        $bowlingData = [];
-        if (!empty($matches)) {
-            foreach ($matches as $match) {
-                if ($match->WicketsTaken > 0 || $match->OversBowled > 0) {
-                    $economy = $match->OversBowled > 0 ? 
-                        round($match->RunsConceded / $match->OversBowled, 2) : 0;
-                    
-                    $bowlingData[] = [
-                        'match_date' => $match->Date,
-                        'opponent' => $match->OpponentTeam,
-                        'tournament' => $match->TournamentName,
-                        'wickets' => $match->WicketsTaken,
-                        'overs' => $match->OversBowled,
-                        'runs_conceded' => $match->RunsConceded,
-                        'economy' => $economy,
-                        'result' => $match->Result,
-                        'venue' => $match->Venue
-                    ];
-                }
-            }
-        }
-        return $bowlingData;
     }
     
     private function getTodaySchedule() {
@@ -1356,100 +982,6 @@ class Player extends Controller {
     private function getInjuries() {
         // Injuries come from medical records
         return $this->getMedicalHistory();
-    }
-    
-    private function getPracticeMatches() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        return $perfModel->getMatchHistory($playerId, 10);
-    }
-    
-    private function getTournaments() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        return $perfModel->getTournamentStats($playerId);
-    }
-    
-    private function getDetailedPerformanceStats() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        $stats = $perfModel->getOverallStats($playerId);
-        if ($stats) {
-            return [
-                'batting' => [
-                    'total_runs' => $stats->TotalRuns ?? 0,
-                    'average' => $stats->BattingAverage ?? 0,
-                    'strike_rate' => $stats->StrikeRate ?? 0,
-                    'centuries' => $stats->Centuries ?? 0,
-                    'half_centuries' => $stats->HalfCenturies ?? 0,
-                    'highest_score' => $stats->HighestScore ?? 0
-                ],
-                'bowling' => [
-                    'total_wickets' => $stats->Wickets ?? 0,
-                    'average' => $stats->BowlingAverage ?? 0,
-                    'economy_rate' => $stats->EconomyRate ?? 0,
-                    'best_figures' => $stats->BestBowling ?? 'N/A',
-                    'five_wickets' => $stats->FiveWickets ?? 0,
-                    'four_wickets' => $stats->FourWickets ?? 0
-                ]
-            ];
-        }
-        return ['batting'=>['total_runs'=>0,'average'=>0,'strike_rate'=>0,'centuries'=>0,'half_centuries'=>0,'highest_score'=>0],
-                'bowling'=>['total_wickets'=>0,'average'=>0,'economy_rate'=>0,'best_figures'=>'N/A','five_wickets'=>0,'four_wickets'=>0]];
-    }
-    
-    private function getAwards() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $achievements = $this->achievementModel->getAchievementsByPlayer($playerId);
-        $awards = [];
-        if ($achievements) {
-            foreach ($achievements as $a) {
-                if ($a->VerifiedStatus === 'verified') {
-                    $awards[] = [
-                        'title' => $a->Achievement,
-                        'event' => $a->Tournament,
-                        'date' => $a->Date
-                    ];
-                }
-            }
-        }
-        return $awards;
-    }
-    
-    private function getRecords() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $perfModel = $this->model('M_Performance');
-        $stats = $perfModel->getOverallStats($playerId);
-        $records = [];
-        if ($stats) {
-            if (!empty($stats->HighestScore)) {
-                $records[] = ['record' => 'Highest Individual Score', 'value' => $stats->HighestScore . ' runs', 'match' => '', 'date' => ''];
-            }
-            if (!empty($stats->BestBowling)) {
-                $records[] = ['record' => 'Best Bowling Figures', 'value' => $stats->BestBowling, 'match' => '', 'date' => ''];
-            }
-            if (!empty($stats->TotalRuns)) {
-                $records[] = ['record' => 'Total Career Runs', 'value' => $stats->TotalRuns . ' runs', 'match' => '', 'date' => ''];
-            }
-        }
-        return $records;
-    }
-    
-    private function getCertificates() {
-        // Certificates could overlap with verified achievements
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $achievements = $this->achievementModel->getAchievementsByPlayer($playerId);
-        $certs = [];
-        if ($achievements) {
-            foreach ($achievements as $a) {
-                $certs[] = [
-                    'title' => $a->Achievement,
-                    'issued_by' => $a->Tournament ?? 'Elite Cricket Academy',
-                    'date' => $a->Date
-                ];
-            }
-        }
-        return $certs;
     }
     
     private function getMonthlyFees() {
@@ -1609,38 +1141,134 @@ class Player extends Controller {
     private function bookCoachSession($slotId, $playerId, $specialRequests = '') {
         try {
             $sessionModel = $this->model('M_Session');
-            // Get the session details
             $session = $sessionModel->getSessionById($slotId);
             if (!$session) {
-                return ['success' => false, 'message' => 'Session slot not found'];
+                return ['success' => false, 'message' => 'Session not found'];
             }
-            
-            // Book the appointment
-            $data = [
-                'player_id' => $playerId,
-                'coach_id' => $session->CoachOrTrainerID ?? $session->CoachID ?? 0,
-                'date' => $session->Date,
-                'start_time' => $session->StartTime,
-                'end_time' => $session->EndTime,
-                'status' => 'Scheduled',
-                'notes' => $specialRequests
-            ];
-            
-            $bookingId = $sessionModel->bookCoachAppointment($data);
-            if ($bookingId) {
+            if ($session->Status !== 'active') {
+                return ['success' => false, 'message' => 'Session is not available for booking'];
+            }
+
+            // Operating hours: 06:00 – 21:00
+            $startH = (int)date('H', strtotime($session->StartTime));
+            $endH   = (int)date('H', strtotime($session->EndTime));
+            $endM   = (int)date('i', strtotime($session->EndTime));
+            if ($startH < 6 || $endH > 21 || ($endH === 21 && $endM > 0)) {
+                return ['success' => false, 'message' => 'Session is outside academy operating hours (6 AM – 9 PM)'];
+            }
+
+            // Max 1 coach session per day
+            if ($sessionModel->playerDailyBookingCount($playerId, $session->Date, 'coach') >= 1) {
+                return ['success' => false, 'message' => 'You already have a coach session on this day. Maximum 1 per day allowed.'];
+            }
+
+            // No time overlap with existing bookings
+            if ($sessionModel->playerHasTimeOverlap($playerId, $session->Date, $session->StartTime, $session->EndTime)) {
+                return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
+            }
+
+            $price = (float)($session->PricePerSession ?? 0);
+            // If paid session, require payment_method in POST
+            if ($price > 0 && empty($_POST['payment_method'])) {
                 return [
-                    'success' => true,
-                    'booking_id' => $bookingId,
-                    'message' => 'Booking created successfully. Please complete payment to confirm.',
-                    'payment_required' => true
+                    'success'        => false,
+                    'requires_payment' => true,
+                    'amount'         => $price,
+                    'message'        => 'This session requires payment of Rs. ' . number_format($price, 2),
                 ];
             }
-            return ['success' => false, 'message' => 'Failed to create booking'];
+
+            $enrollmentId = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrollmentId) {
+                if ($price > 0) {
+                    $paymentModel = $this->model('M_Payment');
+                    $paymentModel->createSessionPayment([
+                        'enrollment_id'  => $enrollmentId,
+                        'player_id'      => $playerId,
+                        'session_id'     => $slotId,
+                        'amount'         => $price,
+                        'payment_method' => $_POST['payment_method'] ?? 'online',
+                        'status'         => 'completed',
+                        'paid_at'        => date('Y-m-d H:i:s'),
+                    ]);
+                }
+                $this->sendBookingConfirmedNotification($playerId, $session);
+                $msg = $price > 0
+                    ? 'Enrolled and payment of Rs. ' . number_format($price, 2) . ' recorded.'
+                    : 'You have been enrolled in this session.';
+                return ['success' => true, 'message' => $msg, 'session_id' => $slotId];
+            }
+            return ['success' => false, 'message' => 'Enrollment failed'];
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Booking failed: ' . $e->getMessage()];
         }
     }
-    
+
+    private function bookTrainerSession($slotId, $playerId, $specialRequests = '') {
+        try {
+            $sessionModel = $this->model('M_Session');
+            $session = $sessionModel->getSessionById($slotId);
+            if (!$session) {
+                return ['success' => false, 'message' => 'Session not found'];
+            }
+            if ($session->Status !== 'active') {
+                return ['success' => false, 'message' => 'Session is not available for booking'];
+            }
+
+            // Operating hours: 06:00 – 21:00
+            $startH = (int)date('H', strtotime($session->StartTime));
+            $endH   = (int)date('H', strtotime($session->EndTime));
+            $endM   = (int)date('i', strtotime($session->EndTime));
+            if ($startH < 6 || $endH > 21 || ($endH === 21 && $endM > 0)) {
+                return ['success' => false, 'message' => 'Session is outside academy operating hours (6 AM – 9 PM)'];
+            }
+
+            // Max 1 trainer session per day
+            if ($sessionModel->playerDailyBookingCount($playerId, $session->Date, 'trainer') >= 1) {
+                return ['success' => false, 'message' => 'You already have a trainer session on this day. Maximum 1 per day allowed.'];
+            }
+
+            // No time overlap with existing bookings
+            if ($sessionModel->playerHasTimeOverlap($playerId, $session->Date, $session->StartTime, $session->EndTime)) {
+                return ['success' => false, 'message' => 'This session overlaps with an existing booking you have.'];
+            }
+
+            $price = (float)($session->PricePerSession ?? 0);
+            if ($price > 0 && empty($_POST['payment_method'])) {
+                return [
+                    'success'          => false,
+                    'requires_payment' => true,
+                    'amount'           => $price,
+                    'message'          => 'This session requires payment of Rs. ' . number_format($price, 2),
+                ];
+            }
+
+            $enrollmentId = $sessionModel->addPlayerToSession($slotId, $playerId);
+            if ($enrollmentId) {
+                if ($price > 0) {
+                    $paymentModel = $this->model('M_Payment');
+                    $paymentModel->createSessionPayment([
+                        'enrollment_id'  => $enrollmentId,
+                        'player_id'      => $playerId,
+                        'session_id'     => $slotId,
+                        'amount'         => $price,
+                        'payment_method' => $_POST['payment_method'] ?? 'online',
+                        'status'         => 'completed',
+                        'paid_at'        => date('Y-m-d H:i:s'),
+                    ]);
+                }
+                $this->sendBookingConfirmedNotification($playerId, $session);
+                $msg = $price > 0
+                    ? 'Enrolled and payment of Rs. ' . number_format($price, 2) . ' recorded.'
+                    : 'You have been enrolled in this trainer session.';
+                return ['success' => true, 'message' => $msg, 'session_id' => $slotId];
+            }
+            return ['success' => false, 'message' => 'Enrollment failed'];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Booking failed: ' . $e->getMessage()];
+        }
+    }
+
     private function processBookingPayment($bookingId, $paymentMethod, $paymentDetails = []) {
         try {
             $transactionId = 'TXN_' . date('Ymd') . '_' . str_pad($bookingId, 6, '0', STR_PAD_LEFT);

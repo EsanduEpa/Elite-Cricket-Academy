@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -106,6 +106,14 @@
             </div>
 
             <!-- Performance Statistics -->
+            <?php
+                $performanceStats = $data['performanceStats'] ?? [
+                    'batting_avg' => 0,
+                    'strike_rate' => 0,
+                    'total_runs' => 0,
+                    'total_wickets' => 0,
+                ];
+            ?>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -113,7 +121,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Batting Average</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['batting_avg']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['batting_avg']; ?>">0</div>
                        
                     </div>
                 </div>
@@ -124,7 +132,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Strike Rate</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['strike_rate']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['strike_rate']; ?>">0</div>
                        
                     </div>
                 </div>
@@ -135,7 +143,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Total Runs</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_runs']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['total_runs']; ?>">0</div>
                         
                     </div>
                 </div>
@@ -146,7 +154,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-title">Wickets Taken</div>
-                        <div class="stat-value" data-target="<?php echo $data['performanceStats']['total_wickets']; ?>">0</div>
+                        <div class="stat-value" data-target="<?php echo $performanceStats['total_wickets']; ?>">0</div>
                         
                     </div>
                 </div>
@@ -505,7 +513,7 @@
                                 <h4>Performance</h4>
                                 <p>View detailed statistics</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/player/performance" class="quick-btn">View</a>
+                            <a href="<?php echo URLROOT; ?>/performance" class="quick-btn">View</a>
                         </div>
 
                         <div class="quick-action-card">
@@ -581,20 +589,18 @@
     <!-- Include Footer -->
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
-    <!-- Pass PHP data to JavaScript -->
-    <script>
-        // Pass PHP data to JavaScript
-        window.dashboardData = {
-            todaySchedule: <?php echo json_encode($data['todaySchedule'] ?? []); ?>,
-            upcomingSchedule: <?php echo json_encode($data['upcomingSchedule'] ?? []); ?>,
-            upcomingBookings: <?php echo json_encode($data['upcomingBookings'] ?? []); ?>,
-            currentDate: '<?php echo date('Y-m-d'); ?>',
-            currentMonth: <?php echo date('n') - 1; ?>, // JavaScript months are 0-indexed
-            currentYear: <?php echo date('Y'); ?>
-        };
-        
-        console.log('Dashboard data loaded:', window.dashboardData);
-    </script>
+    <!-- Pass PHP data to JavaScript (data-only) -->
+    <script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
+    <script type="application/json" id="dashboardData"><?php echo json_encode([
+        'todaySchedule' => $data['todaySchedule'] ?? [],
+        'upcomingSchedule' => $data['upcomingSchedule'] ?? [],
+        'upcomingBookings' => $data['upcomingBookings'] ?? [],
+        'calendarEvents' => $data['calendarEvents'] ?? [],
+        'currentDate' => date('Y-m-d'),
+        'currentMonth' => (int)date('n') - 1,
+        'currentYear' => (int)date('Y'),
+        'urlRoot' => URLROOT,
+    ], JSON_UNESCAPED_SLASHES); ?></script>
 
     <!-- JavaScript for Dashboard -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>

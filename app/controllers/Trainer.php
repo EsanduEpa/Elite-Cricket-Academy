@@ -40,18 +40,12 @@ class Trainer extends Controller {
     }
 
     public function bookings() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
+        $trainerId = $_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
         $data = [
-            'title' => 'Bookings Management',
-            'bookings' => [] // $this->trainerModel->getBookings($_SESSION['user_id'])
+            'title'    => 'My Sessions',
+            'sessions' => $sessionModel->getSessionsByCoach($trainerId),
         ];
-
         $this->view('trainer/bookings', $data);
     }
 
@@ -975,5 +969,41 @@ class Trainer extends Controller {
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+    }
+
+    // ==================== AVAILABLE SLOTS ====================
+
+    public function available_slots() {
+        $sessionModel = $this->model('M_Session');
+        $data = [
+            'title'     => 'Available Slots - Trainer Panel',
+            'trainerId' => $_SESSION['user_id'],
+            'slots'     => $sessionModel->getOpenSlots(['type' => 'Physical Training']),
+        ];
+        $this->view('trainer/available_slots', $data);
+    }
+
+    public function claim_slot() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'POST required']);
+            exit;
+        }
+        $sessionId = intval($_POST['session_id'] ?? 0);
+        if (!$sessionId) {
+            echo json_encode(['success' => false, 'message' => 'Invalid session ID']);
+            exit;
+        }
+        $sessionModel = $this->model('M_Session');
+        if ($sessionModel->isSlotClaimed($sessionId)) {
+            echo json_encode(['success' => false, 'message' => 'This slot has already been claimed']);
+            exit;
+        }
+        $result = $sessionModel->claimSlot($sessionId, $_SESSION['user_id']);
+        echo json_encode([
+            'success' => $result,
+            'message' => $result ? 'Slot claimed successfully' : 'Failed to claim slot'
+        ]);
+        exit;
     }
 }

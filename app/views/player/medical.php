@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
@@ -82,7 +82,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="main-content">
+        <div class="main-content" id="medicalPage" data-urlroot="<?php echo URLROOT; ?>">
             <!-- Simple Page Header -->
             <div class="dashboard-header">
                 <h1><i class="fas fa-heartbeat"></i> Medical Records</h1>
@@ -91,129 +91,7 @@
 
             <?php flash('medical_message'); ?>
 
-            <!-- Health Overview and Supplements - Two Tables Per Row -->
-            <div class="performance-tables-row">
-                <!-- Health Overview - Compact Table -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-heartbeat"></i> Health Overview</h2>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Value</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-weight"></i> Weight</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">75 kg</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Normal</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-ruler-vertical"></i> Height</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">178 cm</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Normal</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-heart"></i> Resting HR</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">68 bpm</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Excellent</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-percentage"></i> Body Fat</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">12%</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Athletic</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-title"><i class="fas fa-lungs"></i> Lung Capacity</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-primary">4.2 L</div>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-active">Above Avg</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Current Supplement Plans -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
-                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Supplement</th>
-                                    <th>Dosage</th>
-                                    <th>Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($data['supplements'])): ?>
-                                    <?php foreach ($data['supplements'] as $supp): ?>
-                                        <tr>
-                                            <td>
-                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
-                                                <div class="table-cell-details">
-                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
-                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+           
 
 
             <div class="schedule-card">
@@ -427,11 +305,11 @@
             </div>
 
             <!-- Recent Medical Records -->
-            
-           
-            <!-- Vaccinations & Immunizations -->
-            <div class="schedule-card">
-                <div class="card-header">
+             <!-- Health Overview and Supplements - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Health Overview - Compact Table -->
+                <div class="schedule-card">
+                      <div class="card-header">
                     <div class="header-content">
                         <h2><i class="fas fa-syringe"></i> Vaccinations & Immunizations</h2>
                         <span class="event-count">Up to Date</span>
@@ -453,6 +331,57 @@
                         </tbody>
                     </table>
                 </div>
+                    
+                </div>
+
+                <!-- Current Supplement Plans -->
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
+                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Supplement</th>
+                                    <th>Dosage</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['supplements'])): ?>
+                                    <?php foreach ($data['supplements'] as $supp): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
+                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+           
+            <!-- Vaccinations & Immunizations -->
+            <div class="schedule-card">
+              
             </div>
 
             <!-- Quick Medical Actions -->
@@ -697,346 +626,13 @@
         </div>
     </div>
 
-    <script>
-        // Validation functions
-        function validateMinWords(text, minWords) {
-            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-            return words.length >= minWords;
-        }
+    <!-- Pass workout/nutrition plan data from controller to JS (data-only) -->
+    <script type="application/json" id="medicalData"><?php echo json_encode([
+        'workoutPlans' => $data['workoutPlans'] ?? [],
+        'nutritionPlans' => $data['nutritionPlans'] ?? [],
+    ], JSON_UNESCAPED_SLASHES); ?></script>
 
-        function validateRestDays(value) {
-            // Check if it's a valid integer
-            if (!Number.isInteger(Number(value))) {
-                return { valid: false, message: 'Rest days must be a whole number (no decimals)' };
-            }
-            
-            const numValue = parseInt(value);
-            
-            if (numValue < 0) {
-                return { valid: false, message: 'Rest days cannot be negative' };
-            }
-            
-            if (numValue > 1000) {
-                return { valid: false, message: 'Rest days cannot exceed 1000 days' };
-            }
-            
-            return { valid: true, message: '' };
-        }
-
-        // Real-time validation for injury details
-        document.addEventListener('DOMContentLoaded', function() {
-            const injuryDetailsInput = document.getElementById('injury_details');
-            const diagnosisInput = document.getElementById('diagnosis');
-            const restDaysInput = document.getElementById('rest_days_needed');
-            const form = document.querySelector('#addMedicalModal form');
-
-            if (injuryDetailsInput) {
-                injuryDetailsInput.addEventListener('blur', function() {
-                    const errorElement = document.getElementById('injury_details_error');
-                    if (!validateMinWords(this.value, 2)) {
-                        errorElement.textContent = 'Injury details must contain at least 2 words';
-                        errorElement.style.display = 'block';
-                        this.style.borderColor = '#dc3545';
-                    } else {
-                        errorElement.style.display = 'none';
-                        this.style.borderColor = '#28a745';
-                    }
-                });
-            }
-
-            if (diagnosisInput) {
-                diagnosisInput.addEventListener('blur', function() {
-                    const errorElement = document.getElementById('diagnosis_error');
-                    if (!validateMinWords(this.value, 2)) {
-                        errorElement.textContent = 'Diagnosis must contain at least 2 words';
-                        errorElement.style.display = 'block';
-                        this.style.borderColor = '#dc3545';
-                    } else {
-                        errorElement.style.display = 'none';
-                        this.style.borderColor = '#28a745';
-                    }
-                });
-            }
-
-            if (restDaysInput) {
-                restDaysInput.addEventListener('input', function() {
-                    const errorElement = document.getElementById('rest_days_error');
-                    const validation = validateRestDays(this.value);
-                    
-                    if (!validation.valid) {
-                        errorElement.textContent = validation.message;
-                        errorElement.style.display = 'block';
-                        this.style.borderColor = '#dc3545';
-                    } else {
-                        errorElement.style.display = 'none';
-                        this.style.borderColor = '#28a745';
-                    }
-                });
-
-                // Prevent decimal input
-                restDaysInput.addEventListener('keypress', function(e) {
-                    if (e.key === '.' || e.key === ',') {
-                        e.preventDefault();
-                    }
-                });
-            }
-
-            // Form submission validation
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    let isValid = true;
-                    let errors = [];
-
-                    // Validate injury details
-                    const injuryDetails = document.getElementById('injury_details').value;
-                    if (!validateMinWords(injuryDetails, 2)) {
-                        isValid = false;
-                        errors.push('Injury details must contain at least 2 words');
-                        document.getElementById('injury_details_error').textContent = 'Injury details must contain at least 2 words';
-                        document.getElementById('injury_details_error').style.display = 'block';
-                        document.getElementById('injury_details').style.borderColor = '#dc3545';
-                    }
-
-                    // Validate diagnosis
-                    const diagnosis = document.getElementById('diagnosis').value;
-                    if (!validateMinWords(diagnosis, 2)) {
-                        isValid = false;
-                        errors.push('Diagnosis must contain at least 2 words');
-                        document.getElementById('diagnosis_error').textContent = 'Diagnosis must contain at least 2 words';
-                        document.getElementById('diagnosis_error').style.display = 'block';
-                        document.getElementById('diagnosis').style.borderColor = '#dc3545';
-                    }
-
-                    // Validate rest days
-                    const restDays = document.getElementById('rest_days_needed').value;
-                    if (restDays) {
-                        const restDaysValidation = validateRestDays(restDays);
-                        if (!restDaysValidation.valid) {
-                            isValid = false;
-                            errors.push(restDaysValidation.message);
-                            document.getElementById('rest_days_error').textContent = restDaysValidation.message;
-                            document.getElementById('rest_days_error').style.display = 'block';
-                            document.getElementById('rest_days_needed').style.borderColor = '#dc3545';
-                        }
-                    }
-
-                    if (!isValid) {
-                        e.preventDefault();
-                        alert('Please fix the following errors:\n\n' + errors.join('\n'));
-                        return false;
-                    }
-                });
-            }
-        });
-
-        // Add Medical Record Modal Functions
-        function openAddMedicalModal() {
-            const modal = document.getElementById('addMedicalModal');
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            
-            // Set default date to today
-            const dateInput = document.getElementById('reported_date');
-            if (!dateInput.value) {
-                dateInput.value = new Date().toISOString().split('T')[0];
-            }
-            
-            // Clear any previous validation errors
-            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
-        }
-        
-        function closeAddMedicalModal() {
-            const modal = document.getElementById('addMedicalModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            
-            // Reset form
-            const form = modal.querySelector('form');
-            form.reset();
-            
-            // Clear validation errors
-            document.querySelectorAll('.text-danger').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.form-control').forEach(el => el.style.borderColor = '');
-        }
-        
-        function viewMedicalRecord(recordId) {
-            // This would show detailed view of the medical record
-            alert('Viewing medical record #' + recordId);
-        }
-        
-        // View workout plan function
-        function viewWorkoutPlan(planId) {
-            const modal = document.getElementById('workoutPlanModal');
-            const content = document.getElementById('workoutPlanContent');
-            
-            // Workout plan data loaded from server via PHP $data
-            const workoutPlans = window.medicalData?.workoutPlans || {};
-            
-            const plan = workoutPlans[planId];
-            if (plan) {
-                content.innerHTML = `
-                    <div class="plan-header">
-                        <h4>${plan.title}</h4>
-                        <p><strong>Trainer:</strong> ${plan.trainer}</p>
-                        <p><strong>Frequency:</strong> ${plan.frequency}</p>
-                        <p><strong>Duration:</strong> ${plan.duration}</p>
-                    </div>
-                    <div class="plan-details">
-                        ${plan.details}
-                    </div>
-                `;
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        // View nutrition plan function
-        function viewNutritionPlan(planId) {
-            const modal = document.getElementById('nutritionPlanModal');
-            const content = document.getElementById('nutritionPlanContent');
-            
-            // Nutrition plan data loaded from server via PHP $data
-            const nutritionPlans = window.medicalData?.nutritionPlans || {};
-            
-            const plan = nutritionPlans[planId];
-            if (plan) {
-                content.innerHTML = `
-                    <div class="plan-header">
-                        <h4>${plan.title}</h4>
-                        <p><strong>Nutritionist:</strong> ${plan.trainer}</p>
-                        <p><strong>Duration:</strong> ${plan.duration}</p>
-                    </div>
-                    <div class="plan-details">
-                        ${plan.details}
-                    </div>
-                `;
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        // Close modal function
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Update Status Modal Functions
-        function openUpdateStatusModal(recordId, currentStatus) {
-            const modal = document.getElementById('updateStatusModal');
-            const recordIdInput = document.getElementById('update_record_id');
-            const statusSelect = document.getElementById('update_recovery_status');
-            
-            // Set the record ID
-            recordIdInput.value = recordId;
-            
-            // Set the current status as selected
-            statusSelect.value = currentStatus;
-            
-            // Show modal
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeUpdateStatusModal() {
-            const modal = document.getElementById('updateStatusModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            
-            // Reset form
-            const form = modal.querySelector('form');
-            form.reset();
-        }
-
-        // Delete Record Modal Functions
-        function confirmDeleteRecord(recordId) {
-            const modal = document.getElementById('deleteRecordModal');
-            const recordIdInput = document.getElementById('delete_record_id');
-            
-            // Set the record ID
-            recordIdInput.value = recordId;
-            
-            // Show modal
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeDeleteRecordModal() {
-            const modal = document.getElementById('deleteRecordModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }
-
-        function deleteMedicalRecord() {
-            const recordId = document.getElementById('delete_record_id').value;
-            
-            if (!recordId) {
-                alert('Error: No record ID found');
-                return;
-            }
-
-            // Create form data
-            const formData = new FormData();
-            formData.append('record_id', recordId);
-
-            // Send delete request
-            fetch('<?php echo URLROOT; ?>/player/deleteMedicalRecord', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message and reload page
-                    alert('Medical record deleted successfully');
-                    location.reload();
-                } else {
-                    alert(data.message || 'Failed to delete medical record');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while deleting the record');
-            })
-            .finally(() => {
-                closeDeleteRecordModal();
-            });
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const addMedicalModal = document.getElementById('addMedicalModal');
-            const workoutModal = document.getElementById('workoutPlanModal');
-            const nutritionModal = document.getElementById('nutritionPlanModal');
-            const updateStatusModal = document.getElementById('updateStatusModal');
-            const deleteRecordModal = document.getElementById('deleteRecordModal');
-            
-            if (event.target === addMedicalModal) {
-                closeAddMedicalModal();
-            }
-            if (event.target === workoutModal) {
-                workoutModal.style.display = 'none';
-            }
-            if (event.target === nutritionModal) {
-                nutritionModal.style.display = 'none';
-            }
-            if (event.target === updateStatusModal) {
-                closeUpdateStatusModal();
-            }
-            if (event.target === deleteRecordModal) {
-                closeDeleteRecordModal();
-            }
-        }
-    </script>
-
-    <!-- Pass workout/nutrition plan data from controller to JS -->
-    <script>
-        window.medicalData = {
-            workoutPlans: <?= json_encode($data['workoutPlans'] ?? []) ?>,
-            nutritionPlans: <?= json_encode($data['nutritionPlans'] ?? []) ?>
-        };
-    </script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
-    <script src="<?php echo URLROOT; ?>/js/player/medical.js"></script>
+    <script src="<?php echo URLROOT; ?>/js/player/medical-page.js"></script>
 </body>
 </html>

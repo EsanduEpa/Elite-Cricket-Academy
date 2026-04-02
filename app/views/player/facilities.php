@@ -31,7 +31,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>
@@ -150,287 +150,100 @@
         </div>
         
         <div class="products-grid" id="facilities-grid">
-            <!-- Indoor Practice Nets -->
-            <div class="product-card" data-type="indoor" data-capacity="small">
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Indoor Practice Nets" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Practice+Nets'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Indoor Facility</div>
-                    <h3 class="product-title">Indoor Practice Nets</h3>
-                    <p class="product-description">Climate-controlled indoor nets with professional lighting and bowling machine compatibility</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Premium facility)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Climate Controlled</span>
-                        <span class="feature-tag">Professional Lighting</span>
-                        <span class="feature-tag">Machine Compatible</span>
-                    </div>
-                    <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
-                            <span>Capacity: Up to 8 players</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-clock" style="color: #27ae60; width: 16px;"></i>
-                            <span>Available: 6 AM - 10 PM</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-wifi" style="color: #27ae60; width: 16px;"></i>
-                            <span>Free Wi-Fi Included</span>
-                        </div>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 35/hour</span>
-                    </div>
-                    <div class="product-stock">✓ Available for booking</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewFacilityDetails('indoor-nets')">View Details</button>
-                        <button class="btn btn-cart book-facility" data-facility="indoor-nets" data-name="Indoor Practice Nets" data-hourly="35" data-capacity="8">Book Facility</button>
-                    </div>
-                </div>
-            </div>
+            <?php
+                $facilities = $data['facilities'] ?? [];
+                $escape = function ($value) {
+                    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+                };
 
-            <!-- Main Cricket Ground -->
-            <div class="product-card" data-type="outdoor" data-capacity="large">
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Main Cricket Ground" onerror="this.src='https://via.placeholder.com/300x200?text=Main+Cricket+Ground'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Outdoor Facility</div>
-                    <h3 class="product-title">Main Cricket Ground</h3>
-                    <p class="product-description">Full-size cricket ground with professional pitch and seating for matches and tournaments</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Professional ground)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Professional Pitch</span>
-                        <span class="feature-tag">Spectator Seating</span>
-                        <span class="feature-tag">Match Ready</span>
-                    </div>
-                    <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
-                            <span>Capacity: 22 players + 100 spectators</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-clock" style="color: #27ae60; width: 16px;"></i>
-                            <span>Available: 7 AM - 8 PM</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-trophy" style="color: #27ae60; width: 16px;"></i>
-                            <span>Tournament Ready</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-parking" style="color: #27ae60; width: 16px;"></i>
-                            <span>Parking Available</span>
-                        </div>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 200/half-day</span>
-                        <small style="color: #666; margin-left: 10px;">(Rs. 350/full-day)</small>
-                    </div>
-                    <div class="product-stock">✓ Available for booking</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewFacilityDetails('main-ground')">View Details</button>
-                        <button class="btn btn-cart book-facility" data-facility="main-ground" data-name="Main Cricket Ground" data-half="200" data-full="350">Book Facility</button>
-                    </div>
-                </div>
-            </div>
+                $facilityType = function ($name, $location) {
+                    $text = strtolower(((string)$name) . ' ' . ((string)$location));
+                    if (strpos($text, 'conference') !== false || strpos($text, 'meeting') !== false) {
+                        return 'event';
+                    }
+                    if (strpos($text, 'indoor') !== false || strpos($text, 'hall') !== false || strpos($text, 'building') !== false) {
+                        return 'indoor';
+                    }
+                    if (strpos($text, 'ground') !== false || strpos($text, 'outdoor') !== false || strpos($text, 'field') !== false) {
+                        return 'outdoor';
+                    }
+                    return 'training';
+                };
 
-            <!-- Cricket Fitness Center -->
-            <div class="product-card" data-type="training" data-capacity="medium">
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Fitness Center" onerror="this.src='https://via.placeholder.com/300x200?text=Fitness+Center'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Training Facility</div>
-                    <h3 class="product-title">Cricket Fitness Center</h3>
-                    <p class="product-description">Specialized fitness center with cricket-specific training equipment and recovery facilities</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Modern facility)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">Cricket-Specific Equipment</span>
-                        <span class="feature-tag">Recovery Suite</span>
-                        <span class="feature-tag">Personal Training Available</span>
-                    </div>
-                    <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
-                            <span>Capacity: Up to 12 players</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-clock" style="color: #27ae60; width: 16px;"></i>
-                            <span>Available: 5 AM - 11 PM</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-dumbbell" style="color: #27ae60; width: 16px;"></i>
-                            <span>Professional Equipment</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-spa" style="color: #27ae60; width: 16px;"></i>
-                            <span>Recovery Facilities</span>
-                        </div>
-                    </div>
-                    <div class="product-price">
-                        <span class="price-current">Rs. 25/hour</span>
-                    </div>
-                    <div class="product-stock">✓ Available for booking</div>
-                    <div class="product-actions">
-                        <button class="btn btn-view" onclick="viewFacilityDetails('fitness-center')">View Details</button>
-                        <button class="btn btn-cart book-facility" data-facility="fitness-center" data-name="Cricket Fitness Center" data-hourly="25" data-capacity="12">Book Facility</button>
-                    </div>
-                </div>
-            </div>
+                $capacityBucket = function ($capacity) {
+                    $c = (int)$capacity;
+                    if ($c <= 10) return 'small';
+                    if ($c <= 25) return 'medium';
+                    return 'large';
+                };
 
-            <!-- Team Conference Room -->
-            <div class="product-card" data-type="event" data-capacity="medium">
-                <div class="product-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Conference Room" onerror="this.src='https://via.placeholder.com/300x200?text=Conference+Room'" />
-                </div>
-                <div class="product-info">
-                    <div class="product-brand">Event Facility</div>
-                    <h3 class="product-title">Team Conference Room</h3>
-                    <p class="product-description">Professional meeting space with AV equipment for team meetings, analysis, and presentations</p>
-                    <div class="product-rating">
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <i class="fas fa-star active"></i>
-                        <span class="rating-text">(Professional space)</span>
-                    </div>
-                    <div class="product-features">
-                        <span class="feature-tag">AV Equipment</span>
-                        <span class="feature-tag">Video Analysis</span>
-                        <span class="feature-tag">Presentation Ready</span>
-                    </div>
-                    <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
-                            <span>Capacity: Up to 25 people</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <i class="fas fa-clock" style="color: #27ae60; width: 16px;"></i>
-                            <span>Available: 8 AM - 8 PM</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-tv"></i>
-                            <span>AV Equipment Included</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-coffee"></i>
-                            <span>Refreshments Available</span>
-                        </div>
-                    </div>
-                    <div class="facility-pricing">
-                        <div class="price-option">
-                            <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">Rs. 40/hour</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-book book-facility" data-facility="conference-room" data-name="Team Conference Room" data-hourly="40" data-capacity="25">Book Facility</button>
-                </div>
-            </div>
+                $placeholderUrl = function ($label) {
+                    return 'https://via.placeholder.com/300x200?text=' . urlencode((string)$label);
+                };
+            ?>
 
-            <!-- Outdoor Training Area -->
-            <div class="facility-card" data-type="outdoor" data-capacity="medium">
-                <div class="facility-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Outdoor Training Area" onerror="this.src='https://via.placeholder.com/300x200?text=Outdoor+Training+Area'" />
-                </div>
-                <div class="facility-info">
-                    <h3>Outdoor Training Area</h3>
-                    <p>Open field area perfect for fitness training, conditioning, and team building activities</p>
-                    <div class="facility-features">
-                        <span class="feature-tag">Open Field</span>
-                        <span class="feature-tag">Natural Grass</span>
-                        <span class="feature-tag">Multi-Purpose</span>
-                    </div>
-                    <div class="facility-details">
-                        <div class="detail-item">
-                            <i class="fas fa-users"></i>
-                            <span>Capacity: Up to 20 players</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Available: 6 AM - 9 PM</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-leaf"></i>
-                            <span>Natural Grass Surface</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-water"></i>
-                            <span>Water Facilities</span>
-                        </div>
-                    </div>
-                    <div class="facility-pricing">
-                        <div class="price-option">
-                            <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">Rs. 20/hour</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-book book-facility" data-facility="outdoor-training" data-name="Outdoor Training Area" data-hourly="20" data-capacity="20">Book Facility</button>
-                </div>
-            </div>
+            <?php if (!empty($facilities)) : ?>
+                <?php foreach ($facilities as $facility) : ?>
+                    <?php
+                        $name = $facility->Name ?? 'Facility';
+                        $location = $facility->Location ?? '';
+                        $type = $facilityType($name, $location);
+                        $bucket = $capacityBucket($facility->Capacity ?? 0);
 
-            <!-- Indoor Sports Hall -->
-            <div class="facility-card" data-type="indoor" data-capacity="large">
-                <div class="facility-image">
-                    <img src="<?php echo URLROOT; ?>/uploads/shop_product/product_9_1761119174.png" alt="Indoor Sports Hall" onerror="this.src='https://via.placeholder.com/300x200?text=Indoor+Sports+Hall'" />
+                        $availability = strtolower((string)($facility->AvailabilityStatus ?? 'available'));
+                        $canBook = ($availability === 'available');
+
+                        $hourlyRate = (float)($facility->HourlyRate ?? 0);
+
+                        $dbImage = trim((string)($facility->facilityImage ?? ''));
+                        $image = $dbImage !== ''
+                            ? (URLROOT . '/' . ltrim($dbImage, '/'))
+                            : $placeholderUrl($name);
+
+                        $imageFallback = $placeholderUrl($name);
+                    ?>
+
+                    <div class="product-card" data-type="<?php echo $escape($type); ?>" data-capacity="<?php echo $escape($bucket); ?>">
+                        <div class="product-image">
+                            <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" onerror="this.src='<?php echo $escape($imageFallback); ?>'" />
+                        </div>
+                        <div class="product-info">
+                            <div class="product-brand"><?php echo $escape(ucfirst($type)); ?> Facility</div>
+                            <h3 class="product-title"><?php echo $escape($name); ?></h3>
+                            <?php if (!empty($location)) : ?>
+                                <p class="product-description"><?php echo $escape($location); ?></p>
+                            <?php endif; ?>
+
+                            <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
+                                    <span>Capacity: <?php echo (int)($facility->Capacity ?? 0); ?></span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <i class="fas fa-info-circle" style="color: #27ae60; width: 16px;"></i>
+                                    <span>Status: <?php echo $escape($availability); ?></span>
+                                </div>
+                            </div>
+
+                            <div class="product-price">
+                                <span class="price-current">Rs. <?php echo number_format($hourlyRate, 2); ?>/hour</span>
+                            </div>
+                            <div class="product-stock">
+                                <?php echo $canBook ? '✓ Available for booking' : 'Unavailable'; ?>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-cart book-facility" data-facility-id="<?php echo $escape($facility->FacilityID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-hourly="<?php echo $escape($hourlyRate); ?>" data-capacity="<?php echo $escape($facility->Capacity ?? ''); ?>" <?php echo $canBook ? '' : 'disabled'; ?>>
+                                    Book Facility
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <div class="payment-card" style="grid-column: 1 / -1;">
+                    <p>No facilities found in the database.</p>
                 </div>
-                <div class="facility-info">
-                    <h3>Indoor Sports Hall</h3>
-                    <p>Large multi-purpose indoor hall suitable for various sports activities and events</p>
-                    <div class="facility-features">
-                        <span class="feature-tag">Multi-Purpose</span>
-                        <span class="feature-tag">High Ceiling</span>
-                        <span class="feature-tag">Sound System</span>
-                    </div>
-                    <div class="facility-details">
-                        <div class="detail-item">
-                            <i class="fas fa-users"></i>
-                            <span>Capacity: Up to 40 people</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Available: 7 AM - 10 PM</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-volume-up"></i>
-                            <span>Sound System Included</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-restroom"></i>
-                            <span>Changing Rooms Available</span>
-                        </div>
-                    </div>
-                    <div class="facility-pricing">
-                        <div class="price-option">
-                            <span class="price-label">Hourly Rate:</span>
-                            <span class="price-value">Rs. 45/hour</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-book book-facility" data-facility="sports-hall" data-name="Indoor Sports Hall" data-hourly="45" data-capacity="40">Book Facility</button>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Booking Information -->
@@ -468,73 +281,7 @@
     </div>
 </div>
 
-<!-- Facility Booking Modal -->
-<div id="facilityModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Facility Booking</h3>
-            <button class="close-btn" onclick="closeFacilityModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div id="facility-details"></div>
-            <form id="facility-form">
-                <div class="form-group">
-                    <label for="booking-date">Date:</label>
-                    <input type="date" id="booking-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="booking-time">Time:</label>
-                    <select id="booking-time" required>
-                        <option value="06:00">6:00 AM</option>
-                        <option value="07:00">7:00 AM</option>
-                        <option value="08:00">8:00 AM</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                        <option value="17:00">5:00 PM</option>
-                        <option value="18:00">6:00 PM</option>
-                        <option value="19:00">7:00 PM</option>
-                        <option value="20:00">8:00 PM</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="booking-duration">Duration (hours):</label>
-                    <select id="booking-duration" required>
-                        <option value="1">1 hour</option>
-                        <option value="2">2 hours</option>
-                        <option value="3">3 hours</option>
-                        <option value="4">4 hours (Half Day)</option>
-                        <option value="8">8 hours (Full Day)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="booking-purpose">Purpose:</label>
-                    <select id="booking-purpose" required>
-                        <option value="">Select purpose...</option>
-                        <option value="training">Training Session</option>
-                        <option value="practice">Practice Match</option>
-                        <option value="meeting">Team Meeting</option>
-                        <option value="event">Special Event</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-            </form>
-            <div class="booking-total">
-                <strong>Total: Rs. <span id="booking-total">0.00</span></strong>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeFacilityModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="confirmBooking()">Confirm Booking</button>
-        </div>
-    </div>
-</div>
-
+<script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
 <script src="<?php echo URLROOT; ?>/js/player/facilities.js"></script>
 
 <style>
@@ -585,6 +332,5 @@
 </style>
 
 <script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
-<script src="<?php echo URLROOT; ?>/js/player/facilities.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

@@ -269,7 +269,7 @@ function createFacilityModal() {
                     </div>
                 </form>
                 <div class="booking-total">
-                    <strong>Total: $<span id="booking-total">0.00</span></strong>
+                    <strong>Total: Rs. <span id="booking-total">0.00</span></strong>
                 </div>
             </div>
             <div class="facility-modal-actions">
@@ -285,17 +285,36 @@ function createFacilityModal() {
 function populateFacilityDetails(facilityData) {
     const detailsDiv = document.getElementById('facility-details');
     if (!detailsDiv) return;
-    
+
+    // Store facilityId in a hidden input for submission
+    let hiddenInput = document.getElementById('booking-facility-id');
+    if (!hiddenInput) {
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.id = 'booking-facility-id';
+        document.getElementById('facility-form')?.appendChild(hiddenInput);
+    }
+    hiddenInput.value = facilityData.facilityId || '';
+
     detailsDiv.innerHTML = `
         <div class="booking-facility-info">
             <h4>${facilityData.name}</h4>
             <p><strong>Capacity:</strong> ${facilityData.capacity || 'Contact for details'}</p>
-            ${facilityData.hourly ? `<p><strong>Hourly Rate:</strong> $${facilityData.hourly}</p>` : ''}
-            ${facilityData.half ? `<p><strong>Half Day Rate:</strong> $${facilityData.half}</p>` : ''}
-            ${facilityData.full ? `<p><strong>Full Day Rate:</strong> $${facilityData.full}</p>` : ''}
-            <p><strong>Available:</strong> 6:00 AM - 10:00 PM daily</p>
+            ${facilityData.hourly ? `<p><strong>Hourly Rate:</strong> Rs. ${facilityData.hourly}</p>` : ''}
+            <p><strong>Available:</strong> 6:00 AM – 9:00 PM daily</p>
+            <p style="color:#e67e22; font-size:13px;"><i class="fas fa-info-circle"></i> Max 2 hours per facility per day</p>
         </div>
     `;
+
+    // Cap duration dropdown to 2 hours
+    const durationSelect = document.getElementById('booking-duration');
+    if (durationSelect) {
+        Array.from(durationSelect.options).forEach(opt => {
+            opt.disabled = parseInt(opt.value) > 2;
+            if (parseInt(opt.value) > 2) opt.text = opt.text.replace(' (Max)', '') + ' (Max exceeded)';
+        });
+        if (parseInt(durationSelect.value) > 2) durationSelect.value = '1';
+    }
 }
 
 function setupFacilityPriceCalculation(facilityData) {
@@ -317,77 +336,69 @@ function setupFacilityPriceCalculation(facilityData) {
 function updateBookingTotal(facilityData) {
     const duration = parseInt(document.getElementById('booking-duration').value);
     const totalSpan = document.getElementById('booking-total');
-    
-    let total = 0;
-    
-    if (facilityData.hourly) {
-        if (duration === 4 && facilityData.half) {
-            total = parseFloat(facilityData.half);
-        } else if (duration === 8 && facilityData.full) {
-            total = parseFloat(facilityData.full);
-        } else {
-            total = parseFloat(facilityData.hourly) * duration;
-        }
-    }
-    
-    // Apply discounts for longer bookings
-    if (duration >= 8) {
-        total *= 0.9; // 10% discount for full day
-    } else if (duration >= 4) {
-        total *= 0.95; // 5% discount for half day
-    }
-    
+    if (!totalSpan) return;
+    const total = facilityData.hourly ? parseFloat(facilityData.hourly) * duration : 0;
     totalSpan.textContent = total.toFixed(2);
 }
 
 function confirmBooking() {
     const form = document.getElementById('facility-form');
     if (!form) return;
-    
-    // Validate form
+
     if (!form.checkValidity()) {
         alert('Please fill in all required fields');
         return;
     }
-    
-    // Get form data
-    const date = document.getElementById('booking-date').value;
-    const time = document.getElementById('booking-time').value;
-    const duration = document.getElementById('booking-duration').value;
-    const purpose = document.getElementById('booking-purpose').value;
-    const participants = document.getElementById('booking-participants').value;
-    const total = document.getElementById('booking-total').textContent;
-    
-    // Show confirmation
-    showBookingConfirmation({
-        date,
-        time,
-        duration,
-        purpose,
-        participants,
-        total
+
+    const facilityId = document.getElementById('booking-facility-id')?.value;
+    const date       = document.getElementById('booking-date').value;
+    const startTime  = document.getElementById('booking-time').value + ':00';
+    const duration   = parseInt(document.getElementById('booking-duration').value);
+
+    if (!facilityId) {
+        alert('Facility not selected. Please try again.');
+        return;
+    }
+
+    const confirmBtn = document.querySelector('.facility-modal-actions .btn-primary');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Booking...'; }
+
+    const urlRoot = window.URLROOT_FACILITY || '';
+    fetch(urlRoot + '/player/book_facility', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'facility_id=' + facilityId +
+              '&date=' + encodeURIComponent(date) +
+              '&start_time=' + encodeURIComponent(startTime) +
+              '&duration=' + duration
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Booking'; }
+        closeFacilityModal();
+        if (data.success) {
+            showFacilityNotification('Facility booked! Total: ' + (data.total_cost || ''), 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showFacilityNotification(data.message || 'Booking failed', 'error');
+        }
+    })
+    .catch(() => {
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Booking'; }
+        closeFacilityModal();
+        showFacilityNotification('An error occurred. Please try again.', 'error');
     });
-    
-    closeFacilityModal();
 }
 
-function showBookingConfirmation(bookingDetails) {
-    const timeFormatted = formatTime(bookingDetails.time);
-    const durationText = bookingDetails.duration === '1' ? '1 hour' :
-                       bookingDetails.duration === '4' ? '4 hours (Half Day)' :
-                       bookingDetails.duration === '8' ? '8 hours (Full Day)' :
-                       `${bookingDetails.duration} hours`;
-    
-    alert(`Facility Booking Confirmed!
-    
-Date: ${bookingDetails.date}
-Time: ${timeFormatted}
-Duration: ${durationText}
-Purpose: ${bookingDetails.purpose}
-Participants: ${bookingDetails.participants}
-Total: $${bookingDetails.total}
-
-You will receive a confirmation email with access details and facility guidelines.`);
+function showFacilityNotification(message, type) {
+    const n = document.createElement('div');
+    const bg = type === 'success' ? 'linear-gradient(135deg,#27ae60,#2ecc71)' : 'linear-gradient(135deg,#e74c3c,#c0392b)';
+    const icon = type === 'success' ? 'check-circle' : 'times-circle';
+    n.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
+    n.style.cssText = 'position:fixed;top:20px;right:20px;background:' + bg + ';color:#fff;padding:14px 20px;border-radius:10px;z-index:10001;transform:translateX(400px);transition:transform 0.3s ease;max-width:380px;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,0.2);';
+    document.body.appendChild(n);
+    setTimeout(() => n.style.transform = 'translateX(0)', 50);
+    setTimeout(() => { n.style.transform = 'translateX(400px)'; setTimeout(() => n.remove(), 300); }, 4000);
 }
 
 function formatTime(time24) {
@@ -411,21 +422,30 @@ function initFacilityBookings() {
 }
 
 function checkFacilityAvailability(date) {
-    // Mock availability check - in real implementation, this would call the server
     const timeSelect = document.getElementById('booking-time');
-    if (!timeSelect) return;
-    
-    const unavailableTimes = ['09:00', '14:00', '18:00']; // Mock unavailable times
-    
-    Array.from(timeSelect.options).forEach(option => {
-        if (unavailableTimes.includes(option.value)) {
-            option.disabled = true;
-            option.text = option.text + ' (Unavailable)';
-        } else {
-            option.disabled = false;
-            option.text = option.text.replace(' (Unavailable)', '');
-        }
-    });
+    const facilityId = document.getElementById('booking-facility-id')?.value;
+    if (!timeSelect || !facilityId || !date) return;
+
+    const urlRoot = window.URLROOT_FACILITY || '';
+    fetch(urlRoot + '/player/facility_times?facility_id=' + facilityId + '&date=' + encodeURIComponent(date))
+        .then(r => r.json())
+        .then(bookedSlots => {
+            const duration = parseInt(document.getElementById('booking-duration')?.value || 1);
+            Array.from(timeSelect.options).forEach(option => {
+                const slotStart = option.value + ':00';
+                const slotEnd   = addHours(option.value, duration);
+                const blocked   = bookedSlots.some(b => b.start < slotEnd && b.end > slotStart);
+                option.disabled = blocked;
+                option.text = option.text.replace(' (Unavailable)', '') + (blocked ? ' (Unavailable)' : '');
+            });
+        })
+        .catch(() => {});
+}
+
+function addHours(timeStr, hours) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const total  = h * 60 + (m || 0) + hours * 60;
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0') + ':00';
 }
 
 // Utility Functions

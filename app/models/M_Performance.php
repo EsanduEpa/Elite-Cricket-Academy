@@ -150,6 +150,57 @@ class M_Performance {
         return $this->db->resultSet();
     }
 
+    // Get batting stats (verified matches only) formatted for display
+    public function getBattingStatsForPlayer($playerId, $limit = 10) {
+        $matches = $this->getMatchHistory($playerId, $limit);
+        $battingData = [];
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                if ($match->RunsScored > 0 || $match->BallsFaced > 0) {
+                    $strikeRate = $match->BallsFaced > 0 ?
+                        round(($match->RunsScored / $match->BallsFaced) * 100, 2) : 0;
+                    $battingData[] = [
+                        'match_date'  => $match->Date,
+                        'opponent'    => $match->OpponentTeam,
+                        'tournament'  => $match->TournamentName,
+                        'runs'        => $match->RunsScored,
+                        'balls'       => $match->BallsFaced,
+                        'strike_rate' => $strikeRate,
+                        'result'      => $match->Result,
+                        'venue'       => $match->Venue
+                    ];
+                }
+            }
+        }
+        return $battingData;
+    }
+
+    // Get bowling stats (verified matches only) formatted for display
+    public function getBowlingStatsForPlayer($playerId, $limit = 10) {
+        $matches = $this->getMatchHistory($playerId, $limit);
+        $bowlingData = [];
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                if ($match->WicketsTaken > 0 || $match->OversBowled > 0) {
+                    $economy = $match->OversBowled > 0 ?
+                        round($match->RunsConceded / $match->OversBowled, 2) : 0;
+                    $bowlingData[] = [
+                        'match_date'    => $match->Date,
+                        'opponent'      => $match->OpponentTeam,
+                        'tournament'    => $match->TournamentName,
+                        'wickets'       => $match->WicketsTaken,
+                        'overs'         => $match->OversBowled,
+                        'runs_conceded' => $match->RunsConceded,
+                        'economy'       => $economy,
+                        'result'        => $match->Result,
+                        'venue'         => $match->Venue
+                    ];
+                }
+            }
+        }
+        return $bowlingData;
+    }
+
     // Get tournament stats for a player
     public function getTournamentStats($playerId) {
         $this->db->query('SELECT pts.*, t.Name AS TournamentName, t.tdate, t.Location, t.Status AS TournamentStatus

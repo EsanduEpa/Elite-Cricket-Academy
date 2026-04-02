@@ -265,6 +265,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/session_slots" class="nav-link">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Session Slots</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Finance</span>

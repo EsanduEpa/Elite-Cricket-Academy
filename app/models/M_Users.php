@@ -1426,7 +1426,7 @@ class M_Users {
     // Get all coach profiles with user info
     public function getAllCoachProfiles() {
         $this->db->query('SELECT u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
-            cp.Specialization as specialization, cp.ExperienceYears as experience_years, cp.Certifications
+            cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications
             FROM User u
             JOIN coachprofile cp ON u.UserID = cp.CoachID
             WHERE u.Role = "Coach" AND u.Status = "active"
@@ -1437,7 +1437,7 @@ class M_Users {
     // Get all trainer profiles with user info
     public function getAllTrainerProfiles() {
         $this->db->query('SELECT u.UserID as trainer_id, u.Name as name, u.Email, u.ProfileImage as image,
-            tp.Specialization as specialization, tp.ExperienceYears as experience_years, tp.Certifications
+            NULL as specialization, tp.Experience as experience_years, tp.Certifications
             FROM User u
             JOIN trainerprofile tp ON u.UserID = tp.TrainerID
             WHERE u.Role = "Trainer" AND u.Status = "active"

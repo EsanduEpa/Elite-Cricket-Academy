@@ -30,7 +30,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>
@@ -156,7 +156,32 @@
         <div class="trainers-overview">
             <h2><i class="fas fa-users"></i> Our Certified Trainers</h2>
             <div class="trainers-grid" id="trainers-grid">
-                <!-- Will be populated by JavaScript -->
+                <?php if (!empty($data['trainers'])): ?>
+                    <?php foreach ($data['trainers'] as $trainer): ?>
+                    <div class="coach-card" data-trainer-id="<?= $trainer->trainer_id ?>">
+                        <div class="coach-avatar">
+                            <?php if (!empty($trainer->image) && $trainer->image !== 'default-profile.jpg'): ?>
+                                <img src="<?php echo URLROOT; ?>/uploads/<?= htmlspecialchars($trainer->image) ?>" alt="<?= htmlspecialchars($trainer->name) ?>">
+                            <?php else: ?>
+                                <i class="fas fa-dumbbell"></i>
+                            <?php endif; ?>
+                        </div>
+                        <div class="coach-info">
+                            <h3><?= htmlspecialchars($trainer->name) ?></h3>
+                            <p class="coach-experience"><i class="fas fa-clock"></i> <?= $trainer->experience_years ?? 0 ?> years experience</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="filterByTrainer(<?= $trainer->trainer_id ?>)">
+                            <i class="fas fa-calendar-plus"></i> View Sessions
+                        </button>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div style="text-align: center; padding: 40px; color: #666; grid-column: 1/-1;">
+                        <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 15px; color: #ccc;"></i>
+                        <h3>No Trainers Available</h3>
+                        <p>No trainers are currently available. Please check back later.</p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -166,21 +191,65 @@
                 <h2><i class="fas fa-calendar-alt"></i> Available Trainer Sessions</h2>
                 <div class="session-stats">
                     <span class="stat-item">
-                        <span class="stat-number" id="total-trainer-sessions">0</span>
+                        <span class="stat-number" id="total-trainer-sessions"><?= count($data['availableTrainerSlots'] ?? []) ?></span>
                         <span class="stat-label">Available Sessions</span>
-                    </span>
-                    <span class="stat-item">
-                        <span class="stat-number" id="filtered-trainer-sessions">0</span>
-                        <span class="stat-label">Filtered Results</span>
                     </span>
                 </div>
             </div>
-            
+
             <div class="trainer-sessions-container" id="trainer-sessions-container">
-                <!-- Will be populated by JavaScript -->
+                <?php if (!empty($data['availableTrainerSlots'])): ?>
+                    <?php foreach ($data['availableTrainerSlots'] as $slot): ?>
+                    <div class="session-slot-card"
+                         data-trainer-id="<?= $slot->trainer_id ?>"
+                         data-date="<?= $slot->date ?>">
+                        <div class="session-slot-header">
+                            <div class="session-type-badge badge-group">
+                                <i class="fas fa-dumbbell"></i>
+                                <?= htmlspecialchars($slot->session_mode ?? 'Group') ?> Session
+                            </div>
+                            <span class="session-price">
+                                <?= isset($slot->price) && $slot->price ? 'Rs. ' . number_format($slot->price, 2) : 'Free' ?>
+                            </span>
+                        </div>
+                        <div class="session-slot-body">
+                            <h3 class="session-title"><?= htmlspecialchars($slot->description ?? 'Training Session') ?></h3>
+                            <div class="session-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-user-cog"></i>
+                                    <span><?= htmlspecialchars($slot->trainer_name) ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span><?= date('M d, Y', strtotime($slot->date)) ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span><?= date('g:i A', strtotime($slot->start_time)) ?> - <?= date('g:i A', strtotime($slot->end_time)) ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span><?= htmlspecialchars($slot->location ?? 'TBA') ?></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <span><?= $slot->current_bookings ?>/<?= $slot->max_participants ?> spots filled</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="session-slot-footer">
+                            <?php $spotsLeft = $slot->max_participants - $slot->current_bookings; ?>
+                            <span class="spots-left"><?= $spotsLeft ?> spot<?= $spotsLeft !== 1 ? 's' : '' ?> left</span>
+                            <button class="btn btn-primary btn-sm" onclick="bookTrainerSession(<?= $slot->slot_id ?>)">
+                                <i class="fas fa-calendar-check"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
-            
-            <div class="no-sessions" id="no-trainer-sessions" style="display: none;">
+
+            <div class="no-sessions" id="no-trainer-sessions" style="display: <?= empty($data['availableTrainerSlots']) ? 'block' : 'none' ?>;">
                 <div class="no-sessions-content">
                     <i class="fas fa-calendar-times"></i>
                     <h3>No Trainer Sessions Available</h3>
@@ -195,5 +264,57 @@
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
+
+<script>
+const URLROOT_TS = '<?php echo URLROOT; ?>';
+
+function bookTrainerSession(slotId) {
+    if (!confirm('Are you sure you want to book this trainer session?')) return;
+    fetch(URLROOT_TS + '/player/trainer_sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=book_trainer_session&slot_id=' + slotId
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert(data.message || (data.success ? 'Booked!' : 'Failed'));
+        if (data.success) location.reload();
+    })
+    .catch(() => alert('An error occurred. Please try again.'));
+}
+
+function filterByTrainer(trainerId) {
+    document.querySelectorAll('.session-slot-card').forEach(card => {
+        card.style.display = (String(card.dataset.trainerId) === String(trainerId)) ? '' : 'none';
+    });
+    document.getElementById('no-trainer-sessions').style.display = 'none';
+}
+
+window.applyTrainerFilters = function() {
+    const tFilter = document.getElementById('trainer-filter')?.value || '';
+    const dFilter = document.getElementById('trainer-date-filter')?.value || '';
+    let visible = 0;
+    document.querySelectorAll('.session-slot-card').forEach(card => {
+        let show = true;
+        if (tFilter && card.dataset.trainerId !== tFilter) show = false;
+        if (dFilter && card.dataset.date !== dFilter) show = false;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('no-trainer-sessions').style.display = visible === 0 ? 'block' : 'none';
+};
+
+window.clearTrainerFilters = function() {
+    ['trainer-filter','trainer-date-filter','trainer-session-type-filter','training-focus-filter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    applyTrainerFilters();
+};
+
+window.showMyTrainerBookings = function() {
+    window.location.href = URLROOT_TS + '/player/bookings';
+};
+</script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

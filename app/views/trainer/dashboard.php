@@ -35,6 +35,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/available_slots" class="nav-link">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Available Slots</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
                         <i class="fas fa-dumbbell"></i>
                         <span>Workout Plans</span>

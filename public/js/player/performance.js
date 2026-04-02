@@ -546,7 +546,7 @@ function loadAvailableMatches() {
     matchSelect.innerHTML = '<option value="">Loading matches...</option>';
     matchSelect.disabled = true;
     
-    fetch(`${window.location.origin}/Elite/player/getAvailableMatches`)
+    fetch(`${window.location.origin}/Elite/performance/getAvailableMatches`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.matches) {
@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const url = isEditMode && performanceId 
                 ? `${window.location.origin}/Elite/player/editPerformanceStats`
-                : `${window.location.origin}/Elite/player/addPerformanceStats`;
+                : `${window.location.origin}/Elite/performance/addPerformanceStats`;
             
             // Submit form via AJAX
             fetch(url, {
@@ -906,4 +906,314 @@ function deleteMatchPerformance(performanceId) {
         showNotification('An error occurred. Please try again.', 'error');
     });
 }
+
+// ==================== ACHIEVEMENTS MODAL/ACTIONS (extracted from view) ====================
+
+(function performanceAchievementsModule() {
+    function getPerformanceUrlRoot() {
+        const page = document.getElementById('performancePage');
+        return (page && page.dataset && page.dataset.urlroot) ? page.dataset.urlroot : '';
+    }
+
+    function showAddAchievementModal() {
+        const modalTitle = document.getElementById('modalTitle');
+        const submitText = document.getElementById('submitText');
+        const verificationStatus = document.getElementById('verificationStatus');
+        const form = document.getElementById('achievementForm');
+        const achievementId = document.getElementById('achievementId');
+        const modal = document.getElementById('achievementModal');
+
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-trophy" style="color: #f1c40f;"></i> Add New Achievement';
+        }
+        if (submitText) submitText.textContent = 'Save Achievement';
+        if (verificationStatus) verificationStatus.style.display = 'none';
+        if (form) form.reset();
+        if (achievementId) achievementId.value = '';
+
+        if (modal) modal.style.display = 'block';
+
+        const dateInput = document.getElementById('achievementDate');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            window.setTimeout(() => dateInput.focus(), 300);
+        }
+    }
+
+    function showEditAchievementModal(achievementData) {
+        const modalTitle = document.getElementById('modalTitle');
+        const submitText = document.getElementById('submitText');
+        const verificationStatus = document.getElementById('verificationStatus');
+
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> Edit Achievement';
+        }
+        if (submitText) submitText.textContent = 'Update Achievement';
+        if (verificationStatus) verificationStatus.style.display = 'block';
+
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value ?? '';
+        };
+
+        setValue('achievementId', achievementData?.AchievementID);
+        setValue('achievementDate', achievementData?.Date);
+        setValue('matchName', achievementData?.MatchName);
+        setValue('tournamentName', achievementData?.Tournament);
+        setValue('achievementText', achievementData?.Achievement);
+        setValue('verifiedStatus', achievementData?.VerifiedStatus);
+
+        const modal = document.getElementById('achievementModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeAchievementModal() {
+        const modal = document.getElementById('achievementModal');
+        const form = document.getElementById('achievementForm');
+
+        if (modal) modal.style.display = 'none';
+        if (form) form.reset();
+
+        if (modal) {
+            const inputs = modal.querySelectorAll('input, textarea, select');
+            inputs.forEach((input) => {
+                input.style.borderColor = '#ddd';
+                input.style.backgroundColor = '#fafafa';
+                input.style.boxShadow = 'none';
+            });
+        }
+    }
+
+    function validateAchievementForm() {
+        const form = document.getElementById('achievementForm');
+        if (!form) return false;
+
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        let firstInvalidField = null;
+
+        requiredFields.forEach((field) => {
+            if (!String(field.value || '').trim()) {
+                field.style.borderColor = '#e74c3c';
+                field.style.backgroundColor = '#fdf2f2';
+                field.style.boxShadow = '0 0 0 3px rgba(231,76,60,0.1)';
+                if (!firstInvalidField) firstInvalidField = field;
+                isValid = false;
+            } else {
+                field.style.borderColor = '#27ae60';
+                field.style.backgroundColor = '#f8fff8';
+                field.style.boxShadow = '0 0 0 3px rgba(39,174,96,0.1)';
+            }
+        });
+
+        if (!isValid && firstInvalidField) {
+            firstInvalidField.focus();
+            showNotification('Please fill in all required fields', 'error');
+        }
+
+        return isValid;
+    }
+
+    function viewAchievement(achievementId) {
+        showNotification('Loading achievement details...', 'info');
+
+        const url = getPerformanceUrlRoot() + '/player/getAchievement?id=' + encodeURIComponent(achievementId);
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success) {
+                    showNotification('Error: ' + data.message, 'error');
+                    return;
+                }
+
+                const achievement = data.achievement;
+                const statusIcon = achievement.VerifiedStatus === 'verified' ? '✅' :
+                    achievement.VerifiedStatus === 'pending' ? '⏳' : '❌';
+                const statusText = achievement.VerifiedStatus === 'verified' ? 'Verified' :
+                    achievement.VerifiedStatus === 'pending' ? 'Pending Review' : 'Rejected';
+
+                const detailsHtml = `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                        <h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-trophy" style="color: #f1c40f;"></i> Achievement Details
+                        </h3>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                            <p><strong>📅 Date:</strong> ${new Date(achievement.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p><strong>🏆 Tournament:</strong> ${achievement.Tournament}</p>
+                            <p><strong>⚾ Match:</strong> ${achievement.MatchName}</p>
+                            <p><strong>🎯 Achievement:</strong> ${achievement.Achievement}</p>
+                            <p><strong>✅ Status:</strong> ${statusIcon} ${statusText}</p>
+                            <p><strong>📝 Submitted:</strong> ${new Date(achievement.CreatedAt).toLocaleDateString()}</p>
+                        </div>
+                        ${achievement.VerifiedStatus === 'verified' ?
+                            '<div style="background: #d5f4e6; color: #27ae60; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-medal"></i> <strong>Congratulations! This achievement has been officially verified.</strong></div>' :
+                            achievement.VerifiedStatus === 'pending' ?
+                                '<div style="background: #fef9e7; color: #f39c12; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-clock"></i> <strong>This achievement is under review by the coaching staff.</strong></div>' :
+                                '<div style="background: #fadbd8; color: #e74c3c; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-times-circle"></i> <strong>This achievement could not be verified. Please contact your coach for details.</strong></div>'
+                        }
+                    </div>
+                `;
+
+                const viewModal = document.createElement('div');
+                viewModal.style.cssText = 'position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;';
+                viewModal.innerHTML = `
+                    <div style="background: white; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <div style="padding: 30px;">
+                            ${detailsHtml}
+                            <div style="text-align: center; margin-top: 25px;">
+                                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()"
+                                        style="padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                viewModal.addEventListener('click', function (e) {
+                    if (e.target === viewModal) viewModal.remove();
+                });
+
+                document.body.appendChild(viewModal);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to load achievement details. Please try again.', 'error');
+            });
+    }
+
+    function editAchievement(achievementId) {
+        showNotification('Loading achievement for editing...', 'info');
+
+        const url = getPerformanceUrlRoot() + '/player/getAchievement?id=' + encodeURIComponent(achievementId);
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    showEditAchievementModal(data.achievement);
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to load achievement details. Please try again.', 'error');
+            });
+    }
+
+    function deleteAchievement(achievementId) {
+        const userConfirmed = confirm('Are you sure you want to delete this rejected achievement? This action cannot be undone.');
+        if (!userConfirmed) return;
+
+        showNotification('Deleting achievement...', 'info');
+
+        const formData = new FormData();
+        formData.append('achievement_id', achievementId);
+
+        fetch(getPerformanceUrlRoot() + '/player/deleteAchievement', {
+            method: 'POST',
+            body: formData
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    window.setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to delete achievement. Please try again.', 'error');
+            });
+    }
+
+    function addAchievement() {
+        showAddAchievementModal();
+    }
+
+    function initAchievementFormSubmit() {
+        const form = document.getElementById('achievementForm');
+        if (!form || form.dataset.jsBound === '1') return;
+        form.dataset.jsBound = '1';
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!validateAchievementForm()) return;
+
+            const formData = new FormData(form);
+            const achievementId = document.getElementById('achievementId')?.value;
+            const url = achievementId ?
+                (getPerformanceUrlRoot() + '/player/editAchievement') :
+                (getPerformanceUrlRoot() + '/player/addAchievement');
+
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const formFields = document.getElementById('formFields');
+            const formLoading = document.getElementById('formLoading');
+            const originalText = submitText ? submitText.textContent : '';
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (formFields) formFields.style.display = 'none';
+            if (formLoading) formLoading.style.display = 'block';
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        closeAchievementModal();
+                        window.setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        showNotification('Error: ' + data.message, 'error');
+                        if (data.errors) {
+                            showNotification('Validation errors: ' + data.errors.join(', '), 'error');
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showNotification('Failed to save achievement. Please try again.', 'error');
+                })
+                .finally(() => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (formFields) formFields.style.display = 'block';
+                    if (formLoading) formLoading.style.display = 'none';
+                    if (submitText) submitText.textContent = originalText;
+                });
+        });
+    }
+
+    window.showAddAchievementModal = showAddAchievementModal;
+    window.showEditAchievementModal = showEditAchievementModal;
+    window.closeAchievementModal = closeAchievementModal;
+    window.viewAchievement = viewAchievement;
+    window.editAchievement = editAchievement;
+    window.deleteAchievement = deleteAchievement;
+    window.addAchievement = addAchievement;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initAchievementFormSubmit();
+    });
+
+    window.addEventListener('click', function (event) {
+        const modal = document.getElementById('achievementModal');
+        if (modal && event.target === modal) {
+            closeAchievementModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        const modal = document.getElementById('achievementModal');
+        if (modal && modal.style.display === 'block' && e.key === 'Escape') {
+            closeAchievementModal();
+        }
+    });
+})();
 

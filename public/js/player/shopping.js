@@ -2,7 +2,69 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeShoppingPage();
+    initPlayerShoppingProducts();
 });
+
+let currentProduct = null;
+
+function getUrlRoot() {
+    const page = document.getElementById('shoppingPage');
+    return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
+}
+
+function initPlayerShoppingProducts() {
+    // View Details buttons
+    document.querySelectorAll('.js-view-product').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const productId = btn.getAttribute('data-product-id');
+            if (productId) {
+                viewProductFromDB(productId);
+            }
+        });
+    });
+
+    // Add-to-cart buttons in product cards
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', () => {
+            const productId = button.getAttribute('data-product-id');
+            const name = button.getAttribute('data-name') || 'Product';
+            const price = parseFloat(button.getAttribute('data-price') || '0');
+            const imageUrl = button.getAttribute('data-image') || '';
+
+            if (!productId) return;
+            addToCartNew(productId, name, price, imageUrl, 1);
+        });
+    });
+
+    // Modal controls
+    document.querySelectorAll('.js-close-product-details').forEach(btn => {
+        btn.addEventListener('click', closeProductDetails);
+    });
+    document.querySelectorAll('.js-qty-decrease').forEach(btn => {
+        btn.addEventListener('click', () => adjustQuantity(-1));
+    });
+    document.querySelectorAll('.js-qty-increase').forEach(btn => {
+        btn.addEventListener('click', () => adjustQuantity(1));
+    });
+    document.querySelectorAll('.js-add-to-cart-details').forEach(btn => {
+        btn.addEventListener('click', addToCartFromDetails);
+    });
+    document.querySelectorAll('.js-buy-now-details').forEach(btn => {
+        btn.addEventListener('click', buyNowFromDetails);
+    });
+
+    // Close modal when clicking backdrop
+    window.addEventListener('click', (event) => {
+        if (event.target && event.target.classList && event.target.classList.contains('modal')) {
+            if (event.target.id === 'productDetailsModal') {
+                closeProductDetails();
+            }
+        }
+    });
+
+    // Ensure cart count is correct on load
+    updateCartCount();
+}
 
 function initializeShoppingPage() {
     console.log('=== INITIALIZING SHOPPING PAGE ===');
@@ -62,7 +124,10 @@ function initFilters() {
     const priceFilter = document.getElementById('price-filter');
     
     if (categoryFilter) {
-        categoryFilter.addEventListener('change', filterProducts);
+        categoryFilter.addEventListener('change', function () {
+            updateProductCategoryNavButtons(this.value);
+            filterProducts();
+        });
     }
     if (brandFilter) {
         brandFilter.addEventListener('change', filterProducts);
@@ -70,6 +135,9 @@ function initFilters() {
     if (priceFilter) {
         priceFilter.addEventListener('change', filterProducts);
     }
+
+    // Rentals-style category navigation buttons (Shopping page)
+    initProductCategoryNavigation();
     
     // Rental filters
     const rentalCategoryFilter = document.getElementById('rental-category-filter');
@@ -95,6 +163,55 @@ function initFilters() {
     }
 }
 
+function initProductCategoryNavigation() {
+    const nav = document.getElementById('product-category-navigation');
+    if (!nav) return;
+
+    const buttons = nav.querySelectorAll('.product-category-btn');
+    if (!buttons.length) return;
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const category = (this.dataset && this.dataset.category) ? this.dataset.category : 'all';
+            const categoryFilter = document.getElementById('category-filter');
+            if (categoryFilter) {
+                categoryFilter.value = category;
+            }
+            updateProductCategoryNavButtons(category);
+            filterProducts();
+        });
+    });
+
+    // Initial sync from dropdown if present
+    const categoryFilter = document.getElementById('category-filter');
+    const initialCategory = categoryFilter ? categoryFilter.value : 'all';
+    updateProductCategoryNavButtons(initialCategory);
+}
+
+function updateProductCategoryNavButtons(activeCategory) {
+    const nav = document.getElementById('product-category-navigation');
+    if (!nav) return;
+
+    const normalized = (activeCategory || 'all').toString();
+    const buttons = nav.querySelectorAll('.product-category-btn');
+    let anyMatched = false;
+
+    buttons.forEach(btn => {
+        const btnCategory = (btn.dataset && btn.dataset.category) ? btn.dataset.category : '';
+        const isActive = (btnCategory === normalized);
+        btn.classList.toggle('active', isActive);
+        if (isActive) anyMatched = true;
+    });
+
+    if (!anyMatched) {
+        // Fallback to All
+        buttons.forEach(btn => {
+            const btnCategory = (btn.dataset && btn.dataset.category) ? btn.dataset.category : '';
+            btn.classList.toggle('active', btnCategory === 'all');
+        });
+    }
+}
+
 // Filter products based on category, brand, and price
 function filterProducts() {
     const categoryFilter = document.getElementById('category-filter');
@@ -105,7 +222,8 @@ function filterProducts() {
     const selectedBrand = brandFilter ? brandFilter.value : 'all';
     const selectedPrice = priceFilter ? priceFilter.value : 'all';
     
-    const productCards = document.querySelectorAll('.product-card');
+    const grid = document.getElementById('products-grid');
+    const productCards = grid ? grid.querySelectorAll('.product-card') : document.querySelectorAll('.product-card');
     
     productCards.forEach(card => {
         const cardCategory = card.dataset.category;
@@ -126,16 +244,19 @@ function filterProducts() {
         
         // Price filter
         if (selectedPrice !== 'all') {
-            const priceRange = selectedPrice.split('-');
-            if (priceRange.length === 2) {
-                const minPrice = parseFloat(priceRange[0]);
-                const maxPrice = parseFloat(priceRange[1]);
-                if (cardPrice < minPrice || cardPrice > maxPrice) {
+            if (selectedPrice.endsWith('+')) {
+                const minPrice = parseFloat(selectedPrice.replace('+', ''));
+                if (cardPrice < minPrice) {
                     showCard = false;
                 }
-            } else if (selectedPrice === '500+') {
-                if (cardPrice < 500) {
-                    showCard = false;
+            } else {
+                const priceRange = selectedPrice.split('-');
+                if (priceRange.length === 2) {
+                    const minPrice = parseFloat(priceRange[0]);
+                    const maxPrice = parseFloat(priceRange[1]);
+                    if (cardPrice < minPrice || cardPrice > maxPrice) {
+                        showCard = false;
+                    }
                 }
             }
         }
@@ -213,6 +334,147 @@ function viewProduct(productId) {
     console.log('Viewing product:', productId);
     // You can implement a detailed product view modal here
     alert('Product details will be shown here for: ' + productId);
+}
+
+// DB-backed product details
+function viewProductFromDB(productId) {
+    const urlRoot = getUrlRoot();
+    if (!urlRoot) {
+        console.error('URLROOT not found on page');
+        return;
+    }
+
+    fetch(`${urlRoot}/shop/getProduct?id=${encodeURIComponent(productId)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data || !data.success || !data.product) {
+                showCartNotification('Product not found');
+                return;
+            }
+
+            const product = data.product;
+            const imagePath = product.ProductImage
+                ? `${urlRoot}/${product.ProductImage}`
+                : `https://via.placeholder.com/400x300?text=${encodeURIComponent(product.Name || 'Product')}`;
+
+            currentProduct = {
+                ProductID: product.ProductID,
+                Name: product.Name,
+                Price: parseFloat(product.Price || 0),
+                StockQuantity: parseInt(product.StockQuantity || 0),
+                ProductImageUrl: imagePath,
+                SKU: product.SKU,
+                Category: product.Category,
+                Brand: product.Brand,
+                Description: product.Description,
+                Weight: product.Weight,
+                Dimensions: product.Dimensions,
+                Status: product.Status,
+                AddedDate: product.AddedDate,
+                UpdatedBy: product.UpdatedBy
+            };
+
+            // Populate modal
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+
+            const imageEl = document.getElementById('productDetailImage');
+            if (imageEl) {
+                imageEl.src = imagePath;
+                imageEl.alt = product.Name || 'Product';
+            }
+
+            setText('productDetailID', product.ProductID ?? '');
+            setText('productDetailName', product.Name || '');
+            setText('productDetailSKU', product.SKU || 'N/A');
+            setText('productDetailCategory', product.Category || '');
+            setText('productDetailBrand', product.Brand || 'N/A');
+            setText('productDetailPrice', (parseFloat(product.Price || 0)).toFixed(2));
+            setText('productDetailStock', parseInt(product.StockQuantity || 0));
+            setText('productDetailDescription', product.Description || 'No description available');
+            setText('productDetailWeight', product.Weight ? `${product.Weight} kg` : 'Not specified');
+            setText('productDetailDimensions', product.Dimensions || 'Not specified');
+
+            const statusText = product.Status ? String(product.Status) : 'active';
+            setText('productDetailStatusText', statusText);
+
+            const addedDate = product.AddedDate ? new Date(product.AddedDate) : null;
+            setText('productDetailAddedDate', addedDate && !isNaN(addedDate) ? addedDate.toLocaleDateString() : 'N/A');
+            setText('productDetailUpdatedBy', product.UpdatedBy !== null && product.UpdatedBy !== undefined && product.UpdatedBy !== '' ? String(product.UpdatedBy) : 'N/A');
+
+            const statusBadge = document.getElementById('productDetailStatus');
+            if (statusBadge) {
+                statusBadge.textContent = statusText;
+                statusBadge.className = 'status-badge status-' + statusText;
+            }
+
+            const quantityInput = document.getElementById('productQuantity');
+            if (quantityInput) {
+                const stock = parseInt(product.StockQuantity || 0);
+                quantityInput.max = stock > 0 ? stock : 1;
+                quantityInput.value = 1;
+            }
+
+            const modal = document.getElementById('productDetailsModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load product', error);
+            showCartNotification('Failed to load product');
+        });
+}
+
+function closeProductDetails() {
+    const modal = document.getElementById('productDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    document.body.style.overflow = '';
+    currentProduct = null;
+}
+
+function adjustQuantity(change) {
+    const quantityInput = document.getElementById('productQuantity');
+    if (!quantityInput) return;
+
+    let newValue = parseInt(quantityInput.value || '1', 10) + change;
+    const maxValue = parseInt(quantityInput.max || '1', 10);
+
+    if (newValue < 1) newValue = 1;
+    if (!isNaN(maxValue) && newValue > maxValue) newValue = maxValue;
+
+    quantityInput.value = newValue;
+}
+
+function addToCartFromDetails() {
+    if (!currentProduct) return;
+
+    const quantityInput = document.getElementById('productQuantity');
+    const quantity = quantityInput ? parseInt(quantityInput.value || '1', 10) : 1;
+    const qty = !isNaN(quantity) && quantity > 0 ? quantity : 1;
+
+    addToCartNew(
+        currentProduct.ProductID,
+        currentProduct.Name,
+        currentProduct.Price,
+        currentProduct.ProductImageUrl,
+        qty
+    );
+}
+
+function buyNowFromDetails() {
+    addToCartFromDetails();
+    closeProductDetails();
+
+    const urlRoot = getUrlRoot();
+    if (urlRoot) {
+        window.location.href = `${urlRoot}/player/cart`;
+    }
 }
 
 function closeCartModal() {
@@ -420,18 +682,22 @@ function initShoppingCart() {
 }
 
 // Renamed to avoid conflict with legacy addToCart calls
-function addToCartNew(productId, productName, price, imageUrl) {
-    const existingItem = cart.find(item => item.id === productId);
+function addToCartNew(productId, productName, price, imageUrl, quantity = 1) {
+    const id = String(productId);
+    const qty = parseInt(quantity || 1, 10);
+    const safeQty = !isNaN(qty) && qty > 0 ? qty : 1;
+
+    const existingItem = cart.find(item => item.id === id);
     
     if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += safeQty;
     } else {
         cart.push({
-            id: productId,
+            id: id,
             name: productName,
             price: price,
             image: imageUrl,
-            quantity: 1
+            quantity: safeQty
         });
     }
     
@@ -478,7 +744,24 @@ function initRentalFunctionality() {
 function rentEquipment(equipmentId, equipmentName, dailyRate) {
     const modal = document.createElement('div');
     modal.className = 'rental-modal';
-    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Rent ' + equipmentName + '</h3><button class="close-modal" onclick="this.closest(\\'.rental-modal\\').remove()">&times;</button></div><div class="modal-body"><p>Daily Rate: $' + dailyRate + '</p><label for="rentalDays">Rental Duration (days):</label><input type="number" id="rentalDays" min="1" value="1" onchange="updateRentalTotal(' + dailyRate + ')"><p>Total: $<span id="rentalTotal">' + dailyRate + '</span></p><div class="modal-actions"><button class="btn btn-primary" onclick="confirmRental(\\'' + equipmentId + '\\', \\'' + equipmentName + '\\', ' + dailyRate + ')">Confirm Rental</button><button class="btn btn-secondary" onclick="this.closest(\\'.rental-modal\\').remove()">Cancel</button></div></div></div>';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Rent ${equipmentName}</h3>
+                <button class="close-modal" type="button" onclick="this.closest('.rental-modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Daily Rate: $${dailyRate}</p>
+                <label for="rentalDays">Rental Duration (days):</label>
+                <input type="number" id="rentalDays" min="1" value="1" onchange="updateRentalTotal(${dailyRate})">
+                <p>Total: $<span id="rentalTotal">${dailyRate}</span></p>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" onclick="confirmRental('${equipmentId}', '${equipmentName}', ${dailyRate})">Confirm Rental</button>
+                    <button class="btn btn-secondary" onclick="this.closest('.rental-modal').remove()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
     
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
     
@@ -549,7 +832,26 @@ function initFacilityBooking() {
 function bookFacility(facilityId, facilityName, hourlyRate) {
     const modal = document.createElement('div');
     modal.className = 'booking-modal';
-    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Book ' + facilityName + '</h3><button class="close-modal" onclick="this.closest(\\'.booking-modal\\').remove()">&times;</button></div><div class="modal-body"><p>Hourly Rate: $' + hourlyRate + '</p><label for="bookingDate">Date:</label><input type="date" id="bookingDate" required><label for="bookingHours">Duration (hours):</label><input type="number" id="bookingHours" min="1" value="1" onchange="updateBookingTotal(' + hourlyRate + ')"><p>Total: $<span id="bookingTotal">' + hourlyRate + '</span></p><div class="modal-actions"><button class="btn btn-primary" onclick="confirmBooking(\\'' + facilityId + '\\', \\'' + facilityName + '\\', ' + hourlyRate + ')">Confirm Booking</button><button class="btn btn-secondary" onclick="this.closest(\\'.booking-modal\\').remove()">Cancel</button></div></div></div>';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Book ${facilityName}</h3>
+                <button class="close-modal" type="button" onclick="this.closest('.booking-modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Hourly Rate: $${hourlyRate}</p>
+                <label for="bookingDate">Date:</label>
+                <input type="date" id="bookingDate" required>
+                <label for="bookingHours">Duration (hours):</label>
+                <input type="number" id="bookingHours" min="1" value="1" onchange="updateBookingTotal(${hourlyRate})">
+                <p>Total: $<span id="bookingTotal">${hourlyRate}</span></p>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" onclick="confirmBooking('${facilityId}', '${facilityName}', ${hourlyRate})">Confirm Booking</button>
+                    <button class="btn btn-secondary" onclick="this.closest('.booking-modal').remove()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
     
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
     
