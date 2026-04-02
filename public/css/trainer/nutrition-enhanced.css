@@ -1,0 +1,758 @@
+/* ===== Enhanced Nutrition Page Styles ===== */
+.nutrition-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+/* Glass Card System */
+.nutrition-glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.nutrition-glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+    border-radius: 20px 20px 0 0;
+}
+
+.nutrition-glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Enhanced Headers */
+.nutrition-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nutrition-header-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.header-content h2 {
+    color: #1e40af;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.header-content p {
+    color: #64748b;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Enhanced Stats Grid */
+.nutrition-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.nutrition-stat-card {
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nutrition-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+}
+
+.nutrition-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.2);
+}
+
+.stat-active::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-supplement::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.stat-compliance::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-plans::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.nutrition-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.stat-active .nutrition-stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.stat-supplement .nutrition-stat-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-compliance .nutrition-stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-plans .nutrition-stat-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.nutrition-stat-info {
+    flex: 1;
+}
+
+.nutrition-stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e40af;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.nutrition-stat-label {
+    font-size: 0.95rem;
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.nutrition-stat-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.nutrition-stat-change.positive {
+    color: #10b981;
+}
+
+.nutrition-stat-change.neutral {
+    color: #6b7280;
+}
+
+/* Enhanced Tables */
+.nutrition-table-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.nutrition-enhanced-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.nutrition-enhanced-table thead {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.nutrition-enhanced-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nutrition-enhanced-table th i {
+    margin-right: 0.5rem;
+    opacity: 0.8;
+}
+
+.nutrition-enhanced-table tbody tr {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s ease;
+}
+
+.nutrition-enhanced-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+    transform: scale(1.01);
+}
+
+.nutrition-enhanced-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Enhanced Player Info */
+.nutrition-player-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nutrition-player-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.nutrition-player-details strong {
+    color: #1e40af;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.nutrition-player-details small {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* Enhanced Form Styling */
+.nutrition-assignment-form {
+    background: rgba(59, 130, 246, 0.05);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.nutrition-assignment-form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 16px 16px 0 0;
+}
+
+.nutrition-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.nutrition-form-header h3 {
+    color: #1e40af;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nutrition-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.nutrition-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nutrition-form-group label {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nutrition-form-select,
+.nutrition-form-input {
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.nutrition-form-select:focus,
+.nutrition-form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Enhanced Buttons */
+.nutrition-enhanced-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.nutrition-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.nutrition-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+}
+
+.nutrition-btn-secondary {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    color: #374151;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.nutrition-btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+}
+
+.nutrition-btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.nutrition-btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.nutrition-btn-close {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    padding: 0;
+    justify-content: center;
+}
+
+.nutrition-btn-close:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: scale(1.1);
+}
+
+/* Action Buttons */
+.nutrition-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.nutrition-btn-action {
+    width: 35px;
+    height: 35px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.nutrition-btn-action.edit {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.nutrition-btn-action.edit:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: scale(1.1);
+}
+
+.nutrition-btn-action.view {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.nutrition-btn-action.view:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+    transform: scale(1.1);
+}
+
+.nutrition-btn-action.download {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.nutrition-btn-action.download:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: scale(1.1);
+}
+
+.nutrition-btn-action.stop {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.nutrition-btn-action.stop:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: scale(1.1);
+}
+
+.nutrition-btn-action.assign {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+}
+
+.nutrition-btn-action.assign:hover {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    transform: scale(1.1);
+}
+
+/* Enhanced Progress Bars */
+.nutrition-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nutrition-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.nutrition-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.nutrition-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.nutrition-progress-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.nutrition-progress-detail {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Enhanced Selects */
+.nutrition-inline-select {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    background: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.nutrition-inline-select:hover {
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.nutrition-inline-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Plan Library Cards */
+.nutrition-plan-library {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.nutrition-plan-card {
+    background: white;
+    border: 2px solid rgba(59, 130, 246, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nutrition-plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 16px 16px 0 0;
+}
+
+.nutrition-plan-card.performance::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.nutrition-plan-card.weight-gain::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.nutrition-plan-card.weight-loss::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.nutrition-plan-card.recovery::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.nutrition-plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.nutrition-plan-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.nutrition-plan-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.nutrition-plan-card.performance .nutrition-plan-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.nutrition-plan-card.weight-gain .nutrition-plan-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.nutrition-plan-card.weight-loss .nutrition-plan-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.nutrition-plan-card.recovery .nutrition-plan-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.nutrition-plan-details h3 {
+    color: #1e40af;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.nutrition-plan-details p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.nutrition-plan-specs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.nutrition-plan-spec {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #374151;
+}
+
+.nutrition-plan-spec i {
+    color: #3b82f6;
+    width: 16px;
+}
+
+.nutrition-plan-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* Date and Dosage Info */
+.nutrition-date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nutrition-date-info .date {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.nutrition-date-info .duration {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.nutrition-dosage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nutrition-dosage-info .dosage {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.nutrition-dosage-info .timing {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+/* Form Actions */
+.nutrition-form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .nutrition-plan-library {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .nutrition-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .nutrition-container {
+        padding: 0.5rem;
+        gap: 1.5rem;
+    }
+    
+    .nutrition-glass-card {
+        padding: 1.5rem;
+    }
+    
+    .nutrition-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .header-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .nutrition-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .nutrition-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .nutrition-plan-library {
+        grid-template-columns: 1fr;
+    }
+    
+    .nutrition-form-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .nutrition-enhanced-table {
+        font-size: 0.8rem;
+    }
+    
+    .nutrition-enhanced-table th,
+    .nutrition-enhanced-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .nutrition-header-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}

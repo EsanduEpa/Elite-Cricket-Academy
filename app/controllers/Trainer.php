@@ -49,6 +49,167 @@ class Trainer extends Controller {
         $this->view('trainer/bookings', $data);
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // Add Session  — GET shows form, POST processes it  (/trainer/addSession)
+    // ──────────────────────────────────────────────────────────────────────────
+    public function addSession() {
+        // Ensure logged-in trainer
+        if (!isset($_SESSION['user_id'])) {
+            redirect('login');
+        }
+
+        // ── GET: render the Add Session form page ─────────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            // Pull back any errors/old values from a previous failed submission
+            $errors  = $_SESSION['add_session_errors'] ?? [];
+            $oldData = $_SESSION['add_session_data']   ?? [];
+            unset($_SESSION['add_session_errors'], $_SESSION['add_session_data']);
+
+            $data = [
+                'title'   => 'Add Session',
+                'errors'  => $errors,
+                'oldData' => $oldData,
+            ];
+            $this->view('trainer/add_session', $data);
+            return;
+        }
+
+        // ── Allowed option lists (whitelist) ──────────────────────────────────
+        $validTimeSlots = [
+            '06:00-07:00', '07:00-08:00', '07:30-08:30', '08:00-09:00',
+            '09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00',
+            '13:00-14:00', '14:00-15:00', '15:00-16:00', '16:00-17:00',
+            '17:00-18:00', '18:00-19:00',
+        ];
+        $validLocations = [
+            'Gym A - Weight Room',
+            'Cardio Zone - Fitness Center',
+            'Yoga Studio - Recovery Room',
+            'Field Area - Training Ground',
+            'Indoor Court - Sports Hall',
+            'Cricket Ground - Main Oval',
+            'Swimming Pool - Aquatic Center',
+            'Conference Room - Meeting Room',
+        ];
+
+        // ── Sanitise inputs ───────────────────────────────────────────────────
+        $title       = trim(htmlspecialchars($_POST['session_title']       ?? '', ENT_QUOTES, 'UTF-8'));
+        $clientName  = trim(htmlspecialchars($_POST['session_client']      ?? '', ENT_QUOTES, 'UTF-8'));
+        $date        = trim($_POST['session_date']       ?? '');
+        $timeSlot    = trim($_POST['session_time_slot']  ?? '');
+        $location    = trim(htmlspecialchars($_POST['session_location']    ?? '', ENT_QUOTES, 'UTF-8'));
+        $description = trim(htmlspecialchars($_POST['session_description'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $status      = trim($_POST['session_status']     ?? '');
+
+        // ── Server-side validation ────────────────────────────────────────────
+        $errors = [];
+
+        // Session Title
+        if (empty($title)) {
+            $errors['session_title'] = 'Session title is required.';
+        } elseif (strlen($title) < 3 || strlen($title) > 100) {
+            $errors['session_title'] = 'Title must be between 3 and 100 characters.';
+        }
+
+        // Client Name
+        if (empty($clientName)) {
+            $errors['session_client'] = 'Client name is required.';
+        } elseif (!preg_match("/^[a-zA-Z\s'\-\.]+$/u", $clientName)) {
+            $errors['session_client'] = 'Client name must contain letters only.';
+        } elseif (strlen($clientName) > 100) {
+            $errors['session_client'] = 'Client name must not exceed 100 characters.';
+        }
+
+        // Date — required & not in the past
+        if (empty($date)) {
+            $errors['session_date'] = 'Session date is required.';
+        } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $errors['session_date'] = 'Invalid date format.';
+        } else {
+            $today  = new DateTime('today');
+            $chosen = DateTime::createFromFormat('Y-m-d', $date);
+            if (!$chosen || $chosen < $today) {
+                $errors['session_date'] = 'Date cannot be in the past.';
+            }
+        }
+
+        // Time Slot — must be from predefined list
+        if (empty($timeSlot)) {
+            $errors['session_time_slot'] = 'Please select a time slot.';
+        } elseif (!in_array($timeSlot, $validTimeSlots, true)) {
+            $errors['session_time_slot'] = 'Invalid time slot selected.';
+        }
+
+        // Location — must be from predefined list
+        if (empty($location)) {
+            $errors['session_location'] = 'Please select a location.';
+        } elseif (!in_array($location, $validLocations, true)) {
+            $errors['session_location'] = 'Invalid location selected.';
+        }
+
+        // Description
+        if (empty($description)) {
+            $errors['session_description'] = 'Description is required.';
+        } elseif (strlen($description) < 10) {
+            $errors['session_description'] = 'Description must be at least 10 characters.';
+        } elseif (strlen($description) > 1000) {
+            $errors['session_description'] = 'Description must not exceed 1000 characters.';
+        }
+
+        // Status
+        if (empty($status) || !in_array($status, ['active', 'upcoming', 'planned', 'completed'], true)) {
+            $errors['session_status'] = 'Please select a status.';
+        }
+
+        // ── If validation failed, bounce back to the form with errors ───────────
+        if (!empty($errors)) {
+            $_SESSION['add_session_errors'] = $errors;
+            $_SESSION['add_session_data']   = [
+                'session_title'       => $title,
+                'session_client'      => $clientName,
+                'session_date'        => $date,
+                'session_time_slot'   => $timeSlot,
+                'session_location'    => $location,
+                'session_description' => $description,
+                'session_status'      => $status,
+            ];
+            redirect('trainer/addSession');
+        }
+
+        // ── Parse time slot into start/end times ──────────────────────────────
+        // Format: "HH:MM-HH:MM"  e.g. "06:00-07:00"
+        list($startHHMM, $endHHMM) = explode('-', $timeSlot);
+        $startTime = $startHHMM . ':00';  // "06:00:00"
+        $endTime   = $endHHMM   . ':00';  // "07:00:00"
+
+        // Map UI status to DB status (planned/upcoming → active in DB)
+        $dbStatus = ($status === 'completed') ? 'completed' : 'active';
+
+        // ── Save to database ──────────────────────────────────────────────────
+        $sessionModel = $this->model('M_Session');
+        $sessionId = $sessionModel->addTrainerBookingSession([
+            'trainer_id'  => $_SESSION['user_id'],
+            'title'       => $title,
+            'client_name' => $clientName,
+            'date'        => $date,
+            'start_time'  => $startTime,
+            'end_time'    => $endTime,
+            'location'    => $location,
+            'description' => $description,
+            'status'      => $dbStatus,
+        ]);
+
+        if ($sessionId) {
+            $_SESSION['flash_message'] = 'Session "' . $title . '" added successfully!';
+            $_SESSION['flash_type']    = 'success';
+        } else {
+            $_SESSION['flash_message'] = 'Failed to add session. Please try again.';
+            $_SESSION['flash_type']    = 'error';
+        }
+
+        redirect('trainer/bookings');
+    }
+
     public function tournaments() {
         // Temporary bypass for development
         if (!isset($_SESSION['user_id'])) {
@@ -416,33 +577,6 @@ class Trainer extends Controller {
 
         $sessions = $this->trainerModel->getSessionsForCalendar($_SESSION['user_id']);
         echo json_encode($sessions);
-    }
-
-    public function addSession() {
-        header('Content-Type: application/json');
-        
-        if (!isLoggedIn() || $_SESSION['user_type'] !== 'trainer') {
-            echo json_encode(['error' => 'Unauthorized']);
-            return;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'trainer_id' => $_SESSION['user_id'],
-                'session_type' => $_POST['session_type'],
-                'date' => $_POST['date'],
-                'time' => $_POST['time'],
-                'duration' => $_POST['duration'],
-                'player_id' => $_POST['player_id'] ?? null,
-                'description' => $_POST['description'] ?? ''
-            ];
-
-            if ($this->trainerModel->addSession($data)) {
-                echo json_encode(['success' => true, 'message' => 'Session added successfully']);
-            } else {
-                echo json_encode(['error' => 'Failed to add session']);
-            }
-        }
     }
 
     public function updateSession() {

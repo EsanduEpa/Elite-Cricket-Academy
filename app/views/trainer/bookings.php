@@ -96,10 +96,10 @@
                         <p>Manage training sessions, bookings, and assign personalized plans to your trainees</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-training" onclick="addNewBooking()">
-                            <i class="fas fa-plus"></i>Add New Session
-                        </button>
-                        <button class="btn btn-refresh" onclick="location.reload()">
+                        <a href="<?php echo URLROOT; ?>/trainer/addSession" class="btn btn-training btn-add-session">
+                            <i class="fas fa-plus"></i> Add New Session
+                        </a>
+                        <button class="btn btn-refresh btn-refresh-improved" onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i>
                             <div class="current-time"><?php echo date('H:i'); ?></div>
                         </button>
@@ -799,6 +799,244 @@
     </div>
 </div>
 
+<?php
+/* ── Pull server-side errors/old values from session (set by Trainer::addSession) ── */
+$_asErrors = $_SESSION['add_session_errors'] ?? [];
+$_asData   = $_SESSION['add_session_data']   ?? [];
+unset($_SESSION['add_session_errors'], $_SESSION['add_session_data']);
+
+function asErrClass($f, $e) { return isset($e[$f]) ? ' input-error' : ''; }
+function asOld($f, $d, $def = '') {
+    return htmlspecialchars($d[$f] ?? $def, ENT_QUOTES, 'UTF-8');
+}
+?>
+
+<!-- ═══════════════════════ ADD SESSION MODAL ═══════════════════════ -->
+<div id="addSessionModal" class="modal">
+    <div class="modal-content modal-lg">
+
+        <!-- Header -->
+        <div class="modal-header gradient-header">
+            <div class="header-icon"><i class="fas fa-calendar-plus"></i></div>
+            <div class="header-text">
+                <h3>Add New Session</h3>
+                <p>Schedule a new training session for your client</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('addSessionModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+Fix the duplicate addSession() function in this file. 
+Make sure only one function exists and the logic is correct.
+        <!-- Form POSTs to Trainer::addSession() -->
+        <form class="modal-form"
+              id="addSessionForm"
+              method="POST"
+              action="<?php echo URLROOT; ?>/trainer/addSession"
+              onsubmit="return validateAddSessionForm(event)"
+              novalidate>
+
+            <div class="modal-body">
+
+                <!-- Server-side error banner (PHP) -->
+                <?php if (!empty($_asErrors)): ?>
+                <div class="as-error-banner">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Please fix the highlighted errors and resubmit.</span>
+                </div>
+                <?php endif; ?>
+
+                <!-- Client-side error banner (JS, hidden by default) -->
+                <div id="jsSessionErrors" class="as-error-banner" style="display:none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Please fix the errors below before submitting.</span>
+                </div>
+
+                <div class="form-grid">
+
+                    <!-- ① Session Title -->
+                    <div class="form-group full-width">
+                        <label for="session_title" class="form-label">
+                            <i class="fas fa-heading"></i> Session Title
+                            <span class="as-required">*</span>
+                        </label>
+                        <input type="text"
+                               id="session_title" name="session_title"
+                               class="form-input<?php echo asErrClass('session_title', $_asErrors); ?>"
+                               placeholder="e.g., Strength &amp; Conditioning Training"
+                               maxlength="100"
+                               value="<?php echo asOld('session_title', $_asData); ?>">
+                        <span class="as-field-error" id="err_session_title">
+                            <?php echo htmlspecialchars($_asErrors['session_title'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ② Client Name -->
+                    <div class="form-group full-width">
+                        <label for="session_client" class="form-label">
+                            <i class="fas fa-user"></i> Client Name
+                            <span class="as-required">*</span>
+                        </label>
+                        <input type="text"
+                               id="session_client" name="session_client"
+                               class="form-input<?php echo asErrClass('session_client', $_asErrors); ?>"
+                               placeholder="e.g., John Smith"
+                               maxlength="100"
+                               value="<?php echo asOld('session_client', $_asData); ?>">
+                        <span class="as-field-error" id="err_session_client">
+                            <?php echo htmlspecialchars($_asErrors['session_client'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ③ Date -->
+                    <div class="form-group">
+                        <label for="session_date" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Date
+                            <span class="as-required">*</span>
+                        </label>
+                        <input type="date"
+                               id="session_date" name="session_date"
+                               class="form-input<?php echo asErrClass('session_date', $_asErrors); ?>"
+                               value="<?php echo asOld('session_date', $_asData); ?>">
+                        <span class="as-field-error" id="err_session_date">
+                            <?php echo htmlspecialchars($_asErrors['session_date'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ④ Time Slot -->
+                    <div class="form-group">
+                        <label for="session_time_slot" class="form-label">
+                            <i class="fas fa-clock"></i> Time Slot
+                            <span class="as-required">*</span>
+                        </label>
+                        <?php
+                        $timeSlots = [
+                            '06:00-07:00' => '6:00 AM – 7:00 AM',
+                            '07:00-08:00' => '7:00 AM – 8:00 AM',
+                            '07:30-08:30' => '7:30 AM – 8:30 AM',
+                            '08:00-09:00' => '8:00 AM – 9:00 AM',
+                            '09:00-10:00' => '9:00 AM – 10:00 AM',
+                            '10:00-11:00' => '10:00 AM – 11:00 AM',
+                            '11:00-12:00' => '11:00 AM – 12:00 PM',
+                            '12:00-13:00' => '12:00 PM – 1:00 PM',
+                            '13:00-14:00' => '1:00 PM – 2:00 PM',
+                            '14:00-15:00' => '2:00 PM – 3:00 PM',
+                            '15:00-16:00' => '3:00 PM – 4:00 PM',
+                            '16:00-17:00' => '4:00 PM – 5:00 PM',
+                            '17:00-18:00' => '5:00 PM – 6:00 PM',
+                            '18:00-19:00' => '6:00 PM – 7:00 PM',
+                        ];
+                        $oldSlot = asOld('session_time_slot', $_asData);
+                        ?>
+                        <select id="session_time_slot" name="session_time_slot"
+                                class="form-input<?php echo asErrClass('session_time_slot', $_asErrors); ?>">
+                            <option value="">-- Select a time slot --</option>
+                            <?php foreach ($timeSlots as $val => $label): ?>
+                            <option value="<?php echo $val; ?>"
+                                    <?php echo ($oldSlot === $val) ? 'selected' : ''; ?>>
+                                <?php echo $label; ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="as-field-error" id="err_session_time_slot">
+                            <?php echo htmlspecialchars($_asErrors['session_time_slot'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ⑤ Location -->
+                    <div class="form-group full-width">
+                        <label for="session_location" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                            <span class="as-required">*</span>
+                        </label>
+                        <?php
+                        $locations = [
+                            'Gym A - Weight Room'            => 'Gym A – Weight Room',
+                            'Cardio Zone - Fitness Center'   => 'Cardio Zone – Fitness Center',
+                            'Yoga Studio - Recovery Room'    => 'Yoga Studio – Recovery Room',
+                            'Field Area - Training Ground'   => 'Field Area – Training Ground',
+                            'Indoor Court - Sports Hall'     => 'Indoor Court – Sports Hall',
+                            'Cricket Ground - Main Oval'     => 'Cricket Ground – Main Oval',
+                            'Swimming Pool - Aquatic Center' => 'Swimming Pool – Aquatic Center',
+                            'Conference Room - Meeting Room' => 'Conference Room – Meeting Room',
+                        ];
+                        $oldLoc = asOld('session_location', $_asData);
+                        ?>
+                        <select id="session_location" name="session_location"
+                                class="form-input<?php echo asErrClass('session_location', $_asErrors); ?>">
+                            <option value="">-- Select a location --</option>
+                            <?php foreach ($locations as $val => $label): ?>
+                            <option value="<?php echo htmlspecialchars($val, ENT_QUOTES, 'UTF-8'); ?>"
+                                    <?php echo ($oldLoc === $val) ? 'selected' : ''; ?>>
+                                <?php echo $label; ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="as-field-error" id="err_session_location">
+                            <?php echo htmlspecialchars($_asErrors['session_location'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ⑥ Description -->
+                    <div class="form-group full-width">
+                        <label for="session_description" class="form-label">
+                            <i class="fas fa-clipboard-list"></i> Description
+                            <span class="as-required">*</span>
+                        </label>
+                        <textarea id="session_description" name="session_description"
+                                  class="form-input<?php echo asErrClass('session_description', $_asErrors); ?>"
+                                  rows="4"
+                                  placeholder="Describe session goals, exercises, equipment, and any special notes..."
+                                  maxlength="1000"><?php echo asOld('session_description', $_asData); ?></textarea>
+                        <span class="as-field-error" id="err_session_description">
+                            <?php echo htmlspecialchars($_asErrors['session_description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                    <!-- ⑦ Status -->
+                    <div class="form-group full-width">
+                        <label for="session_status" class="form-label">
+                            <i class="fas fa-tasks"></i> Status
+                            <span class="as-required">*</span>
+                        </label>
+                        <select id="session_status" name="session_status"
+                                class="form-input<?php echo asErrClass('session_status', $_asErrors); ?>">
+                            <option value="">-- Select status --</option>
+                            <option value="uncompleted"
+                                <?php echo (asOld('session_status', $_asData) === 'uncompleted') ? 'selected' : ''; ?>>
+                                Uncompleted
+                            </option>
+                            <option value="completed"
+                                <?php echo (asOld('session_status', $_asData) === 'completed') ? 'selected' : ''; ?>>
+                                Completed
+                            </option>
+                        </select>
+                        <span class="as-field-error" id="err_session_status">
+                            <?php echo htmlspecialchars($_asErrors['session_status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                    </div>
+
+                </div><!-- /.form-grid -->
+            </div><!-- /.modal-body -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addSessionModal')">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-training">
+                    <i class="fas fa-calendar-plus"></i> Add Session
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<?php if (!empty($_asErrors)): ?>
+<!-- Auto-reopen modal after server-side validation failure -->
+<script>document.addEventListener('DOMContentLoaded', function(){ addNewBooking(true); });</script>
+<?php endif; ?>
+
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 
@@ -1072,9 +1310,149 @@ function submitSupplementPlan(event) {
     closeModal('assignSupplementModal');
 }
 
-// Existing session management functions
-function addNewBooking() {
-    alert('Add New Booking functionality - would open booking modal');
+// ══════════════════════════ ADD SESSION ══════════════════════════════════════
+
+/**
+ * Open the Add Session modal.
+ * @param {boolean} skipReset  Pass true when auto-reopening after a server-side
+ *                             validation failure (fields are already repopulated
+ *                             by PHP, so we must NOT reset the form).
+ */
+function addNewBooking(skipReset) {
+    // Enforce today as the minimum selectable date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('session_date').setAttribute('min', today);
+
+    if (!skipReset) {
+        document.getElementById('addSessionForm').reset();
+        clearAsErrors();
+    }
+
+    openModal('addSessionModal');
+}
+
+/** Clear all client-side error indicators inside the Add Session form. */
+function clearAsErrors() {
+    ['err_session_title','err_session_client','err_session_date',
+     'err_session_time_slot','err_session_location',
+     'err_session_description','err_session_status'
+    ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+    });
+    document.querySelectorAll('#addSessionForm .form-input')
+            .forEach(el => el.classList.remove('input-error'));
+    const banner = document.getElementById('jsSessionErrors');
+    if (banner) banner.style.display = 'none';
+}
+
+/** Mark one field as invalid with a message. */
+function asFieldError(fieldId, errId, msg) {
+    const f = document.getElementById(fieldId);
+    const e = document.getElementById(errId);
+    if (f) f.classList.add('input-error');
+    if (e) e.textContent = msg;
+}
+
+/**
+ * Client-side validation for the Add Session form.
+ * Returns true if all fields are valid → the native form POST proceeds.
+ * Returns false and shows inline errors → POST is blocked.
+ */
+function validateAddSessionForm(event) {
+    clearAsErrors();
+
+    let ok = true;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    // ① Session Title
+    const title = document.getElementById('session_title').value.trim();
+    if (!title) {
+        asFieldError('session_title','err_session_title','Session title is required.');
+        ok = false;
+    } else if (title.length < 3 || title.length > 100) {
+        asFieldError('session_title','err_session_title','Title must be between 3 and 100 characters.');
+        ok = false;
+    }
+
+    // ② Client Name – letters, spaces, hyphens, apostrophes, dots only
+    const client = document.getElementById('session_client').value.trim();
+    if (!client) {
+        asFieldError('session_client','err_session_client','Client name is required.');
+        ok = false;
+    } else if (!/^[a-zA-Z\s'\-\.]+$/.test(client)) {
+        asFieldError('session_client','err_session_client','Client name must contain letters only.');
+        ok = false;
+    }
+
+    // ③ Date – required & not in the past
+    const dateVal = document.getElementById('session_date').value;
+    if (!dateVal) {
+        asFieldError('session_date','err_session_date','Session date is required.');
+        ok = false;
+    } else if (new Date(dateVal + 'T00:00:00') < today) {
+        asFieldError('session_date','err_session_date','Date cannot be in the past.');
+        ok = false;
+    }
+
+    // ④ Time Slot – must be a known option
+    const validSlots = [
+        '06:00-07:00','07:00-08:00','07:30-08:30','08:00-09:00',
+        '09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00',
+        '13:00-14:00','14:00-15:00','15:00-16:00','16:00-17:00',
+        '17:00-18:00','18:00-19:00'
+    ];
+    const slot = document.getElementById('session_time_slot').value;
+    if (!slot) {
+        asFieldError('session_time_slot','err_session_time_slot','Please select a time slot.');
+        ok = false;
+    } else if (!validSlots.includes(slot)) {
+        asFieldError('session_time_slot','err_session_time_slot','Invalid time slot.');
+        ok = false;
+    }
+
+    // ⑤ Location – must be a known option
+    const validLocs = [
+        'Gym A - Weight Room','Cardio Zone - Fitness Center',
+        'Yoga Studio - Recovery Room','Field Area - Training Ground',
+        'Indoor Court - Sports Hall','Cricket Ground - Main Oval',
+        'Swimming Pool - Aquatic Center','Conference Room - Meeting Room'
+    ];
+    const loc = document.getElementById('session_location').value;
+    if (!loc) {
+        asFieldError('session_location','err_session_location','Please select a location.');
+        ok = false;
+    } else if (!validLocs.includes(loc)) {
+        asFieldError('session_location','err_session_location','Invalid location.');
+        ok = false;
+    }
+
+    // ⑥ Description
+    const desc = document.getElementById('session_description').value.trim();
+    if (!desc) {
+        asFieldError('session_description','err_session_description','Description is required.');
+        ok = false;
+    } else if (desc.length < 10) {
+        asFieldError('session_description','err_session_description','Description must be at least 10 characters.');
+        ok = false;
+    }
+
+    // ⑦ Status
+    const st = document.getElementById('session_status').value;
+    if (!st || !['completed','uncompleted'].includes(st)) {
+        asFieldError('session_status','err_session_status','Please select a status.');
+        ok = false;
+    }
+
+    if (!ok) {
+        const banner = document.getElementById('jsSessionErrors');
+        if (banner) banner.style.display = 'flex';
+        const first = document.querySelector('#addSessionForm .input-error');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;   // blocks the native POST
+    }
+
+    return true;        // allows the native form POST to proceed
 }
 
 function markCompleted(bookingId) {
