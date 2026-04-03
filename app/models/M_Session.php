@@ -1003,6 +1003,12 @@ return $result->count > 0;
         $this->db->bind(':price',        '0.00',              PDO::PARAM_STR);
         $this->db->bind(':is_recurring', 0,                   PDO::PARAM_INT);
 
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
     // ==================== ADMIN SLOT MANAGEMENT ====================
 
     /**
