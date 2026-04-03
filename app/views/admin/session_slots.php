@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/events.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/session-slots.css">
 
 <div class="admin-layout">
     <!-- Left Sidebar -->
@@ -75,7 +75,7 @@
     </div>
 
     <!-- Main Content -->
-    <main class="main-content" id="mainContent">
+    <main class="main-content session-slots-page" id="mainContent">
 
         <!-- Page Header -->
         <div class="feedback-header">
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Filters -->
-        <div class="filters-bar" style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="filters-bar">
             <select id="filterType" onchange="filterTable()" class="form-control" style="width:180px;">
                 <option value="">All Types</option>
                 <option value="Coaching">Coaching</option>
@@ -134,7 +134,7 @@
         </div>
 
         <!-- Open Slots Table -->
-        <div class="section-card" style="margin-bottom:30px;">
+        <div class="section-card">
             <div class="section-header">
                 <h2><i class="fas fa-calendar-plus"></i> Open Slots (Unclaimed)</h2>
             </div>
@@ -179,7 +179,11 @@
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr id="emptyRow"><td colspan="9" style="text-align:center;color:#888;padding:30px;">No open slots. Click "Create Slot" to add one.</td></tr>
+                            <tr id="emptyRow">
+                                <td colspan="9" class="empty-state">
+                                    No open slots. Click "Create Slot" to add one.
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -224,7 +228,11 @@
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8" style="text-align:center;color:#888;padding:30px;">No claimed sessions yet.</td></tr>
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    No claimed sessions yet.
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -235,64 +243,64 @@
 </div>
 
 <!-- Create Slot Modal -->
-<div id="createSlotModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:12px;padding:32px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
-        <button onclick="closeCreateSlotModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;">&times;</button>
-        <h2 style="margin-bottom:24px;"><i class="fas fa-calendar-plus"></i> Create Session Slot</h2>
+<div id="createSlotModal" class="create-slot-modal">
+    <div class="create-slot-modal__card">
+        <button type="button" class="create-slot-modal__close" onclick="closeCreateSlotModal()">&times;</button>
+        <h2 class="create-slot-modal__title"><i class="fas fa-calendar-plus"></i> Create Session Slot</h2>
 
         <form id="createSlotForm">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
+            <div class="create-slot-modal__grid">
+                <div class="slot-field">
                     <label>Session Type *</label>
                     <select name="session_type" id="sl_type" class="form-control" required>
                         <option value="Coaching">Coaching</option>
                         <option value="Physical Training">Physical Training</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Mode *</label>
                     <select name="session_mode" class="form-control" required>
                         <option value="Group">Group</option>
                         <option value="Private">Private</option>
                     </select>
                 </div>
-                <div class="form-group" style="grid-column:1/-1;">
+                <div class="slot-field slot-field--full">
                     <label>Slot Name / Description *</label>
                     <input type="text" name="name" class="form-control" placeholder="e.g. U15 Batting Practice" required>
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Date *</label>
                     <input type="date" name="date" class="form-control" min="<?php echo date('Y-m-d'); ?>" required>
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Location</label>
                     <input type="text" name="location" class="form-control" placeholder="e.g. Main Ground">
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Start Time *</label>
                     <input type="time" name="start_time" id="sl_start" class="form-control" required>
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>End Time *</label>
                     <input type="time" name="end_time" id="sl_end" class="form-control" required>
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Max Participants</label>
                     <input type="number" name="max_participants" class="form-control" value="10" min="1" max="100">
                 </div>
-                <div class="form-group">
+                <div class="slot-field">
                     <label>Price per Session (Rs.)</label>
                     <input type="number" name="price" class="form-control" value="0" min="0" step="0.01">
                 </div>
-                <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:10px;">
-                    <input type="checkbox" name="is_recurring" id="sl_recurring" checked style="width:18px;height:18px;">
-                    <label for="sl_recurring" style="margin:0;">Recurring session</label>
+                <div class="slot-field slot-field--full slot-field__checkbox">
+                    <input type="checkbox" name="is_recurring" id="sl_recurring" checked>
+                    <label for="sl_recurring">Recurring session</label>
                 </div>
             </div>
 
-            <div id="slotFormError" style="display:none;color:#e53e3e;margin-top:12px;padding:10px;background:#fff5f5;border-radius:6px;"></div>
+            <div id="slotFormError" class="slot-form-error"></div>
 
-            <div style="display:flex;gap:12px;margin-top:24px;justify-content:flex-end;">
+            <div class="create-slot-modal__actions">
                 <button type="button" class="btn btn-secondary" onclick="closeCreateSlotModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary" id="slotSubmitBtn">
                     <i class="fas fa-plus"></i> Create Slot
@@ -368,7 +376,7 @@ function deleteSlot(slotId, btn) {
             const tbody = document.querySelector('#openSlotsTable tbody');
             if (!tbody.querySelector('tr')) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="9" style="text-align:center;color:#888;padding:30px;">No open slots.</td>';
+                tr.innerHTML = '<td colspan="9" class="empty-state">No open slots.</td>';
                 tbody.appendChild(tr);
             }
         } else {
