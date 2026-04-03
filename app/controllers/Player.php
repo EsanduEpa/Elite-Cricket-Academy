@@ -85,10 +85,14 @@ class Player extends Controller {
     
     // Training Schedule
     public function training() {
+        $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
         $data = [
-            'title' => 'Training Schedule',
-            'player' => $this->getPlayerData(),
-            'trainingSessions' => $this->getTrainingSessions()
+            'title'            => 'Training Schedule',
+            'player'           => $this->getPlayerData(),
+            'todaySessions'    => $sessionModel->getTodayScheduleForPlayer($playerId),
+            'upcomingSessions' => $sessionModel->getUpcomingSessionsForPlayer($playerId),
         ];
         $this->view('player/training', $data);
     }
@@ -134,12 +138,24 @@ class Player extends Controller {
     // My Bookings
     public function bookings() {
         $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $allBookings  = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+
+        $enrolled    = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'session'));
+        $coachAppts  = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'coach'));
+        $trainerAppts= array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'trainer'));
+        $facilities  = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'facility'));
+
         $data = [
-            'title' => 'My Bookings',
-            'player' => $this->getPlayerData(),
-            'coachSessions' => $this->getCoachSessions(),
-            'facilityReservations' => $this->getFacilityReservations(),
-            'upcomingBookings' => $this->getUpcomingBookings()
+            'title'            => 'My Bookings',
+            'player'           => $this->getPlayerData(),
+            'allBookings'      => $allBookings,
+            'enrolled'         => $enrolled,
+            'coachAppts'       => $coachAppts,
+            'trainerAppts'     => $trainerAppts,
+            'facilities'       => $facilities,
+            'totalCount'       => count($allBookings),
         ];
         $this->view('player/bookings', $data);
     }

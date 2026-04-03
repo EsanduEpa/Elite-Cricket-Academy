@@ -211,8 +211,8 @@ window.showMyCoachBookings = function() {
 window.bookSession = function(slotId) {
     if (!confirm('Are you sure you want to book this session?')) return;
 
-    const urlRoot = window.coachSessionData?.urlRoot || '';
-    
+    const urlRoot = window.URLROOT || window.coachSessionData?.urlRoot || '';
+
     fetch(urlRoot + '/player/coachbooking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
