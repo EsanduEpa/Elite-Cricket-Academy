@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/bookings.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/available-slots.css">
 
 <div class="player-layout">
     <!-- Left Sidebar -->
@@ -71,71 +72,71 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content" style="padding:24px;">
-        <div style="margin-bottom:24px;">
-            <h1 style="font-size:24px;font-weight:700;color:#2d3748;">
-                <i class="fas fa-calendar-plus" style="color:#4299e1;"></i> Available Slots
-            </h1>
-            <p style="color:#718096;margin-top:4px;">Claim a Physical Training slot to take ownership and let players enroll</p>
+    <div class="main-content available-slots-page">
+        <div class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><i class="fas fa-calendar-plus"></i> Available Slots</h1>
+                    <p style="margin:0;opacity:0.9;font-size:14px;">Claim a Physical Training slot to take ownership and let players enroll</p>
+                </div>
+            </div>
         </div>
 
         <!-- Filters -->
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
-            <input type="date" id="filterDate" onchange="filterSlots()" class="form-control" style="width:170px;" min="<?php echo date('Y-m-d'); ?>">
-            <select id="filterMode" onchange="filterSlots()" class="form-control" style="width:150px;">
+        <div class="filters-bar">
+            <input type="date" id="filterDate" onchange="filterSlots()" class="form-control filter-control" min="<?php echo date('Y-m-d'); ?>">
+            <select id="filterMode" onchange="filterSlots()" class="form-control filter-control">
                 <option value="">All Modes</option>
                 <option value="Group">Group</option>
                 <option value="Private">Private</option>
             </select>
             <button class="btn btn-secondary" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
-            <span id="slotCount" style="margin-left:auto;color:#666;font-size:14px;"></span>
+            <span id="slotCount" class="slot-count"></span>
         </div>
 
         <!-- Slots Table -->
-        <div class="section-card" style="background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;">
+        <div class="section-card">
             <div class="table-responsive">
-                <table class="data-table" id="slotsTable" style="width:100%;border-collapse:collapse;">
-                    <thead style="background:#f7fafc;">
+                <table class="data-table" id="slotsTable">
+                    <thead>
                         <tr>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Date</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Day</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Time</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Mode</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Name</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Location</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Max</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:13px;color:#4a5568;">Action</th>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Mode</th>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Max</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($data['slots'])): ?>
                             <?php foreach ($data['slots'] as $slot): ?>
                             <tr data-date="<?php echo $slot->Date; ?>" data-mode="<?php echo htmlspecialchars($slot->SessionMode); ?>"
-                                style="border-bottom:1px solid #f0f0f0;">
-                                <td style="padding:14px 16px;"><?php echo date('d M Y', strtotime($slot->Date)); ?></td>
-                                <td style="padding:14px 16px;"><?php echo date('D', strtotime($slot->Date)); ?></td>
-                                <td style="padding:14px 16px;"><?php echo date('h:i A', strtotime($slot->StartTime)); ?> – <?php echo date('h:i A', strtotime($slot->EndTime)); ?></td>
-                                <td style="padding:14px 16px;">
-                                    <span style="padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;
-                                        background:<?php echo $slot->SessionMode === 'Private' ? '#e9d8fd' : '#bee3f8'; ?>;
-                                        color:<?php echo $slot->SessionMode === 'Private' ? '#553c9a' : '#2b6cb0'; ?>;">
+                                >
+                                <td><?php echo date('d M Y', strtotime($slot->Date)); ?></td>
+                                <td><?php echo date('D', strtotime($slot->Date)); ?></td>
+                                <td><?php echo date('h:i A', strtotime($slot->StartTime)); ?> – <?php echo date('h:i A', strtotime($slot->EndTime)); ?></td>
+                                <td>
+                                    <span class="badge <?php echo $slot->SessionMode === 'Private' ? 'badge-purple' : 'badge-blue'; ?>">
                                         <?php echo htmlspecialchars($slot->SessionMode); ?>
                                     </span>
                                 </td>
-                                <td style="padding:14px 16px;font-weight:500;"><?php echo htmlspecialchars($slot->Name); ?></td>
-                                <td style="padding:14px 16px;color:#718096;"><?php echo htmlspecialchars($slot->Location ?? '—'); ?></td>
-                                <td style="padding:14px 16px;"><?php echo intval($slot->MaxParticipants); ?></td>
-                                <td style="padding:14px 16px;">
-                                    <button id="claimBtn_<?php echo $slot->SessionID; ?>"
+                                <td><?php echo htmlspecialchars($slot->Name); ?></td>
+                                <td><?php echo htmlspecialchars($slot->Location ?? '—'); ?></td>
+                                <td><?php echo intval($slot->MaxParticipants); ?></td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" id="claimBtn_<?php echo $slot->SessionID; ?>"
                                         onclick="claimSlot(<?php echo $slot->SessionID; ?>, this)"
-                                        style="padding:8px 16px;background:#4299e1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    >
                                         <i class="fas fa-hand-pointer"></i> Claim
                                     </button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8" style="text-align:center;color:#888;padding:40px;">
+                            <tr><td colspan="8" class="empty-state">
                                 No open Physical Training slots available. Ask an admin to create slots.
                             </td></tr>
                         <?php endif; ?>
