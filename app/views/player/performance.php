@@ -376,7 +376,13 @@
                                     $recentMatches = array_slice($data['playerPerformanceRecords'], 0, 5); // Show only 5 most recent
                                     foreach ($recentMatches as $match):
                                     ?>
-                                        <tr>
+                                        <tr style="background-color: <?php 
+                                            $result = strtolower($match->Result ?? '');
+                                            if (in_array($result, ['won', 'win', 'w'])) echo 'rgba(39, 174, 96, 0.1)';
+                                            elseif (in_array($result, ['lost', 'loss', 'lose', 'l'])) echo 'rgba(231, 76, 60, 0.1)';
+                                            elseif (in_array($result, ['draw', 'd', 'tie', 'tied'])) echo 'rgba(52, 152, 219, 0.1)';
+                                            else echo 'rgba(241, 196, 15, 0.1)'; // pending/default
+                                        ?>;">
                                             <td style="text-align: center;">
                                                 <div class="table-cell-primary"><?php echo $match->Date ? date('M d', strtotime($match->Date)) : 'N/A'; ?></div>
                                                 <div class="table-cell-secondary"><?php echo $match->Date ? date('l', strtotime($match->Date)) : ''; ?></div>
@@ -388,9 +394,9 @@
                                                 <div class="table-cell-details">
                                                     <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($match->Venue ?? 'Venue'); ?>
                                                 </div>
-                                                <span class="table-badge" style="background: <?php echo ($match->Result ?? '') == 'Won' ? '#27ae60' : (($match->Result ?? '') == 'Lost' ? '#e74c3c' : '#3498db'); ?>;">
-                                                    <?php echo htmlspecialchars($match->TournamentName ?? 'Match'); ?>
-                                                </span>
+                                                <div class="table-cell-details">
+                                                    <i class="fas fa-trophy"></i> <?php echo htmlspecialchars($match->TournamentName ?? 'Match'); ?>
+                                                </div>
                                             </td>
                                             <td style="text-align: center;">
                                                 <div class="table-cell-primary"><?php echo $match->RunsScored ?? 0; ?></div>

@@ -30,14 +30,9 @@ class M_Performance {
     }
 
     private function hasAnyRelevantPerformanceRecords($playerId) {
-        $hasVerificationColumns = $this->checkVerificationColumns();
-
-        if ($hasVerificationColumns) {
-            $this->db->query('SELECT COUNT(*) AS cnt
-                FROM playermatchperformance
-                WHERE PlayerID = :player_id AND VerifiedStatus = "verified"');
-        } 
-
+        $this->db->query('SELECT COUNT(*) AS cnt
+            FROM playermatchperformance
+            WHERE PlayerID = :player_id');
         $this->db->bind(':player_id', $playerId);
         $row = $this->db->single();
         return (int)($row->cnt ?? 0) > 0;
@@ -46,9 +41,8 @@ class M_Performance {
 
     // Calculate overall stats from match history and persist into playeroverallstats
     private function calculateOverallStats($playerId) {
-        $hasVerificationColumns = $this->checkVerificationColumns();
-        $verificationFilter = $hasVerificationColumns ? ' AND VerifiedStatus = "verified"' : '';
-
+        // For personal stats viewing, don't require verification
+        // Only verified stats should be used for official records/leaderboards
         $this->db->query('SELECT 
             COUNT(*) as MatchesPlayed,
             COALESCE(SUM(RunsScored), 0) as TotalRuns,
@@ -56,11 +50,25 @@ class M_Performance {
             COALESCE(MAX(RunsScored), 0) as HighestScore,
             COALESCE(SUM(WicketsTaken), 0) as Wickets,
             COALESCE(SUM(OversBowled), 0) as TotalOvers,
-            COALESCE(SUM(RunsConceded), 0) as TotalRunsConceded
+            COALESCE(SUM(RunsConceded), 0) as TotalRunsConceded,
+            COALESCE(SUM(CASE WHEN RunsScored >= 100 THEN 1 ELSE 0 END), 0) as Centuries,
+            COALESCE(SUM(CASE WHEN RunsScored >= 50 AND RunsScored < 100 THEN 1 ELSE 0 END), 0) as HalfCenturies,
+            COALESCE(SUM(CASE WHEN WicketsTaken >= 5 THEN 1 ELSE 0 END), 0) as FiveWickets,
+            COALESCE(SUM(CASE WHEN WicketsTaken >= 4 THEN 1 ELSE 0 END), 0) as FourWickets
             FROM playermatchperformance
-            WHERE PlayerID = :player_id' . $verificationFilter);
+            WHERE PlayerID = :player_id');
         $this->db->bind(':player_id', $playerId);
         $result = $this->db->single();
+
+        // Get best bowling figures separately
+        $this->db->query('SELECT CONCAT(WicketsTaken, \'/\', RunsConceded) as BestBowling 
+            FROM playermatchperformance 
+            WHERE PlayerID = :player_id 
+            ORDER BY WicketsTaken DESC, RunsConceded ASC 
+            LIMIT 1');
+        $this->db->bind(':player_id', $playerId);
+        $bestBowlingResult = $this->db->single();
+        $bestBowling = $bestBowlingResult ? $bestBowlingResult->BestBowling : 'N/A';
 
         if (!$result) {
             return false;
@@ -73,6 +81,10 @@ class M_Performance {
         $totalWickets = (int)($result->Wickets ?? 0);
         $totalOvers = (float)($result->TotalOvers ?? 0);
         $totalRunsConceded = (int)($result->TotalRunsConceded ?? 0);
+        $centuries = (int)($result->Centuries ?? 0);
+        $halfCenturies = (int)($result->HalfCenturies ?? 0);
+        $fiveWickets = (int)($result->FiveWickets ?? 0);
+        $fourWickets = (int)($result->FourWickets ?? 0);
 
         $battingAvg = $matchesPlayed > 0 ? round($totalRuns / $matchesPlayed, 2) : 0;
         $strikeRate = $totalBalls > 0 ? round(($totalRuns / $totalBalls) * 100, 2) : 0;
@@ -82,10 +94,10 @@ class M_Performance {
         // Persist computed stats (works whether row is pre-created or not).
         $this->db->query('INSERT INTO playeroverallstats
             (PlayerID, MatchesPlayed, TotalRuns, TotalWickets, HighestScore,
-             BattingAverage, BowlingAverage, StrikeRate, EconomyRate)
+             BattingAverage, BowlingAverage, StrikeRate, EconomyRate, Centuries, HalfCenturies, FiveWickets, FourWickets, BestBowling)
             VALUES
             (:player_id, :matches_played, :total_runs, :total_wickets, :highest_score,
-             :batting_avg, :bowling_avg, :strike_rate, :economy_rate)
+             :batting_avg, :bowling_avg, :strike_rate, :economy_rate, :centuries, :half_centuries, :five_wickets, :four_wickets, :best_bowling)
             ON DUPLICATE KEY UPDATE
                 MatchesPlayed = VALUES(MatchesPlayed),
                 TotalRuns = VALUES(TotalRuns),
@@ -94,7 +106,12 @@ class M_Performance {
                 BattingAverage = VALUES(BattingAverage),
                 BowlingAverage = VALUES(BowlingAverage),
                 StrikeRate = VALUES(StrikeRate),
-                EconomyRate = VALUES(EconomyRate)');
+                EconomyRate = VALUES(EconomyRate),
+                Centuries = VALUES(Centuries),
+                HalfCenturies = VALUES(HalfCenturies),
+                FiveWickets = VALUES(FiveWickets),
+                FourWickets = VALUES(FourWickets),
+                BestBowling = VALUES(BestBowling)');
 
         $this->db->bind(':player_id', $playerId);
         $this->db->bind(':matches_played', $matchesPlayed);
@@ -105,6 +122,11 @@ class M_Performance {
         $this->db->bind(':bowling_avg', $bowlingAvg);
         $this->db->bind(':strike_rate', $strikeRate);
         $this->db->bind(':economy_rate', $economyRate);
+        $this->db->bind(':centuries', $centuries);
+        $this->db->bind(':half_centuries', $halfCenturies);
+        $this->db->bind(':five_wickets', $fiveWickets);
+        $this->db->bind(':four_wickets', $fourWickets);
+        $this->db->bind(':best_bowling', $bestBowling);
 
         $persisted = $this->db->execute();
         if (!$persisted) {
