@@ -1,0 +1,16 @@
+/* Trainer - Available Slots Heading Tag */
+
+.trainer-available-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%);
+    box-shadow: 0 10px 26px rgba(74, 144, 226, 0.25);
+    margin-left: 10px;
+    vertical-align: middle;
+}
+

@@ -1320,7 +1320,7 @@ class M_Users {
             // Get coaches assigned to this player
             $this->db->query('SELECT 
                 u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
-                cp.Specialization as specialization, cp.ExperienceYears as experience_years, cp.Certifications,
+                cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications,
                 pca.AssignmentType, pca.Status as AssignmentStatus
             FROM playercoachassignment pca
             JOIN User u ON pca.CoachID = u.UserID
