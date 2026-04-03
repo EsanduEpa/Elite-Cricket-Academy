@@ -936,6 +936,73 @@ return $result->count > 0;
         return $this->db->resultSet();
     }
 
+    // ==================== TRAINER BOOKING SESSION ====================
+
+    /**
+     * Add a new trainer-created booking session.
+     * Maps the "Add Session" form fields to the Session table.
+     *
+     * @param array $data {
+     *   trainer_id  int,
+     *   title       string  (Session Title),
+     *   client_name string  (embedded in Name as "Title — Client: Name"),
+     *   date        string  YYYY-MM-DD,
+     *   start_time  string  HH:MM:SS,
+     *   end_time    string  HH:MM:SS,
+     *   location    string,
+     *   description string  (stored as part of Name; no DB column),
+     *   status      string  'active'|'completed'
+     * }
+     * @return int|false New SessionID or false on failure
+     */
+    public function addTrainerBookingSession($data) {
+        // Build a rich Name: "Title — Client: John Smith"
+        $name = trim($data['title']);
+        if (!empty($data['client_name'])) {
+            $name .= ' — Client: ' . trim($data['client_name']);
+        }
+
+        $this->db->query('INSERT INTO `Session` (
+            `SessionType`,
+            `SessionMode`,
+            `CoachOrTrainerID`,
+            `Name`,
+            `Date`,
+            `StartTime`,
+            `EndTime`,
+            `Location`,
+            `Status`,
+            `MaxParticipants`,
+            `PricePerSession`,
+            `IsRecurring`
+        ) VALUES (
+            :session_type,
+            :session_mode,
+            :trainer_id,
+            :name,
+            :date,
+            :start_time,
+            :end_time,
+            :location,
+            :status,
+            :max_participants,
+            :price,
+            :is_recurring
+        )');
+
+        $this->db->bind(':session_type', 'Physical Training', PDO::PARAM_STR);
+        $this->db->bind(':session_mode', 'Individual',        PDO::PARAM_STR);
+        $this->db->bind(':trainer_id',   (int)$data['trainer_id'], PDO::PARAM_INT);
+        $this->db->bind(':name',         $name,               PDO::PARAM_STR);
+        $this->db->bind(':date',         $data['date'],       PDO::PARAM_STR);
+        $this->db->bind(':start_time',   $data['start_time'], PDO::PARAM_STR);
+        $this->db->bind(':end_time',     $data['end_time'],   PDO::PARAM_STR);
+        $this->db->bind(':location',     $data['location'],   PDO::PARAM_STR);
+        $this->db->bind(':status',       $data['status'],     PDO::PARAM_STR);
+        $this->db->bind(':max_participants', 1,               PDO::PARAM_INT);
+        $this->db->bind(':price',        '0.00',              PDO::PARAM_STR);
+        $this->db->bind(':is_recurring', 0,                   PDO::PARAM_INT);
+
     // ==================== ADMIN SLOT MANAGEMENT ====================
 
     /**
