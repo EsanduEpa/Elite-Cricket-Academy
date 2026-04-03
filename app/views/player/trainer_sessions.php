@@ -116,7 +116,9 @@
                     <label for="trainer-filter">Select Trainer</label>
                     <select id="trainer-filter" onchange="applyTrainerFilters()">
                         <option value="">All Trainers</option>
-                        <!-- Will be populated by JavaScript -->
+                        <?php foreach ($data['trainers'] ?? [] as $t): ?>
+                            <option value="<?= $t->trainer_id ?>"><?= htmlspecialchars($t->name) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="filter-item">
@@ -269,18 +271,39 @@
 const URLROOT_TS = '<?php echo URLROOT; ?>';
 
 function bookTrainerSession(slotId) {
-    if (!confirm('Are you sure you want to book this trainer session?')) return;
+    const btn = document.querySelector('[onclick="bookTrainerSession(' + slotId + ')"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking…'; }
+
     fetch(URLROOT_TS + '/player/trainer_sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'action=book_trainer_session&slot_id=' + slotId
     })
     .then(r => r.json())
-    .then(data => {
-        alert(data.message || (data.success ? 'Booked!' : 'Failed'));
-        if (data.success) location.reload();
+    .then(res => {
+        if (res.success) {
+            showTSNotif(res.message || 'Enrolled successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showTSNotif(res.message || 'Booking failed. Please try again.', 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-calendar-check"></i> Book Now'; }
+        }
     })
-    .catch(() => alert('An error occurred. Please try again.'));
+    .catch(() => {
+        showTSNotif('Network error. Please try again.', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-calendar-check"></i> Book Now'; }
+    });
+}
+
+function showTSNotif(message, type) {
+    const n = document.createElement('div');
+    const bg = type === 'success' ? 'linear-gradient(135deg,#27ae60,#2ecc71)' : 'linear-gradient(135deg,#e74c3c,#c0392b)';
+    const ico = type === 'success' ? 'check-circle' : 'times-circle';
+    n.innerHTML = '<i class="fas fa-' + ico + '"></i> ' + message;
+    n.style.cssText = 'position:fixed;top:20px;right:20px;background:' + bg + ';color:#fff;padding:14px 20px;border-radius:10px;z-index:10001;transform:translateX(400px);transition:transform 0.3s ease;max-width:400px;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,.2);';
+    document.body.appendChild(n);
+    setTimeout(() => n.style.transform = 'translateX(0)', 50);
+    setTimeout(() => { n.style.transform = 'translateX(400px)'; setTimeout(() => n.remove(), 300); }, 4000);
 }
 
 function filterByTrainer(trainerId) {

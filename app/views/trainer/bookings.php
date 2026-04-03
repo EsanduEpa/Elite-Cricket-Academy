@@ -137,120 +137,190 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <?php
+                        $today = date('Y-m-d');
+                        $todaySessions = isset($data['sessions']) ? array_filter($data['sessions'], fn($s) => $s->Date === $today) : [];
+                        if (!empty($todaySessions)):
+                            foreach ($todaySessions as $session):
+                                $startFormatted = date('g:i A', strtotime($session->StartTime));
+                                $endFormatted   = date('g:i A', strtotime($session->EndTime));
+                                $playerCount    = $session->ParticipantCount ?? 0;
+                                $statusClass = match(strtolower($session->Status ?? '')) {
+                                    'active'    => 'status-active',
+                                    'completed' => 'status-completed',
+                                    default     => 'status-upcoming',
+                                };
+                                $statusLabel = match(strtolower($session->Status ?? '')) {
+                                    'active'    => '<i class="fas fa-play-circle"></i> Active',
+                                    'completed' => '<i class="fas fa-check-circle"></i> Completed',
+                                    default     => '<i class="fas fa-clock"></i> Upcoming',
+                                };
+                        ?>
                         <tr>
                             <td class="time-info">
                                 <div class="time-display">
-                                    <span class="time">6:00 AM</span>
-                                    <span class="duration">1 hour</span>
+                                    <span class="time"><?php echo $startFormatted; ?></span>
+                                    <span class="duration"><?php echo $endFormatted; ?></span>
                                 </div>
                             </td>
                             <td class="client-info">
                                 <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
+                                    <i class="fas fa-users"></i>
                                 </div>
                                 <div class="client-details">
-                                    <span class="client-name">Sarah Mitchell</span>
-                                    <span class="session-type"><i class="fas fa-dumbbell"></i> Strength Training</span>
+                                    <span class="client-name"><?php echo htmlspecialchars($session->Name); ?></span>
+                                    <span class="session-type">
+                                        <i class="fas fa-user"></i>
+                                        <?php echo $playerCount; ?> player<?php echo $playerCount !== 1 ? 's' : ''; ?> enrolled
+                                        <?php if (!empty($session->players)): ?>
+                                            &nbsp;
+                                            <a href="#" onclick="toggleTrainerPlayers(<?php echo $session->SessionID; ?>); return false;" style="font-size:0.8em;">
+                                                <i class="fas fa-chevron-down" id="trchevron-<?php echo $session->SessionID; ?>"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </span>
                                 </div>
                             </td>
                             <td class="location-info">
                                 <div class="location-display">
-                                    <span class="venue">Gym A</span>
-                                    <span class="room">Weight Room</span>
+                                    <span class="venue"><?php echo htmlspecialchars($session->Location ?? '—'); ?></span>
+                                    <span class="room"><?php echo htmlspecialchars($session->SessionType ?? ''); ?> / <?php echo htmlspecialchars($session->SessionMode ?? ''); ?></span>
                                 </div>
                             </td>
                             <td>
-                                <span class="status-badge status-active">
-                                    <i class="fas fa-play-circle"></i> Active
+                                <span class="status-badge <?php echo $statusClass; ?>">
+                                    <?php echo $statusLabel; ?>
                                 </span>
                             </td>
                             <td class="actions-cell">
                                 <div class="profile-actions">
-                                    <button class="profile-action complete" onclick="markCompleted(1)" title="Mark Complete">
+                                    <button class="profile-action complete" onclick="markCompleted(<?php echo $session->SessionID; ?>)" title="Mark Complete">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                    <button class="profile-action view" onclick="viewNotes(1)" title="View Notes">
+                                    <button class="profile-action view" onclick="viewNotes(<?php echo $session->SessionID; ?>)" title="View Notes">
                                         <i class="fas fa-sticky-note"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="time-info">
-                                <div class="time-display">
-                                    <span class="time">7:30 AM</span>
-                                    <span class="duration">1 hour</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Mike Johnson</span>
-                                    <span class="session-type"><i class="fas fa-heartbeat"></i> Cardio Training</span>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Cardio Zone</span>
-                                    <span class="room">Treadmills & Bikes</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-badge status-upcoming">
-                                    <i class="fas fa-clock"></i> Upcoming
-                                </span>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="profile-actions">
-                                    <button class="profile-action complete" onclick="markCompleted(2)" title="Mark Complete">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="profile-action view" onclick="viewNotes(2)" title="View Notes">
-                                        <i class="fas fa-sticky-note"></i>
-                                    </button>
+                        <?php if (!empty($session->players)): ?>
+                        <tr id="trplayers-<?php echo $session->SessionID; ?>" style="display:none;">
+                            <td colspan="5" style="background:#f8f9fa; padding:8px 20px;">
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                    <?php foreach ($session->players as $p): ?>
+                                        <span style="background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:12px;font-size:0.82em;">
+                                            <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($p->Name ?? $p->name ?? ''); ?>
+                                        </span>
+                                    <?php endforeach; ?>
                                 </div>
                             </td>
                         </tr>
+                        <?php endif; ?>
+                        <?php
+                            endforeach;
+                        else:
+                        ?>
                         <tr>
-                            <td class="time-info">
-                                <div class="time-display">
-                                    <span class="time">10:00 AM</span>
-                                    <span class="duration">1 hour</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Emma Davis</span>
-                                    <span class="session-type"><i class="fas fa-leaf"></i> Flexibility & Recovery</span>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Yoga Studio</span>
-                                    <span class="room">Recovery Room</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-badge status-planned">
-                                    <i class="fas fa-calendar-alt"></i> Planned
-                                </span>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="profile-actions">
-                                    <button class="profile-action complete" onclick="markCompleted(3)" title="Mark Complete">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="profile-action view" onclick="viewNotes(3)" title="View Notes">
-                                        <i class="fas fa-sticky-note"></i>
-                                    </button>
-                                </div>
+                            <td colspan="5" style="text-align:center;padding:30px;color:#666;">
+                                <i class="fas fa-calendar-times" style="font-size:2em;margin-bottom:8px;display:block;opacity:0.4;"></i>
+                                No sessions scheduled for today.
                             </td>
                         </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Upcoming Sessions Section -->
+        <?php
+        $upcomingSessions = isset($data['sessions']) ? array_filter($data['sessions'], fn($s) => $s->Date > $today) : [];
+        usort($upcomingSessions, fn($a, $b) => strcmp($a->Date . $a->StartTime, $b->Date . $b->StartTime));
+        ?>
+        <div class="schedule-card">
+            <div class="controls-bar">
+                <div class="view-controls">
+                    <button class="view-btn active">
+                        <i class="fas fa-calendar-week"></i> Upcoming Sessions
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar"></i> Date</th>
+                            <th><i class="fas fa-clock"></i> Time</th>
+                            <th><i class="fas fa-list"></i> Session</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                            <th><i class="fas fa-users"></i> Players</th>
+                            <th><i class="fas fa-chart-line"></i> Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($upcomingSessions)): ?>
+                            <?php foreach ($upcomingSessions as $session):
+                                $startFmt = date('g:i A', strtotime($session->StartTime));
+                                $endFmt   = date('g:i A', strtotime($session->EndTime));
+                                $pCount   = $session->ParticipantCount ?? 0;
+                                $sClass   = match(strtolower($session->Status ?? '')) {
+                                    'active'    => 'status-active',
+                                    'completed' => 'status-completed',
+                                    default     => 'status-upcoming',
+                                };
+                                $sLabel = match(strtolower($session->Status ?? '')) {
+                                    'active'    => '<i class="fas fa-play-circle"></i> Active',
+                                    'completed' => '<i class="fas fa-check-circle"></i> Completed',
+                                    default     => '<i class="fas fa-clock"></i> Upcoming',
+                                };
+                            ?>
+                            <tr>
+                                <td class="date-info">
+                                    <div class="date-display">
+                                        <span class="date"><?php echo date('M j', strtotime($session->Date)); ?></span>
+                                        <span class="year"><?php echo date('Y', strtotime($session->Date)); ?></span>
+                                    </div>
+                                </td>
+                                <td class="time-info">
+                                    <div class="time-display">
+                                        <span class="time"><?php echo $startFmt; ?></span>
+                                        <span class="duration"><?php echo $endFmt; ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div><strong><?php echo htmlspecialchars($session->Name); ?></strong></div>
+                                    <div style="font-size:0.82em;color:#666;"><?php echo htmlspecialchars($session->SessionType ?? ''); ?> / <?php echo htmlspecialchars($session->SessionMode ?? ''); ?></div>
+                                </td>
+                                <td class="location-info">
+                                    <span class="venue"><?php echo htmlspecialchars($session->Location ?? '—'); ?></span>
+                                </td>
+                                <td>
+                                    <span><?php echo $pCount; ?> / <?php echo $session->MaxParticipants ?? '?'; ?></span>
+                                    <?php if (!empty($session->players)): ?>
+                                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">
+                                            <?php foreach ($session->players as $p): ?>
+                                                <span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-size:0.78em;">
+                                                    <?php echo htmlspecialchars($p->Name ?? $p->name ?? ''); ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="status-badge <?php echo $sClass; ?>">
+                                        <?php echo $sLabel; ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:30px;color:#666;">
+                                    <i class="fas fa-calendar-plus" style="font-size:2em;margin-bottom:8px;display:block;opacity:0.4;"></i>
+                                    No upcoming sessions.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -1492,6 +1562,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function toggleTrainerPlayers(sessionId) {
+    const row = document.getElementById('trplayers-' + sessionId);
+    const chevron = document.getElementById('trchevron-' + sessionId);
+    if (!row) return;
+    const visible = row.style.display !== 'none';
+    row.style.display = visible ? 'none' : 'table-row';
+    if (chevron) {
+        chevron.classList.toggle('fa-chevron-down', visible);
+        chevron.classList.toggle('fa-chevron-up', !visible);
+    }
+}
 </script>
 </body>
 </html>

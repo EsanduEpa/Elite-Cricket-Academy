@@ -40,11 +40,17 @@ class Trainer extends Controller {
     }
 
     public function bookings() {
-        $trainerId = $_SESSION['user_id'];
+        $trainerId    = $_SESSION['user_id'];
         $sessionModel = $this->model('M_Session');
+        $sessions     = $sessionModel->getSessionsByCoach($trainerId);
+
+        foreach ($sessions as $session) {
+            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
+        }
+
         $data = [
-            'title'    => 'My Sessions',
-            'sessions' => $sessionModel->getSessionsByCoach($trainerId),
+            'title'    => 'Schedule & Bookings',
+            'sessions' => $sessions,
         ];
         $this->view('trainer/bookings', $data);
     }

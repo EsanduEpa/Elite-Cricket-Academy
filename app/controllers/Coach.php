@@ -465,12 +465,20 @@ class Coach extends Controller {
     
     // Display Sessions & Schedule Management Page
     public function sessions() {
+        $coachId      = $_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $sessions     = $sessionModel->getSessionsByCoach($coachId);
+
+        foreach ($sessions as $session) {
+            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
+        }
+
         $data = [
-            'title' => 'Session & Schedule Management - Elite Cricket Academy',
+            'title'     => 'My Sessions',
             'coachName' => $_SESSION['user_name'] ?? 'Coach',
-            'coachId' => $_SESSION['user_id'] ?? 1
+            'coachId'   => $coachId,
+            'sessions'  => $sessions,
         ];
-        
         $this->view('coach/sessions', $data);
     }
 
