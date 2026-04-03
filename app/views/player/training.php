@@ -332,5 +332,6 @@
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/training.js"></script>
+    <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 </html>

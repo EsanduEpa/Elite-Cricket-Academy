@@ -98,98 +98,175 @@
                 <div class="card-header">
                     <div class="header-content">
                         <h2><i class="fas fa-notes-medical"></i> Recent Medical Records</h2>
-                        <button class="btn btn-primary" onclick="openAddMedicalModal()">
+                        <button class="quick-btn " onclick="openAddMedicalModal()">
                             <i class="fas fa-plus"></i> Add Record
                         </button>
                     </div>
                 </div>
                 <div class="card-content">
                     <?php if (!empty($data['medicalRecords'])): ?>
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Injury Date</th>
-                                    <th>Injury Details</th>
-                                    <th>Diagnosis</th>
-                                    <th>Treatment</th>
-                                    <th>At Academy</th>
-                                    <th>Rest Days</th>
-                                    <th>Receipt</th>
-                                    <th>Recovery Status</th>
-                                    <th>Verify Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach($data['medicalRecords'] as $record): ?>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary"><?php echo date('M d, Y', strtotime($record->InjuryDate)); ?></div>
-                                        <div class="table-cell-secondary">Reported: <?php echo date('M d', strtotime($record->ReportedDate)); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->InjuryDetails); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title"><?php echo htmlspecialchars($record->Diagnosis); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-secondary"><?php echo htmlspecialchars($record->TreatmentGiven ?: 'N/A'); ?></div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <?php if ($record->HappenedAtAcademy == 'yes'): ?>
-                                            <span class="table-badge" style="background-color: #ffc107; color: #333;">
-                                                <i class="fas fa-school"></i> Yes
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="table-badge" style="background-color: #6c757d; color: white;">
-                                                <i class="fas fa-home"></i> No
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary"><?php echo intval($record->RestDaysNeeded); ?></div>
-                                        <div class="table-cell-secondary">days</div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <?php if (!empty($record->DiagnosisReceiptURL)): ?>
-                                            <?php 
-                                                // Remove 'public/' prefix if exists for correct URL
-                                                $receiptPath = str_replace('public/', '', $record->DiagnosisReceiptURL);
-                                            ?>
-                                            <a href="<?php echo URLROOT . '/' . $receiptPath; ?>" target="_blank" class="btn-sm" style="background: #17a2b8;">
-                                                <i class="fas fa-file-alt"></i> View
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="table-cell-secondary">-</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
-                                            <?php echo ucfirst($record->RecoveryStatus); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="table-badge verify-<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>">
-                                            <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-sm btn-secondary" onclick="openUpdateStatusModal(<?php echo $record->RecordID; ?>, '<?php echo $record->RecoveryStatus; ?>')">
-                                                <i class="fas fa-edit"></i> Update Status
-                                            </button>
-                                            <?php if (strtolower($record->verifyStatus ?? 'pending') === 'rejected'): ?>
-                                                <button class="btn-sm btn-danger" onclick="confirmDeleteRecord(<?php echo $record->RecordID; ?>)" title="Delete Record">
-                                                    <i class="fas fa-trash"></i> Delete
+                        <div class="table-responsive">
+                            <table class="dashboard-table medical-records-table">
+                                <thead>
+                                    <tr>
+                                        <th>Injury Details</th>
+                                        <th>Body Area</th>
+                                        <th>At Academy</th>
+                                        <th>Diagnosis</th>
+                                        <th>Treatment</th>
+                                        <th>Recovery Status</th>
+                                        <th>Receipt</th>
+                                        <th>Verification</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($data['medicalRecords'] as $record): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="injury-info">
+                                                <div class="injury-date">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span><?php echo date('M d, Y', strtotime($record->InjuryDate)); ?></span>
+                                                </div>
+                                                <div class="reported-date">
+                                                    <small>Reported: <?php echo date('M d, Y', strtotime($record->ReportedDate)); ?></small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="body-area-cell">
+                                                <span class="body-area-text"><?php echo htmlspecialchars($record->bodyarea ?? 'Not specified'); ?></span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="academy-cell">
+                                                <?php if ($record->HappenedAtAcademy == 'yes'): ?>
+                                                    <div class="academy-indicator">
+                                                        <i class="fas fa-school"></i>
+                                                        <span>Yes</span>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="no-academy">-</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="diagnosis-cell">
+                                                <div class="diagnosis-text">
+                                                    <?php echo htmlspecialchars($record->Diagnosis); ?>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="treatment-cell">
+                                                <?php if (!empty($record->TreatmentGiven)): ?>
+                                                    <div class="treatment-text">
+                                                        <?php echo htmlspecialchars($record->TreatmentGiven); ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="no-treatment">No treatment specified</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="recovery-status-cell">
+                                                <div class="recovery-info">
+                                                    <?php 
+                                                        $recoveryStatus = strtolower($record->RecoveryStatus);
+                                                        $statusIcon = '';
+                                                        $statusColor = '';
+                                                        
+                                                        switch($recoveryStatus) {
+                                                            case 'recovered':
+                                                                $statusIcon = 'fa-check-circle';
+                                                                $statusColor = 'success';
+                                                                break;
+                                                            case 'recovering':
+                                                            case 'ongoing':
+                                                                $statusIcon = 'fa-clock';
+                                                                $statusColor = 'warning';
+                                                                break;
+                                                            case 'chronic':
+                                                                $statusIcon = 'fa-exclamation-triangle';
+                                                                $statusColor = 'danger';
+                                                                break;
+                                                            default:
+                                                                $statusIcon = 'fa-question-circle';
+                                                                $statusColor = 'secondary';
+                                                        }
+                                                    ?>
+                                                    <span class="status-badge status-<?php echo $statusColor; ?>">
+                                                        <i class="fas <?php echo $statusIcon; ?>"></i>
+                                                        <?php echo ucwords(str_replace('_', ' ', $record->RecoveryStatus)); ?>
+                                                    </span>
+                                                    <div class="rest-days-info">
+                                                        <i class="fas fa-clock"></i>
+                                                        <span><?php echo intval($record->RestDaysNeeded); ?> days rest</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="receipt-cell">
+                                                <?php if (!empty($record->DiagnosisReceiptURL)): ?>
+                                                    <?php 
+                                                        $receiptPath = str_replace('public/', '', $record->DiagnosisReceiptURL);
+                                                    ?>
+                                                    <a href="<?php echo URLROOT . '/' . $receiptPath; ?>" target="_blank" class="receipt-btn">
+                                                        <i class="fas fa-file-medical"></i> View Receipt
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="no-receipt">No receipt</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="verification-cell">
+                                                <?php 
+                                                    $verifyStatus = strtolower($record->verifyStatus ?? 'pending');
+                                                    $verifyIcon = '';
+                                                    $verifyColor = '';
+                                                    
+                                                    switch($verifyStatus) {
+                                                        case 'verified':
+                                                            $verifyIcon = 'fa-shield-alt';
+                                                            $verifyColor = 'success';
+                                                            break;
+                                                        case 'rejected':
+                                                            $verifyIcon = 'fa-times-circle';
+                                                            $verifyColor = 'danger';
+                                                            break;
+                                                        default:
+                                                            $verifyIcon = 'fa-clock';
+                                                            $verifyColor = 'warning';
+                                                    }
+                                                ?>
+                                                <span class="status-badge verify-<?php echo $verifyColor; ?>">
+                                                    <i class="fas <?php echo $verifyIcon; ?>"></i>
+                                                    <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn btn-update" onclick="openUpdateStatusModal(<?php echo $record->RecordID; ?>, '<?php echo $record->RecoveryStatus; ?>')" title="Update Recovery Status">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Update</span>
                                                 </button>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                                                <?php if (strtolower($record->verifyStatus ?? 'pending') === 'rejected'): ?>
+                                                    <button class="action-btn btn-delete" onclick="confirmDeleteRecord(<?php echo $record->RecordID; ?>)" title="Delete Record">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                        <span>Delete</span>
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     <?php else: ?>
                         <div class="empty-state">
                             <div class="empty-icon">
@@ -240,8 +317,9 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button class="btn-sm" onclick="viewWorkoutPlan(<?= $plan->PlanID ?>)">
-                                                    <i class="fas fa-eye"></i> View
+                                                <button class="action-btn btn-update" onclick="viewWorkoutPlan(<?= $plan->PlanID ?>)">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>View</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -289,8 +367,9 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button class="btn-sm" onclick="viewNutritionPlan(<?= $nplan->PlanID ?>)">
-                                                    <i class="fas fa-eye"></i> View
+                                                <button class="action-btn btn-update" onclick="viewNutritionPlan(<?= $nplan->PlanID ?>)">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>View</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -304,7 +383,6 @@
                 </div>
             </div>
 
-            <!-- Recent Medical Records -->
              <!-- Health Overview and Supplements - Two Tables Per Row -->
             <div class="performance-tables-row">
                 <!-- Health Overview - Compact Table -->
@@ -378,39 +456,17 @@
                     </div>
                 </div>
             </div>
-           
-            <!-- Vaccinations & Immunizations -->
-            <div class="schedule-card">
-              
-            </div>
-
-            <!-- Quick Medical Actions -->
-            <div class="quick-actions">
-                <h3><i class="fas fa-bolt"></i> Quick Medical Actions</h3>
-                <div class="action-buttons">
-                    <button class="action-btn" onclick="alert('Schedule checkup feature coming soon!')">
-                        <i class="fas fa-calendar-plus"></i> Schedule Checkup
-                    </button>
-                    <button class="action-btn" onclick="alert('Download records feature coming soon!')">
-                        <i class="fas fa-download"></i> Download Records
-                    </button>
-                    <button class="action-btn" onclick="alert('Emergency contacts feature coming soon!')">
-                        <i class="fas fa-phone"></i> Emergency Contacts
-                    </button>
-                    <a href="<?php echo URLROOT; ?>/player/trainerplans" class="action-btn">
-                        <i class="fas fa-clipboard-list"></i> View All Trainer Plans
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Add Medical Record Modal -->
     <div id="addMedicalModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-notes-medical"></i> Add Medical Record</h3>
-                <span class="close" onclick="closeAddMedicalModal()">&times;</span>
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #357ABD);">
+                <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px; font-size: 20px;">
+                    <i class="fas fa-notes-medical"></i> Add Medical Record
+                </h3>
+                <span class="close" onclick="closeAddMedicalModal()" style="font-size: 30px; color: white; font-weight: 700; cursor: pointer;">&times;</span>
             </div>
             <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord" enctype="multipart/form-data">
                 <div class="modal-body">
@@ -443,25 +499,53 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="injury_details">Injury/Health Details *</label>
-                        <textarea id="injury_details" name="injury_details" class="form-control" rows="3" required 
-                                placeholder="Describe the injury, symptoms, or health condition in detail..."></textarea>
-                        <small class="form-text text-danger" id="injury_details_error" style="display: none;"></small>
+                        <label for="body_area">Body Area *</label>
+                        <select id="body_area" name="body_area" class="form-control" required>
+                            <option value="">Select body area...</option>
+                            <option value="Head/Face">Head/Face</option>
+                            <option value="Neck">Neck</option>
+                            <option value="Shoulder">Shoulder</option>
+                            <option value="Arm/Elbow">Arm/Elbow</option>
+                            <option value="Hand/Wrist">Hand/Wrist</option>
+                            <option value="Chest/Back">Chest/Back</option>
+                            <option value="Hip/Groin">Hip/Groin</option>
+                            <option value="Thigh">Thigh</option>
+                            <option value="Knee">Knee</option>
+                            <option value="Lower Leg">Lower Leg</option>
+                            <option value="Ankle/Foot">Ankle/Foot</option>
+                        </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="diagnosis">Diagnosis *</label>
-                        <textarea id="diagnosis" name="diagnosis" class="form-control" rows="2" required 
-                                placeholder="Medical diagnosis or assessment..."></textarea>
-                        <small class="form-text text-danger" id="diagnosis_error" style="display: none;"></small>
+                        <select id="diagnosis" name="diagnosis" class="form-control" required>
+                            <option value="">Select diagnosis...</option>
+                            <option value="Sprain">Sprain</option>
+                            <option value="Strain">Strain</option>
+                            <option value="Fracture">Fracture</option>
+                            <option value="Dislocation">Dislocation</option>
+                            <option value="Concussion">Concussion</option>
+                            <option value="Tear">Tear</option>
+                            <option value="Laceration">Laceration</option>
+                            <option value="Overuse/Inflammation">Overuse/Inflammation</option>
+                            <option value="Illness">Illness</option>
+                        </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="treatment_given">Treatment Given</label>
-                        <textarea id="treatment_given" name="treatment_given" class="form-control" rows="2" 
-                                placeholder="Treatment provided, medications, therapy, etc..."></textarea>
+                        <select id="treatment_given" name="treatment_given" class="form-control">
+                            <option value="">Select treatment...</option>
+                            <option value="RICE Procedure">RICE Procedure</option>
+                            <option value="First Aid/Wound Care">First Aid/Wound Care</option>
+                            <option value="Physiotherapy">Physiotherapy</option>
+                            <option value="Medication">Medication</option>
+                            <option value="Referral to Specialist">Referral to Specialist</option>
+                            <option value="Surgery">Surgery</option>
+                            <option value="Observation">Observation</option>
+                        </select>
                     </div>
-                    
+
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group">
                             <label for="rest_days_needed">Estimated Rest Days Needed</label>
@@ -469,15 +553,15 @@
                             <small class="form-text">Number of days rest required (max 1000)</small>
                             <small class="form-text text-danger" id="rest_days_error" style="display: none;"></small>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="recovery_status">Recovery Status *</label>
                             <select id="recovery_status" name="recovery_status" class="form-control" required>
                                 <option value="">Select status...</option>
                                 <option value="ongoing">Ongoing</option>
                                 <option value="recovering">Recovering</option>
-                                <option value="recovered">Fully Recovered</option>
-                                <option value="chronic">Chronic Condition</option>
+                                <option value="fully_recovered">Fully Recovered</option>
+                                <option value="chronic_condition">Chronic Condition</option>
                             </select>
                         </div>
                     </div>
@@ -574,18 +658,18 @@
                             <option value="">Select status...</option>
                             <option value="ongoing">Ongoing</option>
                             <option value="recovering">Recovering</option>
-                            <option value="recovered">Fully Recovered</option>
-                            <option value="chronic">Chronic Condition</option>
+                            <option value="fully_recovered">Fully Recovered</option>
+                            <option value="chronic_condition">Chronic Condition</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-help">
                         <p><strong>Status Definitions:</strong></p>
                         <ul>
                             <li><strong>Ongoing:</strong> Condition is still active/symptomatic</li>
                             <li><strong>Recovering:</strong> In the process of healing</li>
                             <li><strong>Fully Recovered:</strong> No symptoms, returned to full activity</li>
-                            <li><strong>Chronic:</strong> Long-term condition requiring ongoing management</li>
+                            <li><strong>Chronic Condition:</strong> Long-term condition requiring ongoing management</li>
                         </ul>
                     </div>
                 </div>
@@ -634,5 +718,6 @@
 
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/medical-page.js"></script>
+    <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 </html>
