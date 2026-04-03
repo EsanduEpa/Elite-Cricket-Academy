@@ -3,7 +3,7 @@ ADD COLUMN Centuries INT(11) DEFAULT 0,
 ADD COLUMN HalfCenturies INT(11) DEFAULT 0,
 ADD COLUMN FiveWickets INT(11) DEFAULT 0,
 ADD COLUMN FourWickets INT(11) DEFAULT 0,
-ADD COLUMN BestBowling VARCHAR(20) DEFAULT NULL COMMENT 'Best bowling figures (e.g., 5/24)';
+ADD COLUMN BestBowling VARCHAR(20) DEFAULT NULL COMMENT 'Best bowling figures ';
 
 ALTER TABLE `playermedicalrecord` 
   -- 1. Convert InjuryDetails into a dropdown list of body parts
