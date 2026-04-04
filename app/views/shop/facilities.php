@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-facilities.css">
 
 <div class="admin-layout">
     <!-- Shop Sidebar -->
@@ -102,13 +102,13 @@
                     <h3>Total Facilities</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">12</span>
+                            <span class="number"><?php echo isset($data['totalFacilities']) ? (int)$data['totalFacilities'] : 0; ?></span>
                             <span class="label">Available Facilities</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="summary-card">
                 <div class="card-icon" style="background: linear-gradient(45deg, #4ECDC4, #5EDDD4);">
                     <i class="fas fa-calendar-check"></i>
@@ -117,13 +117,13 @@
                     <h3>Today's Bookings</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">18</span>
+                            <span class="number"><?php echo isset($data['todaysBookingCount']) ? (int)$data['todaysBookingCount'] : 0; ?></span>
                             <span class="label">Active Sessions</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="summary-card">
                 <div class="card-icon" style="background: linear-gradient(45deg, #FF8A50, #FFB366);">
                     <i class="fas fa-tools"></i>
@@ -132,13 +132,13 @@
                     <h3>Maintenance</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number urgent">2</span>
+                            <span class="number <?php echo ((int)$data['facilitiesInMaintenance'] > 0) ? 'urgent' : ''; ?>"><?php echo isset($data['facilitiesInMaintenance']) ? (int)$data['facilitiesInMaintenance'] : 0; ?></span>
                             <span class="label">Needs Attention</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="summary-card">
                 <div class="card-icon" style="background: linear-gradient(45deg, #6B73FF, #8B83FF);">
                     <i class="fas fa-rupee-sign"></i>
@@ -147,7 +147,7 @@
                     <h3>Today's Revenue</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">₨ 28,400</span>
+                            <span class="number">₨ <?php echo isset($data['todaysRevenue']) ? number_format($data['todaysRevenue'], 0) : 0; ?></span>
                             <span class="label">Facility Bookings</span>
                         </div>
                     </div>
@@ -196,107 +196,65 @@
         <div class="facility-grid">
             <h3><i class="fas fa-th-large"></i> Facility Status Overview</h3>
             <div class="grid-container">
-                <div class="facility-card available" onclick="viewFacilityDetails(1)">
+                <?php
+                $facilities = $data['facilities'] ?? [];
+                if (!empty($facilities)) {
+                    foreach ($facilities as $facility) {
+                        $id = $facility->FacilityID ?? '';
+                        $name = $facility->Name ?? 'Unknown Facility';
+                        $capacity = $facility->Capacity ?? 0;
+                        $status = strtolower($facility->AvailabilityStatus ?? 'available');
+                        $rate = $facility->HourlyRate ?? 0;
+
+                        // Determine status class
+                        $statusClass = 'available';
+                        $statusDisplay = 'Available';
+                        if ($status === 'occupied') {
+                            $statusClass = 'occupied';
+                            $statusDisplay = 'Occupied';
+                        } elseif ($status === 'maintenance') {
+                            $statusClass = 'maintenance';
+                            $statusDisplay = 'Maintenance';
+                        }
+                ?>
+                <div class="facility-card <?php echo $statusClass; ?>" onclick="viewFacilityDetails(<?php echo $id; ?>)">
                     <div class="facility-header">
-                        <h4>Practice Net 1</h4>
-                        <span class="facility-status status-available">Available</span>
+                        <h4><?php echo htmlspecialchars($name); ?></h4>
+                        <span class="facility-status status-<?php echo $statusClass; ?>"><?php echo $statusDisplay; ?></span>
                     </div>
                     <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 8 players</p>
-                        <p><i class="fas fa-clock"></i> Next: 2:00 PM - 3:00 PM</p>
-                        <p><i class="fas fa-rupee-sign"></i> ₨ 2,000/hour</p>
+                        <p><i class="fas fa-users"></i> Capacity: <?php echo (int)$capacity; ?> players</p>
+                        <p><i class="fas fa-rupee-sign"></i> ₨ <?php echo number_format((float)$rate, 0); ?>/hour</p>
+                        <?php if (!empty($facility->Location)): ?>
+                            <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($facility->Location); ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="facility-actions">
-                        <button class="btn-small btn-primary" onclick="quickBook(1, event)">
-                            <i class="fas fa-calendar-plus"></i> Book Now
-                        </button>
+                        <?php if ($status === 'available'): ?>
+                            <button class="btn-small btn-primary" onclick="quickBook(<?php echo $id; ?>, event)">
+                                <i class="fas fa-calendar-plus"></i> Book Now
+                            </button>
+                        <?php elseif ($status === 'occupied'): ?>
+                            <button class="btn-small btn-secondary" onclick="viewBooking(<?php echo $id; ?>, event)">
+                                <i class="fas fa-eye"></i> View Booking
+                            </button>
+                        <?php else: ?>
+                            <button class="btn-small btn-warning" onclick="scheduleMaintenanceEnd(<?php echo $id; ?>, event)">
+                                <i class="fas fa-calendar-check"></i> Schedule End
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
-                
-                <div class="facility-card occupied" onclick="viewFacilityDetails(2)">
-                    <div class="facility-header">
-                        <h4>Practice Net 2</h4>
-                        <span class="facility-status status-occupied">Occupied</span>
-                    </div>
-                    <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 8 players</p>
-                        <p><i class="fas fa-clock"></i> Until: 3:30 PM</p>
-                        <p><i class="fas fa-user"></i> Booked by: Ashen P.</p>
-                    </div>
-                    <div class="facility-actions">
-                        <button class="btn-small btn-secondary" onclick="viewBooking(2, event)">
-                            <i class="fas fa-eye"></i> View Booking
-                        </button>
-                    </div>
+                <?php
+                    }
+                } else {
+                ?>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                    <p style="color: #7f8c8d;">No facilities found in the system.</p>
                 </div>
-                
-                <div class="facility-card available" onclick="viewFacilityDetails(3)">
-                    <div class="facility-header">
-                        <h4>Bowling Machine Area</h4>
-                        <span class="facility-status status-available">Available</span>
-                    </div>
-                    <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 4 players</p>
-                        <p><i class="fas fa-clock"></i> Next: 4:00 PM - 5:00 PM</p>
-                        <p><i class="fas fa-rupee-sign"></i> ₨ 3,500/hour</p>
-                    </div>
-                    <div class="facility-actions">
-                        <button class="btn-small btn-primary" onclick="quickBook(3, event)">
-                            <i class="fas fa-calendar-plus"></i> Book Now
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="facility-card maintenance" onclick="viewFacilityDetails(4)">
-                    <div class="facility-header">
-                        <h4>Main Ground</h4>
-                        <span class="facility-status status-maintenance">Maintenance</span>
-                    </div>
-                    <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 22 players</p>
-                        <p><i class="fas fa-tools"></i> Pitch renovation</p>
-                        <p><i class="fas fa-calendar"></i> Available: Tomorrow</p>
-                    </div>
-                    <div class="facility-actions">
-                        <button class="btn-small btn-warning" onclick="scheduleMaintenanceEnd(4, event)">
-                            <i class="fas fa-calendar-check"></i> Schedule End
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="facility-card available" onclick="viewFacilityDetails(5)">
-                    <div class="facility-header">
-                        <h4>Indoor Training Hall</h4>
-                        <span class="facility-status status-available">Available</span>
-                    </div>
-                    <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 15 players</p>
-                        <p><i class="fas fa-clock"></i> Next: 6:00 PM - 7:00 PM</p>
-                        <p><i class="fas fa-rupee-sign"></i> ₨ 2,500/hour</p>
-                    </div>
-                    <div class="facility-actions">
-                        <button class="btn-small btn-primary" onclick="quickBook(5, event)">
-                            <i class="fas fa-calendar-plus"></i> Book Now
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="facility-card occupied" onclick="viewFacilityDetails(6)">
-                    <div class="facility-header">
-                        <h4>Gymnasium</h4>
-                        <span class="facility-status status-occupied">Occupied</span>
-                    </div>
-                    <div class="facility-info">
-                        <p><i class="fas fa-users"></i> Capacity: 20 players</p>
-                        <p><i class="fas fa-clock"></i> Until: 8:00 PM</p>
-                        <p><i class="fas fa-user"></i> Group Training</p>
-                    </div>
-                    <div class="facility-actions">
-                        <button class="btn-small btn-secondary" onclick="viewBooking(6, event)">
-                            <i class="fas fa-eye"></i> View Booking
-                        </button>
-                    </div>
-                </div>
+                <?php
+                }
+                ?>
             </div>
         </div>
 
@@ -334,146 +292,78 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <?php
+                        $bookings = $data['todaysBookings'] ?? [];
+                        if (!empty($bookings)) {
+                            foreach ($bookings as $booking) {
+                                $bookingId = $booking->FacilityBookingID ?? '';
+                                $facilityName = $booking->facility_name ?? 'Unknown Facility';
+                                $playerName = $booking->player_name ?? 'Unknown Player';
+                                $playerEmail = $booking->player_email ?? 'N/A';
+                                $startTime = $booking->StartTime ?? '';
+                                $endTime = $booking->EndTime ?? '';
+                                $totalCost = (float)($booking->TotalCost ?? 0);
+
+                                // Format start and end times
+                                $startDisplay = date('g:i A', strtotime($startTime));
+                                $endDisplay = date('g:i A', strtotime($endTime));
+
+                                // Calculate duration in hours
+                                $start = strtotime($startTime);
+                                $end = strtotime($endTime);
+                                $durationHours = ($end - $start) / 3600;
+                                $durationLabel = $durationHours == 1 ? '1 hour' : $durationHours . ' hours';
+                        ?>
                         <tr>
                             <td>
-                                <div class="table-cell-primary">#FB-2025-892</div>
+                                <div class="table-cell-primary">#FB-<?php echo str_pad($bookingId, 6, '0', STR_PAD_LEFT); ?></div>
                             </td>
                             <td>
-                                <div class="table-cell-title">Practice Net 2</div>
-                                <div class="table-cell-details">Outdoor Net | 8 players capacity</div>
+                                <div class="table-cell-title"><?php echo htmlspecialchars($facilityName); ?></div>
+                                <div class="table-cell-details"><?php echo htmlspecialchars($booking->Location ?? 'N/A'); ?></div>
                             </td>
                             <td>
-                                <div class="table-cell-title">Ashen Perera</div>
-                                <div class="table-cell-details">ashen@example.com</div>
+                                <div class="table-cell-title"><?php echo htmlspecialchars($playerName); ?></div>
+                                <div class="table-cell-details"><?php echo htmlspecialchars($playerEmail); ?></div>
                             </td>
                             <td>
-                                <div class="table-cell-primary">2:00 PM - 3:30 PM</div>
+                                <div class="table-cell-primary"><?php echo $startDisplay; ?> - <?php echo $endDisplay; ?></div>
                             </td>
                             <td>
-                                <div class="table-cell-primary">1.5 hours</div>
+                                <div class="table-cell-primary"><?php echo $durationLabel; ?></div>
                             </td>
                             <td>
-                                <div class="table-cell-primary">₨ 3,000</div>
+                                <div class="table-cell-primary">₨ <?php echo number_format($totalCost, 0); ?></div>
                             </td>
                             <td style="text-align: center;">
                                 <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewBookingDetails(892)">
+                                    <button class="btn-small btn-primary" onclick="viewBookingDetails(<?php echo $bookingId; ?>)">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="btn-small btn-warning" onclick="extendBooking(892)">
+                                    <button class="btn-small btn-warning" onclick="extendBooking(<?php echo $bookingId; ?>)">
                                         <i class="fas fa-clock"></i>
                                     </button>
-                                    <button class="btn-small btn-danger" onclick="cancelBooking(892)">
+                                    <button class="btn-small btn-danger" onclick="cancelBooking(<?php echo $bookingId; ?>)">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
+                        <?php
+                            }
+                        } else {
+                        ?>
                         <tr>
-                            <td>
-                                <div class="table-cell-primary">#FB-2025-891</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Bowling Machine Area</div>
-                                <div class="table-cell-details">Training Facility | 4 players capacity</div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>Kavinda Silva</strong><br>
-                                    <small>kavinda@example.com</small>
-                                </div>
-                            </td>
-                            <td>4:00 PM - 5:00 PM</td>
-                            <td>1 hour</td>
-                            <td>₨ 3,500</td>
-                            <td>
-                                <span class="booking-status status-confirmed">Confirmed</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewBookingDetails(891)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="checkInPlayer(891)">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="editBooking(891)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                                <i class="fas fa-inbox"></i> No facility bookings for today
                             </td>
                         </tr>
-                        <tr>
-                            <td>#FB-2025-890</td>
-                            <td>
-                                <div>
-                                    <strong>Indoor Training Hall</strong><br>
-                                    <small>Climate Controlled | 15 players capacity</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>Nimal Fernando</strong><br>
-                                    <small>nimal@example.com</small>
-                                </div>
-                            </td>
-                            <td>6:00 PM - 7:00 PM</td>
-                            <td>1 hour</td>
-                            <td>₨ 2,500</td>
-                            <td>
-                                <span class="booking-status status-confirmed">Confirmed</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewBookingDetails(890)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="checkInPlayer(890)">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="editBooking(890)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#FB-2025-889</td>
-                            <td>
-                                <div>
-                                    <strong>Gymnasium</strong><br>
-                                    <small>Fitness & Conditioning | 20 players capacity</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>Group Training</strong><br>
-                                    <small>Coach: Samara Perera</small>
-                                </div>
-                            </td>
-                            <td>7:00 PM - 8:00 PM</td>
-                            <td>1 hour</td>
-                            <td>₨ 4,000</td>
-                            <td>
-                                <span class="booking-status status-active">Active</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewBookingDetails(889)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-info" onclick="viewGroupDetails(889)">
-                                        <i class="fas fa-users"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="addPlayerToGroup(889)">
-                                        <i class="fas fa-user-plus"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>

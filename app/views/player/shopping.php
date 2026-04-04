@@ -85,7 +85,7 @@
     <!-- Main Content Area -->
     <div class="main-content" id="shoppingPage" data-urlroot="<?php echo URLROOT; ?>">
         <!-- Shopping Header -->
-        <div class="shopping-header">
+        <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
                     <h1>Elite Cricket Academy Shop</h1>
@@ -146,15 +146,15 @@
                 };
             ?>
 
-            <!-- Category Navigation (rentals-style) -->
-            <div class="product-category-navigation" id="product-category-navigation">
-                <button type="button" class="product-category-btn active" data-category="all">
+            <!-- Category Navigation -->
+            <div class="page-navigation" id="product-category-navigation">
+                <button type="button" class="nav-btn active" data-category="all">
                     <i class="fas fa-th-large"></i>
                     All Categories
                 </button>
                 <?php foreach (array_keys($categoryOptions) as $category) : ?>
                     <?php $categoryKey = $normKey($category); ?>
-                    <button type="button" class="product-category-btn" data-category="<?php echo htmlspecialchars($categoryKey, ENT_QUOTES, 'UTF-8'); ?>">
+                    <button type="button" class="nav-btn" data-category="<?php echo htmlspecialchars($categoryKey, ENT_QUOTES, 'UTF-8'); ?>">
                         <i class="<?php echo htmlspecialchars($categoryIconClass($category), ENT_QUOTES, 'UTF-8'); ?>"></i>
                         <?php echo htmlspecialchars((string)$category, ENT_QUOTES, 'UTF-8'); ?>
                     </button>
@@ -166,13 +166,8 @@
                     <h2>Cricket Equipment & Gear</h2>
                     <p>Professional-grade cricket equipment for players of all levels</p>
                 </div>
-                <div class="shop-filters">
-                    <select class="filter-select" id="category-filter">
-                        <option value="all">All Categories</option>
-                        <?php foreach (array_keys($categoryOptions) as $category): ?>
-                            <option value="<?php echo htmlspecialchars($normKey($category), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($category, ENT_QUOTES, 'UTF-8'); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="section-filters">
+                   
                     <select class="filter-select" id="brand-filter">
                         <option value="all">All Brands</option>
                         <?php foreach (array_keys($brandOptions) as $brand): ?>
@@ -190,52 +185,52 @@
                 </div>
             </div>
             
-            <div class="products-grid" id="products-grid">
+            <div class="items-grid" id="products-grid">
                 <?php if (!empty($data['products'])): ?>
                     <?php foreach ($data['products'] as $product): ?>
-                            <div class="product-card" 
-                                data-category="<?php echo htmlspecialchars($normKey($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>" 
-                                data-brand="<?php echo htmlspecialchars($normKey($product->Brand ?? ''), ENT_QUOTES, 'UTF-8'); ?>" 
+                            <div class="card-item"
+                                data-category="<?php echo htmlspecialchars($normKey($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                                data-brand="<?php echo htmlspecialchars($normKey($product->Brand ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                              data-price="<?php echo $product->Price ?? 0; ?>"
                              data-product-id="<?php echo $product->ProductID; ?>">
-                            
-                            <div class="product-image">
-                                <?php 
-                                $imagePath = !empty($product->ProductImage) 
-                                    ? URLROOT . '/' . $product->ProductImage 
+
+                            <div class="card-image">
+                                <?php
+                                $imagePath = !empty($product->ProductImage)
+                                    ? URLROOT . '/' . $product->ProductImage
                                     : 'https://via.placeholder.com/300x200?text=' . urlencode($product->Name ?? 'Product');
                                 ?>
-                                <img src="<?php echo $imagePath; ?>" 
+                                <img src="<?php echo $imagePath; ?>"
                                      alt="<?php echo htmlspecialchars($product->Name ?? 'Product'); ?>" />
                             </div>
-                            
-                            <div class="product-info">
+
+                            <div class="card-body">
                                 <?php if (!empty($product->Brand)): ?>
                                     <div class="product-brand"><?php echo htmlspecialchars($product->Brand); ?></div>
                                 <?php endif; ?>
-                                
-                                <h3 class="product-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
-                                
+
+                                <h3 class="card-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
+
                                 <?php if (!empty($product->Description)): ?>
-                                    <p class="product-description"><?php echo htmlspecialchars(substr($product->Description, 0, 100)) . (strlen($product->Description) > 100 ? '...' : ''); ?></p>
+                                    <p class="card-description"><?php echo htmlspecialchars(substr($product->Description, 0, 100)) . (strlen($product->Description) > 100 ? '...' : ''); ?></p>
                                 <?php endif; ?>
-                                
+
                                 <?php if (!empty($product->Category)): ?>
-                                    <div class="product-features">
-                                        <span class="feature-tag"><?php echo htmlspecialchars($product->Category); ?></span>
+                                    <div class="card-tags">
+                                        <span class="card-tag"><?php echo htmlspecialchars($product->Category); ?></span>
                                         <?php if (!empty($product->Brand)): ?>
-                                            <span class="feature-tag"><?php echo htmlspecialchars($product->Brand); ?></span>
+                                            <span class="card-tag"><?php echo htmlspecialchars($product->Brand); ?></span>
                                         <?php endif; ?>
                                         <?php if ($product->StockQuantity > 10): ?>
-                                            <span class="feature-tag">In Stock</span>
+                                            <span class="card-tag">In Stock</span>
                                         <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
-                                
-                                <div class="product-price">
+
+                                <div class="price-section">
                                     <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
                                 </div>
-                                
+
                                 <div class="product-stock">
                                     <?php if ($product->StockQuantity > 0): ?>
                                         ✓ In Stock (<?php echo $product->StockQuantity; ?> available)
@@ -243,17 +238,17 @@
                                         ✗ Out of Stock
                                     <?php endif; ?>
                                 </div>
-                                
+
                                 <div class="product-actions">
-                                    <button class="btn btn-view js-view-product" 
+                                    <button class="btn btn-view js-view-product"
                                             data-product-id="<?php echo $product->ProductID; ?>">
                                         View Details
                                     </button>
                                     <?php if ($product->StockQuantity > 0): ?>
-                                        <button class="btn btn-cart add-to-cart" 
-                                                data-product-id="<?php echo $product->ProductID; ?>" 
-                                                data-name="<?php echo htmlspecialchars($product->Name); ?>" 
-                                                data-price="<?php echo $product->Price; ?>" 
+                                        <button class="btn btn-cart add-to-cart"
+                                                data-product-id="<?php echo $product->ProductID; ?>"
+                                                data-name="<?php echo htmlspecialchars($product->Name); ?>"
+                                                data-price="<?php echo $product->Price; ?>"
                                                 data-image="<?php echo $imagePath; ?>">
                                             Add to Cart
                                         </button>
@@ -284,9 +279,9 @@
 </div>
 
 <!-- Product Details Modal -->
-<div id="productDetailsModal" class="modal" style="display: none;">
+<div id="productDetailsModal" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
+        <div class="modal-header">
             <div class="header-icon">
                 <i class="fas fa-info-circle"></i>
             </div>
@@ -294,11 +289,11 @@
                 <h3>Product Details</h3>
                 <p>Complete product information and specifications</p>
             </div>
-            <button class="modal-close" onclick="closeProductDetails()">
+            <button class="modal-close-btn" onclick="closeProductDetails()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <div class="product-details-container">
                 <!-- Product Image and Basic Info -->
@@ -309,7 +304,7 @@
                             <span id="productDetailStatus" class="status-badge"></span>
                         </div>
                     </div>
-                    
+
                     <div class="product-basic-info">
                         <div class="product-header">
                             <h2 id="productDetailName">Product Name</h2>
@@ -318,12 +313,12 @@
                                 <span class="product-sku">SKU: <span id="productDetailSKU">SKU-001</span></span>
                             </div>
                         </div>
-                        
+
                         <div class="product-category-brand">
                             <span class="category-badge" id="productDetailCategory">Category</span>
                             <span class="brand-badge" id="productDetailBrand">Brand</span>
                         </div>
-                        
+
                         <div class="product-pricing">
                             <div class="price-info">
                                 <span class="current-price">Rs. <span id="productDetailPrice">0.00</span></span>
@@ -334,14 +329,14 @@
                                 <span class="stock-label">Units Available</span>
                             </div>
                         </div>
-                        
+
                         <div class="product-description">
                             <h4>Product Description</h4>
                             <p id="productDetailDescription">Product description will be displayed here...</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Product Specifications -->
                 <div class="product-specifications">
                     <h4><i class="fas fa-cog"></i> Product Specifications</h4>
@@ -374,7 +369,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Product Actions -->
                 <div class="product-actions-section">
                     <div class="quantity-selector">
@@ -385,27 +380,27 @@
                             <button type="button" class="qty-btn js-qty-increase">+</button>
                         </div>
                     </div>
-                    
+
                     <div class="action-buttons">
-                        <button class="btn btn-primary btn-large js-add-to-cart-details">
+                        <button class="btn-modal primary js-add-to-cart-details">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <button class="btn btn-secondary btn-large" onclick="buyNowFromDetails()">
+                        <button class="btn-modal secondary" onclick="buyNowFromDetails()">
                             <i class="fas fa-bolt"></i> Buy Now
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Additional Product Information -->
                 <div class="product-additional-info">
                     <div class="info-tabs">
                         <button class="tab-btn" onclick="showTab('shipping')">Shipping Info</button>
                         <button class="tab-btn" onclick="showTab('warranty')">Warranty</button>
                     </div>
-                    
+
                     <div class="tab-content">
-                      
-                        
+
+
                         <div id="shipping-tab" class="tab-pane">
                             <h5>Shipping Information</h5>
                             <p>Free shipping on orders over $100. Standard delivery takes 3-5 business days.</p>
@@ -415,7 +410,7 @@
                                 <li>Secure packaging guaranteed</li>
                             </ul>
                         </div>
-                        
+
                         <div id="warranty-tab" class="tab-pane">
                             <h5>Warranty & Returns</h5>
                             <p>30-day return policy with full refund. Manufacturer warranty included.</p>
@@ -429,12 +424,12 @@
                 </div>
             </div>
         </div>
-        
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary js-close-product-details">
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal secondary js-close-product-details">
                 <i class="fas fa-times"></i> Close
             </button>
-            <button type="button" class="btn btn-primary js-add-to-cart-details">
+            <button type="button" class="btn-modal primary js-add-to-cart-details">
                 <i class="fas fa-cart-plus"></i> Add to Cart
             </button>
         </div>

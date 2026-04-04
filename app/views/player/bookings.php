@@ -97,15 +97,15 @@
             <div class="card-header">
                 <div class="header-content">
                     <h2><i class="fas fa-users"></i> Enrolled Group Sessions</h2>
-                    <span style="font-size:13px;color:#666;">Sessions claimed by coaches &amp; trainers — enrolled via session booking</span>
+                    <span style="font-size:13px;color:black;">Sessions claimed by coaches &amp; trainers </span>
                 </div>
                 <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="action-btn btn-sm">
+                    <!-- <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="action-btn btn-sm">
                         <i class="fas fa-plus"></i> Browse Coach Sessions
                     </a>
                     <a href="<?php echo URLROOT; ?>/player/trainer_sessions" class="action-btn btn-sm" style="background:#27ae60;">
                         <i class="fas fa-plus"></i> Browse Trainer Sessions
-                    </a>
+                    </a> --> 
                 </div>
             </div>
             <div class="card-content">
@@ -173,7 +173,7 @@
                 <div style="text-align:center;padding:40px 20px;color:#666;">
                     <i class="fas fa-calendar-times" style="font-size:3em;opacity:0.3;display:block;margin-bottom:12px;"></i>
                     <p style="margin:0 0 16px;">You have not enrolled in any group sessions yet.</p>
-                    <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="action-btn" style="margin-right:8px;">
+                    <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="action-btn" >
                         <i class="fas fa-user-tie"></i> Browse Coach Sessions
                     </a>
                     <a href="<?php echo URLROOT; ?>/player/trainer_sessions" class="action-btn" style="background:#27ae60;">
@@ -185,7 +185,11 @@
         </div>
 
         <!-- ===== PRIVATE COACH APPOINTMENTS ===== -->
-        <?php if (!empty($coachAppts)): ?>
+        
+
+
+
+
         <div class="schedule-card" style="margin-bottom:24px;">
             <div class="card-header">
                 <div class="header-content">
@@ -204,6 +208,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                       
                         <?php foreach ($coachAppts as $b):
                             $status = strtolower($b->Status);
                             $statusClass = ($status === 'scheduled' || $status === 'confirmed') ? 'status-active' : 'status-upcoming';

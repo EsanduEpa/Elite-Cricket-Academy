@@ -1,112 +1,14 @@
-/* Rentals Page Specific Styles */
-@import url('dashboard.css');
+/* Rentals Page - Equipment Rental Specific Styles */
+@import url('shopping-common.css');
 
+/* Layout */
 .rentals-layout {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Rentals Header Styling */
-.rentals-header {
-    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-    padding: 2rem 0;
-    color: white;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.rentals-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.rentals-header p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin: 0;
-}
-
-
-/* Rental Navigation */
-.rental-navigation {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding: 0 1rem;
-    flex-wrap: wrap;
-}
-
-.rental-nav-btn {
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid transparent;
-    color: #4A90E2;
-    padding: 0.8rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.rental-nav-btn:hover {
-    background: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.rental-nav-btn.active {
-    background: #4A90E2;
-    color: white;
-    border-color: #357ABD;
-}
-
-/* Rental Equipment Grid */
-.rentals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-    padding: 0 1rem;
-    margin-bottom: 3rem;
-}
-
-.rental-card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.rental-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-}
-
-.rental-image {
-    height: 200px;
-    overflow: hidden;
-    position: relative;
-}
-
-.rental-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.rental-card:hover .rental-image img {
-    transform: scale(1.05);
-}
-
-.rental-condition {
+/* Equipment Condition Badges - Unique to Rental Equipment */
+.condition-badge {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -117,303 +19,76 @@
     text-transform: uppercase;
 }
 
-.condition-excellent {
+.condition-badge.condition-excellent {
     background: #27ae60;
     color: white;
 }
 
-.condition-good {
+.condition-badge.condition-good {
     background: #f39c12;
     color: white;
 }
 
-.condition-fair {
+.condition-badge.condition-fair {
     background: #e74c3c;
     color: white;
 }
 
-.rental-info {
-    padding: 1.5rem;
-}
-
-.rental-info h3 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    font-size: 1.3rem;
-}
-
-.rental-info p {
-    color: #7f8c8d;
-    margin-bottom: 1rem;
-    line-height: 1.6;
-}
-
-.rental-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.rental-feature-tag {
-    background: rgba(74, 144, 226, 0.1);
-    color: #4A90E2;
-    padding: 0.3rem 0.8rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.rental-pricing {
-    margin-bottom: 1.5rem;
-}
-
-.rental-price-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.rental-price-label {
+/* Equipment category label */
+.equipment-category {
     color: #7f8c8d;
     font-size: 0.9rem;
-}
-
-.rental-price-value {
-    color: #27ae60;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.btn-rent {
-    width: 100%;
-    background: linear-gradient(135deg, #4A90E2, #357ABD);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
-
-.btn-rent:hover {
-    background: linear-gradient(135deg, #357ABD, #2980b9);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
-}
-
-/* Rental Information Section */
-.rental-info-section {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 2rem;
-    margin: 2rem 1rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.rental-info-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.rental-info-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.rental-info-card:hover {
-    transform: translateY(-5px);
-}
-
-.rental-info-icon {
-    font-size: 2.5rem;
-    color: #4A90E2;
-    margin-bottom: 1rem;
-}
-
-.rental-info-card h4 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.rental-info-card p {
-    color: #7f8c8d;
-    line-height: 1.6;
-    margin: 0;
-}
-
-/* Rental Modal Styles */
-.rental-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.rental-modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.rental-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f8f9fa;
-}
-
-.rental-modal-header h3 {
-    color: #2c3e50;
-    margin: 0;
-}
-
-.rental-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #95a5a6;
-    transition: color 0.3s ease;
-}
-
-.rental-close-btn:hover {
-    color: #e74c3c;
-}
-
-.rental-form-group {
-    margin-bottom: 1rem;
-}
-
-.rental-form-group label {
-    display: block;
     margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 600;
 }
 
-.rental-form-group input,
-.rental-form-group select {
-    width: 100%;
-    padding: 0.8rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-}
-
-.rental-form-group input:focus,
-.rental-form-group select:focus {
-    outline: none;
-    border-color: #4A90E2;
-}
-
-.rental-total {
-    background: rgba(74, 144, 226, 0.1);
-    padding: 1rem;
-    border-radius: 10px;
-    margin: 1.5rem 0;
-    text-align: center;
-    font-size: 1.2rem;
+/* Product stock status */
+.product-stock {
     color: #4A90E2;
+    font-weight: 500;
+    margin-bottom: 1rem;
 }
 
-.rental-modal-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-secondary {
-    background: #95a5a6;
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    flex: 1;
-    transition: background 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: #7f8c8d;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #4A90E2, #357ABD);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    flex: 1;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #357ABD, #2980b9);
-    transform: translateY(-2px);
+/* Product actions container */
+.product-actions {
+    margin-top: 1rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .rentals-header h1 {
+    .page-header h1 {
         font-size: 2rem;
     }
-    
-    .rental-stats {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-    
-    .rentals-grid {
+
+    .items-grid {
         grid-template-columns: 1fr;
         padding: 0 0.5rem;
     }
-    
-    .rental-navigation {
+
+    .page-navigation {
         padding: 0 0.5rem;
     }
-    
-    .rental-nav-btn {
+
+    .nav-btn {
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
+    }
+
+    .info-cards {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
-    .rental-modal-content {
+    .modal-content {
         padding: 1rem;
         margin: 1rem;
     }
-    
-    .rental-modal-actions {
+
+    .modal-actions {
         flex-direction: column;
+    }
+
+    .items-grid {
+        grid-template-columns: 1fr;
     }
 }

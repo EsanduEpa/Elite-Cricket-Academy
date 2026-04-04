@@ -85,13 +85,17 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Equipment Rentals Header -->
-        <div class="rentals-header">
+        <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
                     <h1><i class="fas fa-tools"></i> Equipment Rentals</h1>
                     <p>High-quality cricket equipment available for daily or weekly rentals</p>
                 </div>
                 <div class="header-actions">
+                    <a href="<?php echo URLROOT; ?>/player/facilities" class="btn btn-facilities">
+                        <i class="fas fa-building"></i>
+                        Facility Booking
+                    </a>
                     <a href="<?php echo URLROOT; ?>/player/shopping" class="btn btn-facilities">
                         <i class="fas fa-shopping-bag"></i>
                         Back to Shop
@@ -107,28 +111,28 @@
        
 
         <!-- Rental Navigation -->
-        <div class="rental-navigation">
-            <button class="rental-nav-btn active" onclick="filterRentalsByCategory('all')">
+        <div class="page-navigation">
+            <button class="nav-btn active" onclick="filterRentalsByCategory('all')">
                 <i class="fas fa-th-large"></i>
                 All Equipment
             </button>
-            <button class="rental-nav-btn" onclick="filterRentalsByCategory('batting')">
+            <button class="nav-btn" onclick="filterRentalsByCategory('batting')">
                 <i class="fas fa-baseball-ball"></i>
                 Batting
             </button>
-            <button class="rental-nav-btn" onclick="filterRentalsByCategory('bowling')">
+            <button class="nav-btn" onclick="filterRentalsByCategory('bowling')">
                 <i class="fas fa-bullseye"></i>
                 Bowling
             </button>
-            <button class="rental-nav-btn" onclick="filterRentalsByCategory('training')">
+            <button class="nav-btn" onclick="filterRentalsByCategory('training')">
                 <i class="fas fa-dumbbell"></i>
                 Training
             </button>
-            <button class="rental-nav-btn" onclick="filterRentalsByCategory('protective')">
+            <button class="nav-btn" onclick="filterRentalsByCategory('protective')">
                 <i class="fas fa-shield-alt"></i>
                 Protective
             </button>
-            <button class="rental-nav-btn" onclick="filterRentalsByCategory('other')">
+            <button class="nav-btn" onclick="filterRentalsByCategory('other')">
                 <i class="fas fa-ellipsis-h"></i>
                 Other
             </button>
@@ -136,7 +140,7 @@
 
         
         
-        <div class="products-grid" id="rentals-grid">
+        <div class="items-grid" id="rentals-grid">
             <?php
                 $rentals = $data['rentals'] ?? [];
                 $escape = function ($value) {
@@ -187,18 +191,18 @@
                         $imageFallback = $placeholderUrl($name);
                     ?>
 
-                    <div class="product-card" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
-                        <div class="condition-badge condition-<?php echo $escape($conditionClass); ?>"><?php echo $escape($conditionLabel); ?></div>
-                        <div class="rental-image">
+                    <div class="card-item" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
+                        <!--<div class="condition-badge condition-<?php echo $escape($conditionClass); ?>"><?php echo $escape($conditionLabel); ?></div> -->
+                        <div class="card-image">
                             <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" onerror="this.src='<?php echo $escape($imageFallback); ?>'" />
                         </div>
-                        <div class="product-info">
-                            <div class="product-brand"><?php echo $escape($category); ?></div>
-                            <h3 class="product-title"><?php echo $escape($name); ?></h3>
+                        <div class="card-body">
+                            <div class="equipment-category"><?php echo $escape($category); ?></div>
+                            <h3 class="card-title"><?php echo $escape($name); ?></h3>
                             <?php if (!empty($equipment->Description)) : ?>
-                                <p class="product-description"><?php echo $escape($equipment->Description); ?></p>
+                                <p class="card-description"><?php echo $escape($equipment->Description); ?></p>
                             <?php endif; ?>
-                            <div class="product-price">
+                            <div class="price-section">
                                 <span class="price-current">Rs. <?php echo number_format($dailyRate, 2); ?>/day</span>
                             </div>
                             <div class="product-stock">
@@ -209,7 +213,7 @@
                                 <?php endif; ?>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-cart rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
+                                <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
                                     Rent Now
                                 </button>
                             </div>
@@ -224,10 +228,11 @@
         </div>
 
         <!-- Rental Information -->
-        <div class="rental-info-section">
+        <div class="info-section">
+            <h3>Why Rent Equipment From Us?</h3>
             <div class="info-cards">
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="info-content">
@@ -236,7 +241,7 @@
                     </div>
                 </div>
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-truck"></i>
                     </div>
                     <div class="info-content">
@@ -245,7 +250,7 @@
                     </div>
                 </div>
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <div class="info-content">
@@ -261,43 +266,20 @@
 <script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
 
 <style>
-.rental-features {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-}
-
-.info-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-.info-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.info-icon {
-    font-size: 2.5rem;
-    color: #4A90E2;
-    margin-bottom: 1rem;
-}
-
-.info-content h4 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.info-content p {
+.equipment-category {
     color: #7f8c8d;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-stock {
+    color: #27ae60;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.product-actions {
+    margin-top: 1rem;
 }
 </style>
 
