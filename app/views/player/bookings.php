@@ -185,11 +185,7 @@
         </div>
 
         <!-- ===== PRIVATE COACH APPOINTMENTS ===== -->
-        
-
-
-
-
+        <?php if (!empty($coachAppts)): ?>
         <div class="schedule-card" style="margin-bottom:24px;">
             <div class="card-header">
                 <div class="header-content">

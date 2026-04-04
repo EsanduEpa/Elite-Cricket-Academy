@@ -983,6 +983,8 @@ return $result->count > 0;
      * }
      * @return int|false New SessionID or false on failure
      */
+
+    /* create session is duplicated*/
     public function addTrainerBookingSession($data) {
         // Build a rich Name: "Title — Client: John Smith"
         $name = trim($data['title']);
@@ -1038,7 +1040,7 @@ return $result->count > 0;
     }
 
     // ==================== ADMIN SLOT MANAGEMENT ====================
-
+/* create a new table for pre defined time slots*/
     /**
      * Create an admin-created empty slot (no coach/trainer assigned yet)
      */
