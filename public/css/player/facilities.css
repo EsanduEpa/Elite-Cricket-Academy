@@ -1,161 +1,13 @@
-/* Facilities Page Specific Styles */
-@import url('dashboard.css');
+/* Facilities Page - Facility Specific Styles */
+@import url('shopping-common.css');
 
+/* Layout */
 .facilities-layout {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Facilities Header Styling */
-.facilities-header {
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-    padding: 2rem 0;
-    color: white;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.facilities-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.facilities-header p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin: 0;
-}
-
-
-
-/* Facility Navigation */
-.facility-navigation {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding: 0 1rem;
-    flex-wrap: wrap;
-}
-
-.facility-nav-btn {
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid transparent;
-    color: #27ae60;
-    padding: 0.8rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.facility-nav-btn:hover {
-    background: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.facility-nav-btn.active {
-    background: #27ae60;
-    color: white;
-    border-color: #219a52;
-}
-
-/* Facilities Grid */
-.facilities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 1.5rem;
-    padding: 0 1rem;
-    margin-bottom: 3rem;
-}
-
-.facility-card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.facility-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-}
-
-.facility-image {
-    height: 220px;
-    overflow: hidden;
-    position: relative;
-}
-
-.facility-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.facility-card:hover .facility-image img {
-    transform: scale(1.05);
-}
-
-.facility-availability {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 0.5rem 1rem;
-    background: rgba(39, 174, 96, 0.9);
-    color: white;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-}
-
-.facility-info {
-    padding: 1.5rem;
-}
-
-.facility-info h3 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    font-size: 1.4rem;
-}
-
-.facility-info p {
-    color: #7f8c8d;
-    margin-bottom: 1rem;
-    line-height: 1.6;
-}
-
-.facility-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.facility-feature-tag {
-    background: rgba(39, 174, 96, 0.1);
-    color: #27ae60;
-    padding: 0.3rem 0.8rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.facility-details {
-    margin-bottom: 1rem;
-}
-
+/* Facility-specific detail item styling */
 .facility-detail-item {
     display: flex;
     align-items: center;
@@ -166,323 +18,92 @@
 }
 
 .facility-detail-item i {
-    color: #27ae60;
+    color: #4A90E2;
     width: 16px;
     text-align: center;
 }
-
-.facility-pricing {
-    background: rgba(39, 174, 96, 0.05);
-    padding: 1rem;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-}
-
-.facility-price-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.facility-price-option:last-child {
-    margin-bottom: 0;
-}
-
-.facility-price-label {
+.facility-category {
     color: #7f8c8d;
     font-size: 0.9rem;
-}
-
-.facility-price-value {
-    color: #27ae60;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.btn-book {
-    width: 100%;
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
-
-.btn-book:hover {
-    background: linear-gradient(135deg, #219a52, #27ae60);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
-}
-
-/* Booking Information Section */
-.booking-info-section {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 2rem;
-    margin: 2rem 1rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.booking-info-section h3 {
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 1.8rem;
-}
-
-.booking-info-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-}
-
-.booking-info-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.booking-info-card:hover {
-    transform: translateY(-5px);
-}
-
-.booking-info-icon {
-    font-size: 2.5rem;
-    color: #27ae60;
-    margin-bottom: 1rem;
-}
-
-.booking-info-card h4 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.booking-info-card p {
-    color: #7f8c8d;
-    line-height: 1.6;
-    margin: 0;
-}
-
-/* Facility Booking Modal */
-.facility-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.facility-modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.facility-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f8f9fa;
-}
-
-.facility-modal-header h3 {
-    color: #2c3e50;
-    margin: 0;
-}
-
-.facility-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #95a5a6;
-    transition: color 0.3s ease;
-}
-
-.facility-close-btn:hover {
-    color: #e74c3c;
-}
-
-.booking-facility-info {
-    background: rgba(39, 174, 96, 0.05);
-    padding: 1rem;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-}
-
-.booking-facility-info h4 {
-    color: #27ae60;
     margin-bottom: 0.5rem;
 }
 
-.booking-facility-info p {
-    color: #7f8c8d;
-    margin: 0.25rem 0;
+.facility-details {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #666;
 }
 
-.facility-form-group {
-    margin-bottom: 1rem;
-}
-
-.facility-form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 600;
-}
-
-.facility-form-group input,
-.facility-form-group select {
-    width: 100%;
-    padding: 0.8rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-}
-
-.facility-form-group input:focus,
-.facility-form-group select:focus {
-    outline: none;
-    border-color: #27ae60;
-}
-
-.booking-total {
-    background: rgba(39, 174, 96, 0.1);
-    padding: 1rem;
-    border-radius: 10px;
-    margin: 1.5rem 0;
-    text-align: center;
-    font-size: 1.2rem;
-    color: #27ae60;
-}
-
-.facility-modal-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-/* Section Header Styles */
-.facilities-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 0 1rem;
-}
-
-.facilities-section-header h2 {
-    color: #2c3e50;
-    font-size: 1.8rem;
-    margin: 0;
-}
-
-.facilities-section-header p {
-    color: #7f8c8d;
-    margin: 0.5rem 0 0 0;
-}
-
-.facility-filters {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.facility-filter-select {
-    padding: 0.6rem 1rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    background: white;
-    color: #2c3e50;
+.product-stock {
+    color: #4A90E2;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+/* Facility category label */
+.facility-category {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
 }
 
-.facility-filter-select:focus {
-    outline: none;
-    border-color: #27ae60;
+/* Facility details container */
+.facility-details {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #666;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .facilities-header h1 {
-        font-size: 2rem;
+    .facilities-layout {
+        min-height: 100vh;
     }
-    
-    .facility-stats {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-    
-    .facilities-grid {
+
+    .items-grid {
         grid-template-columns: 1fr;
         padding: 0 0.5rem;
     }
-    
-    .facility-navigation {
+
+    .page-navigation {
         padding: 0 0.5rem;
     }
-    
-    .facility-nav-btn {
+
+    .nav-btn {
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
     }
-    
-    .facilities-section-header {
+
+    .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
-    
-    .facility-filters {
+
+    .section-filters {
         width: 100%;
     }
-    
-    .facility-filter-select {
+
+    .filter-select {
         flex: 1;
         min-width: 140px;
+    }
+
+    .info-cards {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
-    .facility-modal-content {
+    .modal-content {
         padding: 1rem;
         margin: 1rem;
     }
-    
-    .facility-modal-actions {
+
+    .modal-actions {
         flex-direction: column;
     }
-    
-    .facilities-grid {
+
+    .items-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .facility-card {
-        margin: 0;
     }
 }

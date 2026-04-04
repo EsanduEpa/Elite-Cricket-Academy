@@ -1328,5 +1328,21 @@ return $result->count > 0;
         $r = $this->db->single();
         return (int)($r->cnt ?? 0) > 0;
     }
+
+    /**
+     * Get today's facility bookings with facility and player details
+     */
+    public function getTodaysFacilityBookings() {
+        $today = date('Y-m-d');
+        $this->db->query('SELECT fb.*, f.Name as facility_name, f.Location, f.HourlyRate,
+            u.Name as player_name, u.email as player_email
+            FROM facilitybooking fb
+            JOIN facility f ON fb.FacilityID = f.FacilityID
+            LEFT JOIN user u ON fb.PlayerID = u.UserID
+            WHERE DATE(fb.BookingDate) = :date
+            ORDER BY fb.StartTime ASC');
+        $this->db->bind(':date', $today, PDO::PARAM_STR);
+        return $this->db->resultSet();
+    }
 }
 ?>

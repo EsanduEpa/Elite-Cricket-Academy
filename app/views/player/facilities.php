@@ -85,7 +85,7 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Facility Booking Header -->
-        <div class="shopping-header">
+        <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
                     <h1><i class="fas fa-building"></i> Facility Booking</h1>
@@ -107,7 +107,7 @@
        
 
         <!-- Facility Navigation -->
-        <div class="shop-navigation">
+        <div class="page-navigation">
             <button class="nav-btn active" onclick="filterFacilitiesByType('all')">
                 <i class="fas fa-th-large"></i>
                 All Facilities
@@ -132,7 +132,7 @@
                 <h2>Available Facilities</h2>
                 <p>World-class facilities for all your cricket training and event needs</p>
             </div>
-            <div class="shop-filters">
+            <div class="section-filters">
                 <select class="filter-select" id="facility-type-filter">
                     <option value="all">All Facilities</option>
                     <option value="indoor">Indoor Facilities</option>
@@ -149,7 +149,7 @@
             </div>
         </div>
         
-        <div class="products-grid" id="facilities-grid">
+        <div class="items-grid" id="facilities-grid">
             <?php
                 $facilities = $data['facilities'] ?? [];
                 $escape = function ($value) {
@@ -203,36 +203,36 @@
                         $imageFallback = $placeholderUrl($name);
                     ?>
 
-                    <div class="product-card" data-type="<?php echo $escape($type); ?>" data-capacity="<?php echo $escape($bucket); ?>">
-                        <div class="product-image">
+                    <div class="card-item" data-type="<?php echo $escape($type); ?>" data-capacity="<?php echo $escape($bucket); ?>">
+                        <div class="card-image">
                             <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" onerror="this.src='<?php echo $escape($imageFallback); ?>'" />
                         </div>
-                        <div class="product-info">
-                            <div class="product-brand"><?php echo $escape(ucfirst($type)); ?> Facility</div>
-                            <h3 class="product-title"><?php echo $escape($name); ?></h3>
+                        <div class="card-body">
+                            <div class="facility-category"><?php echo $escape(ucfirst($type)); ?> Facility</div>
+                            <h3 class="card-title"><?php echo $escape($name); ?></h3>
                             <?php if (!empty($location)) : ?>
-                                <p class="product-description"><?php echo $escape($location); ?></p>
+                                <p class="card-description"><?php echo $escape($location); ?></p>
                             <?php endif; ?>
 
                             <div class="facility-details" style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                    <i class="fas fa-users" style="color: #27ae60; width: 16px;"></i>
+                                    <i class="fas fa-users" style="color: #4A90E2; width: 16px;"></i>
                                     <span>Capacity: <?php echo (int)($facility->Capacity ?? 0); ?></span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                    <i class="fas fa-info-circle" style="color: #27ae60; width: 16px;"></i>
+                                    <i class="fas fa-info-circle" style="color: #4A90E2; width: 16px;"></i>
                                     <span>Status: <?php echo $escape($availability); ?></span>
                                 </div>
                             </div>
 
-                            <div class="product-price">
+                            <div class="price-section">
                                 <span class="price-current">Rs. <?php echo number_format($hourlyRate, 2); ?>/hour</span>
                             </div>
                             <div class="product-stock">
                                 <?php echo $canBook ? '✓ Available for booking' : 'Unavailable'; ?>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-cart book-facility" data-facility-id="<?php echo $escape($facility->FacilityID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-hourly="<?php echo $escape($hourlyRate); ?>" data-capacity="<?php echo $escape($facility->Capacity ?? ''); ?>" <?php echo $canBook ? '' : 'disabled'; ?>>
+                                <button class="btn btn-card book-facility" data-facility-id="<?php echo $escape($facility->FacilityID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-hourly="<?php echo $escape($hourlyRate); ?>" data-capacity="<?php echo $escape($facility->Capacity ?? ''); ?>" <?php echo $canBook ? '' : 'disabled'; ?>>
                                     Book Facility
                                 </button>
                             </div>
@@ -247,10 +247,11 @@
         </div>
 
         <!-- Booking Information -->
-        <div class="booking-info-section">
+        <div class="info-section">
+            <h3>Why Book With Us?</h3>
             <div class="info-cards">
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-calendar-alt"></i>
                     </div>
                     <div class="info-content">
@@ -259,7 +260,7 @@
                     </div>
                 </div>
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="info-content">
@@ -268,7 +269,7 @@
                     </div>
                 </div>
                 <div class="info-card">
-                    <div class="info-icon">
+                    <div class="info-card-icon">
                         <i class="fas fa-tools"></i>
                     </div>
                     <div class="info-content">
@@ -284,52 +285,6 @@
 <script>window.URLROOT_FACILITY = '<?php echo URLROOT; ?>';</script>
 <script src="<?php echo URLROOT; ?>/js/player/facilities.js"></script>
 
-<style>
-.facility-features {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-}
-
-.info-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-.info-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.info-icon {
-    font-size: 2.5rem;
-    color: #4A90E2;
-    margin-bottom: 1rem;
-}
-
-.info-content h4 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.info-content p {
-    color: #7f8c8d;
-    line-height: 1.6;
-}
-
-.booking-info-section {
-    margin-top: 3rem;
-    padding: 2rem 0;
-    border-top: 2px solid #eee;
-}
-</style>
 
 <script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
 

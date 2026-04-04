@@ -1,0 +1,13 @@
+/* Import common shop styles */
+@import url('shop-common.css');
+
+/* ===== ORDERS PAGE SPECIFIC STYLES ===== */
+
+/* Any order-specific styles can be added here */
+
+@media (max-width: 768px) {
+    /* Mobile responsive adjustments for orders page */
+    .dashboard-table {
+        font-size: 12px;
+    }
+}

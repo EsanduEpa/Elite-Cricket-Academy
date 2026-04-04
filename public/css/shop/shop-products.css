@@ -1,0 +1,179 @@
+/* Import common shop styles */
+@import url('shop-common.css');
+
+/* Product Management Specific Styles */
+
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    transition: all 0.3s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.1);
+    border-color: #4A90E2;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.25);
+}
+
+.product-image-upload {
+    position: relative;
+    display: inline-block;
+}
+
+.product-image-preview {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 3px dashed rgba(74, 144, 226, 0.3);
+    background: rgba(74, 144, 226, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.product-image-preview:hover {
+    border-color: #4A90E2;
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.product-image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-image-placeholder {
+    text-align: center;
+    color: #4A90E2;
+    font-size: 2rem;
+}
+
+.product-image-placeholder i {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.product-image-placeholder span {
+    display: block;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.category-bats {
+    background: linear-gradient(45deg, #FF8A50, #FFB366);
+    color: white;
+}
+
+.category-protective {
+    background: linear-gradient(45deg, #4ECDC4, #5EDDD4);
+    color: white;
+}
+
+.category-clothing {
+    background: linear-gradient(45deg, #6B73FF, #8B83FF);
+    color: white;
+}
+
+.category-accessories {
+    background: linear-gradient(45deg, #FF6B6B, #FF8787);
+    color: white;
+}
+
+.category-training {
+    background: linear-gradient(45deg, #4A90E2, #357ABD);
+    color: white;
+}
+
+.category-merchandise {
+    background: linear-gradient(45deg, #357ABD, #2968A3);
+    color: white;
+}
+
+.category-bowling {
+    background: linear-gradient(45deg, #27ae60, #229954);
+    color: white;
+}
+
+.stock-level {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-high {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.4);
+}
+
+.stock-medium {
+    background: rgba(255, 159, 67, 0.2);
+    color: #ff9f43;
+    border: 1px solid rgba(255, 159, 67, 0.4);
+}
+
+.stock-low {
+    background: rgba(255, 107, 107, 0.2);
+    color: #FF6B6B;
+    border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+}
+
+.rating .stars {
+    color: #FFD700;
+    letter-spacing: 2px;
+}
+
+.rating small {
+    color: #666;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .product-image-preview {
+        width: 120px;
+        height: 120px;
+    }
+
+    .category-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-image-preview {
+        width: 100px;
+        height: 100px;
+    }
+
+    .product-image {
+        width: 50px;
+        height: 50px;
+    }
+}

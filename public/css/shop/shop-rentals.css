@@ -1,0 +1,13 @@
+/* Import common shop styles */
+@import url('shop-common.css');
+
+/* ===== RENTALS PAGE SPECIFIC STYLES ===== */
+
+/* Any rental-specific styles can be added here */
+
+@media (max-width: 768px) {
+    /* Mobile responsive adjustments for rentals page */
+    .dashboard-table {
+        font-size: 12px;
+    }
+}
