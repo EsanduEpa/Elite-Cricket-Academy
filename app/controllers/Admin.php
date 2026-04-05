@@ -1429,12 +1429,12 @@ class Admin extends Controller {
     // ==================== SESSION SLOT MANAGEMENT ====================
 
     public function session_slots() {
-        $sessionModel = $this->model('M_Session');
+        $slotModel = $this->model('M_Slot');
         $data = [
             'title'        => 'Session Slot Management - Elite Cricket Academy',
-            'slots'        => $sessionModel->getAllSessions(['status' => 'open']),
-            'recentActive' => $sessionModel->getAllSessions(['status' => 'active']),
-            'openCount'    => $sessionModel->getOpenSlotsCount(),
+            'slots'        => $slotModel->getOpenSlots(),
+            'recentActive' => $slotModel->getActiveSlots(),
+            'openCount'    => $slotModel->getOpenSlotsCount(),
         ];
         $this->view('admin/session_slots', $data);
     }
@@ -1472,8 +1472,8 @@ class Admin extends Controller {
                 ob_end_clean(); echo json_encode(['success' => false, 'message' => 'End time must be after start time']); exit;
             }
 
-            $sessionModel = $this->model('M_Session');
-            $slotId = $sessionModel->createAdminSlot([
+            $slotModel = $this->model('M_Slot');
+            $slotId = $slotModel->createAdminSlot([
                 'session_type'    => $sessionType,
                 'session_mode'    => $sessionMode ?? 'Group',
                 'name'            => $name,
@@ -1511,13 +1511,13 @@ class Admin extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid slot ID']);
             exit;
         }
-        $sessionModel = $this->model('M_Session');
+        $slotModel = $this->model('M_Slot');
         // Only allow deleting open (unclaimed) slots
-        if ($sessionModel->isSlotClaimed($id)) {
+        if ($slotModel->isSlotClaimed($id)) {
             echo json_encode(['success' => false, 'message' => 'Cannot delete a slot that has already been claimed']);
             exit;
         }
-        $result = $sessionModel->cancelAdminSlot($id);
+        $result = $slotModel->cancelAdminSlot($id);
         if ($result) {
             $userModel = $this->model('M_Users');
             $userModel->logActivity($_SESSION['user_id'], 'DELETE_SESSION_SLOT',

@@ -291,6 +291,7 @@
 <!-- Coach Session Booking Modal -->
 
 
+<script>window.URLROOT = '<?php echo URLROOT; ?>';</script>
 <script type="application/json" id="coachSessionData"><?php echo json_encode([
     'coaches' => $data['coaches'],
     'availableSlots' => $data['availableSlots'] ?? [],
@@ -298,7 +299,7 @@
     'canAccessAllCoaches' => $data['canAccessAllCoaches'],
     'planName' => $data['planName'],
     'urlRoot' => URLROOT,
-], JSON_UNESCAPED_SLASHES); ?></script>
+], JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?></script>
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/coach-sessions.js"></script>

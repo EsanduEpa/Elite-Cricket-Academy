@@ -1,0 +1,38 @@
+/* Import common shop styles */
+@import url('shop-common.css');
+
+/* ===== DASHBOARD PAGE SPECIFIC STYLES ===== */
+
+/* Dashboard-specific layout styles */
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    color: #7f8c8d;
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Any dashboard-specific component styles can be added here */
+
+@media (max-width: 768px) {
+    /* Mobile responsive adjustments for dashboard */
+    .dashboard-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .dashboard-header p {
+        font-size: 0.9rem;
+    }
+}

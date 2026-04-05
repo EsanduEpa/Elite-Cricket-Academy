@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/available-slots.css">
 
 <div class="coach-layout">
     <!-- Left Sidebar -->
@@ -62,30 +63,30 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content coach-available-slots-page available-slots-page">
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-left">
                     <h1><i class="fas fa-calendar-check"></i> Available Slots</h1>
-                    <p style="margin:0;opacity:.9;font-size:14px;">Claim a session slot to take ownership and let players enroll</p>
+                    <p style="margin:0;opacity:0.9;font-size:14px;">Claim a session slot to take ownership and let players enroll</p>
                 </div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div style="display:flex;gap:12px;align-items:center;margin:20px 0;flex-wrap:wrap;">
-            <input type="date" id="filterDate" onchange="filterSlots()" class="form-control" style="width:170px;" min="<?php echo date('Y-m-d'); ?>">
-            <select id="filterMode" onchange="filterSlots()" class="form-control" style="width:150px;">
+        <div class="filters-bar">
+            <input type="date" id="filterDate" onchange="filterSlots()" class="form-control filter-control" min="<?php echo date('Y-m-d'); ?>">
+            <select id="filterMode" onchange="filterSlots()" class="form-control filter-control">
                 <option value="">All Modes</option>
                 <option value="Group">Group</option>
                 <option value="Private">Private</option>
             </select>
             <button class="btn btn-secondary" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
-            <span id="slotCount" style="margin-left:auto;color:#666;font-size:14px;"></span>
+            <span id="slotCount" class="slot-count"></span>
         </div>
 
         <!-- Slots Table -->
-        <div class="section-card">
+        <div class="section-card slots-section">
             <div class="table-responsive">
                 <table class="data-table" id="slotsTable">
                     <thead>
@@ -125,7 +126,7 @@
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8" style="text-align:center;color:#888;padding:40px;">
+                            <tr><td colspan="8" class="empty-state">
                                 No open coaching slots available. Ask an admin to create slots.
                             </td></tr>
                         <?php endif; ?>

@@ -125,14 +125,17 @@ return false;
     * @return bool
     */
 public function addPlayerToSession($sessionId, $playerId) {
-$this->db->query('INSERT INTO SessionEnrollment (SessionID, PlayerID, Status) 
-                        VALUES (:session_id, :player_id, "enrolled")
-                        ON DUPLICATE KEY UPDATE Status = "enrolled"');
+    // Ensure a playerprofile row exists — SessionEnrollment.PlayerID FKs to playerprofile
+    $this->db->query('INSERT IGNORE INTO playerprofile (PlayerID) VALUES (:pid)');
+    $this->db->bind(':pid', (int)$playerId, PDO::PARAM_INT);
+    $this->db->execute();
 
-$this->db->bind(':session_id', $sessionId);
-$this->db->bind(':player_id', $playerId);
-
-return $this->db->execute();
+    $this->db->query('INSERT INTO SessionEnrollment (SessionID, PlayerID, Status)
+                      VALUES (:session_id, :player_id, "enrolled")
+                      ON DUPLICATE KEY UPDATE Status = "enrolled"');
+    $this->db->bind(':session_id', (int)$sessionId, PDO::PARAM_INT);
+    $this->db->bind(':player_id',  (int)$playerId,  PDO::PARAM_INT);
+    return $this->db->execute();
 }
 
 // ==================== READ ====================
@@ -863,21 +866,31 @@ return $result->count > 0;
 
     // Get available coach sessions for booking
     public function getAvailableCoachSessions($date = null) {
-        $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as coach_id, u.Name as coach_name, 
-            cp.Specialization as coach_specialization, s.Date as date, s.StartTime as start_time, 
-            s.EndTime as end_time, s.SessionType as session_type, s.SessionMode as session_mode,
-            s.MaxParticipants as max_participants,
-            (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
-            s.Location as location, s.Name as description, u.ProfileImage as coach_image,
-            s.PricePerSession as price
-            FROM Session s
-            JOIN User u ON s.CoachOrTrainerID = u.UserID
-            LEFT JOIN coachprofile cp ON s.CoachOrTrainerID = cp.CoachID
-            WHERE s.Status = "active" AND s.Date >= CURDATE() AND s.SessionType = "Coaching"';
+        $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as coach_id,
+                u.Name as coach_name,
+                cp.Specialization as coach_specialization,
+                s.Date as date, s.StartTime as start_time,
+                s.EndTime as end_time, s.SessionType as session_type, s.SessionMode as session_mode,
+                COALESCE(NULLIF(s.MaxParticipants, 0), 20) as max_participants,
+                (SELECT COUNT(*) FROM SessionEnrollment se2
+                 WHERE se2.SessionID = s.SessionID AND se2.Status != "cancelled") as current_bookings,
+                s.Location as location, s.Name as description,
+                u.ProfileImage as coach_image, s.PricePerSession as price
+            FROM `Session` s
+            JOIN User u ON u.UserID = s.CoachOrTrainerID
+            LEFT JOIN coachprofile cp ON cp.CoachID = s.CoachOrTrainerID
+            WHERE s.Status = "active"
+              AND s.Date >= CURDATE()
+              AND s.CoachOrTrainerID IS NOT NULL
+              AND (
+                  s.SessionType = "Coaching"
+                  OR LOWER(u.Role) = "coach"
+                  OR EXISTS (SELECT 1 FROM coachprofile cp2 WHERE cp2.CoachID = s.CoachOrTrainerID)
+              )';
         if ($date) {
             $sql .= ' AND s.Date = :date';
         }
-        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date, s.StartTime';
+        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date ASC, s.StartTime ASC';
         $this->db->query($sql);
         if ($date) $this->db->bind(':date', $date);
         return $this->db->resultSet();
@@ -885,20 +898,35 @@ return $result->count > 0;
 
     // Get available trainer sessions for booking
     public function getAvailableTrainerSessions($date = null) {
-        $sql = 'SELECT s.SessionID as slot_id, s.CoachOrTrainerID as trainer_id, u.Name as trainer_name,
-            s.Date as date, s.StartTime as start_time,
-            s.EndTime as end_time, s.SessionType as session_type, s.MaxParticipants as max_participants,
-            (SELECT COUNT(*) FROM SessionEnrollment se2 WHERE se2.SessionID = s.SessionID) as current_bookings,
-            s.Location as location, s.Name as description, u.ProfileImage as trainer_image
-            FROM Session s
-            JOIN User u ON s.CoachOrTrainerID = u.UserID
-            LEFT JOIN trainerprofile tp ON s.CoachOrTrainerID = tp.TrainerID
-            WHERE s.Status = "active" AND s.Date >= CURDATE()
-            AND u.Role = "Trainer"';
+        $sql = 'SELECT s.SessionID as slot_id,
+                s.CoachOrTrainerID as trainer_id,
+                u.Name as trainer_name,
+                s.Date as date,
+                s.StartTime as start_time,
+                s.EndTime as end_time,
+                s.SessionType as session_type,
+                s.SessionMode as session_mode,
+                COALESCE(NULLIF(s.MaxParticipants, 0), 20) as max_participants,
+                (SELECT COUNT(*) FROM SessionEnrollment se2
+                 WHERE se2.SessionID = s.SessionID AND se2.Status != "cancelled") as current_bookings,
+                s.Location as location,
+                s.Name as description,
+                u.ProfileImage as trainer_image,
+                s.PricePerSession as price
+            FROM `Session` s
+            JOIN User u ON u.UserID = s.CoachOrTrainerID
+            WHERE s.Status = "active"
+              AND s.Date >= CURDATE()
+              AND s.CoachOrTrainerID IS NOT NULL
+              AND (
+                  s.SessionType = "Physical Training"
+                  OR LOWER(u.Role) = "trainer"
+                  OR EXISTS (SELECT 1 FROM trainerprofile tp WHERE tp.TrainerID = s.CoachOrTrainerID)
+              )';
         if ($date) {
             $sql .= ' AND s.Date = :date';
         }
-        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date, s.StartTime';
+        $sql .= ' HAVING current_bookings < max_participants ORDER BY s.Date ASC, s.StartTime ASC';
         $this->db->query($sql);
         if ($date) $this->db->bind(':date', $date);
         return $this->db->resultSet();
@@ -955,6 +983,8 @@ return $result->count > 0;
      * }
      * @return int|false New SessionID or false on failure
      */
+
+    /* create session is duplicated*/
     public function addTrainerBookingSession($data) {
         // Build a rich Name: "Title — Client: John Smith"
         $name = trim($data['title']);
@@ -1004,8 +1034,14 @@ return $result->count > 0;
         $this->db->bind(':is_recurring', 0,                   PDO::PARAM_INT);
     }
 
-    // ==================== ADMIN SLOT MANAGEMENT ====================
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
 
+    // ==================== ADMIN SLOT MANAGEMENT ====================
+/* create a new table for pre defined time slots*/
     /**
      * Create an admin-created empty slot (no coach/trainer assigned yet)
      */
@@ -1294,6 +1330,22 @@ return $result->count > 0;
         $this->db->bind(':end', $endTime, PDO::PARAM_STR);
         $r = $this->db->single();
         return (int)($r->cnt ?? 0) > 0;
+    }
+
+    /**
+     * Get today's facility bookings with facility and player details
+     */
+    public function getTodaysFacilityBookings() {
+        $today = date('Y-m-d');
+        $this->db->query('SELECT fb.*, f.Name as facility_name, f.Location, f.HourlyRate,
+            u.Name as player_name, u.email as player_email
+            FROM facilitybooking fb
+            JOIN facility f ON fb.FacilityID = f.FacilityID
+            LEFT JOIN user u ON fb.PlayerID = u.UserID
+            WHERE DATE(fb.BookingDate) = :date
+            ORDER BY fb.StartTime ASC');
+        $this->db->bind(':date', $today, PDO::PARAM_STR);
+        return $this->db->resultSet();
     }
 }
 ?>

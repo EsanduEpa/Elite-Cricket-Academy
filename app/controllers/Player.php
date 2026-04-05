@@ -85,10 +85,14 @@ class Player extends Controller {
     
     // Training Schedule
     public function training() {
+        $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
         $data = [
-            'title' => 'Training Schedule',
-            'player' => $this->getPlayerData(),
-            'trainingSessions' => $this->getTrainingSessions()
+            'title'            => 'Training Schedule',
+            'player'           => $this->getPlayerData(),
+            'todaySessions'    => $sessionModel->getTodayScheduleForPlayer($playerId),
+            'upcomingSessions' => $sessionModel->getUpcomingSessionsForPlayer($playerId),
         ];
         $this->view('player/training', $data);
     }
@@ -134,12 +138,24 @@ class Player extends Controller {
     // My Bookings
     public function bookings() {
         $this->requireLogin();
+        $playerId     = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $allBookings  = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+
+        $enrolled    = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'session'));
+        $coachAppts  = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'coach'));
+        $trainerAppts= array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'trainer'));
+        $facilities  = array_values(array_filter($allBookings, fn($b) => $b->booking_type === 'facility'));
+
         $data = [
-            'title' => 'My Bookings',
-            'player' => $this->getPlayerData(),
-            'coachSessions' => $this->getCoachSessions(),
-            'facilityReservations' => $this->getFacilityReservations(),
-            'upcomingBookings' => $this->getUpcomingBookings()
+            'title'            => 'My Bookings',
+            'player'           => $this->getPlayerData(),
+            'allBookings'      => $allBookings,
+            'enrolled'         => $enrolled,
+            'coachAppts'       => $coachAppts,
+            'trainerAppts'     => $trainerAppts,
+            'facilities'       => $facilities,
+            'totalCount'       => count($allBookings),
         ];
         $this->view('player/bookings', $data);
     }
@@ -410,8 +426,8 @@ class Player extends Controller {
             
             $data = [
                 'player_id' => $playerId,
-                'injury_details' => trim($_POST['injury_details']),
-                'diagnosis' => trim($_POST['diagnosis']),
+                'body_area' => trim($_POST['body_area'] ?? ''),
+                'diagnosis' => trim($_POST['diagnosis'] ?? ''),
                 'treatment_given' => trim($_POST['treatment_given']) ?: '',
                 'recovery_status' => $_POST['recovery_status'],
                 'injury_date' => $_POST['injury_date'],
@@ -421,13 +437,13 @@ class Player extends Controller {
                 'reported_date' => $_POST['reported_date'],
                 'reported_by' => $reportedBy
             ];
-            
+
             // Validate data
             $errors = [];
-            
+
             // Required fields
-            if (empty($data['injury_details'])) {
-                $errors[] = 'Injury details are required';
+            if (empty($data['body_area'])) {
+                $errors[] = 'Body area is required';
             }
             if (empty($data['diagnosis'])) {
                 $errors[] = 'Diagnosis is required';
@@ -439,18 +455,20 @@ class Player extends Controller {
                 $errors[] = 'Reported date is required';
             }
             
-            // Validate injury details - at least 2 words
-            $injuryWords = str_word_count($data['injury_details']);
-            if ($injuryWords < 2) {
-                $errors[] = 'Injury details must contain at least 2 words';
+            // Validate body area - must be a valid ENUM value
+            $validBodyAreas = ['Head/Face', 'Neck', 'Shoulder', 'Arm/Elbow', 'Hand/Wrist',
+                               'Chest/Back', 'Hip/Groin', 'Thigh', 'Knee', 'Lower Leg', 'Ankle/Foot'];
+            if (!in_array($data['body_area'], $validBodyAreas)) {
+                $errors[] = 'Please select a valid body area';
             }
-            
-            // Validate diagnosis - at least 2 words
-            $diagnosisWords = str_word_count($data['diagnosis']);
-            if ($diagnosisWords < 2) {
-                $errors[] = 'Diagnosis must contain at least 2 words';
+
+            // Validate diagnosis - must be a valid ENUM value
+            $validDiagnoses = ['Sprain', 'Strain', 'Fracture', 'Dislocation',
+                               'Concussion', 'Tear', 'Laceration', 'Overuse/Inflammation', 'Illness'];
+            if (!in_array($data['diagnosis'], $validDiagnoses)) {
+                $errors[] = 'Please select a valid diagnosis';
             }
-            
+
             // Validate rest days - must be integer between 0 and 1000
             if ($data['rest_days_needed'] < 0) {
                 $errors[] = 'Rest days cannot be negative';
@@ -516,15 +534,12 @@ class Player extends Controller {
             
             // Prepare update data
             $updateData = [
-                'injury_details' => $existingRecord->InjuryDetails,
-                'diagnosis' => $existingRecord->Diagnosis,
-                'treatment_given' => $existingRecord->TreatmentGiven,
                 'recovery_status' => $recoveryStatus,
                 'reported_date' => $existingRecord->ReportedDate
             ];
-            
+
             // Validate recovery status
-            $validStatuses = ['ongoing', 'recovering', 'recovered', 'chronic'];
+            $validStatuses = ['ongoing', 'recovering', 'fully_recovered', 'chronic_condition'];
             if (empty($recoveryStatus) || !in_array($recoveryStatus, $validStatuses)) {
                 flash('medical_message', 'Invalid recovery status selected', 'alert alert-danger');
                 redirect('player/medical');
@@ -826,7 +841,73 @@ class Player extends Controller {
         $this->view('player/trainer_sessions', $data);
     }
     
+ // Shopping and Rental Info
+    public function shopping() {
+        $data = [
+            'title' => 'Shopping & Rentals',
+            'player' => $this->getPlayerData(),
+            'products' => $this->getAvailableProducts(),
+            'rentals' => $this->getRentalEquipment(),
+            'myRentals' => $this->getMyRentals()
+        ];
+        $this->view('player/shopping', $data);
+    }
 
+    // Shopping Cart
+    public function cart() {
+        $data = [
+            'title' => 'Shopping Cart',
+            'player' => $this->getPlayerData()
+        ];
+        $this->view('player/cart', $data);
+    }
+
+    // Checkout (formerly payment page)
+    public function checkout() {
+        $data = [
+            'title' => 'Checkout',
+            'player' => $this->getPlayerData()
+        ];
+        $this->view('player/checkout', $data);
+    }
+
+    // Backwards-compatible route for older links
+    public function payment() {
+        $this->checkout();
+    }
+    
+    // AJAX: Get notifications for the logged-in player
+    public function notifications() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+        $userId = (int)$_SESSION['user_id'];
+        $notifModel = $this->model('M_Notification');
+        echo json_encode([
+            'notifications' => $notifModel->getForUser($userId, 15),
+            'unread_count'  => $notifModel->countUnread($userId),
+        ]);
+        ob_end_flush(); exit;
+    }
+
+    // AJAX: Mark notification(s) read
+    public function mark_notifications_read() {
+        $this->requireLogin();
+        ob_start();
+        header('Content-Type: application/json');
+        $userId = (int)$_SESSION['user_id'];
+        $notifModel = $this->model('M_Notification');
+        $id = (int)($_POST['notification_id'] ?? 0);
+        if ($id) {
+            $notifModel->markRead($id, $userId);
+        } else {
+            $notifModel->markAllRead($userId);
+        }
+        echo json_encode(['success' => true, 'unread_count' => $notifModel->countUnread($userId)]);
+        ob_end_flush(); exit;
+    }
+
+    // Session Calendar
     // =========================================================================
     // PRIVATE HELPER METHODS - ALL USE REAL DATABASE QUERIES
     // =========================================================================

@@ -25,34 +25,34 @@ class M_Medical {
     // Add new medical record
     public function addMedicalRecord($data) {
         $this->db->query('INSERT INTO PlayerMedicalRecord (
-            PlayerID, 
-            InjuryDetails, 
-            Diagnosis, 
-            TreatmentGiven, 
-            RecoveryStatus, 
+            PlayerID,
+            bodyarea,
+            Diagnosis,
+            TreatmentGiven,
+            RecoveryStatus,
             InjuryDate,
             HappenedAtAcademy,
             RestDaysNeeded,
             DiagnosisReceiptURL,
-            ReportedDate, 
+            ReportedDate,
             ReportedBy
         ) VALUES (
-            :player_id, 
-            :injury_details, 
-            :diagnosis, 
-            :treatment_given, 
-            :recovery_status, 
+            :player_id,
+            :body_area,
+            :diagnosis,
+            :treatment_given,
+            :recovery_status,
             :injury_date,
             :happened_at_academy,
             :rest_days_needed,
             :diagnosis_receipt_url,
-            :reported_date, 
+            :reported_date,
             :reported_by
         )');
-        
+
         // Bind values
         $this->db->bind(':player_id', $data['player_id']);
-        $this->db->bind(':injury_details', $data['injury_details']);
+        $this->db->bind(':body_area', $data['body_area']);
         $this->db->bind(':diagnosis', $data['diagnosis']);
         $this->db->bind(':treatment_given', $data['treatment_given']);
         $this->db->bind(':recovery_status', $data['recovery_status']);
@@ -73,19 +73,13 @@ class M_Medical {
     
     // Update medical record
     public function updateMedicalRecord($recordId, $data) {
-        $this->db->query('UPDATE PlayerMedicalRecord SET 
-            InjuryDetails = :injury_details,
-            Diagnosis = :diagnosis,
-            TreatmentGiven = :treatment_given,
+        $this->db->query('UPDATE PlayerMedicalRecord SET
             RecoveryStatus = :recovery_status,
             ReportedDate = :reported_date
             WHERE RecordID = :record_id');
-        
+
         // Bind values
         $this->db->bind(':record_id', $recordId);
-        $this->db->bind(':injury_details', $data['injury_details']);
-        $this->db->bind(':diagnosis', $data['diagnosis']);
-        $this->db->bind(':treatment_given', $data['treatment_given']);
         $this->db->bind(':recovery_status', $data['recovery_status']);
         $this->db->bind(':reported_date', $data['reported_date']);
         

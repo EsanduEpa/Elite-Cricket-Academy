@@ -96,7 +96,7 @@ function initRentalModals() {
             openRentalModal(rentalData);
         }
         
-        if (e.target.classList.contains('rental-close-btn')) {
+        if (e.target.classList.contains('modal-close-btn')) {
             closeRentalModal();
         }
         
@@ -124,7 +124,7 @@ function openRentalModal(rentalData) {
     document.body.style.overflow = 'hidden';
     
     // Add animation
-    const modalContent = modal.querySelector('.rental-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -138,7 +138,7 @@ function closeRentalModal() {
     const modal = document.getElementById('rentalModal');
     if (!modal) return;
     
-    const modalContent = modal.querySelector('.rental-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -151,23 +151,23 @@ function closeRentalModal() {
 function createRentalModal() {
     const modal = document.createElement('div');
     modal.id = 'rentalModal';
-    modal.className = 'rental-modal';
+    modal.className = 'modal-overlay';
     modal.style.display = 'none';
-    
+
     modal.innerHTML = `
-        <div class="rental-modal-content" style="transition: all 0.2s ease;">
-            <div class="rental-modal-header">
+        <div class="modal-content" style="transition: all 0.2s ease;">
+            <div class="modal-header">
                 <h3>Equipment Rental</h3>
-                <button class="rental-close-btn">&times;</button>
+                <button class="modal-close-btn">&times;</button>
             </div>
-            <div class="rental-modal-body">
+            <div class="modal-body">
                 <div id="rental-details"></div>
                 <form id="rental-form">
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-start-date">Start Date:</label>
                         <input type="date" id="rental-start-date" required>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-duration">Rental Duration:</label>
                         <select id="rental-duration" required>
                             <option value="1">1 Day</option>
@@ -177,7 +177,7 @@ function createRentalModal() {
                             <option value="30">1 Month</option>
                         </select>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-quantity">Quantity:</label>
                         <select id="rental-quantity" required>
                             <option value="1">1</option>
@@ -187,7 +187,7 @@ function createRentalModal() {
                             <option value="5">5</option>
                         </select>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-pickup">Pickup Method:</label>
                         <select id="rental-pickup" required>
                             <option value="pickup">Pickup from Academy</option>
@@ -195,17 +195,17 @@ function createRentalModal() {
                         </select>
                     </div>
                 </form>
-                <div class="rental-total">
+                <div class="total-display">
                     <strong>Total: Rs. <span id="rental-total-amount">0.00</span></strong>
                 </div>
             </div>
-            <div class="rental-modal-actions">
-                <button class="btn-secondary" onclick="closeRentalModal()">Cancel</button>
-                <button class="btn-primary" onclick="confirmRental()">Confirm Rental</button>
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeRentalModal()">Cancel</button>
+                <button class="btn-modal primary" onclick="confirmRental()">Confirm Rental</button>
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
 }
 
@@ -440,7 +440,7 @@ style.textContent = `
         transition: opacity 0.3s ease, transform 0.3s ease;
     }
     
-    .rental-modal-content {
+    .modal-content {
         transition: all 0.2s ease;
     }
 `;

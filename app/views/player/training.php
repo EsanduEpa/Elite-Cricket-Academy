@@ -90,32 +90,40 @@
             </div>
 
             <!-- Weekly Overview -->
+            <?php
+            $upcomingAll = $data['upcomingSessions'] ?? [];
+            $todayAll    = $data['todaySessions']    ?? [];
+            // Sessions this week = today + upcoming within 7 days
+            $weekSessions = count($todayAll) + count(array_filter($upcomingAll, function($s) {
+                return strtotime($s->Date) <= strtotime('+7 days');
+            }));
+            // Total upcoming (not past)
+            $totalUpcoming = count($todayAll) + count($upcomingAll);
+            ?>
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fas fa-calendar-week"></i>
                     </div>
-                    <div class="stat-value">5</div>
+                    <div class="stat-value"><?php echo $weekSessions; ?></div>
                     <div class="stat-label">Sessions This Week</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
-                    <div class="stat-value">12h</div>
-                    <div class="stat-label">Total Hours</div>
+                    <div class="stat-value"><?php echo $totalUpcoming; ?></div>
+                    <div class="stat-label">Upcoming Sessions</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-calendar-day"></i>
                     </div>
-                    <div class="stat-value">3</div>
-                    <div class="stat-label">Completed</div>
+                    <div class="stat-value"><?php echo count($todayAll); ?></div>
+                    <div class="stat-label">Today's Sessions</div>
                 </div>
-                
-               
             </div>
 
             <!-- Today's Training and Weekly Schedule - Two Tables Per Row -->
@@ -138,36 +146,33 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">2 hours</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Batting Practice</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-map-marker-alt"></i> Indoor Nets - Coach Johnson
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-upcoming">Upcoming</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">2:30 PM</div>
-                                    <div class="table-cell-secondary">1.5 hours</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Fitness Training</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-dumbbell"></i> Gym Facility - Cardio & Strength
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-upcoming">Upcoming</span>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['todaySessions'])): ?>
+                                <?php foreach ($data['todaySessions'] as $s): ?>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo date('g:i A', strtotime($s->start_time)); ?></div>
+                                        <div class="table-cell-secondary"><?php echo date('g:i A', strtotime($s->end_time)); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($s->activity); ?></div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?php echo htmlspecialchars($s->location ?? ''); ?>
+                                            <?php if (!empty($s->coach)): ?> &mdash; <?php echo htmlspecialchars($s->coach); ?><?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge status-upcoming">Upcoming</span>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" style="text-align:center;padding:20px;color:#666;">
+                                        No sessions scheduled for today.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -190,91 +195,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Mon</div>
-                                    <div class="table-cell-secondary">Monday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Batting & Fielding Practice</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-map-marker-alt"></i> Indoor Nets
-                                    </div>
-                                    <span class="table-badge">Training</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">12:00 PM</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Tue</div>
-                                    <div class="table-cell-secondary">Tuesday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Fitness Training</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-dumbbell"></i> Gym Facility
-                                    </div>
-                                    <span class="table-badge">Fitness</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">2:30 PM</div>
-                                    <div class="table-cell-secondary">4:00 PM</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Wed</div>
-                                    <div class="table-cell-secondary">Wednesday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Bowling Practice</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-baseball-ball"></i> Outdoor Pitch
-                                    </div>
-                                    <span class="table-badge">Training</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">11:30 AM</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Thu</div>
-                                    <div class="table-cell-secondary">Thursday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Team Practice</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-users"></i> Main Ground
-                                    </div>
-                                    <span class="table-badge">Team</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">3:00 PM</div>
-                                    <div class="table-cell-secondary">5:00 PM</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">Fri</div>
-                                    <div class="table-cell-secondary">Friday</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Match Simulation</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-trophy"></i> Main Ground
-                                    </div>
-                                    <span class="table-badge">Match</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="table-cell-primary">10:00 AM</div>
-                                    <div class="table-cell-secondary">1:00 PM</div>
-                                </td>
-                            </tr>
+                            <?php if (!empty($data['upcomingSessions'])): ?>
+                                <?php foreach ($data['upcomingSessions'] as $s): ?>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary"><?php echo date('D', strtotime($s->Date)); ?></div>
+                                        <div class="table-cell-secondary"><?php echo date('M j', strtotime($s->Date)); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($s->Name); ?></div>
+                                        <div class="table-cell-details">
+                                            <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($s->Location ?? ''); ?>
+                                            <?php if (!empty($s->CoachName)): ?> &mdash; <?php echo htmlspecialchars($s->CoachName); ?><?php endif; ?>
+                                        </div>
+                                        <span class="table-badge"><?php echo htmlspecialchars($s->SessionType ?? 'Session'); ?></span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="table-cell-primary"><?php echo date('g:i A', strtotime($s->StartTime)); ?></div>
+                                        <div class="table-cell-secondary"><?php echo date('g:i A', strtotime($s->EndTime)); ?></div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" style="text-align:center;padding:20px;color:#666;">
+                                        No upcoming sessions this week.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -332,5 +280,6 @@
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/training.js"></script>
+    <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 </html>

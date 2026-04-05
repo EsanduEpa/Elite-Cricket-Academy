@@ -150,7 +150,7 @@ function initFacilityModals() {
             openFacilityModal(facilityData);
         }
         
-        if (e.target.classList.contains('facility-close-btn') || e.target.classList.contains('close-btn')) {
+        if (e.target.classList.contains('modal-close-btn') || e.target.classList.contains('close-btn')) {
             closeFacilityModal();
         }
         
@@ -178,7 +178,7 @@ function openFacilityModal(facilityData) {
     document.body.style.overflow = 'hidden';
     
     // Add animation
-    const modalContent = modal.querySelector('.facility-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -192,7 +192,7 @@ function closeFacilityModal() {
     const modal = document.getElementById('facilityModal');
     if (!modal) return;
     
-    const modalContent = modal.querySelector('.facility-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -205,23 +205,23 @@ function closeFacilityModal() {
 function createFacilityModal() {
     const modal = document.createElement('div');
     modal.id = 'facilityModal';
-    modal.className = 'facility-modal';
+    modal.className = 'modal-overlay';
     modal.style.display = 'none';
-    
+
     modal.innerHTML = `
-        <div class="facility-modal-content" style="transition: all 0.2s ease;">
-            <div class="facility-modal-header">
+        <div class="modal-content" style="transition: all 0.2s ease;">
+            <div class="modal-header">
                 <h3>Facility Booking</h3>
-                <button class="facility-close-btn">&times;</button>
+                <button class="modal-close-btn">&times;</button>
             </div>
-            <div class="facility-modal-body">
+            <div class="modal-body">
                 <div id="facility-details"></div>
                 <form id="facility-form">
-                    <div class="facility-form-group">
+                    <div class="form-group">
                         <label for="booking-date">Date:</label>
                         <input type="date" id="booking-date" required>
                     </div>
-                    <div class="facility-form-group">
+                    <div class="form-group">
                         <label for="booking-time">Start Time:</label>
                         <select id="booking-time" required>
                             <option value="06:00">6:00 AM</option>
@@ -241,7 +241,7 @@ function createFacilityModal() {
                             <option value="20:00">8:00 PM</option>
                         </select>
                     </div>
-                    <div class="facility-form-group">
+                    <div class="form-group">
                         <label for="booking-duration">Duration:</label>
                         <select id="booking-duration" required>
                             <option value="1">1 hour</option>
@@ -251,7 +251,7 @@ function createFacilityModal() {
                             <option value="8">8 hours (Full Day)</option>
                         </select>
                     </div>
-                    <div class="facility-form-group">
+                    <div class="form-group">
                         <label for="booking-purpose">Purpose:</label>
                         <select id="booking-purpose" required>
                             <option value="">Select purpose...</option>
@@ -263,22 +263,22 @@ function createFacilityModal() {
                             <option value="other">Other</option>
                         </select>
                     </div>
-                    <div class="facility-form-group">
+                    <div class="form-group">
                         <label for="booking-participants">Expected Participants:</label>
                         <input type="number" id="booking-participants" min="1" max="50" value="1" required>
                     </div>
                 </form>
-                <div class="booking-total">
+                <div class="total-display">
                     <strong>Total: Rs. <span id="booking-total">0.00</span></strong>
                 </div>
             </div>
-            <div class="facility-modal-actions">
-                <button class="btn-secondary" onclick="closeFacilityModal()">Cancel</button>
-                <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeFacilityModal()">Cancel</button>
+                <button class="btn-modal primary" onclick="confirmBooking()">Confirm Booking</button>
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
 }
 
@@ -360,7 +360,7 @@ function confirmBooking() {
         return;
     }
 
-    const confirmBtn = document.querySelector('.facility-modal-actions .btn-primary');
+    const confirmBtn = document.querySelector('.modal-actions .btn-modal.primary');
     if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Booking...'; }
 
     const urlRoot = window.URLROOT_FACILITY || '';
@@ -392,7 +392,7 @@ function confirmBooking() {
 
 function showFacilityNotification(message, type) {
     const n = document.createElement('div');
-    const bg = type === 'success' ? 'linear-gradient(135deg,#27ae60,#2ecc71)' : 'linear-gradient(135deg,#e74c3c,#c0392b)';
+    const bg = type === 'success' ? 'linear-gradient(135deg,#4A90E2,#357ABD)' : 'linear-gradient(135deg,#e74c3c,#c0392b)';
     const icon = type === 'success' ? 'check-circle' : 'times-circle';
     n.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
     n.style.cssText = 'position:fixed;top:20px;right:20px;background:' + bg + ';color:#fff;padding:14px 20px;border-radius:10px;z-index:10001;transform:translateX(400px);transition:transform 0.3s ease;max-width:380px;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,0.2);';
@@ -520,7 +520,7 @@ style.textContent = `
         animation: fadeIn 0.5s ease;
     }
     
-    .facility-modal-content {
+    .modal-content {
         transition: all 0.2s ease;
     }
     

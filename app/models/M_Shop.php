@@ -477,11 +477,36 @@ class M_Shop {
 
     // Get facility stats
     public function getFacilityStats() {
-        $this->db->query('SELECT 
+        $this->db->query('SELECT
             (SELECT COUNT(*) FROM facility) as total_facilities,
             (SELECT COUNT(*) FROM facility WHERE AvailabilityStatus = "available") as available_facilities
         ');
         return $this->db->single();
+    }
+
+    // Get today's facility bookings count
+    public function getTodaysFacilityBookings() {
+        $today = date('Y-m-d');
+        $this->db->query('SELECT COUNT(*) as count FROM facilitybooking WHERE DATE(BookingDate) = :date');
+        $this->db->bind(':date', $today);
+        $result = $this->db->single();
+        return $result->count ?? 0;
+    }
+
+    // Get today's facility revenue
+    public function getTodaysFacilityRevenue() {
+        $today = date('Y-m-d');
+        $this->db->query('SELECT SUM(CAST(TotalCost AS DECIMAL(10,2))) as revenue FROM facilitybooking WHERE DATE(BookingDate) = :date');
+        $this->db->bind(':date', $today);
+        $result = $this->db->single();
+        return (float)($result->revenue ?? 0);
+    }
+
+    // Get facilities in maintenance
+    public function getFacilitiesInMaintenance() {
+        $this->db->query('SELECT COUNT(*) as count FROM facility WHERE AvailabilityStatus = "maintenance"');
+        $result = $this->db->single();
+        return $result->count ?? 0;
     }
 }
 ?>

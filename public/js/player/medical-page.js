@@ -61,8 +61,17 @@
 
     function openAddMedicalModal() {
         const modal = document.getElementById('addMedicalModal');
-        if (!modal) return;
-        modal.style.display = 'block';
+        if (!modal) {
+            console.error('Modal element not found');
+            return;
+        }
+        modal.style.cssText = 'display:flex; align-items:center; justify-content:center; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background-color:rgba(0,0,0,0.55); overflow-y:auto;';
+        const content = modal.querySelector('.modal-content');
+        if (content) {
+            content.style.animation = 'none';
+            content.offsetHeight; // force reflow to restart animation
+            content.style.animation = '';
+        }
         document.body.style.overflow = 'hidden';
 
         const dateInput = document.getElementById('reported_date');
@@ -82,7 +91,7 @@
     function closeAddMedicalModal() {
         const modal = document.getElementById('addMedicalModal');
         if (!modal) return;
-        modal.style.display = 'none';
+        modal.style.cssText = 'display:none;';
         document.body.style.overflow = '';
 
         const form = modal.querySelector('form');
@@ -230,42 +239,8 @@
     }
 
     function initRealtimeValidation() {
-        const injuryDetailsInput = document.getElementById('injury_details');
-        const diagnosisInput = document.getElementById('diagnosis');
         const restDaysInput = document.getElementById('rest_days_needed');
         const form = document.querySelector('#addMedicalModal form');
-
-        if (injuryDetailsInput) {
-            injuryDetailsInput.addEventListener('blur', function () {
-                const errorElement = document.getElementById('injury_details_error');
-                if (!errorElement) return;
-
-                if (!validateMinWords(this.value, 2)) {
-                    errorElement.textContent = 'Injury details must contain at least 2 words';
-                    errorElement.style.display = 'block';
-                    this.style.borderColor = '#dc3545';
-                } else {
-                    errorElement.style.display = 'none';
-                    this.style.borderColor = '#28a745';
-                }
-            });
-        }
-
-        if (diagnosisInput) {
-            diagnosisInput.addEventListener('blur', function () {
-                const errorElement = document.getElementById('diagnosis_error');
-                if (!errorElement) return;
-
-                if (!validateMinWords(this.value, 2)) {
-                    errorElement.textContent = 'Diagnosis must contain at least 2 words';
-                    errorElement.style.display = 'block';
-                    this.style.borderColor = '#dc3545';
-                } else {
-                    errorElement.style.display = 'none';
-                    this.style.borderColor = '#28a745';
-                }
-            });
-        }
 
         if (restDaysInput) {
             restDaysInput.addEventListener('input', function () {
@@ -294,32 +269,6 @@
             form.addEventListener('submit', function (e) {
                 let isValid = true;
                 const errors = [];
-
-                const injuryDetails = document.getElementById('injury_details')?.value || '';
-                if (!validateMinWords(injuryDetails, 2)) {
-                    isValid = false;
-                    errors.push('Injury details must contain at least 2 words');
-                    const el = document.getElementById('injury_details_error');
-                    if (el) {
-                        el.textContent = 'Injury details must contain at least 2 words';
-                        el.style.display = 'block';
-                    }
-                    const field = document.getElementById('injury_details');
-                    if (field) field.style.borderColor = '#dc3545';
-                }
-
-                const diagnosis = document.getElementById('diagnosis')?.value || '';
-                if (!validateMinWords(diagnosis, 2)) {
-                    isValid = false;
-                    errors.push('Diagnosis must contain at least 2 words');
-                    const el = document.getElementById('diagnosis_error');
-                    if (el) {
-                        el.textContent = 'Diagnosis must contain at least 2 words';
-                        el.style.display = 'block';
-                    }
-                    const field = document.getElementById('diagnosis');
-                    if (field) field.style.borderColor = '#dc3545';
-                }
 
                 const restDays = document.getElementById('rest_days_needed')?.value;
                 if (restDays) {

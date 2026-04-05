@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-rentals.css">
 
 <div class="admin-layout">
     <!-- Shop Sidebar -->

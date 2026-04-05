@@ -171,13 +171,23 @@ class Shop extends Controller {
     public function facilities() {
         // Check authentication for shop employees
         requireAuth(['Shop']);
-        
+
+        $facilities = $this->shopModel->getAllFacilities();
+        $facilityStats = $this->shopModel->getFacilityStats();
+        $sessionModel = $this->model('M_Session');
+
         $data = [
             'title' => 'Facility Management - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'facilities' => $this->shopModel->getAllFacilities()
+            'facilities' => $facilities,
+            'totalFacilities' => $facilityStats->total_facilities ?? 0,
+            'availableFacilities' => $facilityStats->available_facilities ?? 0,
+            'todaysBookingCount' => $this->shopModel->getTodaysFacilityBookings(),
+            'todaysBookings' => $sessionModel->getTodaysFacilityBookings(),
+            'facilitiesInMaintenance' => $this->shopModel->getFacilitiesInMaintenance(),
+            'todaysRevenue' => $this->shopModel->getTodaysFacilityRevenue()
         ];
-        
+
         $this->view('shop/facilities', $data);
     }
 
