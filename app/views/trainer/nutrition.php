@@ -90,9 +90,9 @@
                         <p>Create and manage customized nutrition plans for your trainees</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-training" onclick="openAddNutritionPlanModal()">
+                        <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-training">
                             <i class="fas fa-plus"></i>Add New Plan
-                        </button>
+                        </a>
                         <button class="btn btn-refresh" onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i>
                             <div class="current-time"><?php echo date('H:i'); ?></div>
@@ -220,9 +220,9 @@
                                             </div>
                                             <h3>No Nutrition Plans Found</h3>
                                             <p>Start by creating your first nutrition plan for your trainees</p>
-                                            <button class="btn btn-primary" onclick="openAddNutritionPlanModal()">
+                                            <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-primary">
                                                 <i class="fas fa-plus"></i> Create First Plan
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
