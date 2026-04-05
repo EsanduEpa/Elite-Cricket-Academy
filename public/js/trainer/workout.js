@@ -71,7 +71,32 @@ function filterTable() {
 }
 
 // Modal Management
+function setWorkoutPlanButtonsBusy() {
+    const buttons = document.querySelectorAll('.js-workout-plan-cta');
+
+    buttons.forEach((button) => {
+        if (!button.dataset.originalHtml) {
+            button.dataset.originalHtml = button.innerHTML;
+        }
+
+        button.classList.add('is-opening');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+    });
+
+    window.setTimeout(() => {
+        buttons.forEach((button) => {
+            button.classList.remove('is-opening');
+            button.disabled = false;
+            if (button.dataset.originalHtml) {
+                button.innerHTML = button.dataset.originalHtml;
+            }
+        });
+    }, 420);
+}
+
 function openAddModal() {
+    setWorkoutPlanButtonsBusy();
     const modal = document.getElementById('workoutModal');
     const form = document.getElementById('workoutForm');
     const modalTitle = document.getElementById('modalTitle');

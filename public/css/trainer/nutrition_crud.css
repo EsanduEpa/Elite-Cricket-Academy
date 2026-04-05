@@ -95,14 +95,6 @@
     border-radius: 6px;
 }
 
-/* ─── PAGE WRAPPER ───────────────────────────────────────────────
-   Add class="nc-page" to the outermost div on each CRUD view.
-   This scopes all rules here and avoids fights with dashboard.css.
-───────────────────────────────────────────────────────────────── */
-.nc-page {
-    /* nothing structural — just a scope anchor */
-}
-
 /* ─── PAGE HEADER ────────────────────────────────────────────────
    Matches the dashboard-header gradient in dashboard.css
 ───────────────────────────────────────────────────────────────── */
@@ -140,6 +132,24 @@
     gap: .6rem;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.nc-btn.nc-btn-secondary,
+.nc-btn.nc-btn-primary {
+    border-radius: 999px;
+    padding: .78rem 1.1rem;
+    font-weight: 700;
+}
+
+.nc-btn.nc-btn-secondary {
+    background: #8e9ba7;
+    color: #fff;
+}
+
+.nc-btn.nc-btn-primary {
+    background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(74,144,226,.18);
 }
 
 /* ─── FLASH MESSAGES ─────────────────────────────────────────────*/
@@ -320,7 +330,8 @@
     margin: 0 auto 1.1rem;
 }
 .nc-empty h3   { margin: 0 0 .4rem; color: #2c3e50; font-size: 1.1rem; font-weight: 700; }
-.nc-empty p    { margin: 0 0 1.4rem; font-size: .9rem; }
+.nc-empty h5   { margin: 0 0 .35rem; color: #2c3e50; font-size: 1rem; font-weight: 700; }
+.nc-empty p    { margin: 0 0 1.2rem; font-size: .84rem; }
 
 /* ─── FORM FIELDS ────────────────────────────────────────────── */
 .nc-field-row {
@@ -373,6 +384,195 @@
     min-height: 140px;
 }
 
+.nc-assignment-grid {
+    margin-bottom: 1.1rem;
+}
+
+.nc-assignment-mode-panel {
+    position: relative;
+}
+
+.nc-assignment-mode-panel[hidden] {
+    display: none !important;
+}
+
+.nc-player-picker {
+    position: relative;
+}
+
+.nc-player-picker.is-invalid .nc-picker-trigger,
+.nc-assignment-mode-panel .form-control.is-invalid {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231,76,60,.12);
+}
+
+.nc-picker-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    text-align: left;
+    border: 1.5px solid #d0dae6;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: .85rem 1rem;
+    cursor: pointer;
+    color: #2c3e50;
+    box-shadow: 0 2px 10px rgba(74,144,226,.05);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+
+.nc-picker-trigger:hover,
+.nc-player-picker.is-open .nc-picker-trigger {
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74,144,226,.12);
+}
+
+.nc-picker-trigger-label {
+    display: block;
+    font-size: .76rem;
+    font-weight: 800;
+    color: #4A90E2;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.nc-picker-trigger-summary {
+    display: block;
+    margin-top: .15rem;
+    font-size: .92rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.nc-picker-caret {
+    color: #6c757d;
+    transition: transform .18s ease;
+}
+
+.nc-player-picker.is-open .nc-picker-caret {
+    transform: rotate(180deg);
+}
+
+.nc-picker-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + .55rem);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(74,144,226,.16);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(44,62,80,.15);
+    padding: .95rem;
+}
+
+.nc-picker-panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: .8rem;
+}
+
+.nc-picker-panel-head strong {
+    display: block;
+    color: #2c3e50;
+    font-size: .95rem;
+}
+
+.nc-picker-panel-head span {
+    display: block;
+    margin-top: .2rem;
+    color: #6c757d;
+    font-size: .78rem;
+}
+
+.nc-picker-toolbar {
+    display: flex;
+    gap: .45rem;
+    flex-wrap: wrap;
+    margin-bottom: .85rem;
+}
+
+.nc-picker-options {
+    display: grid;
+    gap: .55rem;
+    max-height: 260px;
+    overflow: auto;
+    padding-right: .2rem;
+}
+
+.nc-picker-option {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    padding: .75rem .85rem;
+    border: 1px solid rgba(74,144,226,.1);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f9fcff 100%);
+    cursor: pointer;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease, background .18s ease;
+}
+
+.nc-picker-option:hover {
+    border-color: rgba(74,144,226,.28);
+    box-shadow: 0 8px 18px rgba(74,144,226,.08);
+    transform: translateY(-1px);
+}
+
+.nc-picker-option input {
+    margin-top: .2rem;
+    accent-color: #4A90E2;
+}
+
+.nc-picker-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: .12rem;
+}
+
+.nc-picker-option-name {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.nc-picker-option-email {
+    font-size: .78rem;
+    color: #6c757d;
+}
+
+.nc-player-count {
+    margin-left: .35rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #357abd;
+    background: rgba(74,144,226,.1);
+    padding: .22rem .55rem;
+    border-radius: 999px;
+}
+
+.nc-help-text {
+    margin-top: .35rem;
+    font-size: .76rem;
+    color: #6c757d;
+}
+
+.nc-assignment-mode-panel .form-control {
+    border-radius: 12px;
+}
+
+.nc-form-actions .nc-btn-secondary,
+.nc-form-actions .nc-btn-primary {
+    min-width: 180px;
+}
+
+.nc-form-actions .nc-btn-primary.is-loading {
+    opacity: .85;
+    cursor: not-allowed;
+}
+
 /* Validation error text */
 .invalid-feedback {
     color: #e74c3c;
@@ -417,6 +617,15 @@
     .nc-field-row.third { grid-template-columns: 1fr; }
 
     .nc-card-body { padding: 1rem; }
+
+    .nc-picker-panel {
+        position: static;
+        margin-top: .55rem;
+    }
+
+    .nc-picker-panel-head {
+        flex-direction: column;
+    }
 
     .nc-form-actions {
         flex-direction: column;

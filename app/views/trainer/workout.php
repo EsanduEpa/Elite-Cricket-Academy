@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Trainer Layout -->
-    <div class="player-layout">
+    <div class="player-layout workout-page">
         <!-- Left Sidebar Panel -->
         <div class="trainer-sidebar" id="trainerSidebar">
             <div class="sidebar-header">
@@ -90,7 +90,7 @@
                         <p>Create, manage, and track workout plans for your trainees</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-training" onclick="openAddModal()">
+                        <button class="btn btn-training plan-cta-btn js-workout-plan-cta" onclick="openAddModal()">
                             <i class="fas fa-plus"></i>Add New Plan
                         </button>
                         <button class="btn btn-refresh" onclick="location.reload()">
@@ -266,7 +266,7 @@
                                             <i class="fas fa-dumbbell" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
                                             <h3 style="color: #4A90E2; margin-bottom: 8px;">No workout plans found</h3>
                                             <p style="margin-bottom: 20px;">Start by creating your first workout plan!</p>
-                                            <button class="btn btn-training" onclick="openAddModal()">
+                                            <button class="btn btn-training plan-cta-btn plan-cta-secondary js-workout-plan-cta" onclick="openAddModal()">
                                                 <i class="fas fa-plus"></i>Add Workout Plan
                                             </button>
                                         </div>

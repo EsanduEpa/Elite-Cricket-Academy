@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Trainer Layout -->
-    <div class="player-layout">
+    <div class="player-layout supplement-page">
         <!-- Left Sidebar Panel -->
         <div class="trainer-sidebar" id="trainerSidebar">
             <div class="sidebar-header">
@@ -90,7 +90,7 @@
                         <p>Create and manage customized supplement plans for your trainees</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-training" onclick="openAddSupplementPlanModal()">
+                        <button class="btn btn-training plan-cta-btn js-plan-cta" onclick="openAddSupplementPlanModal()">
                             <i class="fas fa-plus"></i>Add New Plan
                         </button>
                         <button class="btn btn-refresh" onclick="location.reload()">
@@ -191,7 +191,7 @@
                                             <i class="fas fa-capsules" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
                                             <h3 style="color: #4A90E2; margin-bottom: 8px;">No supplement plans found</h3>
                                             <p style="margin-bottom: 20px;">Start by creating your first supplement plan!</p>
-                                            <button class="btn btn-training" onclick="openAddSupplementPlanModal()">
+                                            <button class="btn btn-training plan-cta-btn plan-cta-secondary js-plan-cta" onclick="openAddSupplementPlanModal()">
                                                 <i class="fas fa-plus"></i>Add Supplement Plan
                                             </button>
                                         </div>
@@ -312,8 +312,32 @@
     </div>
 
     <script>
+        function setSupplementPlanButtonsBusy() {
+            const buttons = document.querySelectorAll('.js-plan-cta');
+            buttons.forEach((button) => {
+                if (!button.dataset.originalHtml) {
+                    button.dataset.originalHtml = button.innerHTML;
+                }
+
+                button.classList.add('is-opening');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+            });
+
+            window.setTimeout(() => {
+                buttons.forEach((button) => {
+                    button.classList.remove('is-opening');
+                    button.disabled = false;
+                    if (button.dataset.originalHtml) {
+                        button.innerHTML = button.dataset.originalHtml;
+                    }
+                });
+            }, 420);
+        }
+
         // Add Supplement Plan Modal Functions
         function openAddSupplementPlanModal() {
+            setSupplementPlanButtonsBusy();
             const modal = document.getElementById('addSupplementPlanModal');
             modal.style.display = 'block';
             setTimeout(() => modal.classList.add('show'), 10);
