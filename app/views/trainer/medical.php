@@ -12,7 +12,7 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="trainer-details">
-                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'John Smith'; ?></h4>
+                    <h4><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Trainer'; ?></h4>
                     <p>Physical Trainer</p>
                 </div>
             </div>

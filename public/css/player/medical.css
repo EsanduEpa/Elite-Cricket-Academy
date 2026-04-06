@@ -647,9 +647,19 @@
     font-size: 11px;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-40px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
 /* Modal styles */
 .modal {
-    display: none !important;
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -671,6 +681,11 @@
     justify-content: center;
 }
 
+/* Ensure modal is visible when display is block */
+.modal[style*="display: block"] {
+    display: block !important;
+}
+
 /* Ensure modal is visible when inline styles show it */
 .modal[style*="display: flex"] {
     display: flex !important;
@@ -690,15 +705,9 @@
     max-height: 88vh;
     display: flex;
     flex-direction: column;
-    animation: slideUpModal 0.3s ease-out;
-    animation-fill-mode: both;
+    animation: slideIn 0.3s ease-out;
     z-index: 100000;
     pointer-events: auto;
-}
-
-@keyframes slideUpModal {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {

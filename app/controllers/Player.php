@@ -402,7 +402,7 @@ class Player extends Controller {
             // Handle file upload for diagnosis receipt
             $diagnosisReceiptURL = null;
             if (isset($_FILES['diagnosis_receipt']) && $_FILES['diagnosis_receipt']['error'] == 0) {
-                $uploadDir = 'public/uploads/medical_receipts/';
+                $uploadDir = APPROOT . '/public/uploads/medical_receipts/';
                 
                 // Create directory if it doesn't exist
                 if (!is_dir($uploadDir)) {
@@ -559,6 +559,71 @@ class Player extends Controller {
         } else {
             redirect('player/medical');
         }
+    }
+
+    // Full update of a medical record (only allowed when verifyStatus is pending)
+    public function fullUpdateMedicalRecord() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/medical');
+            return;
+        }
+
+        if (!isset($this->medicalModel)) {
+            $this->medicalModel = $this->model('M_Medical');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId   = $playerData['id'];
+        $recordId   = intval($_POST['record_id'] ?? 0);
+
+        $existingRecord = $this->medicalModel->getMedicalRecord($recordId);
+
+        if (!$existingRecord || $existingRecord->PlayerID != $playerId) {
+            flash('medical_message', 'Record not found or access denied', 'alert alert-danger');
+            redirect('player/medical');
+            return;
+        }
+
+        // Only allow full edit when the record is still pending
+        if (strtolower($existingRecord->verifyStatus ?? 'pending') !== 'pending') {
+            flash('medical_message', 'This record has already been reviewed and cannot be fully edited', 'alert alert-danger');
+            redirect('player/medical');
+            return;
+        }
+
+        $validStatuses = ['ongoing', 'recovering', 'fully_recovered', 'chronic_condition'];
+        $recoveryStatus = $_POST['recovery_status'] ?? '';
+        if (!in_array($recoveryStatus, $validStatuses)) {
+            flash('medical_message', 'Invalid recovery status selected', 'alert alert-danger');
+            redirect('player/medical');
+            return;
+        }
+
+        $updateData = [
+            'body_area'           => trim($_POST['body_area']          ?? ''),
+            'diagnosis'           => trim($_POST['diagnosis']           ?? ''),
+            'treatment_given'     => trim($_POST['treatment_given']     ?? ''),
+            'recovery_status'     => $recoveryStatus,
+            'injury_date'         => $_POST['injury_date']              ?? '',
+            'happened_at_academy' => $_POST['happened_at_academy']      ?? 'no',
+            'rest_days_needed'    => intval($_POST['rest_days_needed']  ?? 0),
+            'reported_date'       => $_POST['reported_date']            ?? date('Y-m-d'),
+        ];
+
+        if (empty($updateData['body_area']) || empty($updateData['diagnosis'])) {
+            flash('medical_message', 'Body area and diagnosis are required', 'alert alert-danger');
+            redirect('player/medical');
+            return;
+        }
+
+        $success = $this->medicalModel->fullUpdateMedicalRecord($recordId, $updateData);
+
+        if ($success) {
+            flash('medical_message', 'Medical record updated successfully');
+        } else {
+            flash('medical_message', 'Failed to update medical record', 'alert alert-danger');
+        }
+        redirect('player/medical');
     }
 
     // Delete medical record (only if verify status is rejected)

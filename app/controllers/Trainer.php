@@ -13,11 +13,33 @@ class Trainer extends Controller {
     }
 
     public function dashboard() {
+        if (!isset($_SESSION['user_id'])) {
+            redirect('login');
+        }
+
+        $trainerId = (int)$_SESSION['user_id'];
+        $sessionModel = $this->model('M_Session');
+        $sessions = $sessionModel->getSessionsByCoach($trainerId);
+
+        foreach ($sessions as $session) {
+            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
+        }
+
+        $today = date('Y-m-d');
+        $todaySessions = array_values(array_filter($sessions, fn($s) => ($s->Date ?? '') === $today));
+
+        $recentSessions = $sessions;
+        usort($recentSessions, fn($a, $b) => strcmp(($b->Date ?? '') . ($b->StartTime ?? ''), ($a->Date ?? '') . ($a->StartTime ?? '')));
+        $recentSessions = array_slice($recentSessions, 0, 6);
+
         $data = [
             'title' => 'Trainer Dashboard',
             'trainer_name' => $_SESSION['user_name'] ?? 'Trainer',
-            'upcoming_sessions' => $this->getUpcomingSessions(),
-            'today_stats' => $this->getTodayStats()
+            'sessions' => $sessions,
+            'today_sessions' => $todaySessions,
+            'recent_sessions' => $recentSessions,
+            'upcoming_sessions' => $this->getUpcomingSessions($trainerId),
+            'today_stats' => $this->getTodayStats($sessions)
         ];
 
         $this->view('trainer/dashboard', $data);
@@ -634,38 +656,49 @@ class Trainer extends Controller {
     }
 
     // Helper methods
-    private function getUpcomingSessions() {
-        // Get upcoming sessions for today
-        return [
-            [
-                'time' => '09:00 AM - 11:00 AM',
-                'title' => 'Youth Cricket Program',
-                'players' => '15 Players',
-                'location' => 'Field A',
-                'type' => 'group'
-            ],
-            [
-                'time' => '11:30 AM - 12:30 PM',
-                'title' => 'Kumara Silva',
-                'description' => 'Fitness Assessment',
-                'type' => 'private'
-            ],
-            [
-                'time' => '02:00 PM - 04:00 PM',
-                'title' => 'Advanced Training',
-                'players' => '12 Players',
-                'location' => 'Indoor Nets',
-                'type' => 'group'
-            ]
-        ];
+    private function getUpcomingSessions(int $trainerId): array {
+        $sessionModel = $this->model('M_Session');
+        $sessions = $sessionModel->getSessionsByCoach($trainerId);
+        $today = date('Y-m-d');
+
+        $upcoming = array_values(array_filter($sessions, function($s) use ($today) {
+            return ($s->Date ?? '') >= $today && strtolower($s->Status ?? '') !== 'cancelled';
+        }));
+
+        usort($upcoming, fn($a, $b) => strcmp(($a->Date ?? '') . ($a->StartTime ?? ''), ($b->Date ?? '') . ($b->StartTime ?? '')));
+        return $upcoming;
     }
 
-    private function getTodayStats() {
+    private function getTodayStats(array $sessions): array {
+        $today = date('Y-m-d');
+        $todaySessions = array_values(array_filter($sessions, fn($s) => ($s->Date ?? '') === $today));
+
+        $completedCount = count(array_filter($sessions, fn($s) => strtolower($s->Status ?? '') === 'completed'));
+        $nonCancelledCount = count(array_filter($sessions, fn($s) => strtolower($s->Status ?? '') !== 'cancelled'));
+
+        $uniquePlayers = [];
+        $privateSessions = 0;
+        foreach ($sessions as $session) {
+            if (strtolower($session->SessionMode ?? '') === 'individual') {
+                $privateSessions++;
+            }
+
+            if (!empty($session->players)) {
+                foreach ($session->players as $player) {
+                    if (isset($player->PlayerID)) {
+                        $uniquePlayers[(int)$player->PlayerID] = true;
+                    }
+                }
+            }
+        }
+
         return [
-            'total_sessions' => 8,
-            'active_players' => 24,
-            'private_sessions' => 3,
-            'upcoming_tournaments' => 2
+            'total_sessions' => count($todaySessions),
+            'active_players' => count($uniquePlayers),
+            'private_sessions' => $privateSessions,
+            'completion_rate' => $nonCancelledCount > 0 ? (int)round(($completedCount / $nonCancelledCount) * 100) : 0,
+            'completed_sessions' => $completedCount,
+            'upcoming_sessions' => count(array_filter($sessions, fn($s) => ($s->Date ?? '') > $today)),
         ];
     }
 

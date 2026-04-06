@@ -71,19 +71,43 @@ class M_Medical {
         }
     }
     
-    // Update medical record
+    // Update medical record (recovery status only — for verified records)
     public function updateMedicalRecord($recordId, $data) {
         $this->db->query('UPDATE PlayerMedicalRecord SET
             RecoveryStatus = :recovery_status,
             ReportedDate = :reported_date
             WHERE RecordID = :record_id');
 
-        // Bind values
         $this->db->bind(':record_id', $recordId);
         $this->db->bind(':recovery_status', $data['recovery_status']);
         $this->db->bind(':reported_date', $data['reported_date']);
         
-        // Execute
+        return $this->db->execute();
+    }
+
+    // Full update of medical record (all editable fields — for pending records)
+    public function fullUpdateMedicalRecord($recordId, $data) {
+        $this->db->query('UPDATE PlayerMedicalRecord SET
+            bodyarea           = :body_area,
+            Diagnosis          = :diagnosis,
+            TreatmentGiven     = :treatment_given,
+            RecoveryStatus     = :recovery_status,
+            InjuryDate         = :injury_date,
+            HappenedAtAcademy  = :happened_at_academy,
+            RestDaysNeeded     = :rest_days_needed,
+            ReportedDate       = :reported_date
+            WHERE RecordID = :record_id');
+
+        $this->db->bind(':record_id',           $recordId);
+        $this->db->bind(':body_area',           $data['body_area']);
+        $this->db->bind(':diagnosis',           $data['diagnosis']);
+        $this->db->bind(':treatment_given',     $data['treatment_given']);
+        $this->db->bind(':recovery_status',     $data['recovery_status']);
+        $this->db->bind(':injury_date',         $data['injury_date']);
+        $this->db->bind(':happened_at_academy', $data['happened_at_academy']);
+        $this->db->bind(':rest_days_needed',    $data['rest_days_needed']);
+        $this->db->bind(':reported_date',       $data['reported_date']);
+
         return $this->db->execute();
     }
     

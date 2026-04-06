@@ -125,29 +125,29 @@
                 <div class="stat-icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <div class="stat-value">28</div>
+                <div class="stat-value"><?php echo (int)($data['today_stats']['active_players'] ?? 0); ?></div>
                 <div class="stat-label">Active Clients</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-calendar-check"></i>
                 </div>
-                <div class="stat-value">12</div>
+                <div class="stat-value"><?php echo (int)($data['today_stats']['total_sessions'] ?? 0); ?></div>
                 <div class="stat-label">Today's Sessions</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="stat-value">94%</div>
+                <div class="stat-value"><?php echo (int)($data['today_stats']['completion_rate'] ?? 0); ?>%</div>
                 <div class="stat-label">Completion Rate</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-trophy"></i>
                 </div>
-                <div class="stat-value">18</div>
-                <div class="stat-label">Progress Goals</div>
+                <div class="stat-value"><?php echo (int)($data['today_stats']['completed_sessions'] ?? 0); ?></div>
+                <div class="stat-label">Completed Sessions</div>
             </div>
         </div>
 
@@ -171,73 +171,65 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">9:00 AM</div>
-                                    <div class="table-cell-secondary">90 minutes</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Senior Cricket Training</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-users"></i> 15 Players - Main Field
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-active">Active</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">11:00 AM</div>
-                                    <div class="table-cell-secondary">60 minutes</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Kumara Silva</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user"></i> Personal Training - Gym
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge status-upcoming">Upcoming</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">2:00 PM</div>
-                                    <div class="table-cell-secondary">120 minutes</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Youth Development</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-users"></i> 12 Players - Indoor Nets
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge">Scheduled</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="table-cell-primary">4:30 PM</div>
-                                    <div class="table-cell-secondary">45 minutes</div>
-                                </td>
-                                <td>
-                                    <div class="table-cell-title">Anjali Perera</div>
-                                    <div class="table-cell-details">
-                                        <i class="fas fa-user"></i> Fitness Assessment - Gym B
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="table-badge">Scheduled</span>
-                                </td>
-                            </tr>
+                            <?php $todaySessions = $data['today_sessions'] ?? []; ?>
+                            <?php if (!empty($todaySessions)): ?>
+                                <?php foreach ($todaySessions as $session): ?>
+                                    <?php
+                                    $start = strtotime($session->StartTime ?? '00:00:00');
+                                    $end = strtotime($session->EndTime ?? '00:00:00');
+                                    $minutes = ($end > $start) ? (int)(($end - $start) / 60) : 0;
+                                    $status = strtolower($session->Status ?? 'upcoming');
+                                    $statusClass = in_array($status, ['active', 'completed', 'cancelled', 'upcoming'], true) ? 'status-' . $status : 'status-upcoming';
+                                    $participantCount = (int)($session->ParticipantCount ?? 0);
+                                    ?>
+                                    <tr>
+                                        <td>
+                                            <div class="table-cell-primary"><?php echo date('g:i A', $start); ?></div>
+                                            <div class="table-cell-secondary"><?php echo $minutes; ?> minutes</div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title"><?php echo htmlspecialchars($session->Name ?? 'Session'); ?></div>
+                                            <div class="table-cell-details">
+                                                <i class="fas fa-users"></i>
+                                                <?php echo $participantCount; ?> player<?php echo $participantCount !== 1 ? 's' : ''; ?>
+                                                - <?php echo htmlspecialchars($session->Location ?? 'Not specified'); ?>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge <?php echo $statusClass; ?>"><?php echo ucfirst($status); ?></span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" style="text-align:center;padding:20px;color:#666;">
+                                        No sessions scheduled for today.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
                 
                 <!-- Session Summary -->
                 <div class="session-summary">
-                    <strong>Today's Summary:</strong> 4 sessions scheduled, 1 active, 3 upcoming. Total training time: 5.25 hours.
+                    <?php
+                    $activeCount = count(array_filter($todaySessions ?? [], fn($s) => strtolower($s->Status ?? '') === 'active'));
+                    $upcomingCount = count(array_filter($todaySessions ?? [], fn($s) => strtolower($s->Status ?? '') === 'upcoming'));
+                    $totalMinutes = 0;
+                    foreach (($todaySessions ?? []) as $s) {
+                        $st = strtotime($s->StartTime ?? '00:00:00');
+                        $et = strtotime($s->EndTime ?? '00:00:00');
+                        if ($et > $st) {
+                            $totalMinutes += (int)(($et - $st) / 60);
+                        }
+                    }
+                    ?>
+                    <strong>Today's Summary:</strong>
+                    <?php echo count($todaySessions ?? []); ?> sessions scheduled,
+                    <?php echo $activeCount; ?> active,
+                    <?php echo $upcomingCount; ?> upcoming.
+                    Total training time: <?php echo number_format($totalMinutes / 60, 2); ?> hours.
                 </div>
             </div>
 
@@ -336,46 +328,37 @@
                 </div>
                 <div class="card-content">
                     <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-check-circle"></i>
+                        <?php $recentSessions = $data['recent_sessions'] ?? []; ?>
+                        <?php if (!empty($recentSessions)): ?>
+                            <?php foreach ($recentSessions as $session): ?>
+                                <?php
+                                $status = strtolower($session->Status ?? 'upcoming');
+                                $icon = match ($status) {
+                                    'completed' => 'check-circle',
+                                    'active' => 'calendar-check',
+                                    'cancelled' => 'times-circle',
+                                    default => 'clock',
+                                };
+                                ?>
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <i class="fas fa-<?php echo $icon; ?>"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Session <?php echo htmlspecialchars(ucfirst($status)); ?></div>
+                                        <div class="activity-details"><?php echo htmlspecialchars($session->Name ?? 'Session'); ?> - <?php echo htmlspecialchars($session->Location ?? 'Not specified'); ?></div>
+                                        <div class="activity-time"><?php echo date('M j, Y g:i A', strtotime(($session->Date ?? date('Y-m-d')) . ' ' . ($session->StartTime ?? '00:00:00'))); ?></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="activity-item">
+                                <div class="activity-content">
+                                    <div class="activity-title">No recent activities</div>
+                                    <div class="activity-details">Activities will appear here once sessions are created.</div>
+                                </div>
                             </div>
-                            <div class="activity-content">
-                                <div class="activity-title">Workout plan completed</div>
-                                <div class="activity-details">Kumara Silva - Upper Body Strength</div>
-                                <div class="activity-time">2 hours ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">Session scheduled</div>
-                                <div class="activity-details">Youth Team - Tomorrow 10:00 AM</div>
-                                <div class="activity-time">4 hours ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-user-injured"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">Injury report submitted</div>
-                                <div class="activity-details">Anjali Perera - Minor muscle strain</div>
-                                <div class="activity-time">1 day ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">Progress updated</div>
-                                <div class="activity-details">Senior Team - Monthly assessment</div>
-                                <div class="activity-time">2 days ago</div>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
