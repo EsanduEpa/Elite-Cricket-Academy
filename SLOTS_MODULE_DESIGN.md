@@ -41,21 +41,20 @@ Owns the entire slot configuration. The only role that can create templates, ass
 - Must check `playermedicalrecord.RestDaysNeeded` before enrolling a player with an active injury
 - Must validate `playersubscription.Status = active` before enrolling a player in any paid or subscription program
 - Cancelling an occurrence must auto-insert rows into `notification` for all booked players
-- All admin slot actions must be written to `activitylog` and `slot_change_log`
+- All admin slot actions must be written to `activitylog` and `slot_audit_log`
 
 ---
 
 ### 2.2 Coach
 Sees their own sessions. Cannot create templates or manage facilities.
 
-**Reads:** Upcoming occurrences they are assigned to (via `slot_template_staff` or `slot_occurrence_coach`), the enrolled player list for each occurrence (`slot_booking`), past attendance records.
-**Writes:** `slot_attendance` (present/absent/late per player) and `coachingsession` (performance notes per player per session — the existing detailed log).
+**Reads:** Upcoming occurrences they are assigned to (via `slot_template_staff` or `slot_occurrence_staff_override`), the enrolled player list for each occurrence (`slot_booking`).
+**Writes:** `coachingsession` (performance notes per player per session — the existing detailed log).
 
 **Critical connections:**
 - A coach can **only** see the player list for occurrences they are assigned to. They cannot view another coach's private session player details — enforced through the existing `ValidateCoachPlayerPermission` stored procedure.
 - Coaches with `coachprofile.IsHeadCoach = 1` can see all sessions across all coaches.
-- After marking attendance, the system should prompt the coach to fill in `coachingsession` performance notes for each present player. These notes feed `performanceupdate` → `playeroverallstats`.
-- 3 consecutive absences for a player triggers a `notification` insert to the admin.
+- After a session completes, the coach fills in `coachingsession` performance notes for each player. These notes feed `performanceupdate` → `playeroverallstats`.
 
 ---
 
@@ -63,7 +62,7 @@ Sees their own sessions. Cannot create templates or manage facilities.
 Runs **Physical Training** sessions. Separate staff type from coaches. Currently lumped together in one column — the new design separates them clearly.
 
 **Reads:** Upcoming physical training occurrences they are assigned to, enrolled player list.
-**Writes:** `slot_attendance` for physical training sessions. Trainers do **not** write `coachingsession` — they use `trainerappointment`, `nutritionplan`, and `supplementplan` for player-specific records.
+**Writes:** Trainers do **not** write `coachingsession` — they use `trainerappointment`, `nutritionplan`, and `supplementplan` for player-specific records.
 
 **Critical connections:**
 - A template with `StaffType = trainer` can only be assigned to users with `Role = Trainer`.
@@ -116,8 +115,8 @@ The **counter operator**. Processes walk-in players who want to book a facility 
 
 Admin Priya creates **"U15 Batting Practice — every Monday, 3 PM to 5 PM, Main Ground"**.
 
-> **`time_slot` is needed here.**
-> Priya picks from a dropdown: *"03:00 PM – 05:00 PM"*. That dropdown is powered by `time_slot`. Without it every form uses different spellings — "3pm", "15:00", "3:00 PM" — and date-range queries break silently.
+> **`slot_time_band` is needed here.**
+> Priya picks from a dropdown: *"03:00 PM – 05:00 PM"*. That dropdown is powered by `slot_time_band`. Without it every form uses different spellings — "3pm", "15:00", "3:00 PM" — and date-range queries break silently.
 
 > **`slot_template` is needed here.**
 > Priya is declaring that *this program exists every Monday*, not just today. Without the template, she would have to create 52 individual records for every Monday of the year. One typo would move a session to the wrong facility. The template is the single source of truth.
@@ -155,8 +154,8 @@ Before enrolling, the system checks `playersubscription.Status = active` and `me
 
 Priya arranges Coach Dilshan as substitute just for April 13.
 
-> **`slot_occurrence_coach` is needed here.**
-> If Priya edited `slot_template_staff` to replace Ravi with Dilshan, every future Monday would also lose Ravi permanently. `slot_occurrence_coach` lets her record: *"For April 13 only, Dilshan replaces Ravi."* April 20, 27, and beyond still show Ravi as per the template. Without this table there is no way to handle a one-day substitution without corrupting the whole season.
+> **`slot_occurrence_staff_override` is needed here.**
+> If Priya edited `slot_template_staff` to replace Ravi with Dilshan, every future Monday would also lose Ravi permanently. `slot_occurrence_staff_override` lets her record: *"For April 13 only, Dilshan replaces Ravi."* April 20, 27, and beyond still show Ravi as per the template. Without this table there is no way to handle a one-day substitution without corrupting the whole season.
 
 ---
 
@@ -187,30 +186,21 @@ Shop Employee Kasun checks the system: slot for FacilityID=3 (Bowling Machine), 
 
 ---
 
-#### 3:00 PM — U15 session starts. Coach Sarath marks the register after.
+#### 3:00 PM — U15 session runs. Coach Sarath adds performance notes after.
 
-Coach Sarath marks: Ashan present, Bimal absent, Chaminda late.
-
-> **`slot_attendance` separate from `slot_booking` is needed here.**
-> `slot_booking` = player *was supposed to come*. `slot_attendance` = whether they *actually showed up*. If attendance was stored in the booking row, every future booking would have null attendance values before the session happens — the system could not distinguish "session hasn't happened yet" from "player was absent". Separate tables keep the data clean and make historical attendance reports accurate.
-
----
-
-#### 5:00 PM — Coach Sarath adds performance notes for present players
-
-For each player marked present, the system prompts Sarath to fill `coachingsession` notes (skills worked on, areas for improvement, homework). These notes are linked back to the occurrence via `LegacySessionID`/`OccurrenceID`, feeding the entire performance tracking chain.
+For each booked player, the system prompts Sarath to fill `coachingsession` notes (skills worked on, areas for improvement, homework). These notes are linked back to the occurrence via `OccurrenceID`, feeding the entire performance tracking chain.
 
 > **Slot data feeds the performance development chain.**
-> `slot_occurrence` → `slot_attendance` → `coachingsession` → `performanceupdate` → `playeroverallstats`. The slot system is the entry point of the entire player development pipeline. If the slot system is unreliable, every downstream report is unreliable too.
+> `slot_occurrence` → `slot_booking` → `coachingsession` → `performanceupdate` → `playeroverallstats`. The slot system is the entry point of the entire player development pipeline. If the slot system is unreliable, every downstream report is unreliable too.
 
 ---
 
 #### 5:30 PM — Admin cancels the April 20 occurrence (school holiday)
 
-Priya cancels it with reason "School holiday". The system auto-inserts a `notification` for all 14 enrolled players and writes a row to `slot_change_log`: who changed it, when, from what status to what status.
+Priya cancels it with reason "School holiday". The system auto-inserts a `notification` for all 14 enrolled players and writes a row to `slot_audit_log`: who changed it, when, from what status to what status.
 
-> **`slot_change_log` is needed for accountability.**
-> Next month when Admin Ravi asks "why was April 20 cancelled?", `activitylog` gives the action and `slot_change_log` gives the before/after state of every changed field. Without it, there is no recoverable evidence of what happened.
+> **`slot_audit_log` is needed for accountability.**
+> Next month when Admin Ravi asks "why was April 20 cancelled?", `activitylog` gives the action and `slot_audit_log` gives the before/after state of every changed field. Without it, there is no recoverable evidence of what happened.
 
 ---
 
@@ -218,17 +208,16 @@ Priya cancels it with reason "School holiday". The system auto-inserts a `notifi
 
 | Time | What Happened | Tables Involved |
 |---|---|---|
-| Season start | Admin defines "U15 Batting, Mon 3–5pm, Main Ground" | `time_slot`, `slot_template` |
+| Season start | Admin defines "U15 Batting, Mon 3–5pm, Main Ground" | `slot_time_band`, `slot_template` |
 | Season start | Coach + Trainer assigned | `slot_template_staff` |
 | 8:00 AM | 4 Monday occurrences generated for April | `slot_occurrence` |
 | 8:30 AM | 13 players enrolled (sub validated); 1 blocked (sub expired) | `slot_booking`, `playersubscription`, `membershipplan` |
-| 9:00 AM | Ravi replaced by Dilshan for April 13 only | `slot_occurrence_coach` |
+| 9:00 AM | Ravi replaced by Dilshan for April 13 only | `slot_occurrence_staff_override` |
 | 9:30 AM | Swairi's booking flagged — active wrist injury | `slot_booking`, `playermedicalrecord` |
 | 11:30 AM | Chamara blocked — plan has no facility access | `slot_occurrence`, `slot_booking`, `membershipplan` |
 | 2:00 PM | Walk-in Dinesh books Bowling Machine at counter | `slot_occurrence`, `slot_booking` (shop_employee) |
-| 5:00 PM | Attendance marked for 13 players | `slot_attendance` |
-| 5:00 PM | Coach adds performance notes for present players | `coachingsession` (linked via OccurrenceID) |
-| 5:30 PM | April 20 cancelled; players notified; change logged | `slot_occurrence`, `notification`, `activitylog`, `slot_change_log` |
+| 3:00 PM | Coach adds performance notes for players | `coachingsession` (linked via OccurrenceID) |
+| 5:30 PM | April 20 cancelled; players notified; change logged | `slot_occurrence`, `notification`, `activitylog`, `slot_audit_log` |
 
 Every table was touched by normal academy operations on one ordinary Monday. None is redundant.
 
@@ -236,10 +225,10 @@ Every table was touched by normal academy operations on one ordinary Monday. Non
 
 ## 4. Table Definitions
 
-### 4.1 `time_slot` — Master Time Bands
+### 4.1 `slot_time_band` — Master Time Bands
 
 ```sql
-CREATE TABLE `time_slot` (
+CREATE TABLE `slot_time_band` (
   `SlotID`           TINYINT(4)  NOT NULL AUTO_INCREMENT,
   `SlotLabel`        VARCHAR(50) NOT NULL,   -- "09:00 AM – 11:00 AM"
   `StartTime`        TIME        NOT NULL,
@@ -250,7 +239,7 @@ CREATE TABLE `time_slot` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Master fixed time bands. Admin toggles IsActive only — never deletes rows.';
 
-INSERT INTO `time_slot` (`SlotLabel`, `StartTime`, `EndTime`, `DurationMinutes`) VALUES
+INSERT INTO `slot_time_band` (`SlotLabel`, `StartTime`, `EndTime`, `DurationMinutes`) VALUES
 ('09:00 AM – 11:00 AM', '09:00:00', '11:00:00', 120),
 ('11:00 AM – 01:00 PM', '11:00:00', '13:00:00', 120),
 ('01:00 PM – 03:00 PM', '13:00:00', '15:00:00', 120),
@@ -281,7 +270,7 @@ CREATE TABLE `slot_template` (
   -- trainer = physical training session (prompts trainerappointment notes)
   -- none    = facility_only, no staff
 
-  `SlotID`              TINYINT(4)    NOT NULL,       -- FK → time_slot
+  `SlotID`              TINYINT(4)    NOT NULL,       -- FK → slot_time_band
   `DayOfWeek`           TINYINT(1)    DEFAULT NULL,   -- 1=Mon…7=Sun; NULL = ad-hoc / no fixed day
   `FacilityID`          INT(11)       DEFAULT NULL,   -- FK → facility; NULL = assigned per occurrence
 
@@ -315,7 +304,7 @@ CREATE TABLE `slot_template` (
   KEY `idx_st_facility`   (`FacilityID`),
   KEY `idx_st_type`       (`SlotType`),
   KEY `idx_st_stafftype`  (`StaffType`),
-  CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `time_slot`(`SlotID`),
+  CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_st_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`),
   CONSTRAINT `fk_st_creator`  FOREIGN KEY (`CreatedBy`)  REFERENCES `user`(`UserID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -391,7 +380,7 @@ CREATE TABLE `slot_occurrence` (
   KEY `idx_occ_date`     (`OccurrenceDate`),
   KEY `idx_occ_status`   (`Status`),
   CONSTRAINT `fk_occ_template` FOREIGN KEY (`TemplateID`) REFERENCES `slot_template`(`TemplateID`),
-  CONSTRAINT `fk_occ_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `time_slot`(`SlotID`),
+  CONSTRAINT `fk_occ_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_occ_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='One row per actual session on one calendar date. Generated from templates or created ad-hoc.';
@@ -401,10 +390,10 @@ CREATE TABLE `slot_occurrence` (
 
 ---
 
-### 4.5 `slot_occurrence_coach` — Per-Date Staff Overrides
+### 4.5 `slot_occurrence_staff_override` — Per-Date Staff Overrides
 
 ```sql
-CREATE TABLE `slot_occurrence_coach` (
+CREATE TABLE `slot_occurrence_staff_override` (
   `ID`              INT(11)      NOT NULL AUTO_INCREMENT,
   `OccurrenceID`    INT(11)      NOT NULL,
   `UserID`          INT(11)      NOT NULL,   -- FK → user (Coach or Trainer substitute)
@@ -421,7 +410,7 @@ CREATE TABLE `slot_occurrence_coach` (
   COMMENT='One-day staff override. If rows exist for an OccurrenceID, they take precedence over slot_template_staff.';
 ```
 
-**Fallback rule (application):** When fetching staff for an occurrence, first check `slot_occurrence_coach`. If empty, fall back to `slot_template_staff`. A one-day override is additive — you never need to remove template assignments to handle a single substitution.
+**Fallback rule (application):** When fetching staff for an occurrence, first check `slot_occurrence_staff_override`. If empty, fall back to `slot_template_staff`. A one-day override is additive — you never need to remove template assignments to handle a single substitution.
 
 ---
 
@@ -472,35 +461,14 @@ CREATE TABLE `slot_booking` (
 
 ---
 
-### 4.7 `slot_attendance` — Attendance Per Booking
-
-```sql
-CREATE TABLE `slot_attendance` (
-  `AttendanceID` INT(11)  NOT NULL AUTO_INCREMENT,
-  `BookingID`    INT(11)  NOT NULL,
-  `Status`       ENUM('present','absent','late','partial') NOT NULL DEFAULT 'present',
-  `Notes`        TEXT     DEFAULT NULL,
-  `MarkedBy`     INT(11)  NOT NULL,      -- FK → user (coach, trainer, or admin)
-  `MarkedAt`     DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (`AttendanceID`),
-  UNIQUE KEY `uq_att_booking` (`BookingID`),
-  CONSTRAINT `fk_att_booking` FOREIGN KEY (`BookingID`) REFERENCES `slot_booking`(`BookingID`) ON DELETE CASCADE,
-  CONSTRAINT `fk_att_marker`  FOREIGN KEY (`MarkedBy`)  REFERENCES `user`(`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='Attendance record per booking. Created after a session completes, never before.';
-```
-
----
-
-### 4.8 `slot_change_log` — Full Audit Trail
+### 4.7 `slot_audit_log` — Full Audit Trail
 
 Every create, edit, and cancel operation on the slot system must be permanently recorded. This table is the accountability layer.
 
 ```sql
-CREATE TABLE `slot_change_log` (
+CREATE TABLE `slot_audit_log` (
   `LogID`        INT(11)      NOT NULL AUTO_INCREMENT,
-  `EntityType`   ENUM('template','occurrence','booking','attendance','staff_assignment') NOT NULL,
+  `EntityType`   ENUM('template','occurrence','booking','staff_assignment') NOT NULL,
   `EntityID`     INT(11)      NOT NULL,   -- PK of the changed record
   `Action`       ENUM('create','update','cancel','delete','override') NOT NULL,
   `ChangedField` VARCHAR(100) DEFAULT NULL, -- e.g. 'Status', 'FacilityID', 'CoachID'
@@ -540,13 +508,8 @@ slot_occurrence
     │         ├── validates: playermedicalrecord (active injury / RestDaysNeeded)
     │         ├── triggers:  notification (booking confirmed / cancelled)
     │         ├── triggers:  livenotification (same-day events)
-    │         └── recorded:  slot_change_log + activitylog
+    │         └── recorded:  slot_audit_log + activitylog
     │
-    └──► slot_attendance
-              ├── triggers: notification to player (if absent)
-              ├── triggers: notification to admin (if player absent 3x consecutive)
-              └── recorded: activitylog
-
 slot_template
     ├──► facility  (reserves FacilityID for recurring programs)
     └──► membershipplan (RequiredPlanFeature matches FacilityAccessIncluded /
@@ -566,8 +529,6 @@ All notifications use the existing `notification` and `livenotification` tables.
 | Booking confirmed | That player | `notification` | Medium |
 | Booking cancelled by admin / shop | That player | `notification` + `livenotification` | High |
 | Staff substituted on an occurrence | Original + substitute staff | `notification` | Medium |
-| Player marked absent | That player | `notification` | Medium |
-| Player absent 3 consecutive sessions | Admin + assigned coach | `notification` | High |
 | Booking blocked — subscription expired | Admin | `notification` | High |
 | Booking flagged — active injury | Admin | `notification` + `livenotification` | High |
 | Payment not confirmed 24h before session | Player + shop employee | `notification` | Medium |
@@ -582,10 +543,9 @@ All notifications use the existing `notification` and `livenotification` tables.
 |---|---|
 | One session per facility per time band per day | `UNIQUE KEY (FacilityID, SlotID, OccurrenceDate)` on `slot_occurrence` — applies to Trainer Room (FacilityID 6) exactly like all other facilities |
 | One booking per player per occurrence | `UNIQUE KEY (OccurrenceID, PlayerID)` on `slot_booking` |
-| One attendance record per booking | `UNIQUE KEY (BookingID)` on `slot_attendance` |
 | One staff per template | `UNIQUE KEY (TemplateID, UserID)` on `slot_template_staff` |
-| One staff override per person per occurrence | `UNIQUE KEY (OccurrenceID, UserID)` on `slot_occurrence_coach` |
-| Referential integrity | `ON DELETE CASCADE` where child records are meaningless without the parent (e.g., attendance without its booking) |
+| One staff override per person per occurrence | `UNIQUE KEY (OccurrenceID, UserID)` on `slot_occurrence_staff_override` |
+| Referential integrity | `ON DELETE CASCADE` where child records are meaningless without the parent (e.g., `slot_occurrence_staff_override` without its occurrence) |
 
 ### 7.2 Application-Level (PHP controller checks before every DB write)
 
@@ -600,8 +560,8 @@ All notifications use the existing `notification` and `livenotification` tables.
 | ShopEmployee cannot override medical flags | Role check | Show "contact admin" message |
 | Player cancellation within 24h window only | `OccurrenceDate - CURDATE() >= 1` | Block with "cancellation window closed" |
 | Cancellation after window: no auto-refund | PaymentStatus stays `paid`; reason logged | Admin must manually issue refund |
-| `slot_change_log` is append-only | Application never calls UPDATE/DELETE on this table | No delete button in any admin UI for this table |
-| `time_slot` rows never deleted | Application only calls `UPDATE IsActive = 0` | No delete UI for time_slot |
+| `slot_audit_log` is append-only | Application never calls UPDATE/DELETE on this table | No delete button in any admin UI for this table |
+| `slot_time_band` rows never deleted | Application only calls `UPDATE IsActive = 0` | No delete UI for slot_time_band |
 
 ### 7.3 Role Access Matrix
 
@@ -617,11 +577,10 @@ All notifications use the existing `notification` and `livenotification` tables.
 | Self-book facility / private slot | ❌ | ❌ | ❌ | ✅ | ❌ |
 | Cancel own booking (within window) | ❌ | ❌ | ❌ | ✅ | ❌ |
 | Cancel any booking | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Mark attendance | ✅ | ✅ (own sessions) | ✅ (own sessions) | ❌ | ❌ |
 | View all occurrences | ✅ | ❌ | ❌ | ❌ | ✅ (availability only) |
 | View own schedule | — | ✅ | ✅ | ✅ | — |
 | Override medical flag | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Read `slot_change_log` | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Read `slot_audit_log` | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -649,9 +608,7 @@ Admin → Enroll players
         → inserts slot_booking (SubscriptionID = player's sub, AmountCharged = 0)
         → notification sent to each enrolled player
 
-Coach → After session: mark slot_attendance per player
-Coach → Fill coachingsession notes for present players
-        → admin notified if any player has 3 consecutive absences
+Coach → Fill coachingsession notes for players after session
 ```
 
 ### Flow B: Private Coaching Session
@@ -674,8 +631,8 @@ Admin → Create slot_booking
         → notification sent to player
 
 Player → Pays → PaymentStatus=paid, PaidAt=now
-Coach  → Session completed → mark slot_attendance → add coachingsession notes
-All    → slot_change_log entry written for every state transition
+Coach  → Session completed → add coachingsession notes
+All    → slot_audit_log entry written for every state transition
 ```
 
 ### Flow C: Facility-Only (Player Self-Books a Net)
@@ -721,9 +678,9 @@ ShopEmployee → Creates slot_booking:
 Special camp day / makeup session / tournament warm-up:
 
 Admin → Create slot_occurrence directly (TemplateID = NULL)
-Admin → Assign staff via slot_occurrence_coach directly
+Admin → Assign staff via slot_occurrence_staff_override directly
 Admin → Enroll players via slot_booking (subscription + medical checks still apply)
-Admin → slot_change_log: Action=create, EntityType=occurrence, Reason="Special camp"
+Admin → slot_audit_log: Action=create, EntityType=occurrence, Reason="Special camp"
 ```
 
 ---
@@ -739,7 +696,7 @@ Admin → slot_change_log: Action=create, EntityType=occurrence, Reason="Special
 | Calendar View | `/admin/slots/calendar` | Admin | Week/month grid; colour by slot type and staff type |
 | Edit Occurrence | `/admin/slots/occurrences/{id}` | Admin | Change facility, cancel with reason, substitute staff |
 | Manage Bookings | `/admin/slots/bookings` | Admin | View / confirm / cancel; clear medical flags |
-| Change Log | `/admin/slots/changelog` | Admin | Read-only view of `slot_change_log` |
+| Change Log | `/admin/slots/changelog` | Admin | Read-only view of `slot_audit_log` |
 | Coach Schedule | `/coach/slots` | Coach | Weekly view of assigned occurrences |
 | Mark Attendance (Coach) | `/coach/slots/{id}/attendance` | Coach | Present/absent/late → link to coachingsession notes |
 | Trainer Schedule | `/trainer/slots` | Trainer | Weekly view of assigned physical training occurrences |
@@ -754,7 +711,7 @@ Admin → slot_change_log: Action=create, EntityType=occurrence, Reason="Special
 
 ### Phase 1 — Database (2 days)
 - [ ] Write `create_slot_tables.sql` with all 8 tables
-- [ ] Seed `time_slot` with 7 bands
+- [ ] Seed `slot_time_band` with 7 bands
 - [ ] Write migration script: copy `session` rows → `slot_occurrence` (populate `LegacySessionID`)
 - [ ] Verify no FK conflicts with existing tables
 
@@ -768,7 +725,7 @@ Admin → slot_change_log: Action=create, EntityType=occurrence, Reason="Special
 - [ ] Occurrence generator: template + date range → inserts for matching DayOfWeek
 - [ ] Handle DB `1062 Duplicate entry` from UNIQUE constraint gracefully ("facility already booked that slot on that day")
 - [ ] Admin calendar view: grid by date + facility, colour-coded by type
-- [ ] Occurrence edit: cancel with reason, substitute staff, log to `slot_change_log`
+- [ ] Occurrence edit: cancel with reason, substitute staff, log to `slot_audit_log`
 
 ### Phase 4 — Subscription Gate & Medical Flag (2 days)
 - [ ] `SlotBookingService::validateEntitlement(playerID, templateID)` — checks `playersubscription` + `membershipplan.RequiredPlanFeature`
@@ -782,15 +739,12 @@ Admin → slot_change_log: Action=create, EntityType=occurrence, Reason="Special
 - [ ] 24-hour cancellation window enforcement
 - [ ] ShopEmployee counter-booking page with medical flag warning
 
-### Phase 6 — Attendance, Notifications & Audit (2 days)
-- [ ] Coach and trainer attendance marking pages
-- [ ] Consecutive absence detection (3 missed → notification to admin + coach)
-- [ ] `slot_change_log` writes on every state change with IP address logging
+### Phase 6 — Notifications & Audit (1–2 days)
+- [ ] `slot_audit_log` writes on every state change with IP address logging
 - [ ] Notification inserts for all events listed in Section 6
 
 ### Phase 7 — Reporting (1–2 days)
 - [ ] Facility utilisation: occurrences per facility per month, percentage occupied
-- [ ] Attendance rate per occurrence, per player, per coach
 - [ ] Revenue report: `slot_booking.AmountCharged` by `BookingSource` and by `SlotType`
 - [ ] Coach and trainer workload: sessions led vs assisted per month
 
@@ -823,16 +777,15 @@ File: `create_slot_tables.sql`
 -- Uses IF NOT EXISTS: safe to run on a fresh install
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS `time_slot` ( /* see Section 4.1 */ );
-INSERT IGNORE INTO `time_slot` ( /* 7 bands */ );
+CREATE TABLE IF NOT EXISTS `slot_time_band` ( /* see Section 4.1 */ );
+INSERT IGNORE INTO `slot_time_band` ( /* 7 bands */ );
 
 CREATE TABLE IF NOT EXISTS `slot_template`       ( /* Section 4.2 */ );
 CREATE TABLE IF NOT EXISTS `slot_template_staff` ( /* Section 4.3 */ );
 CREATE TABLE IF NOT EXISTS `slot_occurrence`     ( /* Section 4.4 */ );
-CREATE TABLE IF NOT EXISTS `slot_occurrence_coach` ( /* Section 4.5 */ );
+CREATE TABLE IF NOT EXISTS `slot_occurrence_staff_override` ( /* Section 4.5 */ );
 CREATE TABLE IF NOT EXISTS `slot_booking`        ( /* Section 4.6 */ );
-CREATE TABLE IF NOT EXISTS `slot_attendance`     ( /* Section 4.7 */ );
-CREATE TABLE IF NOT EXISTS `slot_change_log`     ( /* Section 4.8 */ );
+CREATE TABLE IF NOT EXISTS `slot_audit_log`      ( /* Section 4.7 */ );
 
 -- Migration bridge: map existing session rows into slot_occurrence
 INSERT INTO `slot_occurrence`
@@ -840,7 +793,7 @@ INSERT INTO `slot_occurrence`
      MaxParticipants, LegacySessionID, GeneratedBy)
 SELECT
     NULL,
-    (SELECT SlotID FROM time_slot
+    (SELECT SlotID FROM slot_time_band
      WHERE StartTime <= s.StartTime ORDER BY StartTime DESC LIMIT 1),
     s.Date,
     NULL,           -- FacilityID unknown from old freetext; admin fills post-migration
@@ -871,9 +824,9 @@ WHERE NOT EXISTS (
 | `SubscriptionID` on `slot_booking` | Proves which subscription covered a group booking. Finance team can reconcile. Support can answer "why wasn't this player charged?" |
 | `MedicalClearedBy` on `slot_booking` | Records the admin who overrode a medical flag. Creates legal accountability if a cleared-to-play player re-injures during the session. |
 | `LegacySessionID` on `slot_occurrence` | Non-destructive migration. Old session data remains queryable. Old `coachingsession`, `sessionenrollment`, and `sessionpayment` rows retain their references. |
-| `slot_change_log` append-only | An audit log that can be edited is not an audit log. Integrity requires immutability. |
+| `slot_audit_log` append-only | An audit log that can be edited is not an audit log. Integrity requires immutability. |
 | DB UNIQUE on `(FacilityID, SlotID, OccurrenceDate)` | Double-booking prevention at the database survives race conditions, bugs, and direct DB access. Application-level checks alone do not. |
-| Never DELETE `time_slot` rows | Every booking references `SlotID`. A delete would cascade-break FK constraints or leave orphaned records. `IsActive = 0` is the only allowed operation. |
+| Never DELETE `slot_time_band` rows | Every booking references `SlotID`. A delete would cascade-break FK constraints or leave orphaned records. `IsActive = 0` is the only allowed operation. |
 | Unified `slot_booking` for all types | Facility utilisation, attendance, and revenue reports only need one table. With the old setup (`facilitybooking`, `sessionenrollment`, `sessionpayment` all separate) a single occupancy query required three-way joins with no shared conflict constraint. |
 | Trainer Room added to `facility` table instead of a separate trainer table | Trainers are not associated with player-bookable facilities, but they do have a fixed physical location (the Trainer Room). Making it a `facility` row means the DB UNIQUE constraint `(FacilityID, SlotID, OccurrenceDate)` covers trainer double-booking prevention automatically — no special case in code. Splitting trainers into a separate occurrence table would require duplicating all booking, attendance, and audit logic for zero scheduling benefit, since the mechanics are identical. |
 
@@ -889,7 +842,7 @@ Paste the block below into **[dbdiagram.io](https://dbdiagram.io)** to generate 
 
 // ── NEW MODULE TABLES ─────────────────────────────────────────────
 
-Table time_slot {
+Table slot_time_band {
   SlotID          tinyint   [pk, increment, note: 'Never DELETE — set IsActive=0']
   SlotLabel       varchar(50) [not null, note: '"09:00 AM – 11:00 AM"']
   StartTime       time      [not null]
@@ -903,7 +856,7 @@ Table slot_template {
   TemplateName        varchar(255) [not null]
   SlotType            varchar(20) [not null, note: 'program | private | facility_only']
   StaffType           varchar(10) [not null, note: 'coach | trainer | none']
-  SlotID              tinyint [not null, ref: > time_slot.SlotID]
+  SlotID              tinyint [not null, ref: > slot_time_band.SlotID]
   DayOfWeek           tinyint [note: '1=Mon…7=Sun; NULL=ad-hoc']
   FacilityID          int     [ref: > facility.FacilityID]
   AgeGroup            varchar(50)
@@ -937,7 +890,7 @@ Table slot_template_staff {
 Table slot_occurrence {
   OccurrenceID    int     [pk, increment]
   TemplateID      int     [ref: > slot_template.TemplateID, note: 'NULL = ad-hoc']
-  SlotID          tinyint [not null, ref: > time_slot.SlotID]
+  SlotID          tinyint [not null, ref: > slot_time_band.SlotID]
   OccurrenceDate  date    [not null]
   FacilityID      int     [ref: > facility.FacilityID]
   LegacySessionID int     [note: 'Migration bridge only — NULL for all new rows']
@@ -954,7 +907,7 @@ Table slot_occurrence {
   }
 }
 
-Table slot_occurrence_coach {
+Table slot_occurrence_staff_override {
   ID              int     [pk, increment]
   OccurrenceID    int     [not null, ref: > slot_occurrence.OccurrenceID]
   UserID          int     [not null, ref: > user.UserID]
@@ -964,7 +917,7 @@ Table slot_occurrence_coach {
   OverrideReason  varchar(255)
 
   indexes {
-    (OccurrenceID, UserID) [unique, name: 'uq_oc_occ_user']
+    (OccurrenceID, UserID) [unique, name: 'uq_soso_occ_user']
   }
 }
 
@@ -994,22 +947,9 @@ Table slot_booking {
   }
 }
 
-Table slot_attendance {
-  AttendanceID  int     [pk, increment]
-  BookingID     int     [not null, ref: > slot_booking.BookingID]
-  Status        varchar(10) [not null, note: 'present|absent|late|partial']
-  Notes         text
-  MarkedBy      int     [not null, ref: > user.UserID]
-  MarkedAt      datetime
-
-  indexes {
-    BookingID [unique, name: 'uq_att_booking']
-  }
-}
-
-Table slot_change_log {
+Table slot_audit_log {
   LogID         int     [pk, increment]
-  EntityType    varchar(20) [not null, note: 'template|occurrence|booking|attendance|staff_assignment']
+  EntityType    varchar(20) [not null, note: 'template|occurrence|booking|staff_assignment']
   EntityID      int     [not null, note: 'PK of the changed row']
   Action        varchar(15) [not null, note: 'create|update|cancel|delete|override']
   ChangedField  varchar(100)
@@ -1090,7 +1030,7 @@ Table coachingsession {
   SkillsWorkedOn    text
   SessionRating     tinyint
 
-  Note: 'Existing table. Fed from slot_occurrence after coach marks slot_attendance.'
+  Note: 'Existing table. Fed from slot_booking after session completes.'
 }
 ```
 
@@ -1107,7 +1047,7 @@ This is a compact trace of one booking from start to finish, showing exactly whi
 | Step | Action | Table Written |
 |---|---|---|
 | 1 | Admin creates "Net Self-Practice" template: `SlotType=facility_only`, `StaffType=none`, `FacilityID=1` (Practice Net 1), `SlotID=3` (1–3 PM), `RequiredPlanFeature=facility_access`, `PricePerSession=100` | `slot_template` (1 row) |
-| 2 | Admin generates occurrences for April: every day, time_slot 3, FacilityID 1 | `slot_occurrence` (30 rows) |
+| 2 | Admin generates occurrences for April: every day, slot_time_band 3, FacilityID 1 | `slot_occurrence` (30 rows) |
 | 3 | DB UNIQUE `(FacilityID=1, SlotID=3, OccurrenceDate)` enforced — no day can be double-entered | — |
 
 ---
@@ -1124,7 +1064,7 @@ This is a compact trace of one booking from start to finish, showing exactly whi
 | 9 | Under capacity? | COUNT(`slot_booking`) for that OccurrenceID < `MaxParticipants` | Fail → "Session is full" |
 | 10 | Already booked? | `slot_booking` WHERE `OccurrenceID=X AND PlayerID=12` | Fail → "Already booked" (UNIQUE key would also catch this) |
 | **11** | **All checks pass → INSERT booking** | **`slot_booking`** | `BookingSource=self`, `SubscriptionID=NULL` (facility_only = direct pay), `AmountCharged=100`, `PaymentStatus=pending` |
-| 12 | Write audit entry | `slot_change_log` | `EntityType=booking`, `Action=create`, `ChangedBy=12` |
+| 12 | Write audit entry | `slot_audit_log` | `EntityType=booking`, `Action=create`, `ChangedBy=12` |
 | 13 | Notify player | `notification` | "Your net booking for April 13, 1–3 PM is confirmed. Payment pending." |
 
 ---
@@ -1134,18 +1074,7 @@ This is a compact trace of one booking from start to finish, showing exactly whi
 | Step | Action | Table Written |
 |---|---|---|
 | 14 | Player completes online payment | `slot_booking` UPDATE: `PaymentStatus=paid`, `PaymentMethod=online`, `PaidAt=now()` |
-| 15 | Audit | `slot_change_log`: `ChangedField=PaymentStatus`, `OldValue=pending`, `NewValue=paid` |
-
----
-
-### Session Day — Attendance
-
-| Step | Action | Table Written |
-|---|---|---|
-| 16 | Admin (or coach) opens attendance page for OccurrenceID | `slot_booking` READ: all confirmed bookings for this occurrence |
-| 17 | Player 12 marks present | `slot_attendance` INSERT: `BookingID=X`, `Status=present`, `MarkedBy=admin` |
-| 18 | `slot_booking.Status` updated to `attended` | `slot_booking` UPDATE |
-| 19 | Audit | `slot_change_log` |
+| 15 | Audit | `slot_audit_log`: `ChangedField=PaymentStatus`, `OldValue=pending`, `NewValue=paid` |
 
 ---
 
@@ -1153,19 +1082,18 @@ This is a compact trace of one booking from start to finish, showing exactly whi
 
 ```
 facility            → FacilityID=1 (Practice Net 1) — unchanged, just referenced
-time_slot           → SlotID=3 (01:00 PM – 03:00 PM) — unchanged, just referenced
+slot_time_band      → SlotID=3 (01:00 PM – 03:00 PM) — unchanged, just referenced
 slot_template       → 1 row: Net Self-Practice definition
 slot_occurrence     → 1 row for Apr 13: OccurrenceID=X, FacilityID=1, SlotID=3
 slot_booking        → 1 row: PlayerID=12, OccurrenceID=X, paid
-slot_attendance     → 1 row: BookingID=Y, present
-slot_change_log     → 3 rows: create booking / pay / attend
+slot_audit_log      → 2 rows: create booking / pay
 notification        → 1 row: booking confirmed
 playersubscription  → read-only, unchanged
 membershipplan      → read-only, unchanged
 playermedicalrecord → read-only, unchanged (no flag this time)
 ```
 
-Nineteen steps. Four table writes. Three pre-write safety checks. One booking.
+Fifteen steps. Three table writes. Three pre-write safety checks. One booking.
 
 ---
 
