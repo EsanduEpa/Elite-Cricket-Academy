@@ -7,8 +7,27 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 
+<?php
+$nutritionPlans = $data['nutrition_plans'] ?? ($data['plans'] ?? []);
+$totalPlans = count($nutritionPlans);
+$activePlans = 0;
+$inactivePlans = 0;
+$groupPlans = 0;
+foreach ($nutritionPlans as $plan) {
+    if (strtolower($plan->Status ?? 'active') === 'active') {
+        $activePlans++;
+    } else {
+        $inactivePlans++;
+    }
+
+    if ((int)($plan->assigned_player_count ?? 0) > 1) {
+        $groupPlans++;
+    }
+}
+?>
+
     <!-- Trainer Layout -->
-    <div class="player-layout">
+    <div class="player-layout nutrition-page nc-page">
         <!-- Left Sidebar Panel -->
         <div class="trainer-sidebar" id="trainerSidebar">
             <div class="sidebar-header">
@@ -83,17 +102,17 @@
         <!-- Main Content Area -->
         <div class="main-content" id="mainContent">
             <!-- Dashboard Header -->
-            <div class="dashboard-header">
+            <div class="dashboard-header nc-hero">
                 <div class="header-content">
                     <div class="header-text">
                         <h1><i class="fas fa-apple-alt"></i> Nutrition Plans Management</h1>
                         <p>Create and manage customized nutrition plans for your trainees</p>
                     </div>
                     <div class="header-actions">
-                        <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-training">
+                        <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-training nc-btn nc-btn-primary">
                             <i class="fas fa-plus"></i>Add New Plan
                         </a>
-                        <button class="btn btn-refresh" onclick="location.reload()">
+                        <button class="btn btn-refresh nc-btn nc-btn-refresh" onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i>
                             <div class="current-time"><?php echo date('H:i'); ?></div>
                         </button>
@@ -104,36 +123,32 @@
             <!-- Flash Messages -->
             <?php flash('nutrition_message'); ?>
 
-            <!-- Nutrition Plans Section -->
-            <div class="schedule-card">
-                <!-- Controls Bar -->
-                <div class="controls-bar">
-                    <div class="view-controls">
-                        <button class="view-btn active" data-filter="all">
-                            <i class="fas fa-th-list"></i> All Plans
-                        </button>
-                        <button class="view-btn" data-filter="active">
-                            <i class="fas fa-check-circle"></i> Active
-                        </button>
-                        <button class="view-btn" data-filter="inactive">
-                            <i class="fas fa-pause-circle"></i> Inactive
-                        </button>
-                    </div>
-                    <div class="search-controls">
-                        <div class="search-input-wrapper">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="nutritionSearch" placeholder="Search nutrition plans or players..." />
+            <!-- Nutrition Plans Table Card -->
+            <div class="schedule-card nc-table-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-apple-alt"></i> Your Nutrition Plans</h2>
+                        <div class="table-controls nc-table-controls">
+                            <div class="nc-search-wrap">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="nutritionSearch" placeholder="Search plans...">
+                            </div>
+                            <select id="statusFilter" class="nc-status-filter">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
                 <!-- Table Container -->
-                <div class="table-container">
-                    <table class="dashboard-table" id="nutritionTable">
+                <div class="card-content table-container nc-table-shell">
+                    <table class="dashboard-table nc-nutrition-table" id="nutritionTable">
                         <thead>
                             <tr>
-                                <th><i class="fas fa-apple-alt"></i> Plan Details</th>
-                                <th><i class="fas fa-user"></i> Player</th>
+                                <th><i class="fas fa-apple-alt"></i> Plan Name</th>
+                                <th><i class="fas fa-users"></i> Assigned Players</th>
                                 <th><i class="fas fa-utensils"></i> Diet Details</th>
                                 <th><i class="fas fa-calendar"></i> Duration</th>
                                 <th><i class="fas fa-chart-line"></i> Status</th>
@@ -142,10 +157,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($data['nutrition_plans'])): ?>
-                                <?php foreach ($data['nutrition_plans'] as $plan): ?>
+                            <?php if (!empty($nutritionPlans)): ?>
+                                <?php foreach ($nutritionPlans as $plan): ?>
                                     <tr class="nutrition-row" data-status="<?php echo strtolower($plan->Status); ?>">
-                                        <td class="plan-details">
+                                        <td class="plan-details nc-plan-cell" data-label="Plan Details">
                                             <div class="plan-info">
                                                 <div class="plan-icon">
                                                     <i class="fas fa-apple-alt"></i>
@@ -156,16 +171,33 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="player-info">
+                                        <td class="player-info nc-player-cell" data-label="Assigned Players">
                                             <div class="player-avatar">
-                                                <i class="fas fa-user-circle"></i>
+                                                <i class="fas fa-users"></i>
                                             </div>
+                                            <?php $assignmentCount = (int)($plan->assigned_player_count ?? 0); ?>
                                             <div class="player-details">
-                                                <span class="player-name"><?php echo htmlspecialchars($plan->player_name ?? 'Unknown Player'); ?></span>
-                                                <span class="player-email"><?php echo htmlspecialchars($plan->player_email ?? ''); ?></span>
+                                                <span class="player-name">
+                                                    <?php if ($assignmentCount > 1): ?>
+                                                        <?php echo $assignmentCount; ?> players assigned
+                                                    <?php elseif ($assignmentCount === 1): ?>
+                                                        1 player assigned
+                                                    <?php else: ?>
+                                                        <?php echo htmlspecialchars($plan->player_name ?? 'Unassigned'); ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                                <span class="player-email" title="<?php echo htmlspecialchars($plan->assigned_player_names ?? ($plan->player_email ?? '')); ?>">
+                                                    <?php if ($assignmentCount > 1): ?>
+                                                        <?php echo htmlspecialchars($plan->assigned_player_names ?? ''); ?>
+                                                    <?php elseif ($assignmentCount === 1): ?>
+                                                        <?php echo htmlspecialchars($plan->player_email ?? ''); ?>
+                                                    <?php else: ?>
+                                                        <?php echo htmlspecialchars($plan->player_email ?? ''); ?>
+                                                    <?php endif; ?>
+                                                </span>
                                             </div>
                                         </td>
-                                        <td class="diet-details">
+                                        <td class="diet-details nc-diet-cell" data-label="Diet Details">
                                             <div class="diet-preview">
                                                 <?php 
                                                 $details = htmlspecialchars($plan->DietDetails);
@@ -178,33 +210,33 @@
                                                 <?php endif; ?>
                                             </div>
                                         </td>
-                                        <td class="duration-info">
-                                            <div class="duration-display">
+                                        <td class="duration-info nc-duration-cell" data-label="Duration">
+                                            <div class="duration-display nc-duration-badge">
                                                 <i class="fas fa-hourglass-half"></i>
                                                 <span><?php echo $plan->Duration; ?> days</span>
                                             </div>
                                         </td>
-                                        <td>
-                                            <span class="status-badge status-<?php echo strtolower($plan->Status); ?>">
+                                        <td data-label="Status">
+                                            <span class="status-badge status-<?php echo strtolower($plan->Status); ?> nc-status-pill">
                                                 <i class="fas fa-<?php echo $plan->Status === 'active' ? 'check-circle' : 'pause-circle'; ?>"></i>
                                                 <?php echo ucfirst($plan->Status); ?>
                                             </span>
                                         </td>
-                                        <td class="date-info">
-                                            <div class="date-display">
+                                        <td class="date-info" data-label="Created">
+                                            <div class="date-display nc-date-chip">
                                                 <span class="date"><?php echo date('M j', strtotime($plan->CreatedDate)); ?></span>
                                                 <span class="year"><?php echo date('Y', strtotime($plan->CreatedDate)); ?></span>
                                             </div>
                                         </td>
-                                        <td class="actions-cell">
-                                            <div class="profile-actions">
-                                                <button class="profile-action view" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'nutrition')" title="View Plan Details">
+                                        <td class="actions-cell nc-actions-cell" data-label="Actions">
+                                            <div class="profile-actions nc-row-actions">
+                                                <button class="profile-action view nc-row-btn nc-row-btn-view" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'nutrition')" title="View Plan Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="profile-action edit" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Edit Plan">
+                                                <button class="profile-action edit nc-row-btn nc-row-btn-edit" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Edit Plan">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="profile-action delete" onclick="deletePlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Delete Plan">
+                                                <button class="profile-action delete nc-row-btn nc-row-btn-delete" onclick="deletePlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Delete Plan">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>
@@ -215,12 +247,9 @@
                                 <tr class="empty-state">
                                     <td colspan="7">
                                         <div class="empty-content">
-                                            <div class="empty-icon">
-                                                <i class="fas fa-apple-alt"></i>
-                                            </div>
                                             <h3>No Nutrition Plans Found</h3>
-                                            <p>Start by creating your first nutrition plan for your trainees</p>
-                                            <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-primary">
+                                            <p>Start by creating a nutrition plan and assign it to players or a group.</p>
+                                            <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-primary nc-empty-btn nc-btn nc-btn-primary">
                                                 <i class="fas fa-plus"></i> Create First Plan
                                             </a>
                                         </div>
@@ -317,7 +346,7 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal('addNutritionPlanModal')">
                     <i class="fas fa-times"></i> Cancel
                 </button>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary nc-modal-primary nc-btn nc-btn-primary">
                     <i class="fas fa-plus"></i> Create Nutrition Plan
                 </button>
             </div>
@@ -382,7 +411,7 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal('editPlanModal')">
                     <i class="fas fa-times"></i> Cancel
                 </button>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary nc-modal-primary nc-btn nc-btn-primary">
                     <i class="fas fa-save"></i> Update Plan
                 </button>
             </div>
@@ -429,19 +458,12 @@ function initializeSearch() {
 
 // Filter Functionality
 function initializeFilters() {
-    const filterButtons = document.querySelectorAll('.view-btn');
-    
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Update active button
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Filter table rows
-            const filter = this.getAttribute('data-filter');
-            filterNutritionPlans(filter);
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            filterNutritionPlans(this.value);
         });
-    });
+    }
 }
 
 function filterNutritionPlans(filter) {
@@ -461,7 +483,7 @@ function filterNutritionPlans(filter) {
 }
 
 function updateEmptyState() {
-    const visibleRows = document.querySelectorAll('#nutritionTable tbody .nutrition-row[style=""], #nutritionTable tbody .nutrition-row:not([style*="none"])');
+    const visibleRows = document.querySelectorAll('#nutritionTable tbody .nutrition-row:not([style*="display: none"])');
     const emptyState = document.querySelector('.empty-state');
     
     if (visibleRows.length === 0 && !emptyState) {
@@ -675,9 +697,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
-
-   
 </script>
 
 <script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>

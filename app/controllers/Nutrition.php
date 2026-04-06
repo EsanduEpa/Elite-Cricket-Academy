@@ -27,6 +27,7 @@ class Nutrition extends Controller {
     public function create() {
         $model   = $this->model('M_NutritionPlan');
         $players = $model->getAllPlayers();
+        $groups  = $model->getPlayerGroups();
 
         $errors = $_SESSION['nutrition_create_errors'] ?? [];
         $old    = $_SESSION['nutrition_create_old']    ?? [];
@@ -35,6 +36,7 @@ class Nutrition extends Controller {
         $data = [
             'title'   => 'Create Nutrition Plan',
             'players' => $players,
+            'groups'  => $groups,
             'errors'  => $errors,
             'old'     => $old,
         ];
@@ -58,8 +60,19 @@ class Nutrition extends Controller {
             return;
         }
 
-        $fields['trainer_id'] = $_SESSION['user_id'];
         $model = $this->model('M_NutritionPlan');
+
+        if (($fields['assignment_mode'] ?? 'individual') === 'group') {
+            $fields['player_ids'] = $model->getPlayerIdsByGroup($fields['player_group'] ?? '');
+            if (empty($fields['player_ids'])) {
+                $_SESSION['nutrition_create_errors'] = ['player_group' => 'No players were found for the selected group.'];
+                $_SESSION['nutrition_create_old']    = $fields;
+                redirect('nutrition/create');
+                return;
+            }
+        }
+
+        $fields['trainer_id'] = $_SESSION['user_id'];
 
         if ($model->createPlan($fields)) {
             flash('nutrition_message', 'Nutrition plan created successfully!', 'alert alert-success');
@@ -160,7 +173,25 @@ class Nutrition extends Controller {
     // Returns [$errors, $sanitisedFields]
     private function _validate(array $post): array {
         $planName    = trim(htmlspecialchars($post['plan_name']    ?? '', ENT_QUOTES, 'UTF-8'));
-        $playerId    = (int)($post['player_id']    ?? 0);
+        $assignmentMode = trim(strtolower($post['assignment_mode'] ?? 'individual'));
+        if (!in_array($assignmentMode, ['individual', 'group'], true)) {
+            $assignmentMode = 'individual';
+        }
+
+        $rawPlayerIds = $post['player_ids'] ?? [];
+        if (!is_array($rawPlayerIds)) {
+            $rawPlayerIds = [];
+        }
+        $playerIds = [];
+        foreach ($rawPlayerIds as $playerId) {
+            $playerId = (int)$playerId;
+            if ($playerId > 0) {
+                $playerIds[] = $playerId;
+            }
+        }
+        $playerIds = array_values(array_unique($playerIds));
+
+        $playerGroup = trim($post['player_group'] ?? '');
         $dietDetails = trim(htmlspecialchars($post['diet_details'] ?? '', ENT_QUOTES, 'UTF-8'));
         $duration    = trim($post['duration']    ?? '');
         $status      = trim($post['status']      ?? 'active');
@@ -174,8 +205,12 @@ class Nutrition extends Controller {
             $errors['plan_name'] = 'Plan name must be 255 characters or fewer.';
         }
 
-        if ($playerId === 0) {
-            $errors['player_id'] = 'Please select a player.';
+        if ($assignmentMode === 'group') {
+            if ($playerGroup === '') {
+                $errors['player_group'] = 'Please select a player group.';
+            }
+        } elseif (empty($playerIds)) {
+            $errors['player_ids'] = 'Please select at least one player.';
         }
 
         if ($dietDetails === '') {
@@ -200,7 +235,9 @@ class Nutrition extends Controller {
 
         $fields = [
             'plan_name'    => $planName,
-            'player_id'    => $playerId,
+            'assignment_mode' => $assignmentMode,
+            'player_ids'   => $playerIds,
+            'player_group' => $playerGroup,
             'diet_details' => $dietDetails,
             'duration'     => $duration,
             'status'       => $status,

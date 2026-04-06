@@ -176,10 +176,9 @@
             <?php else: ?>
                 <!-- Empty state -->
                 <div class="nc-empty">
-                    <i class="fas fa-apple-alt"></i>
-                    <h3>No Nutrition Plans Yet</h3>
+                    <h5>No Nutrition Plans Yet</h5>
                     <p>Start by creating a personalised plan for one of your players.</p>
-                    <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-success">
+                    <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-success nc-empty-btn">
                         <i class="fas fa-plus"></i> Create First Plan
                     </a>
                 </div>

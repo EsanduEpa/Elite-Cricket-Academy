@@ -25,6 +25,456 @@
     box-shadow: 0 6px 18px rgba(34,36,38,0.06);
 }
 
+.nc-page {
+    position: relative;
+    overflow: hidden;
+}
+
+.nc-page::before,
+.nc-page::after {
+    content: '';
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(74,144,226,.12) 0%, rgba(74,144,226,0) 72%);
+}
+
+.nc-page::before {
+    width: 320px;
+    height: 320px;
+    top: -120px;
+    right: -120px;
+}
+
+.nc-page::after {
+    width: 260px;
+    height: 260px;
+    bottom: 10%;
+    left: -110px;
+}
+
+.nc-hero,
+.nc-stats-grid,
+.nc-table-card {
+    position: relative;
+    z-index: 1;
+}
+
+.nc-hero {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.nc-hero .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.nc-hero .header-text h1 {
+    font-size: 1.8rem;
+    letter-spacing: -.02em;
+}
+
+.nc-hero .header-actions {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    flex-wrap: wrap;
+}
+
+.nc-btn {
+    border-radius: 999px !important;
+    padding: .82rem 1.2rem !important;
+    font-weight: 700 !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 10px 24px rgba(44,62,80,.08);
+}
+
+.nc-btn-primary {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%) !important;
+    color: #fff !important;
+}
+
+.nc-btn-primary i,
+.nc-empty-btn i,
+.nc-header-actions .btn-success i {
+    color: #fff !important;
+}
+
+.nc-btn-primary:hover {
+    box-shadow: 0 14px 28px rgba(74,144,226,.24);
+    transform: translateY(-1px);
+}
+
+.nc-btn-refresh {
+    background: rgba(255,255,255,.2) !important;
+    color: #fff !important;
+    backdrop-filter: blur(8px);
+    border-color: rgba(255,255,255,.28) !important;
+}
+
+.nc-btn-refresh:hover {
+    background: rgba(255,255,255,.28) !important;
+}
+
+.nc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.nc-stat-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.98) 0%, #fff 100%);
+    border: 1px solid rgba(74,144,226,.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(74,144,226,.08);
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+}
+
+.nc-stat-card.active {
+    border-color: rgba(46,204,113,.2);
+}
+
+.nc-stat-card.muted {
+    border-color: rgba(108,117,125,.14);
+}
+
+.nc-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%);
+    box-shadow: 0 10px 18px rgba(74,144,226,.2);
+    flex: none;
+}
+
+.nc-stat-card.active .nc-stat-icon {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    box-shadow: 0 10px 18px rgba(46,204,113,.18);
+}
+
+.nc-stat-card.muted .nc-stat-icon {
+    background: linear-gradient(135deg, #8e9ba7 0%, #6c757d 100%);
+}
+
+.nc-stat-value {
+    display: block;
+    color: #2c3e50;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.nc-stat-label {
+    display: block;
+    margin-top: .25rem;
+    color: #6c757d;
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+.nc-table-card {
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(74,144,226,.12);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(74,144,226,.08);
+    overflow: hidden;
+}
+
+.nutrition-page .schedule-card .card-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%);
+    border-bottom: 0;
+    padding: 1.15rem 1.25rem;
+}
+
+.nutrition-page .schedule-card .card-header h2 {
+    color: #fff;
+    margin: 0;
+}
+
+.nc-table-controls {
+    display: flex;
+    gap: 0.9rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nc-search-wrap {
+    position: relative;
+}
+
+.nc-search-wrap i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,.84);
+}
+
+.nc-search-wrap input,
+.nc-status-filter {
+    padding: 0.56rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.33);
+    background: rgba(255,255,255,.16);
+    color: #fff;
+    font-size: 0.92rem;
+    backdrop-filter: blur(6px);
+}
+
+.nc-search-wrap input {
+    padding-left: 2rem;
+    min-width: 220px;
+}
+
+.nc-search-wrap input::placeholder {
+    color: rgba(255,255,255,.82);
+}
+
+.nc-status-filter option {
+    color: #2c3e50;
+}
+
+.nc-table-card .controls-bar {
+    padding: 1rem 1.1rem 0;
+    gap: 1rem;
+}
+
+.nc-filter-btn {
+    border: 1px solid rgba(74,144,226,.15) !important;
+    background: #fff !important;
+    color: #4f5d73 !important;
+    border-radius: 999px !important;
+    padding: .7rem 1rem !important;
+}
+
+.nc-filter-btn.active {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 18px rgba(74,144,226,.18);
+}
+
+.nc-search-input input {
+    min-width: 280px;
+    border: 1px solid rgba(74,144,226,.15);
+    border-radius: 999px;
+    padding: .9rem 1rem .9rem 2.35rem;
+    box-shadow: inset 0 1px 2px rgba(15,23,42,.03);
+}
+
+.nc-table-shell {
+    padding-top: .45rem;
+}
+
+.nc-nutrition-table thead th {
+    background: linear-gradient(180deg, rgba(74,144,226,.06) 0%, rgba(74,144,226,.03) 100%);
+    color: #356dad;
+    border-bottom: 1px solid rgba(74,144,226,.12);
+}
+
+.nc-nutrition-table tbody tr {
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.nc-nutrition-table tbody tr:hover {
+    background: rgba(74,144,226,.04);
+    box-shadow: inset 0 0 0 1px rgba(74,144,226,.06);
+}
+
+.nc-plan-cell,
+.nc-player-cell,
+.nc-diet-cell,
+.nc-duration-cell,
+.nc-actions-cell {
+    vertical-align: middle;
+}
+
+.nc-row-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.nc-row-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(44,62,80,.12);
+    transition: transform .12s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.nc-row-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.nc-row-btn-view { background: linear-gradient(135deg, #4A90E2, #5BA0F2); }
+.nc-row-btn-edit { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+.nc-row-btn-delete { background: linear-gradient(135deg, #ff7a7a, #e74c3c); }
+
+.nc-player-cell .player-details {
+    min-width: 0;
+}
+
+.nc-player-cell .player-email {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+
+.nc-nutrition-table {
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.nc-nutrition-table thead th {
+    border-bottom: 0;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.nc-nutrition-table tbody tr {
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(74,144,226,.06);
+}
+
+.nc-nutrition-table tbody td {
+    border-top: 1px solid rgba(74,144,226,.06);
+    border-bottom: 1px solid rgba(74,144,226,.06);
+}
+
+.nc-nutrition-table tbody td:first-child {
+    border-left: 1px solid rgba(74,144,226,.06);
+    border-radius: 14px 0 0 14px;
+}
+
+.nc-nutrition-table tbody td:last-child {
+    border-right: 1px solid rgba(74,144,226,.06);
+    border-radius: 0 14px 14px 0;
+}
+
+.nc-nutrition-table tbody tr:hover {
+    transform: translateY(-1px);
+}
+
+.nc-duration-badge,
+.nc-date-chip,
+.nc-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border-radius: 999px;
+    padding: .45rem .8rem;
+    font-weight: 700;
+}
+
+.nc-duration-badge {
+    background: rgba(74,144,226,.08);
+    color: #356dad;
+}
+
+.nc-date-chip {
+    background: rgba(108,117,125,.08);
+    color: #4f5d73;
+}
+
+.nc-status-pill {
+    min-width: 104px;
+    justify-content: center;
+}
+
+.nc-status-pill.status-active {
+    background: rgba(46,204,113,.1);
+    color: #1a7a42;
+}
+
+.nc-status-pill.status-inactive {
+    background: rgba(231,76,60,.08);
+    color: #a93226;
+}
+
+.nc-empty-btn,
+.nc-modal-primary {
+    border-radius: 999px !important;
+    padding: .85rem 1.1rem !important;
+    font-weight: 700 !important;
+}
+
+.nc-modal-primary {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 12px 24px rgba(74,144,226,.18);
+}
+
+.nc-empty {
+    padding: 4rem 1.5rem;
+}
+
+.nc-empty-content,
+.empty-content {
+    background: linear-gradient(180deg, rgba(255,255,255,.98) 0%, #fff 100%);
+    border: 1px solid rgba(74,144,226,.1);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(74,144,226,.08);
+}
+
+.nc-empty-btn {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%) !important;
+    color: #fff !important;
+}
+
+.nc-empty-btn:hover {
+    box-shadow: 0 12px 24px rgba(74,144,226,.2);
+}
+
+.modal-content.modal-lg {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.modal-header.gradient-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #356dad 100%);
+    color: #fff;
+}
+
+.modal-footer .btn-secondary,
+.modal-footer .btn-primary {
+    border-radius: 999px;
+    padding: .78rem 1.1rem;
+    font-weight: 700;
+}
+
+.modal-footer .btn-secondary {
+    background: #8e9ba7;
+    color: #fff;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #4A90E2 0%, #5BA0F2 100%);
+    color: #fff;
+}
+
 /* Controls bar and utilities used by the view */
 .controls-bar{
     display:flex;
@@ -99,6 +549,24 @@
 .empty-content{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px}
 .empty-icon{width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-size:28px}
 
+.nutrition-page .empty-content {
+    padding: 2.4rem 1.2rem;
+}
+
+.nutrition-page .empty-content h3 {
+    color: #4A90E2;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.25rem 0;
+    opacity: 0.95;
+}
+
+.nutrition-page .empty-content p {
+    color: #666;
+    font-size: 1.35rem;
+    font-style: italic;
+}
+
 /* Form styling for nutrition plans */
 .nutrition-form .form-group{margin-bottom:20px}
 .nutrition-form label{display:block;margin-bottom:8px;color:#2c3e50;font-weight:600;font-size:14px}
@@ -125,6 +593,27 @@
 /* Responsive */
 @media (max-width:900px){
     .modal-form .form-grid{grid-template-columns:1fr}
-    .controls-bar{flex-direction:column;align-items:stretch}
+    .nc-hero .header-content{flex-direction:column;align-items:flex-start}
+    .nc-stats-grid{grid-template-columns:1fr}
+    .nc-search-input input{min-width:0;width:100%}
+    .nc-row-actions{justify-content:flex-start}
+    .nc-table-shell{overflow-x:auto}
+    .nutrition-page .schedule-card .card-header .header-content {flex-direction:column;align-items:stretch;gap:0.75rem}
+    .nc-table-controls {width:100%}
+    .nc-search-wrap,
+    .nc-search-wrap input,
+    .nc-status-filter {width:100%}
+
+    .nc-nutrition-table thead{display:none}
+    .nc-nutrition-table,
+    .nc-nutrition-table tbody,
+    .nc-nutrition-table tr,
+    .nc-nutrition-table td{display:block;width:100%}
+    .nc-nutrition-table tbody tr{margin-bottom:1rem;overflow:hidden}
+    .nc-nutrition-table tbody td{border-radius:0 !important;border-left:1px solid rgba(74,144,226,.06);border-right:1px solid rgba(74,144,226,.06);padding:1rem 1rem .9rem}
+    .nc-nutrition-table tbody td::before{content: attr(data-label);display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#4A90E2;margin-bottom:.35rem}
+    .nc-nutrition-table tbody td:first-child{border-radius:14px 14px 0 0 !important}
+    .nc-nutrition-table tbody td:last-child{border-radius:0 0 14px 14px !important}
+    .nc-status-pill{min-width:0}
 }
 

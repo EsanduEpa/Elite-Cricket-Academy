@@ -185,6 +185,43 @@
     box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
 }
 
+/* Primary add-plan CTAs */
+.supplement-page .plan-cta-btn {
+    border-radius: 999px !important;
+    padding: 12px 20px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.01em;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+    box-shadow: 0 10px 24px rgba(46, 204, 113, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.supplement-page .plan-cta-btn i {
+    color: #fff !important;
+}
+
+.supplement-page .plan-cta-btn:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 14px 26px rgba(46, 204, 113, 0.28);
+    filter: saturate(1.05);
+}
+
+.supplement-page .plan-cta-btn:active {
+    transform: translateY(0);
+}
+
+.supplement-page .plan-cta-btn.plan-cta-secondary {
+    background: linear-gradient(135deg, #38bdf8 0%, #4A90E2 100%) !important;
+    box-shadow: 0 10px 24px rgba(74, 144, 226, 0.24);
+}
+
+.supplement-page .plan-cta-btn.is-opening {
+    opacity: 0.92;
+    cursor: wait !important;
+    box-shadow: 0 8px 20px rgba(44, 62, 80, 0.2);
+}
+
 /* Form styling for supplement info */
 .supplement-form .form-group {
     margin-bottom: 20px;
