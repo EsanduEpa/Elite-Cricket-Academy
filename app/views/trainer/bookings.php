@@ -73,7 +73,7 @@
                 <div class="trainer-avatar">
                     <i class="fas fa-user-tie"></i>
                 </div>
-                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'John Trainer'; ?></div>
+                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'Trainer'; ?></div>
                 <div class="trainer-role">Fitness Trainer</div>
                 <div class="profile-actions">
                     <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
@@ -361,275 +361,93 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Sample past sessions data -->
-                        <tr class="session-row">
-                            <td class="date-info">
-                                <div class="date-display">
-                                    <span class="date">Oct 18</span>
-                                    <span class="year">2024</span>
-                                    <span class="time">6:00 AM</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Sarah Mitchell</span>
-                                    <span class="client-sport">Cricket Player</span>
-                                    <span class="client-email">sarah.mitchell@email.com</span>
-                                </div>
-                            </td>
-                            <td class="session-details">
-                                <div class="session-info">
-                                    <div class="session-title">
-                                        <i class="fas fa-dumbbell"></i>
-                                        <strong>Strength Training</strong>
+                        <?php
+                        $pastSessions = isset($data['sessions'])
+                            ? array_values(array_filter($data['sessions'], fn($s) => ($s->Date < $today) || strtolower($s->Status ?? '') === 'completed'))
+                            : [];
+                        usort($pastSessions, fn($a, $b) => strcmp(($b->Date ?? '') . ($b->StartTime ?? ''), ($a->Date ?? '') . ($a->StartTime ?? '')));
+                        ?>
+                        <?php if (!empty($pastSessions)): ?>
+                            <?php foreach ($pastSessions as $session):
+                                $firstPlayer = !empty($session->players) ? $session->players[0] : null;
+                                $clientName  = $firstPlayer->Name ?? $firstPlayer->name ?? 'Unassigned Player';
+                                $clientEmail = $firstPlayer->Email ?? $firstPlayer->email ?? '';
+                                $clientSport = $session->SessionType ?? 'Athlete';
+                                $sessionName = $session->Name ?? 'Session';
+                                $sessionNote = $session->Description ?? ($session->SessionMode ?? 'Completed session');
+                                $location    = $session->Location ?? 'Not specified';
+                            ?>
+                            <tr class="session-row">
+                                <td class="date-info">
+                                    <div class="date-display">
+                                        <span class="date"><?php echo date('M j', strtotime($session->Date)); ?></span>
+                                        <span class="year"><?php echo date('Y', strtotime($session->Date)); ?></span>
+                                        <span class="time"><?php echo date('g:i A', strtotime($session->StartTime)); ?></span>
                                     </div>
-                                    <div class="session-description">
-                                        <span>Duration: 1 hour</span>
-                                        <span>Focus: Upper body strength, core stability</span>
-                                        <span>Equipment: Dumbbells, resistance bands</span>
+                                </td>
+                                <td class="client-info">
+                                    <div class="player-avatar">
+                                        <i class="fas fa-user-circle"></i>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Gym A</span>
-                                    <span class="room">Weight Room</span>
-                                </div>
-                            </td>
-                            <td class="performance-info">
-                                <div class="rating-display">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
+                                    <div class="client-details">
+                                        <span class="client-name"><?php echo htmlspecialchars($clientName); ?></span>
+                                        <span class="client-sport"><?php echo htmlspecialchars($clientSport); ?></span>
+                                        <span class="client-email"><?php echo htmlspecialchars($clientEmail); ?></span>
                                     </div>
-                                    <span class="rating-text">Excellent</span>
-                                </div>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="plan-actions">
-                                    <button class="plan-btn workout" onclick="assignWorkoutPlan('sarah_mitchell')" title="Assign Workout Plan">
-                                        <i class="fas fa-dumbbell"></i>
-                                        <span>Workout</span>
-                                    </button>
-                                    <button class="plan-btn nutrition" onclick="assignNutritionPlan('sarah_mitchell')" title="Assign Nutrition Plan">
-                                        <i class="fas fa-apple-alt"></i>
-                                        <span>Nutrition</span>
-                                    </button>
-                                    <button class="plan-btn supplement" onclick="assignSupplementPlan('sarah_mitchell')" title="Assign Supplement Plan">
-                                        <i class="fas fa-capsules"></i>
-                                        <span>Supplements</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="session-row">
-                            <td class="date-info">
-                                <div class="date-display">
-                                    <span class="date">Oct 17</span>
-                                    <span class="year">2024</span>
-                                    <span class="time">7:30 AM</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Mike Johnson</span>
-                                    <span class="client-sport">Football Player</span>
-                                    <span class="client-email">mike.johnson@email.com</span>
-                                </div>
-                            </td>
-                            <td class="session-details">
-                                <div class="session-info">
-                                    <div class="session-title">
-                                        <i class="fas fa-heartbeat"></i>
-                                        <strong>Cardio Training</strong>
+                                </td>
+                                <td class="session-details">
+                                    <div class="session-info">
+                                        <div class="session-title">
+                                            <i class="fas fa-dumbbell"></i>
+                                            <strong><?php echo htmlspecialchars($sessionName); ?></strong>
+                                        </div>
+                                        <div class="session-description">
+                                            <span>Duration: <?php echo date('g:i A', strtotime($session->StartTime)); ?> - <?php echo date('g:i A', strtotime($session->EndTime)); ?></span>
+                                            <span><?php echo htmlspecialchars($sessionNote); ?></span>
+                                        </div>
                                     </div>
-                                    <div class="session-description">
-                                        <span>Duration: 1.5 hours</span>
-                                        <span>Focus: Endurance, cardiovascular fitness</span>
-                                        <span>Equipment: Treadmill, cycling machine</span>
+                                </td>
+                                <td class="location-info">
+                                    <div class="location-display">
+                                        <span class="venue"><?php echo htmlspecialchars($location); ?></span>
+                                        <span class="room"><?php echo htmlspecialchars($session->SessionMode ?? ''); ?></span>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Cardio Zone</span>
-                                    <span class="room">Fitness Center</span>
-                                </div>
-                            </td>
-                            <td class="performance-info">
-                                <div class="rating-display">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
+                                </td>
+                                <td class="performance-info">
+                                    <div class="rating-display">
+                                        <span class="rating-text"><?php echo ucfirst(strtolower($session->Status ?? 'Completed')); ?></span>
                                     </div>
-                                    <span class="rating-text">Outstanding</span>
-                                </div>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="plan-actions">
-                                    <button class="plan-btn workout" onclick="assignWorkoutPlan('mike_johnson')" title="Assign Workout Plan">
-                                        <i class="fas fa-dumbbell"></i>
-                                        <span>Workout</span>
-                                    </button>
-                                    <button class="plan-btn nutrition" onclick="assignNutritionPlan('mike_johnson')" title="Assign Nutrition Plan">
-                                        <i class="fas fa-apple-alt"></i>
-                                        <span>Nutrition</span>
-                                    </button>
-                                    <button class="plan-btn supplement" onclick="assignSupplementPlan('mike_johnson')" title="Assign Supplement Plan">
-                                        <i class="fas fa-capsules"></i>
-                                        <span>Supplements</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="session-row">
-                            <td class="date-info">
-                                <div class="date-display">
-                                    <span class="date">Oct 16</span>
-                                    <span class="year">2024</span>
-                                    <span class="time">10:00 AM</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Emma Davis</span>
-                                    <span class="client-sport">Tennis Player</span>
-                                    <span class="client-email">emma.davis@email.com</span>
-                                </div>
-                            </td>
-                            <td class="session-details">
-                                <div class="session-info">
-                                    <div class="session-title">
-                                        <i class="fas fa-leaf"></i>
-                                        <strong>Flexibility & Recovery</strong>
+                                </td>
+                                <td class="actions-cell">
+                                    <div class="plan-actions">
+                                        <button class="plan-btn workout" onclick="assignWorkoutPlan(this)" title="Assign Workout Plan">
+                                            <i class="fas fa-dumbbell"></i>
+                                            <span>Workout</span>
+                                        </button>
+                                        <button class="plan-btn nutrition" onclick="assignNutritionPlan(this)" title="Assign Nutrition Plan">
+                                            <i class="fas fa-apple-alt"></i>
+                                            <span>Nutrition</span>
+                                        </button>
+                                        <button class="plan-btn supplement" onclick="assignSupplementPlan(this)" title="Assign Supplement Plan">
+                                            <i class="fas fa-capsules"></i>
+                                            <span>Supplements</span>
+                                        </button>
                                     </div>
-                                    <div class="session-description">
-                                        <span>Duration: 45 minutes</span>
-                                        <span>Focus: Mobility, injury prevention</span>
-                                        <span>Equipment: Yoga mats, foam rollers</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Yoga Studio</span>
-                                    <span class="room">Recovery Room</span>
-                                </div>
-                            </td>
-                            <td class="performance-info">
-                                <div class="rating-display">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                    <span class="rating-text">Good</span>
-                                </div>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="plan-actions">
-                                    <button class="plan-btn workout" onclick="assignWorkoutPlan('emma_davis')" title="Assign Workout Plan">
-                                        <i class="fas fa-dumbbell"></i>
-                                        <span>Workout</span>
-                                    </button>
-                                    <button class="plan-btn nutrition" onclick="assignNutritionPlan('emma_davis')" title="Assign Nutrition Plan">
-                                        <i class="fas fa-apple-alt"></i>
-                                        <span>Nutrition</span>
-                                    </button>
-                                    <button class="plan-btn supplement" onclick="assignSupplementPlan('emma_davis')" title="Assign Supplement Plan">
-                                        <i class="fas fa-capsules"></i>
-                                        <span>Supplements</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="session-row">
-                            <td class="date-info">
-                                <div class="date-display">
-                                    <span class="date">Oct 15</span>
-                                    <span class="year">2024</span>
-                                    <span class="time">2:00 PM</span>
-                                </div>
-                            </td>
-                            <td class="client-info">
-                                <div class="player-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <div class="client-details">
-                                    <span class="client-name">Alex Rodriguez</span>
-                                    <span class="client-sport">Basketball Player</span>
-                                    <span class="client-email">alex.rodriguez@email.com</span>
-                                </div>
-                            </td>
-                            <td class="session-details">
-                                <div class="session-info">
-                                    <div class="session-title">
-                                        <i class="fas fa-running"></i>
-                                        <strong>Sports-Specific Training</strong>
-                                    </div>
-                                    <div class="session-description">
-                                        <span>Duration: 2 hours</span>
-                                        <span>Focus: Agility, sport-specific movements</span>
-                                        <span>Equipment: Cones, agility ladder, balls</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="location-info">
-                                <div class="location-display">
-                                    <span class="venue">Field Area</span>
-                                    <span class="room">Training Ground</span>
-                                </div>
-                            </td>
-                            <td class="performance-info">
-                                <div class="rating-display">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                    <span class="rating-text">Very Good</span>
-                                </div>
-                            </td>
-                            <td class="actions-cell">
-                                <div class="plan-actions">
-                                    <button class="plan-btn workout" onclick="assignWorkoutPlan('alex_rodriguez')" title="Assign Workout Plan">
-                                        <i class="fas fa-dumbbell"></i>
-                                        <span>Workout</span>
-                                    </button>
-                                    <button class="plan-btn nutrition" onclick="assignNutritionPlan('alex_rodriguez')" title="Assign Nutrition Plan">
-                                        <i class="fas fa-apple-alt"></i>
-                                        <span>Nutrition</span>
-                                    </button>
-                                    <button class="plan-btn supplement" onclick="assignSupplementPlan('alex_rodriguez')" title="Assign Supplement Plan">
-                                        <i class="fas fa-capsules"></i>
-                                        <span>Supplements</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:30px;color:#666;">
+                                    <i class="fas fa-history" style="font-size:2em;margin-bottom:8px;display:block;opacity:0.4;"></i>
+                                    No past sessions available.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-        ।
+
 
         </div>
     </div>
@@ -1237,9 +1055,8 @@ function closeModal(modalId) {
 }
 
 // Plan Assignment Functions
-function assignWorkoutPlan(clientId) {
-    // Get client info (in real implementation, this would come from database)
-    const clientInfo = getClientInfo(clientId);
+function assignWorkoutPlan(clientRef) {
+    const clientInfo = getClientInfo(clientRef);
     
     // Populate client info in modal
     document.getElementById('workoutClientInfo').innerHTML = `
@@ -1258,9 +1075,8 @@ function assignWorkoutPlan(clientId) {
     openModal('assignWorkoutModal');
 }
 
-function assignNutritionPlan(clientId) {
-    // Get client info
-    const clientInfo = getClientInfo(clientId);
+function assignNutritionPlan(clientRef) {
+    const clientInfo = getClientInfo(clientRef);
     
     // Populate client info in modal
     document.getElementById('nutritionClientInfo').innerHTML = `
@@ -1279,9 +1095,8 @@ function assignNutritionPlan(clientId) {
     openModal('assignNutritionModal');
 }
 
-function assignSupplementPlan(clientId) {
-    // Get client info
-    const clientInfo = getClientInfo(clientId);
+function assignSupplementPlan(clientRef) {
+    const clientInfo = getClientInfo(clientRef);
     
     // Populate client info in modal
     document.getElementById('supplementClientInfo').innerHTML = `
@@ -1300,16 +1115,19 @@ function assignSupplementPlan(clientId) {
     openModal('assignSupplementModal');
 }
 
-// Helper function to get client info (mock data)
-function getClientInfo(clientId) {
-    const clients = {
-        'sarah_mitchell': { name: 'Sarah Mitchell', sport: 'Cricket Player', email: 'sarah.mitchell@email.com' },
-        'mike_johnson': { name: 'Mike Johnson', sport: 'Football Player', email: 'mike.johnson@email.com' },
-        'emma_davis': { name: 'Emma Davis', sport: 'Tennis Player', email: 'emma.davis@email.com' },
-        'alex_rodriguez': { name: 'Alex Rodriguez', sport: 'Basketball Player', email: 'alex.rodriguez@email.com' }
-    };
-    
-    return clients[clientId] || { name: 'Unknown Client', sport: 'Athlete', email: 'unknown@email.com' };
+function getClientInfo(clientRef) {
+    if (clientRef && typeof clientRef.closest === 'function') {
+        const row = clientRef.closest('tr');
+        if (row) {
+            return {
+                name: row.querySelector('.client-name')?.textContent?.trim() || 'Selected Player',
+                sport: row.querySelector('.client-sport')?.textContent?.trim() || 'Athlete',
+                email: row.querySelector('.client-email')?.textContent?.trim() || 'No email provided'
+            };
+        }
+    }
+
+    return { name: 'Selected Player', sport: 'Athlete', email: 'No email provided' };
 }
 
 // Form submission handlers

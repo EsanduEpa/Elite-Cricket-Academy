@@ -132,7 +132,7 @@
             content.innerHTML = '<p>Workout plan not found.</p>';
         }
 
-        modal.style.display = 'block';
+        modal.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background-color:rgba(0,0,0,0.65); overflow-y:auto;';
     }
 
     function viewNutritionPlan(planId) {
@@ -158,7 +158,7 @@
             content.innerHTML = '<p>Nutrition plan not found.</p>';
         }
 
-        modal.style.display = 'block';
+        modal.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background-color:rgba(0,0,0,0.65); overflow-y:auto;';
     }
 
     function closeModal(modalId) {
@@ -166,23 +166,52 @@
         if (modal) modal.style.display = 'none';
     }
 
-    function openUpdateStatusModal(recordId, currentStatus) {
-        const modal = document.getElementById('updateStatusModal');
-        const recordIdInput = document.getElementById('update_record_id');
-        const statusSelect = document.getElementById('update_recovery_status');
-        if (!modal || !recordIdInput || !statusSelect) return;
+    function openUpdateStatusModal(recordId, currentStatus, verifyStatus, diagnosis, treatment, bodyArea, injuryDate, reportedDate, happenedAtAcademy, restDays) {
+        if (verifyStatus === 'pending') {
+            // Full edit modal
+            const modal = document.getElementById('editFullRecordModal');
+            if (!modal) return;
+            document.getElementById('edit_record_id').value = recordId;
+            document.getElementById('edit_injury_date').value = injuryDate;
+            document.getElementById('edit_reported_date').value = reportedDate;
+            document.getElementById('edit_body_area').value = bodyArea;
+            document.getElementById('edit_diagnosis').value = diagnosis;
+            document.getElementById('edit_treatment').value = treatment;
+            document.getElementById('edit_rest_days').value = restDays;
+            document.getElementById('edit_recovery_status').value = currentStatus;
+            const academyYes = document.getElementById('edit_academy_yes');
+            const academyNo  = document.getElementById('edit_academy_no');
+            if (academyYes) academyYes.checked = (happenedAtAcademy === 'yes');
+            if (academyNo)  academyNo.checked  = (happenedAtAcademy !== 'yes');
+            modal.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background-color:rgba(0,0,0,0.65); overflow-y:auto;';
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Recovery status only (verified)
+            const modal = document.getElementById('updateStatusModal');
+            const recordIdInput = document.getElementById('update_record_id');
+            const statusSelect  = document.getElementById('update_recovery_status');
+            if (!modal || !recordIdInput || !statusSelect) return;
+            recordIdInput.value = recordId;
+            statusSelect.value  = currentStatus;
+            modal.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background-color:rgba(0,0,0,0.65); overflow-y:auto;';
+            document.body.style.overflow = 'hidden';
+        }
+    }
 
-        recordIdInput.value = recordId;
-        statusSelect.value = currentStatus;
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+    function closeEditFullRecordModal() {
+        const modal = document.getElementById('editFullRecordModal');
+        if (!modal) return;
+        modal.style.cssText = 'display:none;';
+        document.body.style.overflow = '';
+        const form = modal.querySelector('form');
+        if (form) form.reset();
     }
 
     function closeUpdateStatusModal() {
         const modal = document.getElementById('updateStatusModal');
         if (!modal) return;
 
-        modal.style.display = 'none';
+        modal.style.cssText = 'display:none;';
         document.body.style.overflow = '';
 
         const form = modal.querySelector('form');
@@ -195,14 +224,14 @@
         if (!modal || !recordIdInput) return;
 
         recordIdInput.value = recordId;
-        modal.style.display = 'block';
+        modal.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background-color:rgba(0,0,0,0.65); overflow-y:auto;';
         document.body.style.overflow = 'hidden';
     }
 
     function closeDeleteRecordModal() {
         const modal = document.getElementById('deleteRecordModal');
         if (!modal) return;
-        modal.style.display = 'none';
+        modal.style.cssText = 'display:none;';
         document.body.style.overflow = '';
     }
 
@@ -303,6 +332,7 @@
     window.closeModal = closeModal;
     window.openUpdateStatusModal = openUpdateStatusModal;
     window.closeUpdateStatusModal = closeUpdateStatusModal;
+    window.closeEditFullRecordModal = closeEditFullRecordModal;
     window.confirmDeleteRecord = confirmDeleteRecord;
     window.closeDeleteRecordModal = closeDeleteRecordModal;
     window.deleteMedicalRecord = deleteMedicalRecord;
@@ -317,19 +347,23 @@
         const workoutModal = document.getElementById('workoutPlanModal');
         const nutritionModal = document.getElementById('nutritionPlanModal');
         const updateStatusModal = document.getElementById('updateStatusModal');
+        const editFullRecordModal = document.getElementById('editFullRecordModal');
         const deleteRecordModal = document.getElementById('deleteRecordModal');
 
         if (event.target === addMedicalModal) {
             closeAddMedicalModal();
         }
         if (event.target === workoutModal) {
-            workoutModal.style.display = 'none';
+            workoutModal.style.cssText = 'display:none;';
         }
         if (event.target === nutritionModal) {
-            nutritionModal.style.display = 'none';
+            nutritionModal.style.cssText = 'display:none;';
         }
         if (event.target === updateStatusModal) {
             closeUpdateStatusModal();
+        }
+        if (event.target === editFullRecordModal) {
+            closeEditFullRecordModal();
         }
         if (event.target === deleteRecordModal) {
             closeDeleteRecordModal();

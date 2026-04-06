@@ -67,7 +67,7 @@
                 <div class="trainer-avatar">
                     <i class="fas fa-user-tie"></i>
                 </div>
-                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'John Trainer'; ?></div>
+                <div class="trainer-name"><?php echo $_SESSION['username'] ?? 'Trainer'; ?></div>
                 <div class="trainer-role">Fitness Trainer</div>
                 <div class="profile-actions">
                     <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
