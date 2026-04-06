@@ -4,6 +4,15 @@
 -- Run AFTER cricket_academy (10).sql is already loaded
 -- All CREATE statements use IF NOT EXISTS — safe on fresh install
 -- Run once per environment; harmless to re-run
+--
+-- NOTE (table name clarity):
+--   time_slot                → slot_time_band
+--   slot_occurrence_coach     → slot_occurrence_staff_override
+--   slot_change_log           → slot_audit_log
+-- If you already ran an older version of this script, rename the tables first:
+--   RENAME TABLE `time_slot` TO `slot_time_band`;
+--   RENAME TABLE `slot_occurrence_coach` TO `slot_occurrence_staff_override`;
+--   RENAME TABLE `slot_change_log` TO `slot_audit_log`;
 -- ================================================================
 
 -- ----------------------------------------------------------------
@@ -21,11 +30,11 @@ VALUES
 
 
 -- ================================================================
--- 1. time_slot — Master Fixed Time Bands
+-- 1. slot_time_band — Master Fixed Time Bands
 -- 7 bands covering 09:00-22:00 in 2-hour steps (last band is 1h)
 -- RULE: Never DELETE a row — set IsActive = 0 instead
 -- ================================================================
-CREATE TABLE IF NOT EXISTS `time_slot` (
+CREATE TABLE IF NOT EXISTS `slot_time_band` (
   `SlotID`           TINYINT(4)   NOT NULL AUTO_INCREMENT,
   `SlotLabel`        VARCHAR(50)  NOT NULL COMMENT '"09:00 AM – 11:00 AM" — used in dropdowns',
   `StartTime`        TIME         NOT NULL,
@@ -36,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `time_slot` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Fixed time bands. Toggle IsActive only — never DELETE rows.';
 
-INSERT IGNORE INTO `time_slot`
+INSERT IGNORE INTO `slot_time_band`
     (`SlotID`, `SlotLabel`, `StartTime`, `EndTime`, `DurationMinutes`)
 VALUES
     (1, '09:00 AM – 11:00 AM', '09:00:00', '11:00:00', 120),
@@ -63,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   `StaffType`           ENUM('coach','trainer','none') NOT NULL DEFAULT 'coach'
     COMMENT 'Determines post-session log prompt: coachingsession vs trainerappointment vs none',
 
-  `SlotID`              TINYINT(4)    NOT NULL            COMMENT 'FK → time_slot',
+  `SlotID`              TINYINT(4)    NOT NULL            COMMENT 'FK → slot_time_band',
   `DayOfWeek`           TINYINT(1)    DEFAULT NULL        COMMENT '1=Mon…7=Sun; NULL=no fixed day',
   `FacilityID`          INT(11)       DEFAULT NULL        COMMENT 'FK → facility; NULL=assigned per occurrence',
 
@@ -92,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   KEY `idx_st_facility`   (`FacilityID`),
   KEY `idx_st_type`       (`SlotType`),
   KEY `idx_st_stafftype`  (`StaffType`),
-  CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `time_slot`(`SlotID`),
+  CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_st_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`),
   CONSTRAINT `fk_st_creator`  FOREIGN KEY (`CreatedBy`)  REFERENCES `user`(`UserID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -130,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `slot_template_staff` (
 CREATE TABLE IF NOT EXISTS `slot_occurrence` (
   `OccurrenceID`    INT(11)    NOT NULL AUTO_INCREMENT,
   `TemplateID`      INT(11)    DEFAULT NULL  COMMENT 'NULL = ad-hoc (not from a template)',
-  `SlotID`          TINYINT(4) NOT NULL      COMMENT 'FK → time_slot',
+  `SlotID`          TINYINT(4) NOT NULL      COMMENT 'FK → slot_time_band',
   `OccurrenceDate`  DATE       NOT NULL,
   `FacilityID`      INT(11)    DEFAULT NULL  COMMENT 'Overrides template facility for this date',
   `LegacySessionID` INT(11)    DEFAULT NULL  COMMENT 'Migration bridge only → old session.SessionID; NULL for all new rows',
@@ -154,19 +163,19 @@ CREATE TABLE IF NOT EXISTS `slot_occurrence` (
   KEY `idx_occ_date`      (`OccurrenceDate`),
   KEY `idx_occ_status`    (`Status`),
   CONSTRAINT `fk_occ_template` FOREIGN KEY (`TemplateID`) REFERENCES `slot_template`(`TemplateID`),
-  CONSTRAINT `fk_occ_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `time_slot`(`SlotID`),
+  CONSTRAINT `fk_occ_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_occ_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='One row per actual session on one calendar date. Generated from template or created ad-hoc.';
 
 
 -- ================================================================
--- 5. slot_occurrence_coach — Per-Date Staff Overrides
+-- 5. slot_occurrence_staff_override — Per-Date Staff Overrides
 -- Used when a coach or trainer is substituted for a single date only.
 -- Rows here TAKE PRECEDENCE over slot_template_staff for that occurrence.
 -- If no rows exist for an OccurrenceID, fall back to slot_template_staff.
 -- ================================================================
-CREATE TABLE IF NOT EXISTS `slot_occurrence_coach` (
+CREATE TABLE IF NOT EXISTS `slot_occurrence_staff_override` (
   `ID`              INT(11)      NOT NULL AUTO_INCREMENT,
   `OccurrenceID`    INT(11)      NOT NULL  COMMENT 'FK → slot_occurrence',
   `UserID`          INT(11)      NOT NULL  COMMENT 'FK → user (substitute coach or trainer)',
@@ -176,9 +185,9 @@ CREATE TABLE IF NOT EXISTS `slot_occurrence_coach` (
   `OverrideReason`  VARCHAR(255) DEFAULT NULL  COMMENT '"Sick leave", "Emergency", "Training camp", etc.',
 
   PRIMARY KEY (`ID`),
-  UNIQUE KEY `uq_oc_occ_user` (`OccurrenceID`, `UserID`),
-  CONSTRAINT `fk_oc_occurrence` FOREIGN KEY (`OccurrenceID`) REFERENCES `slot_occurrence`(`OccurrenceID`) ON DELETE CASCADE,
-  CONSTRAINT `fk_oc_user`       FOREIGN KEY (`UserID`)       REFERENCES `user`(`UserID`)
+  UNIQUE KEY `uq_soso_occ_user` (`OccurrenceID`, `UserID`),
+  CONSTRAINT `fk_soso_occurrence` FOREIGN KEY (`OccurrenceID`) REFERENCES `slot_occurrence`(`OccurrenceID`) ON DELETE CASCADE,
+  CONSTRAINT `fk_soso_user`       FOREIGN KEY (`UserID`)       REFERENCES `user`(`UserID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='One-day staff substitution. Does not affect the template or any other occurrence date.';
 
@@ -232,34 +241,13 @@ CREATE TABLE IF NOT EXISTS `slot_booking` (
 
 
 -- ================================================================
--- 7. slot_attendance — Attendance Per Booking
--- Created AFTER a session completes. Never before.
--- UNIQUE(BookingID) ensures one attendance record per booking.
--- ================================================================
-CREATE TABLE IF NOT EXISTS `slot_attendance` (
-  `AttendanceID` INT(11)  NOT NULL AUTO_INCREMENT,
-  `BookingID`    INT(11)  NOT NULL  COMMENT 'FK → slot_booking',
-  `Status`       ENUM('present','absent','late','partial') NOT NULL DEFAULT 'present',
-  `Notes`        TEXT     DEFAULT NULL,
-  `MarkedBy`     INT(11)  NOT NULL  COMMENT 'FK → user (coach, trainer, or admin)',
-  `MarkedAt`     DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (`AttendanceID`),
-  UNIQUE KEY `uq_att_booking` (`BookingID`),
-  CONSTRAINT `fk_att_booking` FOREIGN KEY (`BookingID`) REFERENCES `slot_booking`(`BookingID`) ON DELETE CASCADE,
-  CONSTRAINT `fk_att_marker`  FOREIGN KEY (`MarkedBy`)  REFERENCES `user`(`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='One row per booking per session. Only created after the session occurs.';
-
-
--- ================================================================
--- 8. slot_change_log — Full Audit Trail
+-- 7. slot_audit_log — Full Audit Trail
 -- APPEND-ONLY. No UPDATE or DELETE ever.
 -- The application must have no code path that modifies existing rows.
 -- ================================================================
-CREATE TABLE IF NOT EXISTS `slot_change_log` (
+CREATE TABLE IF NOT EXISTS `slot_audit_log` (
   `LogID`        INT(11)      NOT NULL AUTO_INCREMENT,
-  `EntityType`   ENUM('template','occurrence','booking','attendance','staff_assignment') NOT NULL
+  `EntityType`   ENUM('template','occurrence','booking','staff_assignment') NOT NULL
     COMMENT 'Which table was changed',
   `EntityID`     INT(11)      NOT NULL  COMMENT 'PK value of the changed row',
   `Action`       ENUM('create','update','cancel','delete','override') NOT NULL,
@@ -283,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `slot_change_log` (
 -- ================================================================
 -- Step 9: Migration Bridge
 -- Copy existing session rows into slot_occurrence using the closest
--- matching time_slot band. LegacySessionID preserves the link so
+-- matching slot_time_band. LegacySessionID preserves the link so
 -- existing coachingsession, sessionenrollment, and sessionpayment
 -- records remain queryable with no data loss.
 -- Skip rows already migrated (WHERE NOT EXISTS guard).
@@ -293,9 +281,9 @@ INSERT INTO `slot_occurrence`
       Status, MaxParticipants, LegacySessionID, GeneratedBy )
 SELECT
     NULL,
-    -- Map old free-text StartTime to the nearest time_slot band
+    -- Map old free-text StartTime to the nearest slot_time_band
     ( SELECT ts.SlotID
-      FROM time_slot ts
+      FROM slot_time_band ts
       WHERE ts.StartTime <= s.StartTime
       ORDER BY ts.StartTime DESC
       LIMIT 1 ),
@@ -318,7 +306,7 @@ WHERE NOT EXISTS (
 
 -- ================================================================
 -- Done. Verify with:
---   SELECT COUNT(*) FROM time_slot;           -- expect 7
+--   SELECT COUNT(*) FROM slot_time_band;      -- expect 7
 --   SELECT COUNT(*) FROM slot_occurrence;     -- expect >= old session count
 --   SHOW CREATE TABLE slot_occurrence;        -- check UNIQUE KEY
 -- ================================================================
