@@ -9,7 +9,7 @@ class M_Payment {
     // Get payment history for a player
     public function getPaymentHistory($playerId) {
         $this->db->query('SELECT sp.PaymentID, sp.PaymentDate, sp.Amount, sp.PaymentMethod, 
-            sp.Status, sp.DueDate, sp.LateFee, mp.PlanName
+            sp.Status, sp.DueDate, 0.00 AS LateFee, mp.PlanName
             FROM subscriptionpayment sp 
             JOIN playersubscription ps ON sp.SubscriptionID = ps.SubscriptionID 
             JOIN membershipplan mp ON ps.PlanID = mp.PlanID 

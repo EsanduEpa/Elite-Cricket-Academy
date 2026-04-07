@@ -20,7 +20,7 @@ SELECT 7,
        NULL,
        'active',
    4500.00,
-       1,
+     14,
        1
 WHERE NOT EXISTS (
     SELECT 1 FROM playersubscription
@@ -36,7 +36,7 @@ SELECT 15,
        NULL,
        'active',
    10000.00,
-       1,
+     14,
        1
 WHERE NOT EXISTS (
     SELECT 1 FROM playersubscription
@@ -52,7 +52,7 @@ SELECT 16,
        NULL,
        'suspended',
    4500.00,
-       1,
+     14,
        0
 WHERE NOT EXISTS (
     SELECT 1 FROM playersubscription
@@ -68,7 +68,7 @@ SELECT 18,
        '2025-12-31',
        'expired',
    7000.00,
-       1,
+     14,
        0
 WHERE NOT EXISTS (
     SELECT 1 FROM playersubscription
@@ -79,21 +79,20 @@ WHERE NOT EXISTS (
 
 -- 3) Subscription payments
 -- ProcessedBy: take any existing shopemployeeprofile row, else NULL.
--- Avoid duplicates via (SubscriptionID, DueDate) pattern.
+-- Avoid duplicates by keeping one payment row per subscription per month.
 
 -- Player 7 (general): Jan + Feb paid, Mar pending
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
 SELECT
     (SELECT SubscriptionID FROM playersubscription
      WHERE PlayerID = 7
        AND PlanID = 1
      ORDER BY SubscriptionID DESC LIMIT 1),
-    '2026-01-01',do we
+    '2026-01-01',
     4500.00,
     'card',
     'completed',
-    '2026-01-01',
-    0.00,
+    '2026-01-14',
     (SELECT ShopEmployeeID FROM shopemployeeprofile ORDER BY ShopEmployeeID LIMIT 1)
 WHERE NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
@@ -101,10 +100,10 @@ WHERE NOT EXISTS (
                                WHERE PlayerID = 7
                                  AND PlanID = 1
                                ORDER BY SubscriptionID DESC LIMIT 1)
-      AND sp.DueDate = '2026-01-01'
+      AND sp.DueDate = '2026-01-14'
 );
 
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
 SELECT
     (SELECT SubscriptionID FROM playersubscription
      WHERE PlayerID = 7
@@ -114,8 +113,7 @@ SELECT
     4500.00,
     'cash',
     'completed',
-    '2026-02-01',
-    0.00,
+    '2026-02-14',
     (SELECT ShopEmployeeID FROM shopemployeeprofile ORDER BY ShopEmployeeID LIMIT 1)
 WHERE NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
@@ -123,21 +121,20 @@ WHERE NOT EXISTS (
                                WHERE PlayerID = 7
                                  AND PlanID = 1
                                ORDER BY SubscriptionID DESC LIMIT 1)
-      AND sp.DueDate = '2026-02-01'
+      AND sp.DueDate = '2026-02-14'
 );
 
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
 SELECT
     (SELECT SubscriptionID FROM playersubscription
      WHERE PlayerID = 7
        AND PlanID = 1
      ORDER BY SubscriptionID DESC LIMIT 1),
-    '2026-03-03',
+    NULL,
     4500.00,
     'online',
     'pending',
-    '2026-03-01',
-    0.00,
+    '2026-03-14',
     NULL
 WHERE NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
@@ -145,11 +142,11 @@ WHERE NOT EXISTS (
                                WHERE PlayerID = 7
                                  AND PlanID = 1
                                ORDER BY SubscriptionID DESC LIMIT 1)
-      AND sp.DueDate = '2026-03-01'
+      AND sp.DueDate = '2026-03-14'
 );
 
--- Player 15 (pro): one late payment with late fee
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
+-- Player 15 (pro): payment after due date (no late fee policy)
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
 SELECT
     (SELECT SubscriptionID FROM playersubscription
      WHERE PlayerID = 15
@@ -159,8 +156,7 @@ SELECT
     10000.00,
     'bank_transfer',
     'completed',
-    '2026-01-01',
-    5.00,
+    '2026-01-14',
     (SELECT ShopEmployeeID FROM shopemployeeprofile ORDER BY ShopEmployeeID LIMIT 1)
 WHERE NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
@@ -168,22 +164,21 @@ WHERE NOT EXISTS (
                                WHERE PlayerID = 15
                                  AND PlanID = 3
                                ORDER BY SubscriptionID DESC LIMIT 1)
-      AND sp.DueDate = '2026-01-01'
+      AND sp.DueDate = '2026-01-14'
 );
 
 -- Player 16 (general): failed payment example
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
 SELECT
     (SELECT SubscriptionID FROM playersubscription
      WHERE PlayerID = 16
        AND PlanID = 1
      ORDER BY SubscriptionID DESC LIMIT 1),
-    '2026-02-05',
+    NULL,
     4500.00,
     'card',
     'failed',
-    '2026-02-01',
-    0.00,
+    '2026-02-14',
     NULL
 WHERE NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
@@ -191,7 +186,7 @@ WHERE NOT EXISTS (
                                WHERE PlayerID = 16
                                  AND PlanID = 1
                                ORDER BY SubscriptionID DESC LIMIT 1)
-      AND sp.DueDate = '2026-02-01'
+      AND sp.DueDate = '2026-02-14'
 );
 
 COMMIT;

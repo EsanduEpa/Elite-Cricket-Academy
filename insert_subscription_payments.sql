@@ -4,29 +4,40 @@
 -- (Assuming PlanID 1 exists in subscriptionplan table)
 INSERT IGNORE INTO playersubscription (PlayerID, PlanID, StartDate, EndDate, Status, MonthlyFee, PaymentDay, AutoRenewal)
 VALUES 
-(7, 1, '2025-11-01', '2026-11-01', 'active', 5000.00, 1, 1),
-(16, 1, '2025-12-01', '2026-12-01', 'active', 5000.00, 1, 1),
-(20, 1, '2026-01-01', '2027-01-01', 'active', 5000.00, 1, 1);
+(7, 1, '2025-11-01', '2026-11-01', 'active', 5000.00, 14, 1),
+(16, 1, '2025-12-01', '2026-12-01', 'active', 5000.00, 14, 1),
+(20, 1, '2026-01-01', '2027-01-01', 'active', 5000.00, 14, 1);
 
 -- Now insert sample subscription payments
-INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, LateFee, ProcessedBy)
-SELECT 
-    ps.SubscriptionID,
-    DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 60) DAY) as PaymentDate,
-    ps.MonthlyFee as Amount,
-    CASE FLOOR(RAND() * 4)
-        WHEN 0 THEN 'cash'
-        WHEN 1 THEN 'card'
-        WHEN 2 THEN 'bank_transfer'
-        ELSE 'online'
-    END as PaymentMethod,
-    CASE 
-        WHEN RAND() > 0.8 THEN 'pending'
-        ELSE 'completed'
-    END as Status,
-    DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 60) DAY) as DueDate,
-    0.00 as LateFee,
-    1 as ProcessedBy  -- Admin user
-FROM playersubscription ps
-WHERE ps.Status = 'active'
-LIMIT 10;
+INSERT INTO subscriptionpayment (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, ProcessedBy)
+SELECT
+    t.SubscriptionID,
+    CASE WHEN t.Status = 'pending' THEN NULL ELSE t.AnyDate END AS PaymentDate,
+    t.Amount,
+    t.PaymentMethod,
+    t.Status,
+    DATE_ADD(
+        DATE_SUB(t.AnyDate, INTERVAL (DAYOFMONTH(t.AnyDate) - 1) DAY),
+        INTERVAL 13 DAY
+    ) AS DueDate,
+    t.ProcessedBy
+FROM (
+    SELECT
+        ps.SubscriptionID,
+        DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 60) DAY) AS AnyDate,
+        ps.MonthlyFee AS Amount,
+        CASE FLOOR(RAND() * 4)
+            WHEN 0 THEN 'cash'
+            WHEN 1 THEN 'card'
+            WHEN 2 THEN 'bank_transfer'
+            ELSE 'online'
+        END AS PaymentMethod,
+        CASE
+            WHEN RAND() > 0.8 THEN 'pending'
+            ELSE 'completed'
+        END AS Status,
+        1 AS ProcessedBy  -- Admin user
+    FROM playersubscription ps
+    WHERE ps.Status = 'active'
+    LIMIT 10
+) t;

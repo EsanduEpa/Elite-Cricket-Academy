@@ -21,6 +21,24 @@ membershipplan                playersubscription              subscriptionpaymen
 
 ---
 
+## What to optimize (high-impact)
+
+### 1) `membershipplan` (plan catalog)
+- Add `CreatedAt` / `UpdatedAt` for auditing.
+- Add an index on `(Status, MonthlyFee)` because the app frequently loads active plans ordered by fee.
+- (Optional) add `Currency` / `BillingIntervalMonths` if you plan to support non-monthly billing later.
+
+### 2) `playersubscription` (player ↔ plan + price snapshot)
+- Add timestamps + cancellation fields so you can answer: “when did this subscription start/end/cancel?”.
+- Add an index on `(PlayerID, Status, StartDate)` because the app loads the latest active subscription per player.
+- (Recommended) enforce **at most one active subscription per player** (without breaking historical records).
+
+### 3) `subscriptionpayment` (monthly charges & settlement)
+- Make the billing period explicit (so you can enforce “one payment per month”).
+- Allow `PaymentDate` to be `NULL` for pending payments.
+- Add gateway references (PayHere transaction IDs) + audit fields.
+- Add indexes aligned to common queries (status/due date and status/payment date).
+
 ## Current subscriptionpayment Schema
 
 ```sql
@@ -32,7 +50,6 @@ CREATE TABLE subscriptionpayment (
   PaymentMethod ENUM('cash','card','bank_transfer','online') NOT NULL,
   Status ENUM('pending','completed','failed','refunded') DEFAULT 'pending',
   DueDate DATE NOT NULL,
-  LateFee DECIMAL(10,2) DEFAULT 0.00,
   ProcessedBy INT,
   
   FOREIGN KEY (SubscriptionID) REFERENCES playersubscription(SubscriptionID) ON DELETE CASCADE,
@@ -61,60 +78,46 @@ CREATE TABLE subscriptionpayment (
 
 ### 5. **Amount Ambiguity**
 - If late fees apply, is `Amount` the base fee or base+late?
-- Better: separate `AmountDue` and `AmountPaid`.
+- If you have **no partial payments**, store the **final monthly charge** in `Amount`.
+- Since your policy is **no late fees**, do not store any late fee column.
 
 ---
 
 ## 🔧 Recommended Column Changes
 
-### Option A: Add BillingMonth (Simple & Clean)
+## Fixed monthly due date rule (business policy)
+
+To enforce a **fixed due date** every month:
+- **Billing month starts:** 1st day of the month
+- **Payments allowed from:** 1st day of the month
+- **Due date:** end of the 2nd week (simplest = **14th**)
+- **No late fees:** no `LateFee` column
+- **Enforcement:** suspend from the **15th** if still unpaid
+
+Practical DB approach:
+- Use `BillingMonth` to represent the month (`YYYY-MM-01`).
+- Always insert `DueDate` as the **14th** of `BillingMonth`.
+
+Note for new sign-ups:
+- If a subscription starts **after** the due date (after the 14th), the simplest rule is: **start billing from next month** (set first `BillingMonth` to next month) so the player gets a full payment window.
 
 ```sql
-ALTER TABLE subscriptionpayment
-  -- New column to clearly identify which month this payment is for
-  ADD COLUMN BillingMonth DATE NOT NULL COMMENT 'First day of billing month (e.g., 2026-02-01)' AFTER SubscriptionID,
-  
-  -- Prevent duplicate charges for same subscription+month
-  ADD UNIQUE KEY uk_subscription_billing (SubscriptionID, BillingMonth),
-  
-  -- Audit timestamps
-  ADD COLUMN CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'When payment record was created',
-  ADD COLUMN UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  
-  -- Transaction reference for online/card payments
-  ADD COLUMN PaymentReference VARCHAR(100) DEFAULT NULL COMMENT 'Gateway transaction ID or receipt number',
-  
-  -- Better amount tracking
-  ADD COLUMN AmountDue DECIMAL(10,2) NOT NULL COMMENT 'Base subscription fee for this month' AFTER Amount,
-  ADD COLUMN AmountPaid DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Actual amount paid (may include late fees)' AFTER AmountDue,
-  
-  -- Notes for failed/refunded payments
-  ADD COLUMN Notes TEXT DEFAULT NULL COMMENT 'Reason for failure, refund details, etc.';
-
--- Then update existing Amount column to be optional or rename it
-ALTER TABLE subscriptionpayment
-  MODIFY COLUMN Amount DECIMAL(10,2) DEFAULT NULL COMMENT 'DEPRECATED - use AmountDue + LateFee';
+-- If BillingMonth is like '2026-03-01'
+SET @DueDate = DATE_ADD(@BillingMonth, INTERVAL 13 DAY); -- 14th
 ```
 
-### Option B: Separate Year/Month Columns (More Normalized)
+### Recommended approach used in this repo
 
-```sql
-ALTER TABLE subscriptionpayment
-  ADD COLUMN BillingYear SMALLINT NOT NULL COMMENT 'Year of billing period (e.g., 2026)' AFTER SubscriptionID,
-  ADD COLUMN BillingMonth TINYINT NOT NULL COMMENT 'Month of billing period (1-12)' AFTER BillingYear,
-  
-  ADD UNIQUE KEY uk_subscription_billing (SubscriptionID, BillingYear, BillingMonth),
-  
-  -- Same other improvements as Option A
-  ADD COLUMN CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  ADD COLUMN UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  ADD COLUMN PaymentReference VARCHAR(100) DEFAULT NULL,
-  ADD COLUMN AmountDue DECIMAL(10,2) NOT NULL AFTER Amount,
-  ADD COLUMN AmountPaid DECIMAL(10,2) DEFAULT 0.00 AFTER AmountDue,
-  ADD COLUMN Notes TEXT DEFAULT NULL;
-```
+See the migration script: `db_changes_subscription_payments_optimization.sql`.
 
-**Recommendation**: Use **Option A** (single `BillingMonth DATE`) - it's simpler for queries and date math.
+Key implementation choices:
+- `BillingMonth` is a **generated (computed) DATE column** derived from `DueDate` (first day of the month).
+  - This avoids bugs where code forgets to populate `BillingMonth`.
+  - It also enables a clean uniqueness rule.
+- Add `UNIQUE (SubscriptionID, BillingMonth)` to prevent double-billing the same month.
+- Add `PaymentReference`, `Gateway*` fields for PayHere reconciliation.
+- Add `CreatedAt` / `UpdatedAt` and allow `PaymentDate` to be `NULL`.
+- Add indexes to speed up “pending payments” and finance reporting.
 
 ---
 
@@ -124,18 +127,19 @@ ALTER TABLE subscriptionpayment
 CREATE TABLE subscriptionpayment (
   PaymentID INT AUTO_INCREMENT PRIMARY KEY,
   SubscriptionID INT NOT NULL,
-  BillingMonth DATE NOT NULL COMMENT 'First day of billing month',
+  BillingMonth DATE GENERATED ALWAYS AS (first day of month from DueDate) STORED,
   
   DueDate DATE NOT NULL,
   PaymentDate DATE DEFAULT NULL COMMENT 'When payment was actually received',
   
-  AmountDue DECIMAL(10,2) NOT NULL COMMENT 'Base subscription fee',
-  LateFee DECIMAL(10,2) DEFAULT 0.00,
-  AmountPaid DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Total paid (may differ if partial)',
+  Amount DECIMAL(10,2) NOT NULL COMMENT 'Base subscription fee (snapshot)',
   
   PaymentMethod ENUM('cash','card','bank_transfer','online') NOT NULL,
   Status ENUM('pending','completed','failed','refunded') DEFAULT 'pending',
   PaymentReference VARCHAR(100) DEFAULT NULL COMMENT 'Transaction/receipt reference',
+  Gateway ENUM('manual','payhere') NOT NULL DEFAULT 'manual',
+  GatewayOrderId VARCHAR(50) DEFAULT NULL,
+  GatewayPaymentId VARCHAR(50) DEFAULT NULL,
   
   ProcessedBy INT,
   Notes TEXT DEFAULT NULL,
@@ -159,12 +163,12 @@ CREATE TABLE subscriptionpayment (
 ### Creating a Payment for Feb 2026
 ```sql
 INSERT INTO subscriptionpayment 
-  (SubscriptionID, BillingMonth, DueDate, AmountDue, PaymentMethod, Status)
+  (SubscriptionID, DueDate, PaymentDate, Amount, PaymentMethod, Status)
 SELECT 
   SubscriptionID,
-  '2026-02-01',           -- Billing month
-  '2026-02-01',           -- Due date
-  MonthlyFee,             -- From playersubscription
+  '2026-02-14',           -- Due date (fixed: 14th)
+  NULL,                   -- pending → no payment date yet
+  MonthlyFee,             -- Base amount snapshot
   'card',
   'pending'
 FROM playersubscription
@@ -189,10 +193,10 @@ ORDER BY sp.BillingMonth;
 
 ### Prevent Duplicate Billing (Automatic)
 ```sql
--- This will fail if a payment for same SubscriptionID + BillingMonth already exists
-INSERT INTO subscriptionpayment (SubscriptionID, BillingMonth, ...)
-VALUES (123, '2026-02-01', ...);
--- Error: Duplicate entry for unique key 'uk_subscription_billing'
+-- BillingMonth is generated from DueDate, so any second row with a DueDate in the
+-- same month will conflict for the same SubscriptionID.
+INSERT INTO subscriptionpayment (SubscriptionID, DueDate, Amount, PaymentMethod, Status)
+VALUES (123, '2026-02-14', 4500.00, 'card', 'pending');
 ```
 
 ---
@@ -205,7 +209,7 @@ VALUES (123, '2026-02-01', ...);
 | Unclear billing period | `BillingMonth DATE` column | Clear month tracking |
 | No audit trail | `CreatedAt`, `UpdatedAt` | Track record changes |
 | No transaction tracking | `PaymentReference` | Refund/reconciliation support |
-| Amount confusion | Separate `AmountDue`, `AmountPaid`, `LateFee` | Clear accounting |
+| Amount confusion | Store final monthly charge in `Amount` | Clear accounting |
 | No failure notes | `Notes TEXT` | Document why payments fail |
 
 ---
@@ -213,16 +217,11 @@ VALUES (123, '2026-02-01', ...);
 ## 🚀 Migration Path
 
 1. **Backup your database first**
-2. Run the ALTER TABLE statements from Option A
-3. Update existing rows to populate BillingMonth from DueDate:
-   ```sql
-   UPDATE subscriptionpayment
-   SET BillingMonth = DATE_FORMAT(DueDate, '%Y-%m-01'),
-       AmountDue = Amount,
-       AmountPaid = CASE WHEN Status = 'completed' THEN Amount + LateFee ELSE 0 END;
-   ```
-4. Test queries with the new schema
-5. Update your PHP insert/update code to use new columns
+2. Run `db_changes_subscription_payments_optimization.sql`
+3. Validate there are no duplicate rows per `(SubscriptionID, month(DueDate))` before the UNIQUE index is created.
+4. (Optional) update application logic to:
+  - set `PaymentDate` only when `Status='completed'`
+  - populate `PaymentReference/Gateway*` for online payments
 
 ---
 
@@ -246,43 +245,42 @@ VALUES (123, '2026-02-01', ...);
    INSERT INTO playersubscription 
      (PlayerID, PlanID, StartDate, Status, MonthlyFee, PaymentDay, AutoRenewal)
    VALUES 
-     (25, 1, '2026-02-15', 'active', 4500.00, 15, 1);
+     (25, 1, '2026-02-01', 'active', 4500.00, 14, 1);
    -- Returns SubscriptionID = 101
    
    -- Step 3: Record first payment
    INSERT INTO subscriptionpayment 
-     (SubscriptionID, BillingMonth, DueDate, PaymentDate, AmountDue, AmountPaid, 
-      PaymentMethod, Status, PaymentReference, ProcessedBy)
+    (SubscriptionID, DueDate, PaymentDate, Amount,
+    PaymentMethod, Status, PaymentReference, Gateway, GatewayOrderId, GatewayPaymentId, ProcessedBy)
    VALUES 
-     (101, '2026-02-01', '2026-02-15', '2026-02-15', 4500.00, 4500.00, 
-      'card', 'completed', 'TXN_20260215_4521', 5);
+    (101, '2026-02-14', '2026-02-01', 4500.00,
+    'online', 'completed', 'PH_TXN_20260201_4521', 'payhere', 'SUBPAY-101-2026-02', 'PH_PAY_123456', 5);
    ```
 
 3. **Result:**
    - Player can now attend group coaching sessions
-   - Next payment automatically due March 15, 2026
+  - Next payment automatically due March 14, 2026
    - Parent receives confirmation email with receipt
 
 ---
 
 ### Scenario 2: Monthly Billing Cycle (Automated)
 
-**Every night at midnight, a cron job runs:**
+**On the 1st of every month, a cron job runs:**
 
 ```sql
--- Find all active subscriptions where payment is due tomorrow
+-- Find all active subscriptions that do NOT have a payment row for this month yet
 SELECT 
   ps.SubscriptionID,
   ps.PlayerID,
   u.Name,
   u.Email,
   ps.MonthlyFee,
-  ps.PaymentDay,
-  DATE_FORMAT(CURDATE(), '%Y-%m-01') as BillingMonth
+  DATE_FORMAT(CURDATE(), '%Y-%m-01') as BillingMonth,
+  DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 13 DAY) as DueDate
 FROM playersubscription ps
 JOIN user u ON ps.PlayerID = u.UserID
 WHERE ps.Status = 'active'
-  AND ps.PaymentDay = DAY(CURDATE() + INTERVAL 1 DAY)
   AND NOT EXISTS (
     SELECT 1 FROM subscriptionpayment sp
     WHERE sp.SubscriptionID = ps.SubscriptionID
@@ -294,8 +292,8 @@ WHERE ps.Status = 'active'
 1. Create pending payment record:
    ```sql
    INSERT INTO subscriptionpayment 
-     (SubscriptionID, BillingMonth, DueDate, AmountDue, PaymentMethod, Status)
-   VALUES (101, '2026-03-01', '2026-03-15', 4500.00, 'card', 'pending');
+     (SubscriptionID, DueDate, PaymentDate, Amount, PaymentMethod, Status)
+   VALUES (101, '2026-03-14', NULL, 4500.00, 'online', 'pending');
    ```
 
 2. Send payment reminder email
@@ -311,43 +309,21 @@ WHERE ps.Status = 'active'
 **Process:**
 1. **Admin/Parent clicks "Upgrade Plan"**
 
-2. **System checks:**
+2. **Database updates (simple, no history):**
    ```sql
-   -- Calculate prorated amount for current month
-   SELECT 
-     DATEDIFF(LAST_DAY(CURDATE()), CURDATE()) as RemainingDays,
-     DAY(LAST_DAY(CURDATE())) as TotalDaysInMonth,
-     4500.00 as PaidForGeneral,
-     10000.00 as NewProFee;
-   -- If 15 days left in month: credit = (4500/28) * 15 = Rs. 2410
-   -- Additional charge: (10000/28) * 15 - 2410 = Rs. 2947
-   ```
-
-3. **Database updates:**
-   ```sql
-   -- End current subscription
-   UPDATE playersubscription 
-   SET Status = 'cancelled', EndDate = CURDATE()
-   WHERE SubscriptionID = 101;
-   
-   -- Create new Pro subscription
-   INSERT INTO playersubscription 
-     (PlayerID, PlanID, StartDate, Status, MonthlyFee, PaymentDay, AutoRenewal)
-   VALUES (25, 3, '2026-02-16', 'active', 10000.00, 15, 1);
-   -- New SubscriptionID = 102
-   
-   -- Record upgrade payment (prorated)
-   INSERT INTO subscriptionpayment 
-     (SubscriptionID, BillingMonth, DueDate, PaymentDate, AmountDue, AmountPaid, 
-      PaymentMethod, Status, Notes, ProcessedBy)
-   VALUES 
-     (102, '2026-02-01', '2026-02-16', '2026-02-16', 2947.00, 2947.00,
-      'card', 'completed', 'Prorated upgrade from General to Pro (15 days)', 5);
+  -- Update subscription plan in-place (payments remain monthly)
+  UPDATE playersubscription
+  SET PlanID = 3,
+     MonthlyFee = 10000.00,
+     FeeOverrideReason = 'Upgrade to Pro',
+     FeeOverrideAppliedAt = NOW(),
+     FeeOverrideAppliedBy = 5
+  WHERE SubscriptionID = 101;
    ```
 
 4. **Result:**
    - Player now has access to both group AND private sessions
-   - Next full Pro payment due March 15 (Rs. 10,000)
+  - Next full Pro payment due next billing cycle (Rs. 10,000)
 
 ---
 
@@ -355,7 +331,7 @@ WHERE ps.Status = 'active'
 
 **Real-life:** Credit card expired, payment fails.
 
-**Month of March 15, 2026:**
+**Month of March 2026 (due by March 14):**
 
 1. **Auto-billing attempts payment:**
    ```sql
@@ -371,7 +347,8 @@ WHERE ps.Status = 'active'
    ```sql
    UPDATE subscriptionpayment 
    SET Status = 'failed',
-       PaymentDate = CURDATE(),
+     PaymentDate = NULL,
+     FailedAt = NOW(),
        Notes = 'Card declined - expired card'
    WHERE PaymentID = 205;
    ```
@@ -381,11 +358,12 @@ WHERE ps.Status = 'active'
    - SMS alert to parent
    - In-app notification
 
-4. **After 3 days (no payment):**
+4. **On/after the 15th (still unpaid):**
    ```sql
    -- Suspend subscription
    UPDATE playersubscription 
-   SET Status = 'suspended'
+  SET Status = 'suspended',
+     StatusChangedAt = NOW()
    WHERE SubscriptionID = 101;
    
    -- Player can no longer book sessions
@@ -393,13 +371,23 @@ WHERE ps.Status = 'active'
 
 5. **Parent updates card and retries:**
    ```sql
-   -- Create new payment attempt for same billing month
-   INSERT INTO subscriptionpayment 
-     (SubscriptionID, BillingMonth, DueDate, PaymentDate, AmountDue, LateFee, 
-      AmountPaid, PaymentMethod, Status, PaymentReference)
-   VALUES 
-     (101, '2026-03-01', '2026-03-15', '2026-03-18', 4500.00, 100.00, 
-      4600.00, 'card', 'completed', 'TXN_20260318_8821');
+   -- Update the existing row (or upsert) for the same billing month.
+   -- BillingMonth is generated, and a UNIQUE (SubscriptionID, BillingMonth)
+   -- prevents creating a second row for the same month.
+   INSERT INTO subscriptionpayment
+     (SubscriptionID, DueDate, PaymentDate, Amount, PaymentMethod, Status, PaymentReference)
+   VALUES
+     (101, '2026-03-14', '2026-03-18', 4500.00, 'card', 'completed', 'TXN_20260318_8821')
+   ON DUPLICATE KEY UPDATE
+     PaymentDate = VALUES(PaymentDate),
+     Status = VALUES(Status),
+     PaymentMethod = VALUES(PaymentMethod),
+     PaymentReference = VALUES(PaymentReference),
+     UpdatedAt = CURRENT_TIMESTAMP,
+     PaidAt = CASE
+       WHEN VALUES(Status) = 'completed' THEN CURRENT_TIMESTAMP
+       ELSE PaidAt
+     END;
    
    -- Reactivate subscription
    UPDATE playersubscription SET Status = 'active' WHERE SubscriptionID = 101;
@@ -417,8 +405,7 @@ SELECT
   mp.MonthlyFee as CurrentPrice,
   COUNT(DISTINCT ps.SubscriptionID) as TotalSubscriptions,
   COUNT(sp.PaymentID) as TotalPayments,
-  SUM(sp.AmountPaid) as TotalRevenue,
-  SUM(sp.LateFee) as LateFeeRevenue,
+  SUM(sp.Amount) as TotalRevenue,
   AVG(DATEDIFF(sp.PaymentDate, sp.DueDate)) as AvgDaysLate
 FROM membershipplan mp
 LEFT JOIN playersubscription ps ON mp.PlanID = ps.PlanID
@@ -430,11 +417,11 @@ ORDER BY TotalRevenue DESC;
 ```
 
 **Sample Output:**
-| PlanName | CurrentPrice | TotalSubscriptions | TotalPayments | TotalRevenue | LateFeeRevenue | AvgDaysLate |
-|----------|--------------|-------------------|---------------|--------------|----------------|-------------|
-| pro      | 10000.00     | 45                | 520           | 5,200,000    | 12,500         | 2.3         |
-| general  | 4500.00      | 120               | 1380          | 6,210,000    | 8,200          | 1.8         |
-| private  | 7000.00      | 30                | 350           | 2,450,000    | 3,100          | 1.5         |
+| PlanName | CurrentPrice | TotalSubscriptions | TotalPayments | TotalRevenue | AvgDaysLate |
+|----------|--------------|-------------------|---------------|--------------|------------|
+| pro      | 10000.00     | 45                | 520           | 5,200,000    | 2.3        |
+| general  | 4500.00      | 120               | 1380          | 6,210,000    | 1.8        |
+| private  | 7000.00      | 30                | 350           | 2,450,000    | 1.5        |
 
 ---
 
@@ -469,34 +456,32 @@ ORDER BY TotalRevenue DESC;
 
 ---
 
-### Scenario 7: Bulk Late Fee Calculation
+### Scenario 7: Bulk Suspension & Reminders
 
-**1st of every month, apply late fees to overdue payments:**
+**Daily (or on the 15th), suspend overdue subscriptions and send reminders:**
 
 ```sql
--- Find payments pending more than 5 days past due date
-UPDATE subscriptionpayment
-SET LateFee = CASE 
-    WHEN DATEDIFF(CURDATE(), DueDate) BETWEEN 6 AND 10 THEN 100.00
-    WHEN DATEDIFF(CURDATE(), DueDate) BETWEEN 11 AND 20 THEN 250.00
-    WHEN DATEDIFF(CURDATE(), DueDate) > 20 THEN 500.00
-    ELSE 0.00
-  END,
-  AmountDue = AmountDue + LateFee,
-  Notes = CONCAT(
-    COALESCE(Notes, ''), 
-    ' | Late fee applied: ', DATEDIFF(CURDATE(), DueDate), ' days overdue'
-  )
-WHERE Status = 'pending'
-  AND DATEDIFF(CURDATE(), DueDate) > 5;
+-- No late fees policy: suspend if unpaid after DueDate
+UPDATE playersubscription ps
+SET ps.Status = 'suspended',
+    ps.StatusChangedAt = NOW()
+WHERE ps.Status = 'active'
+  AND EXISTS (
+    SELECT 1
+    FROM subscriptionpayment sp
+    WHERE sp.SubscriptionID = ps.SubscriptionID
+      AND sp.BillingMonth = DATE_FORMAT(CURDATE(), '%Y-%m-01')
+      AND sp.Status IN ('pending','failed')
+      AND sp.DueDate < CURDATE()
+  );
 
 -- Send reminder emails
-SELECT u.Email, u.Name, sp.AmountDue, sp.LateFee, sp.DueDate
+SELECT u.Email, u.Name, sp.Amount, sp.DueDate
 FROM subscriptionpayment sp
 JOIN playersubscription ps ON sp.SubscriptionID = ps.SubscriptionID
 JOIN user u ON ps.PlayerID = u.UserID
 WHERE sp.Status = 'pending' 
-  AND sp.LateFee > 0;
+  AND sp.DueDate >= CURDATE();
 ```
 
 ---
@@ -551,7 +536,7 @@ SET Status = 'refunded',
 WHERE PaymentID = 302;
 
 -- Finance team can track:
-SELECT SUM(AmountPaid) as TotalRefunded
+SELECT SUM(Amount) as TotalRefunded
 FROM subscriptionpayment
 WHERE Status = 'refunded' 
   AND YEAR(PaymentDate) = 2026;

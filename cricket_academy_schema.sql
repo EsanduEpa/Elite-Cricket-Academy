@@ -1347,7 +1347,6 @@ CREATE TABLE `subscriptionpayment` (
   `PaymentMethod` enum('cash','card','bank_transfer','online') NOT NULL,
   `Status` enum('pending','completed','failed','refunded') DEFAULT 'pending',
   `DueDate` date NOT NULL,
-  `LateFee` decimal(10,2) DEFAULT 0.00,
   `ProcessedBy` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Monthly subscription payments';
 
