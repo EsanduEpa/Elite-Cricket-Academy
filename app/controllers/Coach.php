@@ -1317,5 +1317,395 @@ class Coach extends Controller {
         ]);
         exit;
     }
+
+    // ==================== TOURNAMENT RECOMMENDATIONS ====================
+
+    /**
+     * Display all tournament recommendations for current coach
+     * GET /coach/tournament-recommendations
+     */
+    public function tournament_recommendations() {
+        $coachId = $_SESSION['user_id'];
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        
+        try {
+            // Get all recommendations for this coach
+            $recommendations = $recommendationModel->getRecommendationsByCoach($coachId);
+            
+            // Get statistics
+            $stats = $recommendationModel->getRecommendationStats($coachId);
+            
+            // Get pending count
+            $pendingCount = $recommendationModel->getPendingCount($coachId);
+            
+            $data = [
+                'title' => 'Tournament Recommendations - Coach Dashboard',
+                'coachId' => $coachId,
+                'recommendations' => $recommendations,
+                'stats' => $stats,
+                'pendingCount' => $pendingCount
+            ];
+            
+            $this->view('coach/tournament-recommendations', $data);
+        } catch (Exception $e) {
+            error_log('Error in tournament_recommendations: ' . $e->getMessage());
+            redirect('coach/tournaments');
+        }
+    }
+
+    /**
+     * Get form data for recommending players to a tournament
+     * GET /coach/recommend-players/{tournamentId}
+     */
+    public function recommend_players($tournamentId = null) {
+        header('Content-Type: application/json');
+        
+        if (!$tournamentId) {
+            echo json_encode(['success' => false, 'message' => 'Tournament ID is required']);
+            return;
+        }
+        
+        $coachId = $_SESSION['user_id'];
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        $eventModel = $this->model('Event');
+        
+        try {
+            // Get tournament details
+            $tournament = $eventModel->getEventById($tournamentId);
+            if (!$tournament) {
+                echo json_encode(['success' => false, 'message' => 'Tournament not found']);
+                return;
+            }
+            
+            // Get coach's assigned players
+            $players = $recommendationModel->getCoachAssignedPlayers($coachId);
+            
+            if (empty($players)) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'No players assigned to you. Please contact admin.'
+                ]);
+                return;
+            }
+            
+            // Get tournament's role requirements (from Event name or description)
+            $roles = ['batsman', 'bowler', 'all-rounder', 'wicket-keeper'];
+            
+            echo json_encode([
+                'success' => true,
+                'tournament' => $tournament,
+                'players' => $players,
+                'roles' => $roles,
+                'roleDescriptions' => [
+                    'batsman' => 'Primary batting focus',
+                    'bowler' => 'Primary bowling focus',
+                    'all-rounder' => 'Both batting and bowling',
+                    'wicket-keeper' => 'Wicket-keeping specialist'
+                ]
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in recommend_players: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Save a new tournament recommendation
+     * POST /coach/save-recommendation
+     */
+    public function save_recommendation() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'POST method required']);
+            return;
+        }
+        
+        $coachId = $_SESSION['user_id'];
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        
+        // Validate input
+        $tournamentId = intval($input['tournamentId'] ?? 0);
+        $playerId = intval($input['playerId'] ?? 0);
+        $recommendedRole = trim($input['recommendedRole'] ?? '');
+        $reason = trim($input['reason'] ?? '');
+        $comments = trim($input['comments'] ?? '');
+        
+        if (!$tournamentId || !$playerId || empty($recommendedRole)) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Tournament, Player, and Role are required'
+            ]);
+            return;
+        }
+        
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        
+        try {
+            // Check for duplicates
+            if ($recommendationModel->checkDuplicateRecommendation($tournamentId, $playerId, $coachId)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You have already recommended this player for this tournament'
+                ]);
+                return;
+            }
+            
+            // Add recommendation
+            $recommendationData = [
+                'coach_id' => $coachId,
+                'tournament_id' => $tournamentId,
+                'player_id' => $playerId,
+                'recommended_role' => $recommendedRole,
+                'reason' => $reason,
+                'comments' => $comments
+            ];
+            
+            $recommendationId = $recommendationModel->addRecommendation($recommendationData);
+            
+            if ($recommendationId) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Recommendation saved successfully',
+                    'recommendationId' => $recommendationId
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to save recommendation'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log('Error in save_recommendation: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Update an existing recommendation
+     * PUT /coach/update-recommendation/{recommendationId}
+     */
+    public function update_recommendation($recommendationId = null) {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT') {
+            echo json_encode(['success' => false, 'message' => 'POST or PUT method required']);
+            return;
+        }
+        
+        if (!$recommendationId) {
+            echo json_encode(['success' => false, 'message' => 'Recommendation ID is required']);
+            return;
+        }
+        
+        $coachId = $_SESSION['user_id'];
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        
+        $recommendedRole = trim($input['recommendedRole'] ?? '');
+        $reason = trim($input['reason'] ?? '');
+        $comments = trim($input['comments'] ?? '');
+        
+        if (empty($recommendedRole)) {
+            echo json_encode(['success' => false, 'message' => 'Role is required']);
+            return;
+        }
+        
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        
+        try {
+            // Get recommendation to verify ownership
+            $recommendation = $recommendationModel->getRecommendationDetails($recommendationId);
+            if (!$recommendation) {
+                echo json_encode(['success' => false, 'message' => 'Recommendation not found']);
+                return;
+            }
+            
+            if ($recommendation->CoachID != $coachId) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only edit your own recommendations']);
+                return;
+            }
+            
+            if ($recommendation->Status !== 'pending') {
+                echo json_encode(['success' => false, 'message' => 'Can only edit pending recommendations']);
+                return;
+            }
+            
+            // Update recommendation
+            $updateData = [
+                'recommended_role' => $recommendedRole,
+                'reason' => $reason,
+                'comments' => $comments
+            ];
+            
+            if ($recommendationModel->updateRecommendation($recommendationId, $updateData)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Recommendation updated successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to update recommendation'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log('Error in update_recommendation: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Delete a recommendation
+     * DELETE /coach/delete-recommendation/{recommendationId}
+     */
+    public function delete_recommendation($recommendationId = null) {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'DELETE') {
+            echo json_encode(['success' => false, 'message' => 'POST or DELETE method required']);
+            return;
+        }
+        
+        if (!$recommendationId) {
+            $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+            $recommendationId = $input['recommendationId'] ?? null;
+        }
+        
+        if (!$recommendationId) {
+            echo json_encode(['success' => false, 'message' => 'Recommendation ID is required']);
+            return;
+        }
+        
+        $coachId = $_SESSION['user_id'];
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        
+        try {
+            // Get recommendation to verify ownership
+            $recommendation = $recommendationModel->getRecommendationDetails($recommendationId);
+            if (!$recommendation) {
+                echo json_encode(['success' => false, 'message' => 'Recommendation not found']);
+                return;
+            }
+            
+            if ($recommendation->CoachID != $coachId) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only delete your own recommendations']);
+                return;
+            }
+            
+            if ($recommendation->Status !== 'pending') {
+                echo json_encode(['success' => false, 'message' => 'Can only delete pending recommendations']);
+                return;
+            }
+            
+            // Delete recommendation
+            if ($recommendationModel->deleteRecommendation($recommendationId)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Recommendation deleted successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Failed to delete recommendation'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log('Error in delete_recommendation: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get tournament details with status
+     * GET /coach/tournament/{tournamentId}/details
+     */
+    public function get_tournament_details($tournamentId = null) {
+        header('Content-Type: application/json');
+        
+        if (!$tournamentId) {
+            echo json_encode(['success' => false, 'message' => 'Tournament ID is required']);
+            return;
+        }
+        
+        $eventModel = $this->model('Event');
+        
+        try {
+            $tournament = $eventModel->getEventById($tournamentId);
+            
+            if (!$tournament) {
+                echo json_encode(['success' => false, 'message' => 'Tournament not found']);
+                return;
+            }
+            
+            // Check if tournament is still accepting recommendations
+            $status = 'accepting';
+            if (isset($tournament->Status)) {
+                $tourStatus = strtolower($tournament->Status ?? '');
+                if ($tourStatus === 'completed' || $tourStatus === 'cancelled') {
+                    $status = 'closed';
+                } elseif ($tourStatus === 'in_progress') {
+                    $status = 'in-progress';
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'tournament' => $tournament,
+                'status' => $status
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in get_tournament_details: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get all players assigned to current coach
+     * GET /coach/assigned-players
+     */
+    public function get_assigned_players() {
+        header('Content-Type: application/json');
+        
+        $coachId = $_SESSION['user_id'];
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        
+        try {
+            $players = $recommendationModel->getCoachAssignedPlayers($coachId);
+            
+            if (empty($players)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'No players assigned',
+                    'players' => [],
+                    'count' => 0
+                ]);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'players' => $players,
+                'count' => count($players)
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in get_assigned_players: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
 ?>
