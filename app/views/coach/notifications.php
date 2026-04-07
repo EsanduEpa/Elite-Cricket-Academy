@@ -98,40 +98,65 @@
 
             <!-- Notifications Content -->
             <div class="notifications-content">
-                <!-- Notification Filters -->
-                <div class="notification-filters">
-                    <div class="filter-tabs">
-                        <button class="filter-tab active" data-filter="all">
-                            <i class="fas fa-list"></i>
-                            All <span class="tab-count" id="allCount">(<?php echo count($data['notifications']); ?>)</span>
-                        </button>
-                        <button class="filter-tab" data-filter="unread">
-                            <i class="fas fa-envelope"></i>
-                            Unread <span class="tab-count" id="unreadCount">(<?php echo $data['unread_count']; ?>)</span>
-                        </button>
-                        <button class="filter-tab" data-filter="sessions">
-                            <i class="fas fa-calendar"></i>
-                            Sessions
-                        </button>
-                        <button class="filter-tab" data-filter="injuries">
-                            <i class="fas fa-heartbeat"></i>
-                            Injuries
-                        </button>
-                        <button class="filter-tab" data-filter="tournaments">
-                            <i class="fas fa-trophy"></i>
-                            Tournaments
-                        </button>
-                        <button class="filter-tab" data-filter="messages">
-                            <i class="fas fa-comments"></i>
-                            Messages
-                        </button>
+                <!-- Notification Controls Section -->
+                <div class="notification-controls">
+                    <!-- Search Bar -->
+                    <div class="search-wrapper">
+                        <input 
+                            type="text" 
+                            id="notificationSearch" 
+                            class="notification-search" 
+                            placeholder="Search notifications..." 
+                            aria-label="Search notifications"
+                        >
+                        <i class="fas fa-search search-icon"></i>
                     </div>
-                    
-                    <div class="filter-actions">
-                        <select id="sortSelect" class="filter-select">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
+
+                    <!-- Notification Filters -->
+                    <div class="notification-filters">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-filter="all" title="View all notifications">
+                                <i class="fas fa-list"></i>
+                                <span>All</span> 
+                                <span class="tab-count" id="allCount">(<?php echo count($data['notifications']); ?>)</span>
+                            </button>
+                            <button class="filter-tab" data-filter="unread" title="View unread notifications">
+                                <i class="fas fa-envelope"></i>
+                                <span>Unread</span> 
+                                <span class="tab-count" id="unreadCount">(<?php echo $data['unread_count']; ?>)</span>
+                            </button>
+                            <button class="filter-tab" data-filter="sessions" title="View session notifications">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sessions</span>
+                            </button>
+                            <button class="filter-tab" data-filter="injuries" title="View injury notifications">
+                                <i class="fas fa-heartbeat"></i>
+                                <span>Injuries</span>
+                            </button>
+                            <button class="filter-tab" data-filter="tournaments" title="View tournament notifications">
+                                <i class="fas fa-trophy"></i>
+                                <span>Tournaments</span>
+                            </button>
+                            <button class="filter-tab" data-filter="messages" title="View messages">
+                                <i class="fas fa-comments"></i>
+                                <span>Messages</span>
+                            </button>
+                        </div>
+                        
+                        <div class="filter-controls">
+                            <select id="sortSelect" class="filter-select" aria-label="Sort notifications">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                            <div class="view-toggle">
+                                <button class="view-btn active" id="listViewBtn" title="List view">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button class="view-btn" id="compactViewBtn" title="Compact view">
+                                    <i class="fas fa-bars"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -152,31 +177,57 @@
                             $icon = $iconMap[$notification->type] ?? 'bell';
                             
                             $readClass = $notification->is_read ? 'read' : 'unread';
+                            $priority = $notification->priority ?? 'normal';
                     ?>
-                    <div class="notification-item <?php echo $readClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>">
-                        <div class="notification-icon <?php echo $notification->type; ?>">
-                            <i class="fas fa-<?php echo $icon; ?>"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-header">
-                                <h4><?php echo htmlspecialchars($notification->title); ?></h4>
-                                <span class="notification-time"><?php echo $notification->time; ?></span>
+                    <div class="notification-item <?php echo $readClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>" role="article" tabindex="0">
+                        <!-- Unread Indicator Dot -->
+                        <?php if (!$notification->is_read): ?>
+                        <div class="unread-dot" title="Unread notification"></div>
+                        <?php endif; ?>
+
+                        <!-- Icon Section -->
+                        <div class="notification-icon-wrapper">
+                            <div class="notification-icon <?php echo $notification->type; ?>">
+                                <i class="fas fa-<?php echo $icon; ?>"></i>
                             </div>
-                            <p class="notification-message"><?php echo htmlspecialchars($notification->message); ?></p>
-                            <?php if (!$notification->is_read): ?>
-                            <span class="priority-badge high">
-                                <i class="fas fa-envelope"></i> Unread
-                            </span>
-                            <?php endif; ?>
                         </div>
-                        <div class="notification-actions">
+
+                        <!-- Content Section -->
+                        <div class="notification-content-wrapper">
+                            <div class="notification-header-top">
+                                <h3 class="notification-title"><?php echo htmlspecialchars($notification->title); ?></h3>
+                                <div class="notification-meta-badges">
+                                    <?php if (!$notification->is_read): ?>
+                                    <span class="badge-unread" title="Unread">
+                                        <i class="fas fa-envelope"></i> Unread
+                                    </span>
+                                    <?php endif; ?>
+                                    <span class="badge-type <?php echo $notification->type; ?>">
+                                        <?php echo ucfirst($notification->type); ?>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p class="notification-message"><?php echo htmlspecialchars($notification->message); ?></p>
+                            
+                            <div class="notification-footer">
+                                <span class="notification-time" title="<?php echo date('F d, Y H:i', strtotime($notification->created_at ?? 'now')); ?>">
+                                    <i class="far fa-clock"></i> <?php echo $notification->time; ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Actions Section -->
+                        <div class="notification-actions-wrapper">
                             <?php if (!$notification->is_read): ?>
-                            <button class="btn-mark-read" onclick="markAsRead(<?php echo $notification->id; ?>)">
-                                <i class="fas fa-check"></i>
+                            <button class="btn-action btn-mark-read" onclick="markAsRead(<?php echo $notification->id; ?>)" title="Mark as read" aria-label="Mark notification as read">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="tooltip">Mark Read</span>
                             </button>
                             <?php endif; ?>
-                            <button class="btn-delete" onclick="deleteNotification(<?php echo $notification->id; ?>)">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn-action btn-delete" onclick="deleteNotification(<?php echo $notification->id; ?>)" title="Delete notification" aria-label="Delete notification">
+                                <i class="fas fa-trash-alt"></i>
+                                <span class="tooltip">Delete</span>
                             </button>
                         </div>
                     </div>
@@ -220,6 +271,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const notificationsList = document.getElementById('notificationsList');
+    const notificationItems = document.querySelectorAll('.notification-item');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const searchInput = document.getElementById('notificationSearch');
+    const sortSelect = document.getElementById('sortSelect');
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const listViewBtn = document.getElementById('listViewBtn');
+    const compactViewBtn = document.getElementById('compactViewBtn');
+
     // Sidebar Toggle
     const sidebar = document.getElementById('coachSidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -240,9 +301,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Search Functionality
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            notificationItems.forEach(item => {
+                const title = item.querySelector('.notification-title')?.textContent.toLowerCase() || '';
+                const message = item.querySelector('.notification-message')?.textContent.toLowerCase() || '';
+                const matches = title.includes(searchTerm) || message.includes(searchTerm);
+                item.style.display = matches ? 'grid' : 'none';
+            });
+            updateEmptyState();
+        });
+    }
+
     // Filter tabs
-    const filterTabs = document.querySelectorAll('.filter-tab');
-    const notificationItems = document.querySelectorAll('.notification-item');
     filterTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             filterTabs.forEach(t => t.classList.remove('active'));
@@ -250,9 +323,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const filter = this.getAttribute('data-filter');
             notificationItems.forEach(item => {
                 if (filter === 'all') {
-                    item.style.display = 'flex';
+                    item.style.display = 'grid';
                 } else if (filter === 'unread') {
-                    item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+                    item.style.display = item.classList.contains('unread') ? 'grid' : 'none';
                 } else {
                     const type = item.getAttribute('data-type');
                     const typeMap = {
@@ -261,22 +334,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         'tournaments': 'event',
                         'messages': 'player'
                     };
-                    item.style.display = type === typeMap[filter] ? 'flex' : 'none';
+                    item.style.display = type === typeMap[filter] ? 'grid' : 'none';
                 }
             });
-            // Toggle empty state
-            const visibleItems = document.querySelectorAll('.notification-item[style*="flex"], .notification-item:not([style])');
-            const emptyState = document.getElementById('emptyState');
-            let anyVisible = false;
-            notificationItems.forEach(item => {
-                if (item.style.display !== 'none') anyVisible = true;
-            });
-            if (emptyState) emptyState.style.display = anyVisible ? 'none' : 'block';
+            updateEmptyState();
         });
     });
 
     // Mark All Read
-    const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function() {
             fetch('<?php echo URLROOT; ?>/coach/markAllNotificationsRead', { method: 'POST' })
@@ -286,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.classList.add('read');
                     const markBtn = item.querySelector('.btn-mark-read');
                     if (markBtn) markBtn.remove();
-                    const badge = item.querySelector('.priority-badge');
+                    const badge = item.querySelector('.badge-unread');
                     if (badge) badge.remove();
                 });
                 const unreadCount = document.getElementById('unreadCount');
@@ -297,13 +362,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Clear All
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+            if (confirm('Delete all notifications? This action cannot be undone.')) {
+                notificationItems.forEach(item => {
+                    const id = item.getAttribute('data-id');
+                    fetch('<?php echo URLROOT; ?>/coach/deleteNotification/' + id, { method: 'POST' });
+                    item.remove();
+                });
+                updateEmptyState();
+            }
+        });
+    }
+
+    // View Toggle
+    if (listViewBtn) {
+        listViewBtn.addEventListener('click', function() {
+            listViewBtn.classList.add('active');
+            compactViewBtn?.classList.remove('active');
+            notificationsList.classList.remove('compact-view');
+        });
+    }
+    if (compactViewBtn) {
+        compactViewBtn.addEventListener('click', function() {
+            compactViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            notificationsList.classList.add('compact-view');
+        });
+    }
+
     // Sort notifications
-    const sortSelect = document.getElementById('sortSelect');
     if (sortSelect) {
         sortSelect.addEventListener('change', function() {
-            const list = document.getElementById('notificationsList');
-            if (!list) return;
-            const items = Array.from(list.querySelectorAll('.notification-item'));
+            if (!notificationsList) return;
+            const items = Array.from(notificationsList.querySelectorAll('.notification-item'));
             items.sort((a, b) => {
                 const dateA = a.querySelector('.notification-time')?.textContent || '';
                 const dateB = b.querySelector('.notification-time')?.textContent || '';
@@ -312,9 +405,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return dateB.localeCompare(dateA);
             });
-            items.forEach(item => list.appendChild(item));
+            items.forEach(item => notificationsList.appendChild(item));
         });
     }
+
+    // Update empty state visibility
+    function updateEmptyState() {
+        const visibleItems = Array.from(notificationItems).filter(item => item.style.display !== 'none');
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) {
+            emptyState.style.display = visibleItems.length === 0 ? 'flex' : 'none';
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('notificationDetailsModal');
+            if (modal && modal.style.display === 'block') {
+                document.getElementById('closeNotificationDetailsModal')?.click();
+            }
+        }
+    });
 });
 
 // Mark single notification as read
@@ -326,14 +438,20 @@ function markAsRead(id) {
             item.classList.remove('unread');
             item.classList.add('read');
             const markBtn = item.querySelector('.btn-mark-read');
-            if (markBtn) markBtn.remove();
-            const badge = item.querySelector('.priority-badge');
-            if (badge) badge.remove();
+            if (markBtn) {
+                markBtn.style.display = 'none';
+            }
+            const badge = item.querySelector('.badge-unread');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            // Update unread count
+            const unreadCount = document.getElementById('unreadCount');
+            const currentCount = parseInt(unreadCount?.textContent || 0) - 1;
+            if (unreadCount) unreadCount.textContent = '(' + Math.max(0, currentCount) + ')';
         }
-    }).catch(() => {
-        // Still update UI even if request fails
-        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
-        if (item) { item.classList.remove('unread'); item.classList.add('read'); }
+    }).catch(err => {
+        console.error('Error marking notification as read:', err);
     });
 }
 
@@ -343,7 +461,13 @@ function deleteNotification(id) {
     fetch('<?php echo URLROOT; ?>/coach/deleteNotification/' + id, { method: 'POST' })
     .then(() => {
         const item = document.querySelector('.notification-item[data-id="' + id + '"]');
-        if (item) item.remove();
+        if (item) {
+            item.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => item.remove(), 300);
+        }
+    })
+    .catch(err => {
+        console.error('Error deleting notification:', err);
     });
 }
 </script>
