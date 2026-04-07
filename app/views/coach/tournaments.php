@@ -45,6 +45,13 @@
                             <span>Tournaments</span>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
+                            <i class="fas fa-star"></i>
+                            <span>Recommendations</span>
+                        </a>
+                    </li>
                     
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
@@ -109,7 +116,7 @@
                                 <?php if (!empty($event['description'])): ?>
                                 <p style="margin: 0 0 12px 0; color: #666; font-size: 13px; line-height: 1.5;"><?php echo htmlspecialchars(substr($event['description'], 0, 120)); ?><?php echo strlen($event['description']) > 120 ? '...' : ''; ?></p>
                                 <?php endif; ?>
-                                <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #888;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #888; margin-bottom: 15px;">
                                     <span><i class="fas fa-calendar" style="margin-right: 4px;"></i><?php echo date('M d, Y', strtotime($event['event_date'])); ?></span>
                                     <?php if (!empty($event['location'])): ?>
                                     <span><i class="fas fa-map-marker-alt" style="margin-right: 4px;"></i><?php echo htmlspecialchars($event['location']); ?></span>
@@ -117,6 +124,15 @@
                                     <?php if (!empty($event['event_type'])): ?>
                                     <span><i class="fas fa-tag" style="margin-right: 4px;"></i><?php echo htmlspecialchars(ucfirst($event['event_type'])); ?></span>
                                     <?php endif; ?>
+                                </div>
+                                <!-- Action Buttons -->
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="recommend-btn" data-tournament-id="<?php echo htmlspecialchars($event['id'] ?? $event['EventID'] ?? ''); ?>" data-tournament-name="<?php echo htmlspecialchars($event['title']); ?>" style="flex: 1; padding: 8px 12px; background: #4A90E2; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                                        <i class="fas fa-star"></i> Recommend Players
+                                    </button>
+                                    <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" style="flex: 1; padding: 8px 12px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                                        <i class="fas fa-list"></i> View All
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -169,7 +185,137 @@
         </div>
     </div>
 
-    <!-- No modals needed - events are view-only for coaches -->
+    <!-- Quick Recommendation Modal -->
+    <div class="modal" id="quickRecommendationModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Recommend Players</h2>
+                <button class="modal-close" id="quickModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="tournamentInfo" style="margin: 0 0 20px 0; color: #666; font-size: 14px;"></p>
+                <form id="quickRecommendationForm">
+                    <input type="hidden" id="quickTournamentId" name="tournamentId">
+                    
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333;">Player <span style="color: #e74c3c;">*</span></label>
+                        <select id="quickPlayerSelect" name="playerId" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;" required>
+                            <option value="">Select a player...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333;">Role <span style="color: #e74c3c;">*</span></label>
+                        <select id="quickRoleSelect" name="recommendedRole" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;" required>
+                            <option value="">Select a role...</option>
+                            <option value="batsman">Batsman - Primary batting focus</option>
+                            <option value="bowler">Bowler - Primary bowling focus</option>
+                            <option value="all-rounder">All-rounder - Both batting and bowling</option>
+                            <option value="wicket-keeper">Wicket-keeper - Wicket-keeping specialist</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333;">Reason</label>
+                        <textarea id="quickReasonInput" name="reason" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit;" rows="3" placeholder="Why do you recommend this player?"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-outline" id="quickModalCancelBtn" style="padding: 8px 20px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
+                        <button type="submit" style="padding: 8px 20px; background: #4A90E2; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-check"></i> Recommend
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="quickModalOverlay"></div>
+
+<script>
+// Quick Recommendation Modal Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('quickRecommendationModal');
+    const modalOverlay = document.getElementById('quickModalOverlay');
+    const closeBtn = document.getElementById('quickModalClose');
+    const cancelBtn = document.getElementById('quickModalCancelBtn');
+    const form = document.getElementById('quickRecommendationForm');
+    const recommendBtns = document.querySelectorAll('.recommend-btn');
+
+    function openModal(tournamentId, tournamentName) {
+        document.getElementById('quickTournamentId').value = tournamentId;
+        document.getElementById('tournamentInfo').textContent = `You are recommending players for: ${tournamentName}`;
+        modal.style.display = 'flex';
+        modalOverlay.style.display = 'block';
+        
+        // Load assigned players
+        fetch('<?php echo URLROOT; ?>/coach/assigned-players')
+            .then(r => r.json())
+            .then(data => {
+                const playerSelect = document.getElementById('quickPlayerSelect');
+                playerSelect.innerHTML = '<option value="">Select a player...</option>';
+                if (data.success && data.players) {
+                    data.players.forEach(player => {
+                        const option = document.createElement('option');
+                        option.value = player.PlayerID;
+                        option.textContent = player.Name || `Player ${player.PlayerID}`;
+                        playerSelect.appendChild(option);
+                    });
+                }
+            });
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        modalOverlay.style.display = 'none';
+        form.reset();
+    }
+
+    recommendBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tournamentId = this.getAttribute('data-tournament-id');
+            const tournamentName = this.getAttribute('data-tournament-name');
+            openModal(tournamentId, tournamentName);
+        });
+    });
+
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+    modalOverlay?.addEventListener('click', closeModal);
+
+    form?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const tournamentId = document.getElementById('quickTournamentId').value;
+        const playerId = document.getElementById('quickPlayerSelect').value;
+        const role = document.getElementById('quickRoleSelect').value;
+        const reason = document.getElementById('quickReasonInput').value;
+
+        fetch('<?php echo URLROOT; ?>/coach/save-recommendation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tournamentId: parseInt(tournamentId),
+                playerId: parseInt(playerId),
+                recommendedRole: role,
+                reason: reason
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Recommendation saved successfully!');
+                closeModal();
+                window.location.href = '<?php echo URLROOT; ?>/coach/tournament-recommendations';
+            } else {
+                alert('Error: ' + (data.message || 'Failed to save recommendation'));
+            }
+        })
+        .catch(err => alert('Error: ' + err.message));
+    });
+});
+</script>
 
 <script>
 // Sidebar Toggle
