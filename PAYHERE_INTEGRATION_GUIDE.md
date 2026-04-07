@@ -537,7 +537,7 @@ This section gives concrete, end-to-end examples of how PayHere Checkout would b
 
 1) Player opens **Player → Payments** and sees an upcoming item:
    - Table: `subscriptionpayment`
-   - Row example: `PaymentID=123`, `Status='pending'`, `Amount=5000.00`, `LateFee=0.00`
+  - Row example: `PaymentID=123`, `Status='pending'`, `Amount=5000.00`
 
 2) Player clicks **Pay Now**.
 
