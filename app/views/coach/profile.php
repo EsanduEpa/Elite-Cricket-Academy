@@ -47,6 +47,12 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link">
+                            <i class="fas fa-star"></i>
+                            <span>Recommendations</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link">
                             <i class="fas fa-calendar"></i>
                             <span>Events</span>
