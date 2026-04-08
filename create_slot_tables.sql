@@ -282,11 +282,15 @@ INSERT INTO `slot_occurrence`
 SELECT
     NULL,
     -- Map old free-text StartTime to the nearest slot_time_band
-    ( SELECT ts.SlotID
-      FROM slot_time_band ts
-      WHERE ts.StartTime <= s.StartTime
-      ORDER BY ts.StartTime DESC
-      LIMIT 1 ),
+    -- COALESCE defaults to band 1 (09:00 AM) for sessions before 09:00
+    COALESCE(
+        ( SELECT ts.SlotID
+          FROM slot_time_band ts
+          WHERE ts.StartTime <= s.StartTime
+          ORDER BY ts.StartTime DESC
+          LIMIT 1 ),
+        1
+    ),
     s.`Date`,
     NULL,   -- FacilityID unknown from old freetext; admin fills post-migration
     CASE s.`Status`
