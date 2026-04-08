@@ -126,7 +126,6 @@ function editPlan(planId, planData) {
     document.getElementById('workoutname').value = planData.workoutname || '';
     document.getElementById('frequency').value = planData.frequency || '';
     document.getElementById('duration').value = planData.duration || '';
-    document.getElementById('durationdays').value = planData.durationdays || '';
     document.getElementById('videolink').value = planData.videolink || '';
     document.getElementById('intensity').value = planData.intensity || 'Moderate';
     document.getElementById('notsuitablefor').value = planData.notsuitablefor || '';

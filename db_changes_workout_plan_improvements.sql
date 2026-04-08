@@ -85,3 +85,24 @@ ALTER TABLE `workoutplan`
 -- Verify
 SELECT 'workoutplan.NotSuitableFor after migration:' AS info;
 SHOW COLUMNS FROM `workoutplan` LIKE 'NotSuitableFor';
+
+
+-- ============================================================
+-- Workout Plan: Fix TrainerID foreign key reference
+-- Repoint workoutplan.TrainerID from trainerprofile to user,
+-- so any trainer (user row) can create plans without needing
+-- a trainerprofile row first.
+-- ============================================================
+ALTER TABLE `workoutplan`
+    DROP FOREIGN KEY `workoutplan_ibfk_1`,
+    ADD CONSTRAINT `fk_workoutplan_user`
+        FOREIGN KEY (`TrainerID`) REFERENCES `user` (`UserID`)
+        ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Also repoint workoutplan_player.AssignedBy from trainerprofile to user
+-- so assignment history is preserved even for trainers without a profile.
+ALTER TABLE `workoutplan_player`
+    DROP FOREIGN KEY `fk_wpp_assigned_by`,
+    ADD CONSTRAINT `fk2_wpp_assigned_by`
+        FOREIGN KEY (`AssignedBy`) REFERENCES `user` (`UserID`)
+        ON DELETE SET NULL ON UPDATE CASCADE;
