@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+﻿<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
 <!-- Mobile-specific meta tags -->
@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Trainer Layout -->
-    <div class="player-layout workout-page">
+    <div class="trainer-layout workout-page">
         <!-- Left Sidebar Panel -->
         <div class="trainer-sidebar" id="trainerSidebar">
             <div class="sidebar-header">
@@ -130,13 +130,13 @@
                             <tr>
                                 <th>Plan ID</th>
                                 <th>Workout Name</th>
+                                <th>Trainer</th>
+                                <th>Status</th>
                                 <th>Frequency</th>
                                 <th>Intensity</th>
                                 <th>Duration (min)</th>
-                                <th>Duration (days)</th>
                                 <th>Video Link</th>
-                                <th>Benefits</th>
-                                <th>Not Suitable For</th>
+                                <th>Assigned Players</th>
                                 <th>Created Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -144,6 +144,16 @@
                         <tbody>
                             <?php if (!empty($data['workout_plans'])): ?>
                                 <?php foreach ($data['workout_plans'] as $plan): ?>
+                                <?php
+                                    $isOwn        = isset($plan->is_own) ? (bool)$plan->is_own : true;
+                                    $assignedCount = (int)($plan->assigned_count ?? 0);
+                                    $planStatus   = $plan->Status ?? 'active';
+                                    $statusColors = [
+                                        'active'   => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);',
+                                        'draft'    => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
+                                        'archived' => 'background:rgba(153,153,153,0.1);color:#999;border:1px solid rgba(153,153,153,0.3);',
+                                    ];
+                                ?>
                                     <tr data-plan-id="<?php echo $plan->PlanID; ?>">
                                         <td>
                                             <div class="table-cell-primary plan-id">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
@@ -154,16 +164,35 @@
                                             </div>
                                         </td>
                                         <td>
+                                            <?php if ($isOwn): ?>
+                                                <span class="table-badge" style="background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);">
+                                                    <i class="fas fa-user-tie"></i> You
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="table-badge" style="background:rgba(156,39,176,0.1);color:#9c27b0;border:1px solid rgba(156,39,176,0.3);" title="<?php echo htmlspecialchars($plan->trainer_name ?? ''); ?>">
+                                                    <i class="fas fa-users"></i>
+                                                    <?php echo htmlspecialchars(substr($plan->trainer_name ?? 'Other', 0, 14)); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="table-badge" style="<?php echo $statusColors[$planStatus] ?? $statusColors['active']; ?>">
+                                                <?php echo ucfirst($planStatus); ?>
+                                            </span>
+                                            <?php if (!$isOwn): ?>
+                                                <span style="font-size:10px;color:#9c27b0;display:block;margin-top:3px;"><i class="fas fa-lock"></i> read-only</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
                                             <span class="table-badge frequency-badge" style="
                                                 <?php 
                                                     $freqColors = [
-                                                        'Daily' => 'background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);',
-                                                        'Weekly' => 'background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3);',
-                                                        'Bi-weekly' => 'background: rgba(74, 144, 226, 0.1); color: #4A90E2; border: 1px solid rgba(74, 144, 226, 0.3);'
+                                                        'Daily'     => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);',
+                                                        'Weekly'    => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
+                                                        'Bi-weekly' => 'background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);'
                                                     ];
                                                     echo $freqColors[$plan->frequency] ?? $freqColors['Weekly'];
-                                                ?>
-                                            ">
+                                                ?>">
                                                 <?php echo htmlspecialchars($plan->frequency); ?>
                                             </span>
                                         </td>
@@ -172,17 +201,15 @@
                                                 <span class="table-badge intensity-badge" style="
                                                     <?php 
                                                         $intensityColors = [
-                                                            'High' => 'background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3);',
-                                                            'Moderate' => 'background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3);',
-                                                            'Low' => 'background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3);'
+                                                            'High'     => 'background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3);',
+                                                            'Moderate' => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
+                                                            'Low'      => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);'
                                                         ];
                                                         echo $intensityColors[$plan->Intensity] ?? $intensityColors['Moderate'];
-                                                    ?>
-                                                ">
+                                                    ?>">
                                                     <?php echo htmlspecialchars($plan->Intensity); ?>
                                                 </span>
-                                            <?php else: ?>
-                                                <span style="color: #999;">-</span>
+                                            <?php else: ?><span style="color:#999;">-</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
@@ -191,43 +218,21 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <?php if (!empty($plan->durationdays)): ?>
-                                                <div class="table-cell-primary durationdays">
-                                                    <i class="fas fa-calendar-week"></i> <?php echo $plan->durationdays; ?> days
-                                                </div>
-                                            <?php else: ?>
-                                                <span style="color: #999;">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
                                             <?php if (!empty($plan->VideoLink)): ?>
-                                                <a href="<?php echo htmlspecialchars($plan->VideoLink); ?>" target="_blank" 
+                                                <a href="<?php echo htmlspecialchars($plan->VideoLink); ?>" target="_blank" rel="noopener noreferrer"
                                                    class="table-badge" 
-                                                   style="background: rgba(255, 59, 48, 0.1); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer;">
+                                                   style="background:rgba(255,59,48,0.1);color:#ff3b30;border:1px solid rgba(255,59,48,0.3);text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;">
                                                     <i class="fas fa-video"></i> Watch
                                                 </a>
-                                            <?php else: ?>
-                                                <span style="color: #999;">-</span>
+                                            <?php else: ?><span style="color:#999;">-</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if (!empty($plan->Benefits)): ?>
-                                                <div style="font-size: 12px; color: #666; line-height: 1.4; max-width: 200px;">
-                                                    <?php echo htmlspecialchars(substr($plan->Benefits, 0, 60)) . (strlen($plan->Benefits) > 60 ? '...' : ''); ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <span style="color: #999;">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if (!empty($plan->NotSuitableFor)): ?>
-                                                <div style="font-size: 12px; color: #ff6b6b; line-height: 1.4; max-width: 200px;">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    <?php echo htmlspecialchars(substr($plan->NotSuitableFor, 0, 60)) . (strlen($plan->NotSuitableFor) > 60 ? '...' : ''); ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <span style="color: #999;">-</span>
-                                            <?php endif; ?>
+                                            <button class="table-badge" onclick="viewAssignedPlayers(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')"
+                                                style="background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;">
+                                                <i class="fas fa-users"></i>
+                                                <?php echo $assignedCount; ?> player<?php echo $assignedCount !== 1 ? 's' : ''; ?>
+                                            </button>
                                         </td>
                                         <td>
                                             <div class="table-cell-secondary">
@@ -237,31 +242,37 @@
                                         </td>
                                         <td>
                                             <div class="profile-actions">
-                                                <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background: rgba(46, 213, 115, 0.1); color: #2ed573; border-color: rgba(46, 213, 115, 0.3);">
+                                                <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background:rgba(46,213,115,0.1);color:#2ed573;border-color:rgba(46,213,115,0.3);">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
+                                                <?php if ($planStatus !== 'archived'): ?>
+                                                <button class="profile-btn" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player" style="background:rgba(74,144,226,0.1);color:#4A90E2;border-color:rgba(74,144,226,0.3);">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                                <?php endif; ?>
+                                                <?php if ($isOwn): ?>
                                                 <button class="profile-btn" onclick='editPlan(<?php echo $plan->PlanID; ?>, <?php echo htmlspecialchars(json_encode([
-                                                    'workoutname' => $plan->workoutname,
-                                                    'frequency' => $plan->frequency,
-                                                    'duration' => $plan->Duration,
-                                                    'durationdays' => $plan->durationdays ?? '',
-                                                    'videolink' => $plan->VideoLink ?? '',
-                                                    'intensity' => $plan->Intensity ?? 'Moderate',
-                                                    'notsuitablefor' => $plan->NotSuitableFor ?? '',
-                                                    'benefits' => $plan->Benefits ?? ''
-                                                ]), ENT_QUOTES, 'UTF-8'); ?>)' title="Edit Plan" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3);">
+                                                    'workoutname'   => $plan->workoutname,
+                                                    'frequency'     => $plan->frequency,
+                                                    'duration'      => $plan->Duration,
+                                                    'videolink'     => $plan->VideoLink ?? '',,
+                                                    'intensity'     => $plan->Intensity ?? 'Moderate',
+                                                    'notsuitablefor'=> $plan->NotSuitableFor ?? '',
+                                                    'benefits'      => $plan->Benefits ?? ''
+                                                ]), ENT_QUOTES, 'UTF-8'); ?>)' title="Edit Plan" style="background:rgba(255,159,67,0.1);color:#ff9f43;border-color:rgba(255,159,67,0.3);">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border-color: rgba(255, 107, 107, 0.3);">
+                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background:rgba(255,107,107,0.1);color:#ff6b6b;border-color:rgba(255,107,107,0.3);">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="11" style="text-align: center; padding: 40px 20px;">
+                                    <td colspan="12" style="text-align:center;padding:40px 20px;">
                                         <div style="color: #666; display: flex; flex-direction: column; align-items: center; gap: 15px;">
                                             <i class="fas fa-dumbbell" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
                                             <h3 style="color: #4A90E2; margin-bottom: 8px;">No workout plans found</h3>
@@ -334,19 +345,7 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
-                        <div class="form-group">
-                            <label for="durationdays" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
-                                <i class="fas fa-calendar-week" style="color: #4A90E2; margin-right: 8px;"></i>
-                                Duration (days)
-                            </label>
-                            <input type="number" id="durationdays" name="durationdays" min="1" max="365" 
-                                   style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
-                                   placeholder="1-365 days">
-                            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
-                                Total program duration
-                            </small>
-                        </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
                         <div class="form-group">
                             <label for="intensity" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
                                 <i class="fas fa-tachometer-alt" style="color: #4A90E2; margin-right: 8px;"></i>
@@ -393,13 +392,18 @@
                             <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; margin-right: 8px;"></i>
                             Not Suitable For
                         </label>
-                        <textarea id="notsuitablefor" name="notsuitablefor" rows="2" maxlength="1000"
-                                  style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"
-                                  placeholder="E.g., people with knee injuries, pregnant women (max 1000 characters)" oninput="updateCharCount('notsuitablefor')"></textarea>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <small style="color: #666; font-size: 11px;">Contraindications and warnings</small>
-                            <span id="notsuitablefor-counter" style="color: #666; font-size: 11px; font-weight: 500;">0/1000 characters</span>
-                        </div>
+                        <select id="notsuitablefor" name="notsuitablefor"
+                                style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                            <option value="None (General)">None (General)</option>
+                            <option value="Post-Surgery">Post-Surgery</option>
+                            <option value="Active Lower Back Pain">Active Lower Back Pain</option>
+                            <option value="Knee Injuries">Knee Injuries</option>
+                            <option value="Shoulder Instability">Shoulder Instability</option>
+                            <option value="Acute Ankle Sprain">Acute Ankle Sprain</option>
+                            <option value="Heart Conditions">Heart Conditions</option>
+                            <option value="Concussion Protocol">Concussion Protocol</option>
+                        </select>
+                        <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Select the primary contraindication for this plan</small>
                     </div>
                 </div>
 
@@ -463,6 +467,51 @@
         </div>
     </div>
 
+    <script>const URLROOT = '<?php echo URLROOT; ?>';</script>
     <script src="<?php echo URLROOT; ?>/js/trainer/workout.js"></script>
+
+    <!-- ===================== ASSIGN TO PLAYER MODAL ===================== -->
+    <div id="assignModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:30px; max-width:480px; width:90%; position:relative;">
+            <h3 style="margin:0 0 5px; color:#1a1a2e;"><i class="fas fa-user-plus" style="color:#4A90E2;"></i> Assign Plan to Player</h3>
+            <p id="assignModalSubtitle" style="color:#666; margin:0 0 20px; font-size:13px;"></p>
+            <div id="assignFeedback" style="display:none; padding:10px 15px; border-radius:8px; margin-bottom:15px; font-size:13px;"></div>
+            <form id="assignForm">
+                <input type="hidden" id="assignPlanId" name="plan_id">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:600; color:#333; margin-bottom:6px;"><i class="fas fa-user"></i> Select Player *</label>
+                    <select id="assignPlayerId" name="player_id" required style="width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px;">
+                        <option value="">-- Choose a player --</option>
+                        <?php foreach ($data['players'] as $player): ?>
+                            <option value="<?php echo (int)$player->PlayerID; ?>"><?php echo htmlspecialchars($player->Name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; font-weight:600; color:#333; margin-bottom:6px;"><i class="fas fa-calendar-alt"></i> End Date (optional)</label>
+                    <input type="date" id="assignEndDate" name="end_date" style="width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px;" min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
+                    <small style="color:#666;">Leave blank for an open-ended assignment</small>
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="closeAssignModal()" style="padding:10px 20px; border:none; border-radius:8px; background:#e5e7eb; color:#374151; cursor:pointer; font-weight:500;">Cancel</button>
+                    <button type="submit" id="assignSubmitBtn" style="padding:10px 20px; border:none; border-radius:8px; background:linear-gradient(135deg,#4A90E2,#5BA0F2); color:#fff; cursor:pointer; font-weight:500;"><i class="fas fa-check"></i> Assign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============= VIEW ASSIGNED PLAYERS MODAL ============= -->
+    <div id="assignedPlayersModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:30px; max-width:640px; width:92%; max-height:80vh; overflow-y:auto; position:relative;">
+            <h3 id="assignedModalTitle" style="margin:0 0 20px; color:#1a1a2e;"><i class="fas fa-users" style="color:#4A90E2;"></i> Assigned Players</h3>
+            <div id="assignedPlayersList">
+                <p style="color:#666; text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</p>
+            </div>
+            <div style="text-align:right; margin-top:20px;">
+                <button onclick="closeAssignedModal()" style="padding:10px 20px; border:none; border-radius:8px; background:#4A90E2; color:#fff; cursor:pointer; font-weight:500;">Close</button>
+            </div>
+        </div>
+    </div>
+
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

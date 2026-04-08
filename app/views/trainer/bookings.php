@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Trainer Layout -->
-    <div class="player-layout">
+    <div class="trainer-layout">
         <!-- Left Sidebar Panel -->
         <div class="trainer-sidebar" id="trainerSidebar">
             <div class="sidebar-header">
@@ -92,16 +92,16 @@
             <div class="dashboard-header">
                 <div class="header-content">
                     <div class="header-text">
-                        <h1><i class="fas fa-calendar-check"></i> Session Bookings & Management</h1>
+                        <h1><i class="fas fa-calendar-alt"></i> Session Bookings & Management</h1>
                         <p>Manage training sessions, bookings, and assign personalized plans to your trainees</p>
                     </div>
                     <div class="header-actions">
                         <a href="<?php echo URLROOT; ?>/trainer/addSession" class="btn btn-training btn-add-session">
                             <i class="fas fa-plus"></i> Add New Session
                         </a>
-                        <button class="btn btn-refresh btn-refresh-improved" onclick="location.reload()">
+                        <button class="btn btn-refresh" onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i>
-                            <div class="current-time"><?php echo date('H:i'); ?></div>
+                            <span class="current-time"><?php echo date('H:i'); ?></span>
                         </button>
                     </div>
                 </div>
@@ -420,10 +420,6 @@
                                 </td>
                                 <td class="actions-cell">
                                     <div class="plan-actions">
-                                        <button class="plan-btn workout" onclick="assignWorkoutPlan(this)" title="Assign Workout Plan">
-                                            <i class="fas fa-dumbbell"></i>
-                                            <span>Workout</span>
-                                        </button>
                                         <button class="plan-btn nutrition" onclick="assignNutritionPlan(this)" title="Assign Nutrition Plan">
                                             <i class="fas fa-apple-alt"></i>
                                             <span>Nutrition</span>
@@ -450,81 +446,6 @@
 
 
         </div>
-    </div>
-</div>
-
-<!-- Assign Workout Plan Modal -->
-<div id="assignWorkoutModal" class="modal">
-    <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
-            <div class="header-icon">
-                <i class="fas fa-dumbbell"></i>
-            </div>
-            <div class="header-text">
-                <h3>Assign Workout Plan</h3>
-                <p>Create a personalized workout plan for your trainee</p>
-            </div>
-            <button class="modal-close" onclick="closeModal('assignWorkoutModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form class="modal-form" onsubmit="submitWorkoutPlan(event)">
-            <div class="modal-body">
-                <div class="client-info-display" id="workoutClientInfo">
-                    <!-- Client info will be populated here -->
-                </div>
-                
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="workout_plan_name" class="form-label">
-                            <i class="fas fa-tag"></i> Plan Name
-                        </label>
-                        <input type="text" id="workout_plan_name" name="plan_name" class="form-input" required 
-                               placeholder="e.g., Strength Building Program">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="workout_focus" class="form-label">
-                            <i class="fas fa-target"></i> Focus Area
-                        </label>
-                        <select id="workout_focus" name="focus" class="form-input" required>
-                            <option value="">Select focus...</option>
-                            <option value="strength">Strength Training</option>
-                            <option value="cardio">Cardiovascular</option>
-                            <option value="flexibility">Flexibility</option>
-                            <option value="sports_specific">Sports-Specific</option>
-                            <option value="rehabilitation">Rehabilitation</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="workout_duration" class="form-label">
-                            <i class="fas fa-calendar-alt"></i> Duration (Weeks)
-                        </label>
-                        <input type="number" id="workout_duration" name="duration" class="form-input" required 
-                               min="1" max="52" placeholder="e.g., 8 weeks">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="workout_description" class="form-label">
-                            <i class="fas fa-clipboard-list"></i> Workout Description
-                        </label>
-                        <textarea id="workout_description" name="description" class="form-input" rows="6" required 
-                                placeholder="Describe the workout plan details, exercises, sets, reps, and progression..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('assignWorkoutModal')">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Assign Workout Plan
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -1055,26 +976,6 @@ function closeModal(modalId) {
 }
 
 // Plan Assignment Functions
-function assignWorkoutPlan(clientRef) {
-    const clientInfo = getClientInfo(clientRef);
-    
-    // Populate client info in modal
-    document.getElementById('workoutClientInfo').innerHTML = `
-        <div class="client-info-card">
-            <div class="client-avatar">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <div class="client-details">
-                <h4>${clientInfo.name}</h4>
-                <p>${clientInfo.sport} • ${clientInfo.email}</p>
-                <span class="info-badge">Assigning Workout Plan</span>
-            </div>
-        </div>
-    `;
-    
-    openModal('assignWorkoutModal');
-}
-
 function assignNutritionPlan(clientRef) {
     const clientInfo = getClientInfo(clientRef);
     
@@ -1131,28 +1032,6 @@ function getClientInfo(clientRef) {
 }
 
 // Form submission handlers
-function submitWorkoutPlan(event) {
-    event.preventDefault();
-    
-    // Get form data
-    const formData = new FormData(event.target);
-    const planData = {
-        plan_name: formData.get('plan_name'),
-        focus: formData.get('focus'),
-        duration: formData.get('duration'),
-        description: formData.get('description')
-    };
-    
-    // In real implementation, send data to server
-    console.log('Workout Plan Data:', planData);
-    
-    // Show success message
-    alert('Workout plan assigned successfully!');
-    
-    // Close modal
-    closeModal('assignWorkoutModal');
-}
-
 function submitNutritionPlan(event) {
     event.preventDefault();
     

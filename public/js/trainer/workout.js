@@ -559,3 +559,130 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+/* ---- Assign to Player ---- */
+function openAssignModal(planId, planName) {
+    document.getElementById('assignPlanId').value = planId;
+    document.getElementById('assignModalSubtitle').textContent = 'Plan: ' + planName;
+    document.getElementById('assignPlayerId').value = '';
+    document.getElementById('assignEndDate').value  = '';
+    document.getElementById('assignFeedback').style.display = 'none';
+    document.getElementById('assignModal').style.display = 'flex';
+}
+function closeAssignModal() {
+    document.getElementById('assignModal').style.display = 'none';
+}
+document.getElementById('assignForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn  = document.getElementById('assignSubmitBtn');
+    const fb   = document.getElementById('assignFeedback');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+    fb.style.display = 'none';
+
+    const fd = new FormData(this);
+    fetch(URLROOT + '/trainer/assignPlanToPlayer', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            fb.style.display = 'block';
+            if (data.success) {
+                fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(46,213,115,0.1);color:#1a7a3a;border:1px solid rgba(46,213,115,0.4);';
+                fb.textContent = data.message;
+                setTimeout(function() { closeAssignModal(); location.reload(); }, 1400);
+            } else {
+                fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(255,59,48,0.1);color:#c0392b;border:1px solid rgba(255,59,48,0.4);';
+                fb.textContent = data.message;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Assign';
+            }
+        })
+        .catch(function() {
+            fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(255,59,48,0.1);color:#c0392b;border:1px solid rgba(255,59,48,0.4);';
+            fb.textContent = 'Network error. Please try again.';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Assign';
+        });
+});
+
+/* ---- View Assigned Players ---- */
+function viewAssignedPlayers(planId, planName) {
+    document.getElementById('assignedModalTitle').innerHTML = '<i class="fas fa-users" style="color:#4A90E2;"></i> Players — ' + planName;
+    document.getElementById('assignedPlayersList').innerHTML = '<p style="color:#666;text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
+    document.getElementById('assignedPlayersModal').style.display = 'flex';
+
+    fetch(URLROOT + '/trainer/getAssignedPlayers?plan_id=' + planId)
+        .then(r => r.json())
+        .then(function(resp) {
+            if (!resp.success || !resp.players.length) {
+                document.getElementById('assignedPlayersList').innerHTML =
+                    '<p style="color:#999;text-align:center;padding:30px;"><i class="fas fa-users-slash" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No players assigned yet.</p>';
+                return;
+            }
+            const statusColors = { active:'#2ed573', completed:'#4A90E2', paused:'#ff9f43' };
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+                + '<thead><tr style="background:#f8fafc;">'
+                + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Player</th>'
+                + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Assigned</th>'
+                + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">End Date</th>'
+                + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Status</th>'
+                + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Assigned By</th>'
+                + '<th style="padding:8px 12px;text-align:center;font-weight:600;color:#374151;">Actions</th>'
+                + '</tr></thead><tbody>';
+
+            resp.players.forEach(function(p) {
+                const sc = statusColors[p.assignment_status] || '#666';
+                html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+                    + '<td style="padding:10px 12px;"><strong>' + p.player_name + '</strong><br><span style="color:#999;font-size:11px;">' + (p.player_email || '') + '</span></td>'
+                    + '<td style="padding:10px 12px;">' + (p.AssignedDate || '-') + '</td>'
+                    + '<td style="padding:10px 12px;">' + (p.EndDate || '<span style="color:#999;">open</span>') + '</td>'
+                    + '<td style="padding:10px 12px;"><span style="color:' + sc + ';font-weight:600;text-transform:capitalize;">' + (p.assignment_status || '-') + '</span></td>'
+                    + '<td style="padding:10px 12px;">' + (p.assigned_by_name || '<span style="color:#999;">-</span>') + '</td>'
+                    + '<td style="padding:10px 12px;text-align:center;">';
+
+                if (p.can_manage) {
+                    html += '<select onchange="updateAssignStatus(' + planId + ',' + p.PlayerID + ',this.value)" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;margin-right:5px;">'
+                        + ['active','paused','completed'].map(function(s) {
+                            return '<option value="' + s + '"' + (s === p.assignment_status ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
+                        }).join('')
+                        + '</select>'
+                        + '<button onclick="unassignPlayer(' + planId + ',' + p.PlayerID + ')" style="padding:4px 10px;border:none;border-radius:6px;background:rgba(255,59,48,0.1);color:#ff3b30;cursor:pointer;font-size:12px;" title="Remove assignment"><i class="fas fa-times"></i></button>';
+                }
+                html += '</td></tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('assignedPlayersList').innerHTML = html;
+        })
+        .catch(function() {
+            document.getElementById('assignedPlayersList').innerHTML = '<p style="color:#c0392b;text-align:center;padding:20px;">Failed to load players.</p>';
+        });
+}
+function closeAssignedModal() {
+    document.getElementById('assignedPlayersModal').style.display = 'none';
+}
+
+function updateAssignStatus(planId, playerId, status) {
+    const fd = new FormData();
+    fd.append('plan_id', planId);
+    fd.append('player_id', playerId);
+    fd.append('status', status);
+    fetch(URLROOT + '/trainer/updateAssignmentStatus', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(function(d) { if (!d.success) alert(d.message); });
+}
+
+function unassignPlayer(planId, playerId) {
+    if (!confirm('Remove this player\'s assignment? This cannot be undone.')) return;
+    const fd = new FormData();
+    fd.append('plan_id', planId);
+    fd.append('player_id', playerId);
+    fetch(URLROOT + '/trainer/unassignPlanFromPlayer', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(function(d) {
+            if (d.success) { location.reload(); }
+            else { alert(d.message); }
+        });
+}
+
+/* ---- Close modals on backdrop click ---- */
+document.getElementById('assignModal').addEventListener('click', function(e) { if (e.target === this) closeAssignModal(); });
+document.getElementById('assignedPlayersModal').addEventListener('click', function(e) { if (e.target === this) closeAssignedModal(); });

@@ -718,19 +718,6 @@ class Player extends Controller {
         $this->view('player/tournaments', $data);
     }
 
-    // Trainer Plans (Note: URL uses hyphen but method uses camelCase due to Core.php routing)
-    public function trainerplans() {
-        $this->requireLogin();
-        $data = [
-            'title' => 'Trainer Plans',
-            'player' => $this->getPlayerData(),
-            'workoutPlans' => $this->trainerModel->getAllWorkoutPlansWithTrainers(),
-            'nutritionGuides' => $this->getGeneralNutritionGuides(),
-            'supplementInfo' => $this->getGeneralSupplementInfo()
-        ];
-        $this->view('player/trainer-plans', $data);
-    }
-
     // Equipment Rentals
     public function rentals() {
         $data = [
@@ -1258,23 +1245,6 @@ class Player extends Controller {
         return ['total_facilities'=>0,'available_facilities'=>0];
     }
 
-    // Trainer Plans Data Methods
-    private function getGeneralWorkoutPlans() {
-        return $this->trainerModel->getAllWorkoutPlansWithTrainers();
-    }
-
-    private function getGeneralNutritionGuides() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $nutritionModel = $this->model('M_NutritionPlan');
-        return $nutritionModel->getNutritionPlansByPlayer($playerId);
-    }
-
-    private function getGeneralSupplementInfo() {
-        $playerId = $_SESSION['user_id'] ?? 6;
-        $supplementModel = $this->model('M_SupplementPlan');
-        return $supplementModel->getSupplementPlansByPlayer($playerId);
-    }
-    
     // =========================================================================
     // COACH BOOKING SYSTEM METHODS - REAL DB
     // =========================================================================
