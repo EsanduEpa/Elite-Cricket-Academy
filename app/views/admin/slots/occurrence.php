@@ -173,6 +173,74 @@ $staff = $data['staff'];
                 <?php endif; ?>
             </div>
 
+            <!-- ── Bookings ── -->
+            <div class="detail-card">
+                <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;"><i class="fas fa-ticket-alt"></i> Bookings
+                    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;"><?= count($data['bookings']) ?> total</span>
+                </h3>
+                <?php if (empty($data['bookings'])): ?>
+                    <p style="color:#888;font-size:13px;margin:0;">No players have booked this occurrence yet.</p>
+                <?php else: ?>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Player</th>
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Status</th>
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Source</th>
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Payment</th>
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Medical</th>
+                                <th style="padding:9px 12px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Booked At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($data['bookings'] as $b): ?>
+                            <tr style="border-bottom:1px solid #f0f0f0;">
+                                <td style="padding:9px 12px;font-weight:600;"><?= htmlspecialchars($b->PlayerName) ?></td>
+                                <td style="padding:9px 12px;">
+                                    <?php
+                                    $bStatusColors = [
+                                        'pending'   => '#fff3cd;color:#856404',
+                                        'confirmed' => '#d4edda;color:#155724',
+                                        'cancelled' => '#f8d7da;color:#721c24',
+                                        'attended'  => '#cce5ff;color:#004085',
+                                        'missed'    => '#e9ecef;color:#6c757d',
+                                    ];
+                                    $bc = $bStatusColors[$b->Status] ?? '#f8f9fa;color:#333';
+                                    ?>
+                                    <span style="background:<?= $bc ?>;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;">
+                                        <?= ucfirst($b->Status) ?>
+                                    </span>
+                                </td>
+                                <td style="padding:9px 12px;font-size:13px;"><?= ucfirst(str_replace('_', ' ', $b->BookingSource)) ?></td>
+                                <td style="padding:9px 12px;font-size:13px;">
+                                    <?php if ($b->AmountCharged > 0): ?>
+                                        LKR <?= number_format($b->AmountCharged, 2) ?>
+                                        <span style="font-size:11px;color:#888;">(<?= ucfirst($b->PaymentStatus) ?>)</span>
+                                    <?php else: ?>
+                                        <span style="color:#888;">Incl. in plan</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding:9px 12px;font-size:13px;">
+                                    <?php if ($b->MedicalClearedBy): ?>
+                                        <span style="color:#27ae60;font-size:12px;"><i class="fas fa-check-circle"></i> Cleared by <?= htmlspecialchars($b->ClearedByName ?? 'Admin') ?></span>
+                                    <?php else: ?>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/adminslots/clearmedical/<?= $b->BookingID ?>" style="display:inline;">
+                                            <button type="submit"
+                                                    onclick="return confirm('Mark this player as medically cleared for this session?')"
+                                                    style="padding:3px 10px;background:#f39c12;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">
+                                                <i class="fas fa-notes-medical"></i> Clear Medical
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding:9px 12px;font-size:12px;color:#888;"><?= date('j M Y, g:ia', strtotime($b->CreatedAt)) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+
             <!-- ── Cancel Occurrence ── -->
             <?php if ($occ->Status !== 'cancelled'): ?>
             <div class="detail-card" style="border-left:4px solid #e74c3c;">

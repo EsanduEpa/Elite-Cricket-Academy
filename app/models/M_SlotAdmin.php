@@ -456,6 +456,59 @@ class M_SlotAdmin {
     // PRIVATE HELPERS
     // =========================================================
 
+    // =========================================================
+    // MEDICAL CLEAR  (Phase 4)
+    // =========================================================
+
+    public function getBookingById(int $bookingId): ?object {
+        $this->db->query(
+            'SELECT BookingID, OccurrenceID, PlayerID, Status, MedicalClearedBy
+             FROM slot_booking WHERE BookingID = :bid'
+        );
+        $this->db->bind(':bid', $bookingId, PDO::PARAM_INT);
+        $row = $this->db->single();
+        return $row ?: null;
+    }
+
+    public function getBookingsForOccurrence(int $occurrenceId): array {
+        $this->db->query(
+            'SELECT sb.BookingID, sb.PlayerID, sb.Status, sb.MedicalClearedBy,
+                    sb.BookingSource, sb.AmountCharged, sb.PaymentStatus, sb.CreatedAt,
+                    u.Name AS PlayerName,
+                    clr.Name AS ClearedByName
+             FROM slot_booking sb
+             JOIN user u         ON u.UserID  = sb.PlayerID
+             LEFT JOIN user clr  ON clr.UserID = sb.MedicalClearedBy
+             WHERE sb.OccurrenceID = :oid
+             ORDER BY sb.CreatedAt'
+        );
+        $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function clearMedicalFlag(int $bookingId, int $adminId): bool {
+        $this->db->query(
+            'UPDATE slot_booking SET MedicalClearedBy = :admin WHERE BookingID = :bid'
+        );
+        $this->db->bind(':admin', $adminId,    PDO::PARAM_INT);
+        $this->db->bind(':bid',   $bookingId,  PDO::PARAM_INT);
+        $ok = $this->db->execute();
+
+        if ($ok) {
+            $this->_auditLog(
+                'booking', $bookingId, 'update',
+                'MedicalClearedBy', null, (string) $adminId,
+                'Medical flag cleared by admin', $adminId
+            );
+        }
+
+        return (bool) $ok;
+    }
+
+    // =========================================================
+    // PRIVATE HELPERS
+    // =========================================================
+
     private function _auditLog(
         string  $entityType, int    $entityId, string  $action,
         ?string $changedField, ?string $oldValue, ?string $newValue,

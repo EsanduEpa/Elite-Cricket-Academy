@@ -271,6 +271,7 @@ class Adminslots extends Controller {
             'title'      => 'Occurrence Detail',
             'occurrence' => $occurrence,
             'staff'      => $staff,
+            'bookings'   => $model->getBookingsForOccurrence((int) $id),
             'coaches'    => $model->getAvailableCoaches(),
             'trainers'   => $model->getAvailableTrainers(),
             'error'      => $error,
@@ -306,5 +307,24 @@ class Adminslots extends Controller {
             'error'      => $error,
         ];
         $this->view('admin/slots/adhoc', $data);
+    }
+
+    // =========================================================
+    // CLEAR MEDICAL FLAG  —  POST /adminslots/clearmedical/{bookingId}
+    // =========================================================
+    public function clearmedical($bookingId = null) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$bookingId) {
+            redirect('adminslots/calendar');
+        }
+
+        $model   = $this->model('M_SlotAdmin');
+        $booking = $model->getBookingById((int) $bookingId);
+
+        $model->clearMedicalFlag((int) $bookingId, (int) $_SESSION['user_id']);
+
+        if ($booking) {
+            redirect('adminslots/occurrence/' . $booking->OccurrenceID);
+        }
+        redirect('adminslots/calendar');
     }
 }
