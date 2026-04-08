@@ -100,12 +100,11 @@
                     <table class="nc-table">
                         <thead>
                             <tr>
-                                <th><i class="fas fa-tag"></i> Plan Name</th>
-                                <th><i class="fas fa-user"></i> Player</th>
-                                <th><i class="fas fa-utensils"></i> Diet Details</th>
+                                <th><i class="fas fa-tag"></i> Plan</th>
+                                <th><i class="fas fa-users"></i> Assigned To</th>
                                 <th><i class="fas fa-hourglass-half"></i> Duration</th>
+                                <th><i class="fas fa-sticky-note"></i> Notes</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
-                                <th><i class="fas fa-calendar-alt"></i> Created</th>
                                 <th><i class="fas fa-cog"></i> Actions</th>
                             </tr>
                         </thead>
@@ -115,23 +114,40 @@
                                     <!-- Plan name -->
                                     <td>
                                         <span class="nc-plan-name">
-                                            <?php echo htmlspecialchars($plan->PlanName ?? 'Untitled Plan'); ?>
+                                            <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? 'Untitled Plan'); ?>
                                         </span>
                                         <span class="nc-plan-id">#<?php echo (int)$plan->PlanID; ?></span>
                                     </td>
 
-                                    <!-- Player -->
-                                    <td><?php echo htmlspecialchars($plan->player_name ?? '—'); ?></td>
-
-                                    <!-- Diet details preview -->
-                                    <td>
-                                        <span class="nc-diet-preview" title="<?php echo htmlspecialchars($plan->DietDetails); ?>">
-                                            <?php echo htmlspecialchars($plan->DietDetails); ?>
-                                        </span>
+                                    <!-- Assigned To -->
+                                    <?php $assignmentCount = (int)($plan->assigned_player_count ?? 0); ?>
+                                    <td title="<?php echo htmlspecialchars($plan->assigned_player_names ?? ($plan->player_name ?? '')); ?>">
+                                        <?php if ($assignmentCount > 1): ?>
+                                            <?php echo $assignmentCount; ?> players
+                                        <?php elseif ($assignmentCount === 1 || !empty($plan->player_name)) : ?>
+                                            <?php echo htmlspecialchars($plan->player_name ?? '1 player'); ?>
+                                        <?php else: ?>
+                                            —
+                                        <?php endif; ?>
                                     </td>
 
                                     <!-- Duration -->
                                     <td><?php echo (int)$plan->Duration; ?> day<?php echo $plan->Duration != 1 ? 's' : ''; ?></td>
+
+                                    <!-- Notes -->
+                                    <?php $notesText = (string)($plan->Notes ?? $plan->notes ?? ''); ?>
+                                    <td>
+                                        <?php if (trim($notesText) === ''): ?>
+                                            —
+                                        <?php else: ?>
+                                            <?php
+                                                $notesPreview = mb_strlen($notesText) > 80 ? mb_substr($notesText, 0, 80) . '…' : $notesText;
+                                            ?>
+                                            <span class="nc-notes-preview" title="<?php echo htmlspecialchars($notesText, ENT_QUOTES); ?>">
+                                                <?php echo htmlspecialchars($notesPreview, ENT_QUOTES); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
 
                                     <!-- Status badge -->
                                     <td>
@@ -141,9 +157,6 @@
                                             <?php echo ucfirst($s); ?>
                                         </span>
                                     </td>
-
-                                    <!-- Created date -->
-                                    <td><?php echo $plan->CreatedDate ? date('M j, Y', strtotime($plan->CreatedDate)) : '—'; ?></td>
 
                                     <!-- Actions -->
                                     <td class="actions-col">

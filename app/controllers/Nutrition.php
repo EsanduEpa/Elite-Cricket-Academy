@@ -4,10 +4,37 @@ class Nutrition extends Controller {
     public function __construct() {
         // Dev bypass — mirrors the pattern used in Trainer.php
         if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id']   = 1;
-            $_SESSION['username']  = 'John Trainer';
+            // Use an actual Trainer that exists in `trainerprofile` to avoid FK failures.
+            $_SESSION['user_id']   = 10;
+            $_SESSION['username']  = 'Trainer';
             $_SESSION['user_role'] = 'Trainer';
         }
+    }
+
+    private function _predefinedPlans(): array {
+        return [
+            'High Protein Plan',
+            'High Carb (Match Preparation) Plan',
+            'Balanced Diet Plan',
+            'Weight Loss / Lean Plan',
+            'Recovery Plan',
+            'Hydration & Light Nutrition Plan',
+        ];
+    }
+
+    private function _planTemplate(string $planName): string {
+        $planName = trim($planName);
+
+        $templates = [
+            'High Protein Plan' => "Goal: Support muscle building and strength.\n\nGuidelines:\n- Protein with every meal (lean meats, eggs, dairy, legumes).\n- Balanced carbs around training; choose whole grains.\n- Include healthy fats (nuts, olive oil, avocado).\n\nTiming:\n- Pre-training: carb + protein snack 60–90 min before.\n- Post-training: protein + carbs within 60 min.",
+            'High Carb (Match Preparation) Plan' => "Goal: Maximise energy availability for match days.\n\nGuidelines:\n- Increase carbs 24–48h pre-match (rice, pasta, potatoes, fruit).\n- Keep protein moderate; keep fats lower close to match time.\n- Hydrate consistently; include electrolytes if sweating heavily.\n\nTiming:\n- Pre-match meal (3–4h): high carb + moderate protein.\n- Top-up snack (60–90 min): easily digested carbs.",
+            'Balanced Diet Plan' => "Goal: Everyday performance for training days.\n\nGuidelines:\n- Plate method: 1/2 vegetables, 1/4 protein, 1/4 carbs.\n- 2–3 fruit servings daily.\n- Hydrate and limit sugary drinks.\n\nTiming:\n- Spread meals evenly across the day.\n- Include a recovery snack after intense sessions.",
+            'Weight Loss / Lean Plan' => "Goal: Reduce body fat while maintaining performance.\n\nGuidelines:\n- Prioritise protein and high-fibre foods.\n- Choose lower-calorie carbs and control portions.\n- Avoid late-night high-sugar snacks.\n\nTiming:\n- Protein-forward breakfast.\n- Smart snacks (yogurt, fruit, nuts in small portions).",
+            'Recovery Plan' => "Goal: Support recovery after matches or during injury rehab.\n\nGuidelines:\n- Higher protein + micronutrients (iron, calcium, vitamin D).\n- Anti-inflammatory foods (omega-3 sources, colourful vegetables).\n- Prioritise sleep-supportive routine and hydration.\n\nTiming:\n- Recovery meal within 60–90 min post-match/training.",
+            'Hydration & Light Nutrition Plan' => "Goal: Maintain hydration and light, easy digestion (hot weather / light training).\n\nGuidelines:\n- Water consistently through the day.\n- Electrolytes on hot days or long sessions.\n- Light meals: fruit, yogurt, soups, simple carbs.\n\nTiming:\n- Small frequent meals and fluids.",
+        ];
+
+        return $templates[$planName] ?? "Nutrition Plan: {$planName}";
     }
 
     // ── GET  nutrition  (index) ──────────────────────────────────────
@@ -37,6 +64,7 @@ class Nutrition extends Controller {
             'title'   => 'Create Nutrition Plan',
             'players' => $players,
             'groups'  => $groups,
+            'plan_options' => $this->_predefinedPlans(),
             'errors'  => $errors,
             'old'     => $old,
         ];
@@ -96,6 +124,8 @@ class Nutrition extends Controller {
         }
 
         $players = $model->getAllPlayers();
+        $groups  = $model->getPlayerGroups();
+        $assignedPlayerIds = $model->getAssignedPlayerIds($id);
         $errors  = $_SESSION['nutrition_edit_errors'] ?? [];
         $old     = $_SESSION['nutrition_edit_old']    ?? [];
         unset($_SESSION['nutrition_edit_errors'], $_SESSION['nutrition_edit_old']);
@@ -104,6 +134,9 @@ class Nutrition extends Controller {
             'title'   => 'Edit Nutrition Plan',
             'plan'    => $plan,
             'players' => $players,
+            'groups'  => $groups,
+            'assigned_player_ids' => $assignedPlayerIds,
+            'plan_options' => $this->_predefinedPlans(),
             'errors'  => $errors,
             'old'     => $old,
         ];
@@ -136,6 +169,16 @@ class Nutrition extends Controller {
             flash('nutrition_message', 'Plan not found or access denied.', 'alert alert-danger');
             redirect('nutrition');
             return;
+        }
+
+        if (($fields['assignment_mode'] ?? 'individual') === 'group') {
+            $fields['player_ids'] = $model->getPlayerIdsByGroup($fields['player_group'] ?? '');
+            if (empty($fields['player_ids'])) {
+                $_SESSION['nutrition_edit_errors'] = ['player_group' => 'No players were found for the selected group.'];
+                $_SESSION['nutrition_edit_old']    = $fields;
+                redirect('nutrition/edit/' . $id);
+                return;
+            }
         }
 
         $fields['plan_id'] = $id;
@@ -192,6 +235,8 @@ class Nutrition extends Controller {
         $playerIds = array_values(array_unique($playerIds));
 
         $playerGroup = trim($post['player_group'] ?? '');
+
+        $notes      = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
         $dietDetails = trim(htmlspecialchars($post['diet_details'] ?? '', ENT_QUOTES, 'UTF-8'));
         $duration    = trim($post['duration']    ?? '');
         $status      = trim($post['status']      ?? 'active');
@@ -199,10 +244,11 @@ class Nutrition extends Controller {
 
         $errors = [];
 
+        $allowedPlans = $this->_predefinedPlans();
         if ($planName === '') {
-            $errors['plan_name'] = 'Plan name is required.';
-        } elseif (strlen($planName) > 255) {
-            $errors['plan_name'] = 'Plan name must be 255 characters or fewer.';
+            $errors['plan_name'] = 'Please select a plan.';
+        } elseif (!in_array($planName, $allowedPlans, true)) {
+            $errors['plan_name'] = 'Invalid plan selected.';
         }
 
         if ($assignmentMode === 'group') {
@@ -213,8 +259,12 @@ class Nutrition extends Controller {
             $errors['player_ids'] = 'Please select at least one player.';
         }
 
+        if ($notes !== '' && strlen($notes) > 1000) {
+            $errors['notes'] = 'Notes must be 1000 characters or fewer.';
+        }
+
         if ($dietDetails === '') {
-            $errors['diet_details'] = 'Diet details are required.';
+            $dietDetails = $this->_planTemplate($planName);
         }
 
         if ($duration === '') {
@@ -239,10 +289,14 @@ class Nutrition extends Controller {
             'player_ids'   => $playerIds,
             'player_group' => $playerGroup,
             'diet_details' => $dietDetails,
+            'notes'        => $notes,
             'duration'     => $duration,
             'status'       => $status,
             'created_date' => $createdDate,
         ];
+
+        // Backwards-compatible single-player field for update queries
+        $fields['player_id'] = !empty($playerIds) ? (int)$playerIds[0] : 0;
 
         return [$errors, $fields];
     }
