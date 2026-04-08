@@ -279,153 +279,191 @@ class Trainer extends Controller {
     }
 
     public function workout() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 10; // Changed to match existing data
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
-        // Initialize trainer model
         $trainerModel = $this->model('M_Trainer');
-        
-        // Get trainer's workout plans
-        $workoutPlans = $trainerModel->getWorkoutPlans();
-        $players = $trainerModel->getAllPlayers();
+        $trainer_id   = $_SESSION['user_id'];
+
+        // Own plans + read-only view of other trainers' active plans
+        $workoutPlans = $trainerModel->getWorkoutPlansWithVisibility($trainer_id);
+        $players      = $trainerModel->getAllPlayers();
 
         $data = [
-            'title' => 'Workout Plans',
+            'title'        => 'Workout Plans',
             'workout_plans' => $workoutPlans,
-            'players' => $players
+            'players'      => $players
         ];
 
         $this->view('trainer/workout', $data);
     }
 
+    // Assign an existing workout plan to a player (POST, JSON response)
+    public function assignPlanToPlayer() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        $trainerModel = $this->model('M_Trainer');
+        $trainer_id   = (int)$_SESSION['user_id'];
+
+        $plan_id    = isset($_POST['plan_id'])   ? (int)$_POST['plan_id']   : 0;
+        $player_id  = isset($_POST['player_id']) ? (int)$_POST['player_id'] : 0;
+        $end_date   = !empty($_POST['end_date']) && strtotime($_POST['end_date'])
+                        ? date('Y-m-d', strtotime($_POST['end_date']))
+                        : null;
+
+        if (!$plan_id || !$player_id) {
+            echo json_encode(['success' => false, 'message' => 'Plan and player are required']);
+            return;
+        }
+
+        // Verify plan exists and is active/draft (not archived)
+        $plan = $trainerModel->getWorkoutPlanById($plan_id);
+        if (!$plan || $plan->Status === 'archived') {
+            echo json_encode(['success' => false, 'message' => 'Plan not found or is archived']);
+            return;
+        }
+
+        $result = $trainerModel->assignPlanToPlayer([
+            'plan_id'     => $plan_id,
+            'player_id'   => $player_id,
+            'assigned_by' => $trainer_id,
+            'end_date'    => $end_date
+        ]);
+
+        if ($result === 'duplicate') {
+            echo json_encode(['success' => false, 'message' => 'This player already has an active assignment for this plan']);
+        } elseif ($result === true) {
+            echo json_encode(['success' => true, 'message' => 'Plan assigned successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error while assigning plan']);
+        }
+    }
+
+    // Unassign a workout plan from a player (POST, JSON response)
+    public function unassignPlanFromPlayer() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        $trainerModel = $this->model('M_Trainer');
+        $trainer_id   = (int)$_SESSION['user_id'];
+        $plan_id      = isset($_POST['plan_id'])   ? (int)$_POST['plan_id']   : 0;
+        $player_id    = isset($_POST['player_id']) ? (int)$_POST['player_id'] : 0;
+
+        if (!$plan_id || !$player_id) {
+            echo json_encode(['success' => false, 'message' => 'Plan and player are required']);
+            return;
+        }
+
+        if ($trainerModel->unassignPlanFromPlayer($plan_id, $player_id, $trainer_id)) {
+            echo json_encode(['success' => true, 'message' => 'Assignment removed']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Could not remove assignment. You may not have permission (only the assigning trainer can unassign).']);
+        }
+    }
+
+    // Update the status of an assignment (active / completed / paused) — POST, JSON
+    public function updateAssignmentStatus() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        $trainerModel = $this->model('M_Trainer');
+        $trainer_id   = (int)$_SESSION['user_id'];
+        $plan_id      = isset($_POST['plan_id'])   ? (int)$_POST['plan_id']   : 0;
+        $player_id    = isset($_POST['player_id']) ? (int)$_POST['player_id'] : 0;
+        $status       = isset($_POST['status'])    ? trim($_POST['status'])    : '';
+
+        if (!$plan_id || !$player_id || !$status) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        if ($trainerModel->updateAssignmentStatus($plan_id, $player_id, $trainer_id, $status)) {
+            echo json_encode(['success' => true, 'message' => 'Assignment status updated']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Could not update status. You may not have permission.']);
+        }
+    }
+
     // Add workout plan
     public function addWorkoutPlan() {
-        // Ensure session has a valid trainer ID
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 10;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-        
-        // Log the request
-        error_log("=== ADD WORKOUT PLAN REQUEST ===");
-        error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
-        error_log("Session User ID: " . ($_SESSION['user_id'] ?? 'NOT SET'));
-        
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Log raw POST data
-            error_log("Raw POST data: " . print_r($_POST, true));
-            
-            // Initialize trainer model
             $trainerModel = $this->model('M_Trainer');
-            
-            // Sanitize and prepare data (including new fields)
+
             $data = [
-                'trainer_id' => $_SESSION['user_id'] ?? 10,
-                'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
-                'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
-                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0,
-                'durationdays' => isset($_POST['durationdays']) ? (int)$_POST['durationdays'] : null,
-                'videolink' => !empty($_POST['videolink']) ? trim(htmlspecialchars($_POST['videolink'], ENT_QUOTES, 'UTF-8')) : null,
-                'intensity' => !empty($_POST['intensity']) ? htmlspecialchars($_POST['intensity'], ENT_QUOTES, 'UTF-8') : 'Moderate',
-                'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim(htmlspecialchars($_POST['notsuitablefor'], ENT_QUOTES, 'UTF-8')) : null,
-                'benefits' => !empty($_POST['benefits']) ? trim(htmlspecialchars($_POST['benefits'], ENT_QUOTES, 'UTF-8')) : null
+                'trainer_id'     => (int)$_SESSION['user_id'],
+                'workoutname'    => isset($_POST['workoutname'])     ? trim($_POST['workoutname'])    : '',
+                'frequency'      => isset($_POST['frequency'])       ? trim($_POST['frequency'])      : '',
+                'duration'       => isset($_POST['duration'])        ? (int)$_POST['duration']        : 0,
+                'videolink'      => !empty($_POST['videolink'])      ? trim($_POST['videolink'])       : null,
+                'intensity'      => !empty($_POST['intensity'])      ? trim($_POST['intensity'])       : 'Moderate',
+                'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim($_POST['notsuitablefor'])  : 'None (General)',
+                'benefits'       => !empty($_POST['benefits'])       ? trim($_POST['benefits'])        : null,
             ];
-            
-            error_log("Processed data: " . print_r($data, true));
-            
-            // Validate data
+
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
-                error_log("Validation failed - Missing required fields");
                 flash('workout_message', 'Please fill in all required fields (Workout Name, Frequency, Duration)', 'alert alert-danger');
             } else if (strlen($data['workoutname']) < 3 || strlen($data['workoutname']) > 255) {
-                error_log("Validation failed - Workout name length invalid");
                 flash('workout_message', 'Workout name must be between 3 and 255 characters', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
-                error_log("Validation failed - Duration out of range: " . $data['duration']);
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
-            } else if (!empty($data['durationdays']) && ($data['durationdays'] < 1 || $data['durationdays'] > 365)) {
-                error_log("Validation failed - Duration days out of range: " . $data['durationdays']);
-                flash('workout_message', 'Duration days must be between 1 and 365', 'alert alert-danger');
             } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
-                error_log("Validation failed - Invalid frequency: " . $data['frequency']);
                 flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
             } else if (!empty($data['intensity']) && !in_array($data['intensity'], ['Low', 'Moderate', 'High'])) {
-                error_log("Validation failed - Invalid intensity: " . $data['intensity']);
                 flash('workout_message', 'Invalid intensity level selected', 'alert alert-danger');
             } else if (!empty($data['videolink']) && !filter_var($data['videolink'], FILTER_VALIDATE_URL)) {
-                error_log("Validation failed - Invalid video link URL: " . $data['videolink']);
                 flash('workout_message', 'Please provide a valid URL for the video link', 'alert alert-danger');
             } else if (!empty($data['benefits']) && strlen($data['benefits']) > 1000) {
-                error_log("Validation failed - Benefits text too long");
                 flash('workout_message', 'Benefits description must not exceed 1000 characters', 'alert alert-danger');
-            } else if (!empty($data['notsuitablefor']) && strlen($data['notsuitablefor']) > 1000) {
-                error_log("Validation failed - Not suitable for text too long");
-                flash('workout_message', 'Not suitable for description must not exceed 1000 characters', 'alert alert-danger');
+            } else if (!in_array($data['notsuitablefor'], [
+                'None (General)', 'Post-Surgery', 'Active Lower Back Pain', 'Knee Injuries',
+                'Shoulder Instability', 'Acute Ankle Sprain', 'Heart Conditions', 'Concussion Protocol'
+            ])) {
+                flash('workout_message', 'Invalid contraindication selected', 'alert alert-danger');
             } else {
-                error_log("Validation passed - Attempting to add workout plan");
-                
-                // Add workout plan
-                try {
-                    $result = $trainerModel->addWorkoutPlan($data);
-                    error_log("Model result: " . ($result ? 'TRUE' : 'FALSE'));
-                    
-                    if ($result) {
-                        error_log("SUCCESS - Workout plan added");
-                        flash('workout_message', 'Workout plan added successfully!', 'alert alert-success');
-                    } else {
-                        error_log("FAILED - Model returned false");
-                        flash('workout_message', 'Failed to add workout plan. Database error occurred.', 'alert alert-danger');
-                    }
-                } catch (PDOException $e) {
-                    error_log("PDO Exception: " . $e->getMessage());
-                    flash('workout_message', 'Database error: ' . $e->getMessage(), 'alert alert-danger');
-                } catch (Exception $e) {
-                    error_log("General Exception: " . $e->getMessage());
-                    flash('workout_message', 'Error: ' . $e->getMessage(), 'alert alert-danger');
+                if ($trainerModel->addWorkoutPlan($data)) {
+                    flash('workout_message', 'Workout plan added successfully!', 'alert alert-success');
+                } else {
+                    flash('workout_message', 'Failed to add workout plan. Please try again.', 'alert alert-danger');
                 }
             }
-        } else {
-            error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
-            flash('workout_message', 'Invalid request method', 'alert alert-danger');
         }
-        
-        error_log("Redirecting to trainer/workout");
+
         redirect('trainer/workout');
     }
 
     // Update workout plan
     public function updateWorkoutPlan() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Initialize trainer model
             $trainerModel = $this->model('M_Trainer');
-            
+
             $data = [
-                'plan_id' => isset($_POST['plan_id']) ? (int)$_POST['plan_id'] : 0,
-                'trainer_id' => $_SESSION['user_id'] ?? 10,
-                'workoutname' => isset($_POST['workoutname']) ? trim(htmlspecialchars($_POST['workoutname'], ENT_QUOTES, 'UTF-8')) : '',
-                'frequency' => isset($_POST['frequency']) ? htmlspecialchars($_POST['frequency'], ENT_QUOTES, 'UTF-8') : '',
-                'duration' => isset($_POST['duration']) ? (int)$_POST['duration'] : 0,
-                'durationdays' => isset($_POST['durationdays']) ? (int)$_POST['durationdays'] : null,
-                'videolink' => !empty($_POST['videolink']) ? trim(htmlspecialchars($_POST['videolink'], ENT_QUOTES, 'UTF-8')) : null,
-                'intensity' => !empty($_POST['intensity']) ? htmlspecialchars($_POST['intensity'], ENT_QUOTES, 'UTF-8') : 'Moderate',
-                'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim(htmlspecialchars($_POST['notsuitablefor'], ENT_QUOTES, 'UTF-8')) : null,
-                'benefits' => !empty($_POST['benefits']) ? trim(htmlspecialchars($_POST['benefits'], ENT_QUOTES, 'UTF-8')) : null
+                'plan_id'        => isset($_POST['plan_id'])         ? (int)$_POST['plan_id']         : 0,
+                'trainer_id'     => (int)$_SESSION['user_id'],
+                'workoutname'    => isset($_POST['workoutname'])      ? trim($_POST['workoutname'])     : '',
+                'frequency'      => isset($_POST['frequency'])        ? trim($_POST['frequency'])       : '',
+                'duration'       => isset($_POST['duration'])         ? (int)$_POST['duration']         : 0,
+                'videolink'      => !empty($_POST['videolink'])       ? trim($_POST['videolink'])        : null,
+                'intensity'      => !empty($_POST['intensity'])       ? trim($_POST['intensity'])        : 'Moderate',
+                'notsuitablefor' => !empty($_POST['notsuitablefor'])  ? trim($_POST['notsuitablefor'])   : 'None (General)',
+                'benefits'       => !empty($_POST['benefits'])        ? trim($_POST['benefits'])         : null,
             ];
-            
-            // Validate data
+
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
                 flash('workout_message', 'Please fill in all required fields', 'alert alert-danger');
             } else if (strlen($data['workoutname']) < 3 || strlen($data['workoutname']) > 255) {
                 flash('workout_message', 'Workout name must be between 3 and 255 characters', 'alert alert-danger');
             } else if ($data['duration'] < 15 || $data['duration'] > 180) {
                 flash('workout_message', 'Duration must be between 15 and 180 minutes', 'alert alert-danger');
-            } else if (!empty($data['durationdays']) && ($data['durationdays'] < 1 || $data['durationdays'] > 365)) {
-                flash('workout_message', 'Duration days must be between 1 and 365', 'alert alert-danger');
             } else if (!in_array($data['frequency'], ['Daily', 'Weekly', 'Bi-weekly'])) {
                 flash('workout_message', 'Invalid frequency selected', 'alert alert-danger');
             } else if (!empty($data['intensity']) && !in_array($data['intensity'], ['Low', 'Moderate', 'High'])) {
@@ -434,10 +472,12 @@ class Trainer extends Controller {
                 flash('workout_message', 'Please provide a valid URL for the video link', 'alert alert-danger');
             } else if (!empty($data['benefits']) && strlen($data['benefits']) > 1000) {
                 flash('workout_message', 'Benefits description must not exceed 1000 characters', 'alert alert-danger');
-            } else if (!empty($data['notsuitablefor']) && strlen($data['notsuitablefor']) > 1000) {
-                flash('workout_message', 'Not suitable for description must not exceed 1000 characters', 'alert alert-danger');
+            } else if (!in_array($data['notsuitablefor'], [
+                'None (General)', 'Post-Surgery', 'Active Lower Back Pain', 'Knee Injuries',
+                'Shoulder Instability', 'Acute Ankle Sprain', 'Heart Conditions', 'Concussion Protocol'
+            ])) {
+                flash('workout_message', 'Invalid contraindication selected', 'alert alert-danger');
             } else {
-                // Update workout plan
                 if ($trainerModel->updateWorkoutPlan($data)) {
                     flash('workout_message', 'Workout plan updated successfully', 'alert alert-success');
                 } else {
@@ -445,7 +485,7 @@ class Trainer extends Controller {
                 }
             }
         }
-        
+
         redirect('trainer/workout');
     }
 
@@ -453,8 +493,8 @@ class Trainer extends Controller {
     public function deleteWorkoutPlan() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $trainerModel = $this->model('M_Trainer');
-            $plan_id = (int)$_POST['plan_id'];
-            $trainer_id = $_SESSION['user_id'] ?? 10; // Use 10 as default for testing
+            $plan_id    = isset($_POST['plan_id']) ? (int)$_POST['plan_id'] : 0;
+            $trainer_id = (int)$_SESSION['user_id'];
             
             if ($trainerModel->deleteWorkoutPlan($plan_id, $trainer_id)) {
                 flash('workout_message', 'Workout plan deleted successfully', 'alert alert-success');
@@ -464,6 +504,30 @@ class Trainer extends Controller {
         }
         
         redirect('trainer/workout');
+    }
+
+    // AJAX: Get players assigned to a plan (GET, JSON)
+    public function getAssignedPlayers() {
+        header('Content-Type: application/json');
+        $plan_id    = isset($_GET['plan_id']) ? (int)$_GET['plan_id'] : 0;
+        $trainer_id = (int)$_SESSION['user_id'];
+
+        if (!$plan_id) {
+            echo json_encode(['success' => false, 'players' => []]);
+            return;
+        }
+
+        $trainerModel = $this->model('M_Trainer');
+        $players      = $trainerModel->getAssignedPlayersForPlan($plan_id);
+
+        $result = [];
+        foreach ($players as $p) {
+            $row = (array)$p;
+            $row['can_manage'] = ((int)($p->AssignedBy ?? 0) === $trainer_id);
+            $result[] = $row;
+        }
+
+        echo json_encode(['success' => true, 'players' => $result]);
     }
 
     public function supplements() {
