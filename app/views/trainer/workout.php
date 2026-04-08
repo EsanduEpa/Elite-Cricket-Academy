@@ -35,6 +35,12 @@
                             <span>Schedule & Bookings</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>My Slot Sessions</span>
+                        </a>
+                    </li>
                     <li class="nav-item active">
                         <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
                             <i class="fas fa-dumbbell"></i>

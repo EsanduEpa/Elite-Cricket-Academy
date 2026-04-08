@@ -20,8 +20,12 @@ class M_SlotPlayer {
         $this->db->query(
             'SELECT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
                     so.Notes,
-                    st.TemplateID, st.TemplateName, st.SlotType, st.StaffType,
-                    st.PricePerSession, st.RequiredPlanFeature,
+                    st.TemplateID,
+                    COALESCE(st.TemplateName, \'Private Session\') AS TemplateName,
+                    COALESCE(st.SlotType, \'private\') AS SlotType,
+                    COALESCE(st.StaffType, \'coach\') AS StaffType,
+                    COALESCE(st.PricePerSession, 0) AS PricePerSession,
+                    st.RequiredPlanFeature,
                     st.MaxParticipants AS TplMax,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
@@ -33,14 +37,14 @@ class M_SlotPlayer {
                           AND sb2.Status      != \'cancelled\'
                     ) AS AlreadyBooked
              FROM slot_occurrence so
-             JOIN slot_template  st ON st.TemplateID = so.TemplateID
+             LEFT JOIN slot_template  st ON st.TemplateID = so.TemplateID
              JOIN slot_time_band tb ON tb.SlotID      = so.SlotID
              LEFT JOIN facility   f  ON f.FacilityID  = so.FacilityID
              LEFT JOIN slot_booking sb ON sb.OccurrenceID = so.OccurrenceID
                     AND sb.Status != \'cancelled\'
              WHERE so.Status IN (\'scheduled\', \'active\')
                AND so.OccurrenceDate >= CURDATE()
-               AND st.IsActive = 1
+               AND (st.IsActive = 1 OR so.TemplateID IS NULL)
              GROUP BY so.OccurrenceID
              ORDER BY so.OccurrenceDate, tb.StartTime'
         );
@@ -55,11 +59,14 @@ class M_SlotPlayer {
                 continue;
             }
 
-            $ent = SlotBookingService::validateEntitlement($playerId, $row->TemplateID);
-            if (!$ent['ok']) {
-                $row->blocked     = true;
-                $row->blockReason = $ent['code'];
-                continue;
+            // Private sessions (no template) skip subscription entitlement check
+            if ($row->TemplateID !== null) {
+                $ent = SlotBookingService::validateEntitlement($playerId, (int) $row->TemplateID);
+                if (!$ent['ok']) {
+                    $row->blocked     = true;
+                    $row->blockReason = $ent['code'];
+                    continue;
+                }
             }
 
             $med = SlotBookingService::checkMedicalFlag($playerId, $row->OccurrenceDate);
@@ -115,8 +122,8 @@ class M_SlotPlayer {
         $occ = $this->db->single();
         if (!$occ) return 'not_found';
 
-        // ShopEmployee counter bookings skip subscription check (cash walk-in)
-        if ($source !== 'shop_employee') {
+        // ShopEmployee counter bookings and private sessions skip subscription check
+        if ($source !== 'shop_employee' && $occ->TemplateID !== null) {
             $ent = SlotBookingService::validateEntitlement($playerId, (int)$occ->TemplateID);
             if (!$ent['ok']) return $ent['code'];
             if ($subscriptionId === null && isset($ent['subscription_id'])) {
