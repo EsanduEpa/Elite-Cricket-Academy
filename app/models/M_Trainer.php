@@ -209,8 +209,7 @@ class M_Trainer {
             FROM workoutplan_player wpp
             JOIN playerprofile pp  ON wpp.PlayerID  = pp.PlayerID
             JOIN `user` u          ON pp.PlayerID   = u.UserID
-            LEFT JOIN trainerprofile tp ON wpp.AssignedBy = tp.TrainerID
-            LEFT JOIN `user` assigned_t ON tp.TrainerID   = assigned_t.UserID
+            LEFT JOIN `user` assigned_t ON wpp.AssignedBy = assigned_t.UserID
             WHERE wpp.PlanID = :plan_id
             ORDER BY wpp.AssignedDate DESC
         ');
@@ -355,7 +354,7 @@ class M_Trainer {
 
     // Get all players for dropdown
     public function getAllPlayers() {
-        $this->db->query('SELECT PlayerID, Name FROM PlayerProfile ORDER BY Name');
+        $this->db->query('SELECT pp.PlayerID, u.Name FROM playerprofile pp JOIN `user` u ON pp.PlayerID = u.UserID ORDER BY u.Name');
         return $this->db->resultSet();
     }
 
@@ -456,8 +455,7 @@ class M_Trainer {
             FROM workoutplan wp
             JOIN workoutplan_player wpp ON wp.PlanID = wpp.PlanID
             JOIN `user` u               ON wp.TrainerID = u.UserID
-            LEFT JOIN trainerprofile tp  ON wpp.AssignedBy = tp.TrainerID
-            LEFT JOIN `user` ab          ON tp.TrainerID   = ab.UserID
+            LEFT JOIN `user` ab          ON wpp.AssignedBy = ab.UserID
             WHERE wpp.PlayerID = :player_id
             ORDER BY
                 FIELD(wpp.Status, \'active\', \'paused\', \'completed\'),
