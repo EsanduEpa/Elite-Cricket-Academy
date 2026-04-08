@@ -18,6 +18,28 @@ $val = function(string $k, string $dbCol = '') use ($old, $plan) {
 };
 $err = fn(string $k) => $errors[$k] ?? '';
 $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
+
+$assignmentMode = $old['assignment_mode'] ?? 'individual';
+$selectedGroup = $old['player_group'] ?? '';
+$selectedPlayers = [];
+if (!empty($old['player_ids']) && is_array($old['player_ids'])) {
+    foreach ($old['player_ids'] as $playerId) {
+        $playerId = (int)$playerId;
+        if ($playerId > 0) {
+            $selectedPlayers[] = $playerId;
+        }
+    }
+} elseif (!empty($data['assigned_player_ids']) && is_array($data['assigned_player_ids'])) {
+    foreach ($data['assigned_player_ids'] as $playerId) {
+        $playerId = (int)$playerId;
+        if ($playerId > 0) {
+            $selectedPlayers[] = $playerId;
+        }
+    }
+} elseif (!empty($plan->PlayerID)) {
+    $selectedPlayers[] = (int)$plan->PlayerID;
+}
+$selectedPlayers = array_values(array_unique($selectedPlayers));
 ?>
 
 <div class="player-layout nc-page">
@@ -92,7 +114,7 @@ $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
             <div class="nc-header-text">
                 <h1><i class="fas fa-edit"></i> Edit Nutrition Plan</h1>
                 <p>Update plan #<?php echo (int)$plan->PlanID; ?> —
-                   <?php echo htmlspecialchars($plan->PlanName ?? 'Untitled Plan'); ?>
+                         <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? 'Untitled Plan'); ?>
                 </p>
             </div>
             <div class="nc-header-actions">
@@ -110,7 +132,7 @@ $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
             <div class="nc-card-header">
                 <h2>
                     <i class="fas fa-apple-alt"></i>
-                    Editing: <?php echo htmlspecialchars($plan->PlanName ?? 'Plan #' . $plan->PlanID); ?>
+                    Editing: <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? ('Plan #' . $plan->PlanID)); ?>
                 </h2>
                 <span style="font-size:.8rem;color:#6c757d;">
                     ID #<?php echo (int)$plan->PlanID; ?>
@@ -126,20 +148,23 @@ $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
                       action="<?php echo URLROOT; ?>/nutrition/update/<?php echo (int)$plan->PlanID; ?>"
                       novalidate>
 
-                    <!-- Row 1: Plan Name + Player -->
+                                        <!-- Row 1: Plan + Assignment Type -->
                     <div class="nc-field-row">
 
                         <div class="nc-field">
                             <label for="plan_name">
-                                <i class="fas fa-tag"></i> Plan Name
+                                <i class="fas fa-tag"></i> Plan
                                 <span class="req">*</span>
                             </label>
-                            <input type="text"
-                                   id="plan_name" name="plan_name"
-                                   class="form-control<?php echo $cls('plan_name'); ?>"
-                                   value="<?php echo $val('plan_name', 'PlanName'); ?>"
-                                   placeholder="e.g. Pre-Season High Protein Plan"
-                                   maxlength="255">
+                            <?php $currentPlanName = $old['plan_name'] ?? ($plan->PlanName ?? $plan->nutritionPlanName ?? ''); ?>
+                            <select id="plan_name" name="plan_name" class="form-control<?php echo $cls('plan_name'); ?>">
+                                <option value="">— Select a predefined plan —</option>
+                                <?php foreach (($data['plan_options'] ?? []) as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt, ENT_QUOTES); ?>" <?php echo $currentPlanName === $opt ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($opt); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                             <?php if ($err('plan_name')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
@@ -149,51 +174,116 @@ $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
                         </div>
 
                         <div class="nc-field">
-                            <label for="player_id">
-                                <i class="fas fa-user"></i> Player
+                            <label for="assignment_mode">
+                                <i class="fas fa-layer-group"></i> Assign To
                                 <span class="req">*</span>
                             </label>
-                            <?php
-                            // Current player: use stashed old value if present, else DB value
-                            $currentPlayer = isset($old['player_id'])
-                                ? (int)$old['player_id']
-                                : (int)($plan->PlayerID ?? 0);
-                            ?>
-                            <select id="player_id" name="player_id"
-                                    class="form-control<?php echo $cls('player_id'); ?>">
-                                <option value="">— Select a player —</option>
-                                <?php foreach ($data['players'] as $p): ?>
-                                    <option value="<?php echo (int)$p->UserID; ?>"
-                                        <?php echo ($currentPlayer === (int)$p->UserID) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($p->name); ?> — <?php echo htmlspecialchars($p->email); ?>
-                                    </option>
-                                <?php endforeach; ?>
+                            <select id="assignment_mode" name="assignment_mode" class="form-control<?php echo $cls('assignment_mode'); ?>">
+                                <option value="individual" <?php echo $assignmentMode === 'individual' ? 'selected' : ''; ?>>Individual Players</option>
+                                <option value="group" <?php echo $assignmentMode === 'group' ? 'selected' : ''; ?>>Player Group</option>
                             </select>
-                            <?php if ($err('player_id')): ?>
+                            <?php if ($err('assignment_mode')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
-                                    <?php echo htmlspecialchars($err('player_id')); ?>
+                                    <?php echo htmlspecialchars($err('assignment_mode')); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
 
                     </div>
 
-                    <!-- Row 2: Diet Details -->
-                    <div class="nc-field-row full">
+                    <!-- Row 2: Assignment Target -->
+                    <div class="nc-field-row full nc-assignment-grid">
                         <div class="nc-field">
-                            <label for="diet_details">
-                                <i class="fas fa-utensils"></i> Diet Details
+                            <label>
+                                <i class="fas fa-user-friends"></i> Players / Group
                                 <span class="req">*</span>
                             </label>
-                            <textarea id="diet_details" name="diet_details"
-                                      class="form-control<?php echo $cls('diet_details'); ?>"
-                                      rows="6"
-                                      placeholder="Describe meal timing, portions, macros, hydration guidelines..."><?php echo $val('diet_details', 'DietDetails'); ?></textarea>
-                            <?php if ($err('diet_details')): ?>
+
+                            <div class="nc-assignment-mode-panel" id="individualAssignmentPanel" data-mode-panel="individual">
+                                <div class="nc-player-picker <?php echo $assignmentMode === 'individual' ? 'is-active' : ''; ?><?php echo $cls('player_ids') || $cls('player_id') ? ' is-invalid' : ''; ?>" id="playerPicker">
+                                    <button type="button" class="nc-picker-trigger" id="playerPickerTrigger" aria-expanded="false" aria-controls="playerPickerPanel">
+                                        <span class="nc-picker-trigger-label">Select players</span>
+                                        <span class="nc-picker-trigger-summary" id="playerPickerSummary">No players selected</span>
+                                        <i class="fas fa-chevron-down nc-picker-caret"></i>
+                                    </button>
+                                    <div class="nc-picker-panel" id="playerPickerPanel" hidden>
+                                        <div class="nc-picker-panel-head">
+                                            <div>
+                                                <strong>Choose players</strong>
+                                                <span>Pick one or more players for this plan.</span>
+                                            </div>
+                                            <span class="nc-player-count" id="selectedPlayersCount">0 selected</span>
+                                        </div>
+                                        <div class="nc-picker-toolbar">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="selectAllPlayersBtn">
+                                                <i class="fas fa-check-double"></i> Select All
+                                            </button>
+                                            <button type="button" class="btn btn-secondary btn-sm" id="clearPlayersBtn">
+                                                <i class="fas fa-eraser"></i> Clear
+                                            </button>
+                                        </div>
+                                        <div class="nc-picker-options">
+                                            <?php foreach ($data['players'] as $p): ?>
+                                                <label class="nc-picker-option">
+                                                    <input type="checkbox"
+                                                           name="player_ids[]"
+                                                           value="<?php echo (int)$p->UserID; ?>"
+                                                           <?php echo in_array((int)$p->UserID, $selectedPlayers, true) ? 'checked' : ''; ?>>
+                                                    <span class="nc-picker-option-copy">
+                                                        <span class="nc-picker-option-name"><?php echo htmlspecialchars($p->name); ?></span>
+                                                        <span class="nc-picker-option-email"><?php echo htmlspecialchars($p->email); ?></span>
+                                                    </span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <?php if ($err('player_ids') || $err('player_id')): ?>
+                                    <span class="invalid-feedback">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <?php echo htmlspecialchars($err('player_ids') ?: $err('player_id')); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="nc-assignment-mode-panel" id="groupAssignmentPanel" data-mode-panel="group" hidden>
+                                <select id="player_group" name="player_group" class="form-control<?php echo $cls('player_group'); ?>">
+                                    <option value="">— Select a player group —</option>
+                                    <?php foreach (($data['groups'] ?? []) as $group): ?>
+                                        <option value="<?php echo htmlspecialchars($group->key); ?>" <?php echo $selectedGroup === $group->key ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($group->label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="nc-help-text">The selected group will be expanded into matching active players when saved.</small>
+                                <?php if ($err('player_group')): ?>
+                                    <span class="invalid-feedback">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <?php echo htmlspecialchars($err('player_group')); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Notes -->
+                    <div class="nc-field-row full">
+                        <div class="nc-field">
+                            <label for="notes">
+                                <i class="fas fa-sticky-note"></i> Notes (optional)
+                            </label>
+                            <?php $notesVal = $old['notes'] ?? ($plan->Notes ?? $plan->notes ?? ''); ?>
+                            <textarea id="notes" name="notes"
+                                      class="form-control<?php echo $cls('notes'); ?>"
+                                      rows="5"
+                                      placeholder="Add any custom notes for this player/group (e.g., allergies, match-day adjustments, portion changes)."><?php echo htmlspecialchars($notesVal, ENT_QUOTES); ?></textarea>
+                            <small class="nc-help-text">Choose a predefined plan above and use Notes for personalisation.</small>
+                            <?php if ($err('notes')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
-                                    <?php echo htmlspecialchars($err('diet_details')); ?>
+                                    <?php echo htmlspecialchars($err('notes')); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
@@ -306,13 +396,120 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Client-side validation
     const form = document.querySelector('form');
+    const assignmentMode = document.getElementById('assignment_mode');
+    const individualPanel = document.getElementById('individualAssignmentPanel');
+    const groupPanel = document.getElementById('groupAssignmentPanel');
+    const picker = document.getElementById('playerPicker');
+    const pickerTrigger = document.getElementById('playerPickerTrigger');
+    const pickerPanel = document.getElementById('playerPickerPanel');
+    const countLabel = document.getElementById('selectedPlayersCount');
+    const summaryLabel = document.getElementById('playerPickerSummary');
+    const playerCheckboxes = Array.from(document.querySelectorAll('input[name="player_ids[]"]'));
+    const selectAllBtn = document.getElementById('selectAllPlayersBtn');
+    const clearBtn = document.getElementById('clearPlayersBtn');
+
+    function setPickerOpen(isOpen) {
+        if (!pickerPanel || !pickerTrigger || !picker) return;
+        pickerPanel.hidden = !isOpen;
+        pickerTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        picker.classList.toggle('is-open', isOpen);
+    }
+
+    function updatePlayerCount() {
+        const selected = playerCheckboxes.filter(input => input.checked);
+        const selectedCount = selected.length;
+
+        if (countLabel) {
+            countLabel.textContent = selectedCount + (selectedCount === 1 ? ' player selected' : ' players selected');
+        }
+
+        if (summaryLabel) {
+            summaryLabel.textContent = selectedCount === 0
+                ? 'No players selected'
+                : selectedCount === 1
+                    ? selected[0].closest('.nc-picker-option').querySelector('.nc-picker-option-name').textContent + ' selected'
+                    : selectedCount + ' players selected';
+        }
+
+        if (picker) {
+            picker.classList.toggle('has-selection', selectedCount > 0);
+        }
+    }
+
+    function clearPickerError() {
+        if (!picker) return;
+        picker.classList.remove('is-invalid');
+        picker.querySelectorAll('.nc-picker-inline-error').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    function setPickerError(message) {
+        if (!picker) return;
+        clearPickerError();
+        picker.classList.add('is-invalid');
+        const error = document.createElement('span');
+        error.className = 'invalid-feedback js-error nc-picker-inline-error';
+        error.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + message;
+        picker.appendChild(error);
+    }
+
+    function syncAssignmentMode() {
+        const mode = assignmentMode ? assignmentMode.value : 'individual';
+        if (individualPanel) individualPanel.hidden = mode !== 'individual';
+        if (groupPanel) groupPanel.hidden = mode !== 'group';
+        if (picker) picker.classList.toggle('is-active', mode === 'individual');
+    }
+
+    if (assignmentMode) {
+        assignmentMode.addEventListener('change', syncAssignmentMode);
+        syncAssignmentMode();
+    }
+
+    if (pickerTrigger && pickerPanel) {
+        pickerTrigger.addEventListener('click', function () {
+            setPickerOpen(pickerPanel.hidden);
+        });
+
+        document.addEventListener('click', function (event) {
+            if (picker && !picker.contains(event.target)) {
+                setPickerOpen(false);
+            }
+        });
+    }
+
+    playerCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updatePlayerCount);
+    });
+    updatePlayerCount();
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function () {
+            playerCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = true;
+            });
+            updatePlayerCount();
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            playerCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+            updatePlayerCount();
+        });
+    }
+
+    // Client-side validation mirrors server-side rules for instant feedback
     form.addEventListener('submit', function (e) {
         let valid = true;
 
+        // Clear previous JS-injected errors
         form.querySelectorAll('.js-error').forEach(el => el.remove());
         form.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));
+        clearPickerError();
 
         function addError(id, msg) {
             const field = document.getElementById(id);
@@ -326,17 +523,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const planName    = document.getElementById('plan_name').value.trim();
-        const playerId    = document.getElementById('player_id').value;
-        const dietDetails = document.getElementById('diet_details').value.trim();
+        const mode        = assignmentMode ? assignmentMode.value : 'individual';
+        const groupValue  = document.getElementById('player_group') ? document.getElementById('player_group').value : '';
+        const selectedPlayers = playerCheckboxes.filter(input => input.checked).map(input => input.value).filter(Boolean);
+        const notes       = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
         const duration    = document.getElementById('duration').value.trim();
         const createdDate = document.getElementById('created_date').value.trim();
 
-        if (!planName)                                  addError('plan_name',    'Plan name is required.');
-        if (!playerId)                                  addError('player_id',    'Please select a player.');
-        if (!dietDetails)                               addError('diet_details', 'Diet details are required.');
-        if (!duration || isNaN(duration) || +duration <= 0)
-                                                        addError('duration',     'Duration must be a positive number.');
-        if (!createdDate)                               addError('created_date', 'Created date is required.');
+        if (!planName) addError('plan_name', 'Please select a plan.');
+        if (mode === 'group') {
+            if (!groupValue) addError('player_group', 'Please select a player group.');
+        } else if (!selectedPlayers.length) {
+            setPickerError('Please select at least one player.');
+            valid = false;
+        }
+
+        if (notes && notes.length > 1000) addError('notes', 'Notes must be 1000 characters or fewer.');
+
+        if (!duration || isNaN(duration) || +duration <= 0) {
+            addError('duration', 'Duration must be a positive number.');
+        }
+        if (!createdDate) addError('created_date', 'Created date is required.');
 
         if (!valid) e.preventDefault();
     });

@@ -1,6 +1,5 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
 <!-- Mobile-specific meta tags -->
 <meta name="theme-color" content="#2c3e50">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -147,31 +146,33 @@ foreach ($nutritionPlans as $plan) {
                     <table class="dashboard-table nc-nutrition-table" id="nutritionTable">
                         <thead>
                             <tr>
-                                <th><i class="fas fa-apple-alt"></i> Plan Name</th>
-                                <th><i class="fas fa-users"></i> Assigned Players</th>
-                                <th><i class="fas fa-utensils"></i> Diet Details</th>
+                                <th><i class="fas fa-apple-alt"></i> Plan</th>
+                                <th><i class="fas fa-users"></i> Assigned To</th>
                                 <th><i class="fas fa-calendar"></i> Duration</th>
+                                <th><i class="fas fa-sticky-note"></i> Notes</th>
                                 <th><i class="fas fa-chart-line"></i> Status</th>
-                                <th><i class="fas fa-clock"></i> Created</th>
                                 <th><i class="fas fa-cogs"></i> Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($nutritionPlans)): ?>
                                 <?php foreach ($nutritionPlans as $plan): ?>
-                                    <tr class="nutrition-row" data-status="<?php echo strtolower($plan->Status); ?>">
-                                        <td class="plan-details nc-plan-cell" data-label="Plan Details">
+                                    <?php $rowStatus = strtolower($plan->Status ?? 'inactive'); ?>
+                                    <tr class="nutrition-row" data-status="<?php echo htmlspecialchars($rowStatus); ?>">
+                                        <td class="plan-details nc-plan-cell" data-label="Plan">
                                             <div class="plan-info">
                                                 <div class="plan-icon">
                                                     <i class="fas fa-apple-alt"></i>
                                                 </div>
                                                 <div class="plan-text">
-                                                    <strong>Nutrition Plan #<?php echo $plan->PlanID; ?></strong>
-                                                    <span class="plan-description">Custom Nutrition Plan</span>
+                                                    <strong class="nc-plan-name">
+                                                        <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? ('Plan #' . (int)$plan->PlanID)); ?>
+                                                    </strong>
+                                                    <span class="plan-description">#<?php echo (int)$plan->PlanID; ?></span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="player-info nc-player-cell" data-label="Assigned Players">
+                                        <td class="player-info nc-player-cell" data-label="Assigned To">
                                             <div class="player-avatar">
                                                 <i class="fas fa-users"></i>
                                             </div>
@@ -179,11 +180,11 @@ foreach ($nutritionPlans as $plan) {
                                             <div class="player-details">
                                                 <span class="player-name">
                                                     <?php if ($assignmentCount > 1): ?>
-                                                        <?php echo $assignmentCount; ?> players assigned
-                                                    <?php elseif ($assignmentCount === 1): ?>
-                                                        1 player assigned
+                                                        <?php echo $assignmentCount; ?> players
+                                                    <?php elseif ($assignmentCount === 1 || !empty($plan->player_name)) : ?>
+                                                        <?php echo htmlspecialchars($plan->player_name ?? '1 player'); ?>
                                                     <?php else: ?>
-                                                        <?php echo htmlspecialchars($plan->player_name ?? 'Unassigned'); ?>
+                                                        —
                                                     <?php endif; ?>
                                                 </span>
                                                 <span class="player-email" title="<?php echo htmlspecialchars($plan->assigned_player_names ?? ($plan->player_email ?? '')); ?>">
@@ -197,55 +198,54 @@ foreach ($nutritionPlans as $plan) {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="diet-details nc-diet-cell" data-label="Diet Details">
-                                            <div class="diet-preview">
-                                                <?php 
-                                                $details = htmlspecialchars($plan->DietDetails);
-                                                echo strlen($details) > 80 ? substr($details, 0, 80) . '...' : $details; 
-                                                ?>
-                                                <?php if(strlen($plan->DietDetails) > 80): ?>
-                                                    <button class="view-more-btn" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'nutrition')">
-                                                        <i class="fas fa-expand-alt"></i>
-                                                    </button>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
                                         <td class="duration-info nc-duration-cell" data-label="Duration">
                                             <div class="duration-display nc-duration-badge">
                                                 <i class="fas fa-hourglass-half"></i>
-                                                <span><?php echo $plan->Duration; ?> days</span>
+                                                <span>
+                                                    <?php echo (int)($plan->Duration ?? 0); ?> day<?php echo ((int)($plan->Duration ?? 0) !== 1) ? 's' : ''; ?>
+                                                </span>
                                             </div>
+                                        </td>
+                                        <td class="notes-info nc-notes-cell" data-label="Notes">
+                                            <?php $notesText = (string)($plan->Notes ?? $plan->notes ?? ''); ?>
+                                            <?php if (trim($notesText) === ''): ?>
+                                                —
+                                            <?php else: ?>
+                                                <?php
+                                                    $notesPreview = mb_strlen($notesText) > 80 ? mb_substr($notesText, 0, 80) . '…' : $notesText;
+                                                ?>
+                                                <span class="nc-notes-preview" title="<?php echo htmlspecialchars($notesText, ENT_QUOTES); ?>">
+                                                    <?php echo htmlspecialchars($notesPreview, ENT_QUOTES); ?>
+                                                </span>
+                                            <?php endif; ?>
                                         </td>
                                         <td data-label="Status">
-                                            <span class="status-badge status-<?php echo strtolower($plan->Status); ?> nc-status-pill">
-                                                <i class="fas fa-<?php echo $plan->Status === 'active' ? 'check-circle' : 'pause-circle'; ?>"></i>
-                                                <?php echo ucfirst($plan->Status); ?>
+                                            <span class="status-badge status-<?php echo htmlspecialchars($rowStatus); ?> nc-status-pill">
+                                                <i class="fas fa-<?php echo $rowStatus === 'active' ? 'check-circle' : 'pause-circle'; ?>"></i>
+                                                <?php echo ucfirst($rowStatus); ?>
                                             </span>
-                                        </td>
-                                        <td class="date-info" data-label="Created">
-                                            <div class="date-display nc-date-chip">
-                                                <span class="date"><?php echo date('M j', strtotime($plan->CreatedDate)); ?></span>
-                                                <span class="year"><?php echo date('Y', strtotime($plan->CreatedDate)); ?></span>
-                                            </div>
                                         </td>
                                         <td class="actions-cell nc-actions-cell" data-label="Actions">
                                             <div class="profile-actions nc-row-actions">
-                                                <button class="profile-action view nc-row-btn nc-row-btn-view" onclick="viewPlanDetails(<?php echo $plan->PlanID; ?>, 'nutrition')" title="View Plan Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <button class="profile-action edit nc-row-btn nc-row-btn-edit" onclick="editPlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Edit Plan">
+                                                <a class="profile-action edit nc-row-btn nc-row-btn-edit"
+                                                   href="<?php echo URLROOT; ?>/nutrition/edit/<?php echo (int)$plan->PlanID; ?>"
+                                                   title="Edit Plan">
                                                     <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="profile-action delete nc-row-btn nc-row-btn-delete" onclick="deletePlan(<?php echo $plan->PlanID; ?>, 'nutrition')" title="Delete Plan">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
+                                                </a>
+                                                <form method="POST"
+                                                      action="<?php echo URLROOT; ?>/nutrition/delete/<?php echo (int)$plan->PlanID; ?>"
+                                                      onsubmit="return confirm('Delete this nutrition plan? This action cannot be undone.');">
+                                                    <button class="profile-action delete nc-row-btn nc-row-btn-delete" type="submit" title="Delete Plan">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr class="empty-state">
-                                    <td colspan="7">
+                                    <td colspan="6" class="empty-state">
                                         <div class="empty-content">
                                             <h3>No Nutrition Plans Found</h3>
                                             <p>Start by creating a nutrition plan and assign it to players or a group.</p>
@@ -262,444 +262,6 @@ foreach ($nutritionPlans as $plan) {
             </div>
     </div>
 </div>
-
-<!-- Add Nutrition Plan Modal -->
-<div id="addNutritionPlanModal" class="modal">
-    <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
-            <div class="header-icon">
-                <i class="fas fa-apple-alt"></i>
-            </div>
-            <div class="header-text">
-                <h3>Create Nutrition Plan</h3>
-                <p>Design a personalized nutrition plan for your trainee</p>
-            </div>
-            <button class="modal-close" onclick="closeModal('addNutritionPlanModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form method="POST" action="<?php echo URLROOT; ?>/trainer/addNutritionPlan" class="modal-form">
-            <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="player_id" class="form-label">
-                            <i class="fas fa-user"></i> Select Player
-                        </label>
-                        <select id="player_id" name="player_id" class="form-input" required>
-                            <option value="">Choose a player...</option>
-                            <?php if(isset($data['players'])): ?>
-                                <?php foreach($data['players'] as $player): ?>
-                                    <option value="<?php echo $player->UserID; ?>">
-                                        <?php echo htmlspecialchars($player->name); ?> - <?php echo htmlspecialchars($player->email); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="diet_details" class="form-label">
-                            <i class="fas fa-utensils"></i> Diet Details & Instructions
-                        </label>
-                        <textarea id="diet_details" name="diet_details" class="form-input" rows="8" required 
-                                placeholder="Provide comprehensive nutrition plan details:&#13;&#10;• Meal timing and portions&#13;&#10;• Macronutrient breakdown&#13;&#10;• Special dietary requirements&#13;&#10;• Hydration guidelines&#13;&#10;• Pre/post workout nutrition"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="duration" class="form-label">
-                            <i class="fas fa-calendar-alt"></i> Duration (Days)
-                        </label>
-                        <input type="number" id="duration" name="duration" class="form-input" required 
-                               min="1" max="365" placeholder="e.g., 30 days">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status" class="form-label">
-                            <i class="fas fa-toggle-on"></i> Plan Status
-                        </label>
-                        <select id="status" name="status" class="form-input">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <div class="info-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <div class="info-content">
-                        <h4>Nutrition Plan Best Practices</h4>
-                        <ul>
-                            <li>Consider the player's training intensity and schedule</li>
-                            <li>Include specific meal timing relative to workouts</li>
-                            <li>Account for individual dietary preferences and restrictions</li>
-                            <li>Provide clear portion sizes and measurement guidelines</li>
-                            <li>Include hydration recommendations and timing</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addNutritionPlanModal')">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="submit" class="btn btn-primary nc-modal-primary nc-btn nc-btn-primary">
-                    <i class="fas fa-plus"></i> Create Nutrition Plan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- View Plan Details Modal -->
-<div id="viewPlanModal" class="modal">
-    <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
-            <div class="header-icon">
-                <i class="fas fa-eye"></i>
-            </div>
-            <div class="header-text">
-                <h3>Nutrition Plan Details</h3>
-                <p>Complete nutrition plan information and guidelines</p>
-            </div>
-            <button class="modal-close" onclick="closeModal('viewPlanModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div id="viewPlanContent" class="plan-details-content">
-                <!-- Content will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('viewPlanModal')">
-                <i class="fas fa-times"></i> Close
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Plan Modal -->
-<div id="editPlanModal" class="modal">
-    <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
-            <div class="header-icon">
-                <i class="fas fa-edit"></i>
-            </div>
-            <div class="header-text">
-                <h3>Edit Nutrition Plan</h3>
-                <p>Update the nutrition plan details and guidelines</p>
-            </div>
-            <button class="modal-close" onclick="closeModal('editPlanModal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form id="editPlanForm" class="modal-form">
-            <div class="modal-body">
-                <div id="editPlanContent" class="form-grid">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editPlanModal')">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="submit" class="btn btn-primary nc-modal-primary nc-btn nc-btn-primary">
-                    <i class="fas fa-save"></i> Update Plan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize search functionality
-    initializeSearch();
-    
-    // Initialize filter functionality
-    initializeFilters();
-    
-    // Initialize modal handlers
-    initializeModals();
-});
-
-// Search Functionality
-function initializeSearch() {
-    const searchInput = document.getElementById('nutritionSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#nutritionTable tbody .nutrition-row');
-            
-            tableRows.forEach(row => {
-                const playerName = row.querySelector('.player-name')?.textContent.toLowerCase() || '';
-                const dietDetails = row.querySelector('.diet-preview')?.textContent.toLowerCase() || '';
-                const planText = row.querySelector('.plan-text strong')?.textContent.toLowerCase() || '';
-                
-                const matches = playerName.includes(searchTerm) || 
-                               dietDetails.includes(searchTerm) || 
-                               planText.includes(searchTerm);
-                
-                row.style.display = matches ? '' : 'none';
-            });
-            
-            updateEmptyState();
-        });
-    }
-}
-
-// Filter Functionality
-function initializeFilters() {
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            filterNutritionPlans(this.value);
-        });
-    }
-}
-
-function filterNutritionPlans(filter) {
-    const tableRows = document.querySelectorAll('#nutritionTable tbody .nutrition-row');
-    
-    tableRows.forEach(row => {
-        const status = row.getAttribute('data-status');
-        
-        if (filter === 'all') {
-            row.style.display = '';
-        } else {
-            row.style.display = status === filter ? '' : 'none';
-        }
-    });
-    
-    updateEmptyState();
-}
-
-function updateEmptyState() {
-    const visibleRows = document.querySelectorAll('#nutritionTable tbody .nutrition-row:not([style*="display: none"])');
-    const emptyState = document.querySelector('.empty-state');
-    
-    if (visibleRows.length === 0 && !emptyState) {
-        // Show no results message
-        const tbody = document.querySelector('#nutritionTable tbody');
-        const noResultsRow = document.createElement('tr');
-        noResultsRow.className = 'no-results';
-        noResultsRow.innerHTML = `
-            <td colspan="7">
-                <div class="empty-content">
-                    <div class="empty-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>No Plans Found</h3>
-                    <p>No nutrition plans match your current search or filter criteria</p>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(noResultsRow);
-    } else if (visibleRows.length > 0) {
-        // Remove no results message if it exists
-        const noResults = document.querySelector('.no-results');
-        if (noResults) {
-            noResults.remove();
-        }
-    }
-}
-
-// Modal Functions
-function initializeModals() {
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
-}
-
-function openAddNutritionPlanModal() {
-    openModal('addNutritionPlanModal');
-}
-
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Focus first input
-        setTimeout(() => {
-            const firstInput = modal.querySelector('input, select, textarea');
-            if (firstInput) firstInput.focus();
-        }, 100);
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-        
-        // Reset form if it exists
-        const form = modal.querySelector('form');
-        if (form) {
-            form.reset();
-        }
-    }
-}
-
-// Plan Management Functions
-function viewPlanDetails(planId, type) {
-    const modal = document.getElementById('viewPlanModal');
-    const content = document.getElementById('viewPlanContent');
-    
-    content.innerHTML = `
-        <div class="loading-state">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-            </div>
-            <p>Loading nutrition plan details...</p>
-        </div>
-    `;
-    
-    openModal('viewPlanModal');
-    
-    // Simulate API call - replace with actual AJAX request
-    setTimeout(() => {
-        content.innerHTML = `
-            <div class="plan-overview">
-                <div class="plan-header">
-                    <div class="plan-icon">
-                        <i class="fas fa-apple-alt"></i>
-                    </div>
-                    <div class="plan-title">
-                        <h4>Nutrition Plan #${planId}</h4>
-                        <span class="plan-type">Custom Nutrition Plan</span>
-                    </div>
-                </div>
-                
-                <div class="plan-info-grid">
-                    <div class="info-item">
-                        <i class="fas fa-user"></i>
-                        <span class="label">Player:</span>
-                        <span class="value">John Doe</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-calendar"></i>
-                        <span class="label">Duration:</span>
-                        <span class="value">30 days</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-chart-line"></i>
-                        <span class="label">Status:</span>
-                        <span class="value status-active">Active</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-clock"></i>
-                        <span class="label">Created:</span>
-                        <span class="value">${new Date().toLocaleDateString()}</span>
-                    </div>
-                </div>
-                
-                <div class="plan-details">
-                    <h5><i class="fas fa-utensils"></i> Diet Details</h5>
-                    <div class="details-content">
-                        <p><em>Detailed nutrition plan information would be displayed here from the database...</em></p>
-                        <p>This would include meal timing, portions, macronutrient breakdown, and specific dietary guidelines.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }, 800);
-}
-
-function editPlan(planId, type) {
-    const modal = document.getElementById('editPlanModal');
-    const content = document.getElementById('editPlanContent');
-    
-    content.innerHTML = `
-        <div class="loading-state">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-            </div>
-            <p>Loading plan data for editing...</p>
-        </div>
-    `;
-    
-    openModal('editPlanModal');
-    
-    // Simulate loading plan data - replace with actual AJAX request
-    setTimeout(() => {
-        content.innerHTML = `
-            <div class="form-group full-width">
-                <label for="edit_player_id" class="form-label">
-                    <i class="fas fa-user"></i> Player
-                </label>
-                <select id="edit_player_id" name="player_id" class="form-input" required>
-                    <option value="1" selected>John Doe - john@example.com</option>
-                    <!-- Add more players here -->
-                </select>
-            </div>
-
-            <div class="form-group full-width">
-                <label for="edit_diet_details" class="form-label">
-                    <i class="fas fa-utensils"></i> Diet Details
-                </label>
-                <textarea id="edit_diet_details" name="diet_details" class="form-input" rows="8" required>Sample nutrition plan details...</textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="edit_duration" class="form-label">
-                    <i class="fas fa-calendar-alt"></i> Duration (Days)
-                </label>
-                <input type="number" id="edit_duration" name="duration" class="form-input" value="30" required min="1" max="365">
-            </div>
-
-            <div class="form-group">
-                <label for="edit_status" class="form-label">
-                    <i class="fas fa-toggle-on"></i> Status
-                </label>
-                <select id="edit_status" name="status" class="form-input">
-                    <option value="active" selected>Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-        `;
-    }, 800);
-}
-
-function deletePlan(planId, type) {
-    if (confirm(`Are you sure you want to delete this ${type} plan? This action cannot be undone.`)) {
-        // In a real implementation, this would make an AJAX request to delete the plan
-        alert(`${type} plan ${planId} would be deleted (not implemented yet)`);
-        
-        // Optionally refresh the page or remove the row from the table
-        // location.reload();
-    }
-}
-
-// Sidebar toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('trainerSidebar');
-    const mainContent = document.getElementById('mainContent');
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        });
-    }
-});
-</script>
-
-<script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js"></script>
-<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/trainer/nutrition.js"></script>
 </body>
 </html>

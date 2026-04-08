@@ -186,6 +186,16 @@ class M_NutritionPlan {
             $bindings[':plan_name'] = $data['plan_name'];
         }
 
+        if ($this->columnExists('NutritionPlan', 'Notes')) {
+            $columns[] = 'Notes';
+            $placeholders[] = ':notes';
+            $bindings[':notes'] = $data['notes'] ?? null;
+        } elseif ($this->columnExists('NutritionPlan', 'notes')) {
+            $columns[] = 'notes';
+            $placeholders[] = ':notes';
+            $bindings[':notes'] = $data['notes'] ?? null;
+        }
+
         if ($this->columnExists('NutritionPlan', 'PlayerID') && !empty($playerIds)) {
             $columns[] = 'PlayerID';
             $placeholders[] = ':player_id';
@@ -219,6 +229,23 @@ class M_NutritionPlan {
         }
 
         return $planId;
+    }
+
+    public function getAssignedPlayerIds($planId): array {
+        if (!$this->tableExists('nutritionplan_player')) {
+            return [];
+        }
+
+        $this->db->query('SELECT PlayerID FROM nutritionplan_player WHERE PlanID = :plan_id');
+        $this->db->bind(':plan_id', (int)$planId);
+        $rows = $this->db->resultSet();
+        if (!$rows) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(static function ($row) {
+            return isset($row->PlayerID) ? (int)$row->PlayerID : 0;
+        }, $rows), static fn($id) => $id > 0)));
     }
 
     private function assignPlayersToPlan($planId, array $playerIds, $assignedDate = null) {
@@ -262,27 +289,41 @@ class M_NutritionPlan {
 
     // Return all plans for a trainer (with player name)
     public function getAllPlans($trainerId) {
-        $this->db->query('SELECT
-            np.*,
-            u.name  AS player_name,
-            u.email AS player_email,
-            COALESCE(a.assignment_count, 0) AS assigned_player_count,
-            COALESCE(a.assigned_player_names, "") AS assigned_player_names,
-            COALESCE(a.assigned_player_emails, "") AS assigned_player_emails
-            FROM NutritionPlan np
-            LEFT JOIN User u ON np.PlayerID = u.UserID
-            LEFT JOIN (
-                SELECT
-                    npp.PlanID,
-                    COUNT(DISTINCT npp.PlayerID) AS assignment_count,
-                    GROUP_CONCAT(DISTINCT assigned_u.name ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_names,
-                    GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_emails
-                FROM nutritionplan_player npp
-                INNER JOIN User assigned_u ON npp.PlayerID = assigned_u.UserID
-                GROUP BY npp.PlanID
-            ) a ON a.PlanID = np.PlanID
-            WHERE np.TrainerID = :trainer_id
-            ORDER BY np.CreatedDate DESC');
+        if (!$this->tableExists('nutritionplan_player')) {
+            $this->db->query('SELECT
+                np.*,
+                u.name  AS player_name,
+                u.email AS player_email,
+                CASE WHEN np.PlayerID IS NULL OR np.PlayerID = 0 THEN 0 ELSE 1 END AS assigned_player_count,
+                COALESCE(u.name, "") AS assigned_player_names,
+                COALESCE(u.email, "") AS assigned_player_emails
+                FROM NutritionPlan np
+                LEFT JOIN User u ON np.PlayerID = u.UserID
+                WHERE np.TrainerID = :trainer_id
+                ORDER BY np.CreatedDate DESC');
+        } else {
+            $this->db->query('SELECT
+                np.*,
+                u.name  AS player_name,
+                u.email AS player_email,
+                COALESCE(a.assignment_count, 0) AS assigned_player_count,
+                COALESCE(a.assigned_player_names, "") AS assigned_player_names,
+                COALESCE(a.assigned_player_emails, "") AS assigned_player_emails
+                FROM NutritionPlan np
+                LEFT JOIN User u ON np.PlayerID = u.UserID
+                LEFT JOIN (
+                    SELECT
+                        npp.PlanID,
+                        COUNT(DISTINCT npp.PlayerID) AS assignment_count,
+                        GROUP_CONCAT(DISTINCT assigned_u.name ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_names,
+                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_emails
+                    FROM nutritionplan_player npp
+                    INNER JOIN User assigned_u ON npp.PlayerID = assigned_u.UserID
+                    GROUP BY npp.PlanID
+                ) a ON a.PlanID = np.PlanID
+                WHERE np.TrainerID = :trainer_id
+                ORDER BY np.CreatedDate DESC');
+        }
         $this->db->bind(':trainer_id', (int)$trainerId);
         return $this->db->resultSet();
     }
@@ -305,22 +346,97 @@ class M_NutritionPlan {
 
     // Update all editable fields of a plan
     public function updatePlan($data) {
-        $this->db->query('UPDATE NutritionPlan SET
-            PlayerID     = :player_id,
-            PlanName     = :plan_name,
-            DietDetails  = :diet_details,
-            Duration     = :duration,
-            CreatedDate  = :created_date,
-            Status       = :status
-            WHERE PlanID = :plan_id');
-        $this->db->bind(':plan_id',     (int)$data['plan_id']);
-        $this->db->bind(':player_id',   (int)$data['player_id']);
-        $this->db->bind(':plan_name',   $data['plan_name']);
-        $this->db->bind(':diet_details',$data['diet_details']);
-        $this->db->bind(':duration',    (int)$data['duration']);
-        $this->db->bind(':created_date',$data['created_date']);
-        $this->db->bind(':status',      $data['status']);
-        return $this->db->execute();
+        $planId = (int)($data['plan_id'] ?? 0);
+        if ($planId <= 0) {
+            return false;
+        }
+
+        $playerIds = $data['player_ids'] ?? [];
+        if (!is_array($playerIds)) {
+            $playerIds = [];
+        }
+        $playerIds = array_values(array_unique(array_filter(array_map('intval', $playerIds), static fn($id) => $id > 0)));
+        $playerIdPrimary = !empty($playerIds) ? (int)$playerIds[0] : (int)($data['player_id'] ?? 0);
+
+        $sets = [];
+        $bindings = [':plan_id' => $planId];
+
+        if ($this->columnExists('NutritionPlan', 'PlayerID')) {
+            $sets[] = 'PlayerID = :player_id';
+            $bindings[':player_id'] = $playerIdPrimary;
+        }
+
+        if ($this->columnExists('NutritionPlan', 'PlanName')) {
+            $sets[] = 'PlanName = :plan_name';
+            $bindings[':plan_name'] = $data['plan_name'] ?? '';
+        } elseif ($this->columnExists('NutritionPlan', 'nutritionPlanName')) {
+            $sets[] = 'nutritionPlanName = :plan_name';
+            $bindings[':plan_name'] = $data['plan_name'] ?? '';
+        }
+
+        if ($this->columnExists('NutritionPlan', 'DietDetails')) {
+            $sets[] = 'DietDetails = :diet_details';
+            $bindings[':diet_details'] = $data['diet_details'] ?? '';
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Notes')) {
+            $sets[] = 'Notes = :notes';
+            $bindings[':notes'] = $data['notes'] ?? null;
+        } elseif ($this->columnExists('NutritionPlan', 'notes')) {
+            $sets[] = 'notes = :notes';
+            $bindings[':notes'] = $data['notes'] ?? null;
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Duration')) {
+            $sets[] = 'Duration = :duration';
+            $bindings[':duration'] = (int)($data['duration'] ?? 0);
+        }
+
+        if ($this->columnExists('NutritionPlan', 'CreatedDate')) {
+            $sets[] = 'CreatedDate = :created_date';
+            $bindings[':created_date'] = $data['created_date'] ?? date('Y-m-d');
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Status')) {
+            $sets[] = 'Status = :status';
+            $bindings[':status'] = $data['status'] ?? 'active';
+        }
+
+        if (empty($sets)) {
+            return false;
+        }
+
+        $this->db->query('UPDATE NutritionPlan SET ' . implode(', ', $sets) . ' WHERE PlanID = :plan_id');
+        foreach ($bindings as $param => $value) {
+            $this->db->bind($param, $value);
+        }
+
+        if (!$this->db->execute()) {
+            return false;
+        }
+
+        if ($this->tableExists('nutritionplan_player')) {
+            if (!$this->replaceAssignedPlayers($planId, $playerIds, $data['created_date'] ?? null)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function replaceAssignedPlayers($planId, array $playerIds, $assignedDate = null): bool {
+        $playerIds = array_values(array_unique(array_filter(array_map('intval', $playerIds), static fn($id) => $id > 0)));
+        if (empty($playerIds)) {
+            return false;
+        }
+
+        $this->db->query('DELETE FROM nutritionplan_player WHERE PlanID = :plan_id');
+        $this->db->bind(':plan_id', (int)$planId);
+        if (!$this->db->execute()) {
+            return false;
+        }
+
+        return $this->assignPlayersToPlan($planId, $playerIds, $assignedDate);
     }
 
     // Delete a plan — only if it belongs to the given trainer
