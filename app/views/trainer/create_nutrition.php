@@ -122,20 +122,22 @@
                       action="<?php echo URLROOT; ?>/nutrition/store"
                       novalidate>
 
-                    <!-- Row 1: Plan Name + Assignment Type -->
+                    <!-- Row 1: Plan + Assignment Type -->
                     <div class="nc-field-row">
 
                         <div class="nc-field">
                             <label for="plan_name">
-                                <i class="fas fa-tag"></i> Plan Name
+                                <i class="fas fa-tag"></i> Plan
                                 <span class="req">*</span>
                             </label>
-                            <input type="text"
-                                   id="plan_name" name="plan_name"
-                                   class="form-control<?php echo $cls('plan_name'); ?>"
-                                   value="<?php echo $val('plan_name'); ?>"
-                                   placeholder="e.g. Pre-Season High Protein Plan"
-                                   maxlength="255">
+                            <select id="plan_name" name="plan_name" class="form-control<?php echo $cls('plan_name'); ?>">
+                                <option value="">— Select a predefined plan —</option>
+                                <?php foreach (($data['plan_options'] ?? []) as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt, ENT_QUOTES); ?>" <?php echo ($old['plan_name'] ?? '') === $opt ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($opt); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                             <?php if ($err('plan_name')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
@@ -237,21 +239,21 @@
                         </div>
                     </div>
 
-                    <!-- Row 3: Diet Details -->
+                    <!-- Row 3: Notes -->
                     <div class="nc-field-row full">
                         <div class="nc-field">
-                            <label for="diet_details">
-                                <i class="fas fa-utensils"></i> Diet Details
-                                <span class="req">*</span>
+                            <label for="notes">
+                                <i class="fas fa-sticky-note"></i> Notes (optional)
                             </label>
-                            <textarea id="diet_details" name="diet_details"
-                                      class="form-control<?php echo $cls('diet_details'); ?>"
-                                      rows="6"
-                                      placeholder="Describe meal timing, portions, macros, hydration guidelines, pre/post workout nutrition..."><?php echo $val('diet_details'); ?></textarea>
-                            <?php if ($err('diet_details')): ?>
+                            <textarea id="notes" name="notes"
+                                      class="form-control<?php echo $cls('notes'); ?>"
+                                      rows="5"
+                                      placeholder="Add any custom notes for this player/group (e.g., allergies, match-day adjustments, portion changes)."><?php echo $val('notes'); ?></textarea>
+                            <small class="nc-help-text">Choose a predefined plan above and use Notes for personalisation.</small>
+                            <?php if ($err('notes')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
-                                    <?php echo htmlspecialchars($err('diet_details')); ?>
+                                    <?php echo htmlspecialchars($err('notes')); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
@@ -481,18 +483,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const mode        = assignmentMode ? assignmentMode.value : 'individual';
         const groupValue  = document.getElementById('player_group') ? document.getElementById('player_group').value : '';
         const selectedPlayers = playerCheckboxes.filter(input => input.checked).map(input => input.value).filter(Boolean);
-        const dietDetails = document.getElementById('diet_details').value.trim();
+        const notes       = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
         const duration    = document.getElementById('duration').value.trim();
         const createdDate = document.getElementById('created_date').value.trim();
 
-        if (!planName)                                  addError('plan_name',    'Plan name is required.');
+        if (!planName)                                  addError('plan_name',    'Please select a plan.');
         if (mode === 'group') {
             if (!groupValue) addError('player_group', 'Please select a player group.');
         } else if (!selectedPlayers.length) {
             setPickerError('Please select at least one player.');
             valid = false;
         }
-        if (!dietDetails)                               addError('diet_details', 'Diet details are required.');
+        if (notes && notes.length > 1000)               addError('notes',        'Notes must be 1000 characters or fewer.');
         if (!duration || isNaN(duration) || +duration <= 0)
                                                         addError('duration',     'Duration must be a positive number.');
         if (!createdDate)                               addError('created_date', 'Created date is required.');
