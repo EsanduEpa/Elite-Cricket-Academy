@@ -255,7 +255,7 @@
                                                     'workoutname'   => $plan->workoutname,
                                                     'frequency'     => $plan->frequency,
                                                     'duration'      => $plan->Duration,
-                                                    'videolink'     => $plan->VideoLink ?? '',,
+                                                    'videolink'     => $plan->VideoLink ?? '',
                                                     'intensity'     => $plan->Intensity ?? 'Moderate',
                                                     'notsuitablefor'=> $plan->NotSuitableFor ?? '',
                                                     'benefits'      => $plan->Benefits ?? ''
