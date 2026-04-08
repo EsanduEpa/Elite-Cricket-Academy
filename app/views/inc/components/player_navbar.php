@@ -24,7 +24,7 @@
                     <span class="badge-count" id="cartCount">0</span>
                 </a>
                 
-                <a href="<?php echo URLROOT; ?>/player/bookings" class="navbar-icon" title="Bookings">
+                <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="navbar-icon" title="Bookings">
                     <i class="fas fa-calendar-check"></i>
                     <span class="badge-count" id="bookingCount">0</span>
                 </a>

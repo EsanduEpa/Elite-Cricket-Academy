@@ -37,12 +37,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                        <i class="fas fa-calendar"></i>
-                        <span>Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
                         <i class="fas fa-ticket-alt"></i>
                         <span>Book Sessions</span>
@@ -112,7 +106,7 @@
                         <i class="fas fa-shopping-bag"></i>
                         Back to Shop
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/bookings" class="btn btn-cart">
+                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="btn btn-cart">
                         <i class="fas fa-calendar-alt"></i>
                         My Bookings
                     </a>

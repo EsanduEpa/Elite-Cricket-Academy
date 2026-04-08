@@ -35,12 +35,6 @@
                             <span>Performance</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                            <i class="fas fa-calendar"></i>
-                            <span>Bookings</span>
-                        </a>
-                    </li>
                   
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
@@ -514,7 +508,7 @@
                                 <h4>Book Training</h4>
                                 <p>Schedule a training session</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/player/bookings" class="quick-btn">Book</a>
+                            <a href="<?php echo URLROOT; ?>/playerslots/available" class="quick-btn">Book</a>
                         </div>
 
                         <div class="quick-action-card">

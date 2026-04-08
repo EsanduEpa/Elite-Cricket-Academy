@@ -20,7 +20,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training" class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/player/calendar" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link"><i class="fas fa-calendar"></i><span>Bookings</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
@@ -48,10 +47,10 @@
                     <p>All your upcoming bookings in one view</p>
                 </div>
                 <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/player/bookings" class="btn btn-training">
+                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="btn btn-training">
                         <i class="fas fa-list"></i> List View
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/coach_sessions" class="btn btn-performance">
+                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="btn btn-performance">
                         <i class="fas fa-plus"></i> Book Session
                     </a>
                 </div>

@@ -36,12 +36,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                            <i class="fas fa-calendar"></i>
-                            <span>Bookings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>
@@ -263,7 +257,7 @@
             <div class="quick-actions">
                 <h3>Training Actions</h3>
                 <div class="action-buttons">
-                    <a href="<?php echo URLROOT; ?>/player/bookings" class="action-btn">
+                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="action-btn">
                         <i class="fas fa-plus"></i> Book Session
                     </a>
                     <a href="<?php echo URLROOT; ?>/performance" class="action-btn">

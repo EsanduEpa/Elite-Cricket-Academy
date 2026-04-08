@@ -36,12 +36,6 @@
                             <span>Performance</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                            <i class="fas fa-calendar"></i>
-                            <span>Bookings</span>
-                        </a>
-                    </li>
                     <li class="nav-item active">                        <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
                             <i class="fas fa-ticket-alt"></i>
                             <span>Book Sessions</span>

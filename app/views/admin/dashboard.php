@@ -64,9 +64,9 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/session_slots" class="nav-link">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span>Session Slots</span>
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            <span>Slot Management</span>
                         </a>
                     </li>
 

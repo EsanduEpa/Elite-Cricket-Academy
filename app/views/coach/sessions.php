@@ -33,12 +33,6 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/available_slots" class="nav-link" data-tooltip="Available Slots">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Available Slots</span>
-                    </a>
-                </li>
 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
@@ -345,7 +339,7 @@
                     <tr>
                         <td colspan="8" style="text-align:center; padding:40px; color:#999;">
                             <i class="fas fa-calendar-times" style="font-size:36px; margin-bottom:12px; display:block; color:#ddd;"></i>
-                            No sessions yet. Claim a slot from <a href="<?php echo URLROOT; ?>/coach/available_slots">Available Slots</a>.
+                            No sessions yet. Sessions are scheduled by the admin and will appear here.
                         </td>
                     </tr>
                 <?php endif; ?>
