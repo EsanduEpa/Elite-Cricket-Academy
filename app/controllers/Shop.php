@@ -937,5 +937,102 @@ class Shop extends Controller {
         
         echo json_encode(['success' => true, 'products' => $products]);
     }
+
+    // =========================================================
+    // SLOT COUNTER BOOKING (Shop Employee)
+    // =========================================================
+
+    /** GET /shop/counter */
+    public function counter() {
+        requireAuth(['Shop']);
+        require_once APPROOT . '/libraries/SlotBookingService.php';
+
+        $slotModel = $this->model('M_SlotPlayer');
+        $slots     = $slotModel->getCounterSlots();
+
+        $this->view('shop/counter_booking', [
+            'title' => 'Counter Slot Booking',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'slots'  => $slots,
+        ]);
+    }
+
+    /** POST /shop/searchplayer  (AJAX) */
+    public function searchplayer() {
+        requireAuth(['Shop']);
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid method']);
+            return;
+        }
+
+        $term = trim($_POST['term'] ?? '');
+        if (strlen($term) < 2) {
+            echo json_encode(['success' => true, 'players' => []]);
+            return;
+        }
+
+        $slotModel = $this->model('M_SlotPlayer');
+        $players   = $slotModel->searchPlayers($term);
+
+        echo json_encode(['success' => true, 'players' => $players]);
+    }
+
+    /** POST /shop/slotbook */
+    public function slotbook() {
+        requireAuth(['Shop']);
+        require_once APPROOT . '/libraries/SlotBookingService.php';
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('shop/counter');
+        }
+
+        $occurrenceId = (int)($_POST['occurrence_id'] ?? 0);
+        $playerId     = (int)($_POST['player_id']     ?? 0);
+        $employeeId   = (int)($_SESSION['user_id']    ?? 5);
+
+        if ($occurrenceId <= 0 || $playerId <= 0) {
+            $_SESSION['counter_error'] = 'Please select a session and a player.';
+            redirect('shop/counter');
+        }
+
+        // Medical flag: block (cannot clear — admin only) + warn
+        // Use today as the check date — if any injury covers today they cannot book
+        $med = SlotBookingService::checkMedicalFlag($playerId, date('Y-m-d'));
+        if (!$med['ok']) {
+            $_SESSION['counter_error'] =
+                'Booking blocked: this player has an active medical flag. ' .
+                'Direct the player to the Admin to have it cleared before booking.';
+            redirect('shop/counter');
+        }
+
+        $slotModel = $this->model('M_SlotPlayer');
+        $result    = $slotModel->createBooking(
+            $occurrenceId,
+            $playerId,
+            'shop_employee',     // source
+            $employeeId,         // bookedBy
+            null,                // subscriptionId — not required for walk-in
+            (float)($_POST['amount'] ?? 0),
+            'cash',              // payMethod
+            'paid'               // payStatus
+        );
+
+        if ($result === true) {
+            $_SESSION['counter_success'] = 'Session booked successfully for player.';
+            redirect('shop/counter');
+        }
+
+        $messages = [
+            'duplicate'   => 'This player already has a booking for that session.',
+            'full'        => 'Session is fully booked.',
+            'not_found'   => 'Session not found.',
+            'active_injury' => 'Player has an active medical flag — direct to Admin.',
+            'error'       => 'An unexpected error occurred. Please try again.',
+        ];
+        $_SESSION['counter_error'] = $messages[$result] ?? $messages['error'];
+        redirect('shop/counter');
+    }
 }
 ?>

@@ -69,10 +69,12 @@ function requireAuth($allowedRoles = []) {
             
             // Use appropriate real user IDs for each role to avoid empty data
             $roleUserMap = [
-                'Admin' => 1,
-                'Coach' => 3,
-                'Player' => 6,
-                'Trainer' => 4
+                'Admin'        => 1,
+                'Coach'        => 3,
+                'Player'       => 6,
+                'Trainer'      => 4,
+                'Shop'         => 5,
+                'ShopEmployee' => 5,
             ];
             $_SESSION['user_id'] = $roleUserMap[$_SESSION['user_role']] ?? 1;
             $_SESSION['user_name'] = $_SESSION['user_role'] . ' User';
