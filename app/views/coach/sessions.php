@@ -32,6 +32,12 @@
                         <span>Sessions</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>My Slot Sessions</span>
+                    </a>
+                </li>
 
 
                 <li class="nav-item">
