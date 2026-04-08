@@ -65,6 +65,12 @@
                         <span>Facility Management</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/shop/counter" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Counter Booking</span>
+                    </a>
+                </li>
             </ul>
         </nav>
 

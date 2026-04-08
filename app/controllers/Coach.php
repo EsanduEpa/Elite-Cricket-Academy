@@ -1282,42 +1282,6 @@ class Coach extends Controller {
         }
     }
 
-    // ==================== AVAILABLE SLOTS ====================
-
-    public function available_slots() {
-        $sessionModel = $this->model('M_Session');
-        $data = [
-            'title'   => 'Available Slots - Coach Panel',
-            'coachId' => $_SESSION['user_id'],
-            'slots'   => $sessionModel->getOpenSlots(['type' => 'Coaching']),
-        ];
-        $this->view('coach/available_slots', $data);
-    }
-
-    public function claim_slot() {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'POST required']);
-            exit;
-        }
-        $sessionId = intval($_POST['session_id'] ?? 0);
-        if (!$sessionId) {
-            echo json_encode(['success' => false, 'message' => 'Invalid session ID']);
-            exit;
-        }
-        $sessionModel = $this->model('M_Session');
-        if ($sessionModel->isSlotClaimed($sessionId)) {
-            echo json_encode(['success' => false, 'message' => 'This slot has already been claimed']);
-            exit;
-        }
-        $result = $sessionModel->claimSlot($sessionId, $_SESSION['user_id']);
-        echo json_encode([
-            'success' => $result,
-            'message' => $result ? 'Slot claimed successfully' : 'Failed to claim slot'
-        ]);
-        exit;
-    }
-
     // ==================== TOURNAMENT RECOMMENDATIONS ====================
 
     /**

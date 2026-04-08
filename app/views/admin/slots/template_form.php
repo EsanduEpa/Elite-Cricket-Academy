@@ -73,6 +73,9 @@
                     <div class="form-group">
                         <label>Slot Type <span style="color:#e74c3c;">*</span></label>
                         <select name="SlotType" required>
+                            <?php if (empty($t->SlotType)): ?>
+                            <option value="" disabled selected>— select type —</option>
+                            <?php endif; ?>
                             <option value="program"       <?= ($t->SlotType??'') === 'program'        ? 'selected' : '' ?>>Program (recurring group, subscription-covered)</option>
                             <option value="private"       <?= ($t->SlotType??'') === 'private'        ? 'selected' : '' ?>>Private (1-on-1, paid on request)</option>
                             <option value="facility_only" <?= ($t->SlotType??'') === 'facility_only'  ? 'selected' : '' ?>>Facility Only (no staff, self-book)</option>
