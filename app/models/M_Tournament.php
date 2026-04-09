@@ -131,10 +131,9 @@ class M_Tournament
     {
         $this->db->query(
             'SELECT tp.*, u.Name, u.Email,
-                    pp.ProfileImage
+                    u.ProfileImage
              FROM tournamentplayer tp
-             JOIN playerprofile pp ON pp.PlayerID = tp.PlayerID
-             JOIN user u ON u.UserID = pp.PlayerID
+             JOIN user u ON u.UserID = tp.PlayerID
              WHERE tp.TournamentID = :tid
              ORDER BY FIELD(tp.RoleInTeam,"Captain","Vice-Captain","Wicket-Keeper","Batsman","Bowler","All-Rounder")'
         );
@@ -182,9 +181,11 @@ class M_Tournament
 
     public function clearTeamDraft($tournamentId)
     {
-        $this->db->query(
-            'DELETE FROM tournamentplayer WHERE TournamentID = :tid AND SelectionStatus = "draft"'
-        );
+        $this->db->query('DELETE FROM tournamentplayer WHERE TournamentID = :tid');
+        $this->db->bind(':tid', $tournamentId);
+        $this->db->execute();
+        // Also reset announced flag so the team is hidden until re-confirmed
+        $this->db->query('UPDATE tournament SET IsTeamAnnounced = 0 WHERE TournamentID = :tid');
         $this->db->bind(':tid', $tournamentId);
         return $this->db->execute();
     }
@@ -204,16 +205,15 @@ class M_Tournament
     public function getPlayerSelectionSummary($tournamentId)
     {
         $this->db->query(
-            'SELECT u.UserID, CONCAT(u.FirstName, " ", u.LastName) AS PlayerName,
+            'SELECT u.UserID, u.Name AS PlayerName,
                     u.Email,
-                    pp.ProfileImage,
+                    u.ProfileImage,
                     COUNT(DISTINCT ctr.RecommendationID) AS CoachRecs,
                     COUNT(DISTINCT ttr.RecommendationID) AS TrainerRecs,
                     MAX(CASE WHEN tjr.RequestID IS NOT NULL THEN 1 ELSE 0 END) AS SelfNominated,
                     MAX(tjr.Status) AS JoinRequestStatus,
                     MAX(CASE WHEN tp.PlayerID IS NOT NULL THEN 1 ELSE 0 END) AS AlreadySelected
              FROM user u
-             JOIN playerprofile pp ON pp.PlayerID = u.UserID
              LEFT JOIN coach_tournament_recommendations ctr
                     ON ctr.PlayerID = u.UserID AND ctr.TournamentID = :tid1
              LEFT JOIN trainer_tournament_recommendations ttr

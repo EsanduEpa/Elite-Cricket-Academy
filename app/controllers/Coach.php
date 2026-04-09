@@ -91,16 +91,10 @@ class Coach extends Controller {
     }
     
     public function tournaments() {
-        $eventModel = $this->model('Event');
-        $upcomingEvents = $eventModel->getUpcomingEvents(50);
-        $pastEvents = $eventModel->getPastEvents(50);
-        
-        $data = [
-            'title' => 'Tournaments - Coach Dashboard',
-            'upcoming_events' => $upcomingEvents,
-            'past_events' => $pastEvents
-        ];
-        $this->view('coach/tournaments', $data);
+        $M_Tournament = $this->model('M_Tournament');
+        $data['tournaments'] = $M_Tournament->getPublicTournaments();
+        $data['is_head_coach'] = $this->_isHeadCoach();
+        $this->view('coach/tournaments/index', $data);
     }
     
     public function players() {
@@ -1322,129 +1316,64 @@ class Coach extends Controller {
      * GET /coach/recommend-players/{tournamentId}
      */
     public function recommend_players($tournamentId = null) {
-        header('Content-Type: application/json');
-        
-        if (!$tournamentId) {
-            echo json_encode(['success' => false, 'message' => 'Tournament ID is required']);
-            return;
-        }
-        
-        $coachId = $_SESSION['user_id'];
-        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
-        $eventModel = $this->model('Event');
-        
-        try {
-            // Get tournament details
-            $tournament = $eventModel->getEventById($tournamentId);
-            if (!$tournament) {
-                echo json_encode(['success' => false, 'message' => 'Tournament not found']);
-                return;
-            }
-            
-            // Get coach's assigned players
-            $players = $recommendationModel->getCoachAssignedPlayers($coachId);
-            
-            if (empty($players)) {
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'No players assigned to you. Please contact admin.'
-                ]);
-                return;
-            }
-            
-            // Get tournament's role requirements (from Event name or description)
-            $roles = ['batsman', 'bowler', 'all-rounder', 'wicket-keeper'];
-            
-            echo json_encode([
-                'success' => true,
-                'tournament' => $tournament,
-                'players' => $players,
-                'roles' => $roles,
-                'roleDescriptions' => [
-                    'batsman' => 'Primary batting focus',
-                    'bowler' => 'Primary bowling focus',
-                    'all-rounder' => 'Both batting and bowling',
-                    'wicket-keeper' => 'Wicket-keeping specialist'
-                ]
-            ]);
-        } catch (Exception $e) {
-            error_log('Error in recommend_players: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-        }
+        if (!$tournamentId) { redirect('coach/tournaments'); return; }
+
+        $tournamentModel  = $this->model('M_Tournament');
+        $joinRequestModel = $this->model('M_TournamentJoinRequest');
+        $coachRecModel    = $this->model('M_CoachTournamentRecommendation');
+
+        $tournament = $tournamentModel->getTournamentById($tournamentId);
+        if (!$tournament) { redirect('coach/tournaments'); return; }
+
+        $data['tournament']   = $tournament;
+        $data['players']      = $joinRequestModel->getRequestsByTournament($tournamentId);
+        $data['my_recs']      = $coachRecModel->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $tournamentId]);
+        $data['is_head_coach'] = $this->_isHeadCoach();
+
+        $this->view('coach/tournaments/recommend', $data);
     }
 
     /**
      * Save a new tournament recommendation
-     * POST /coach/save-recommendation
+     * POST /coach/save_recommendation
      */
     public function save_recommendation() {
-        header('Content-Type: application/json');
-        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'POST method required']);
+            redirect('coach/tournaments');
             return;
         }
-        
+
         $coachId = $_SESSION['user_id'];
-        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-        
-        // Validate input
-        $tournamentId = intval($input['tournamentId'] ?? 0);
-        $playerId = intval($input['playerId'] ?? 0);
-        $recommendedRole = trim($input['recommendedRole'] ?? '');
-        $reason = trim($input['reason'] ?? '');
-        $comments = trim($input['comments'] ?? '');
-        
-        if (!$tournamentId || !$playerId || empty($recommendedRole)) {
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Tournament, Player, and Role are required'
-            ]);
+
+        $tournamentId    = intval($_POST['tournamentId'] ?? 0);
+        $playerId        = intval($_POST['playerId'] ?? 0);
+        $recommendedRole = trim($_POST['recommendedRole'] ?? '');
+        $reason          = trim($_POST['reason'] ?? '');
+        $comments        = trim($_POST['comments'] ?? '');
+
+        $formBack    = 'coach/recommend_players/' . $tournamentId;
+        $detailPage  = 'coach/tournament_detail/' . $tournamentId;
+
+        if (!$tournamentId || !$playerId || empty($recommendedRole) || empty($reason)) {
+            $_SESSION['error'] = 'Player, Role, and Reason are all required.';
+            redirect($formBack);
             return;
         }
-        
+
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
-        
-        try {
-            // Check for duplicates
-            if ($recommendationModel->checkDuplicateRecommendation($tournamentId, $playerId, $coachId)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You have already recommended this player for this tournament'
-                ]);
-                return;
-            }
-            
-            // Add recommendation
-            $recommendationData = [
-                'coach_id' => $coachId,
-                'tournament_id' => $tournamentId,
-                'player_id' => $playerId,
-                'recommended_role' => $recommendedRole,
-                'reason' => $reason,
-                'comments' => $comments
-            ];
-            
-            $recommendationId = $recommendationModel->addRecommendation($recommendationData);
-            
-            if ($recommendationId) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Recommendation saved successfully',
-                    'recommendationId' => $recommendationId
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to save recommendation'
-                ]);
-            }
-        } catch (Exception $e) {
-            error_log('Error in save_recommendation: ' . $e->getMessage());
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ]);
+
+        $result = $recommendationModel->addRecommendation($coachId, $tournamentId, $playerId, [
+            'role'     => $recommendedRole,
+            'reason'   => $reason,
+            'comments' => $comments,
+        ]);
+
+        if ($result['success']) {
+            $_SESSION['success'] = 'Recommendation submitted successfully.';
+            redirect($detailPage);
+        } else {
+            $_SESSION['error'] = $result['message'] ?? 'Failed to save recommendation.';
+            redirect($formBack);
         }
     }
 
@@ -1670,6 +1599,114 @@ class Coach extends Controller {
                 'message' => 'Error: ' . $e->getMessage()
             ]);
         }
+    }
+
+    // ─── NEW TOURNAMENT MODULE METHODS ───────────────────────────────────────
+
+    private function _isHeadCoach()
+    {
+        $coachId = $_SESSION['user_id'];
+        $db = new Database();
+        $db->query('SELECT IsHeadCoach FROM coachprofile WHERE CoachID = :id');
+        $db->bind(':id', $coachId);
+        $row = $db->single();
+        return $row && $row->IsHeadCoach == 1;
+    }
+
+    public function tournament_detail($id = null)
+    {
+        if (!$id) { redirect('coach/tournaments'); return; }
+
+        $M_Tournament  = $this->model('M_Tournament');
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $M_CoachRec    = $this->model('M_CoachTournamentRecommendation');
+        $M_Result      = $this->model('M_TournamentResult');
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) { redirect('coach/tournaments'); return; }
+
+        $data['tournament']    = $tournament;
+        $data['team']          = $M_Tournament->getTeam($id);
+        $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
+        $data['my_recs']       = $M_CoachRec->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $id]);
+        $data['result']        = $M_Result->getResult($id);
+        $data['is_head_coach'] = $this->_isHeadCoach();
+
+        $this->view('coach/tournaments/detail', $data);
+    }
+
+    public function finalize_team($id = null)
+    {
+        if (!$id) { redirect('coach/tournaments'); return; }
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can finalize the squad.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament   = $M_Tournament->getTournamentById($id);
+        if (!$tournament) { redirect('coach/tournaments'); return; }
+
+        if (!in_array($tournament->Status, ['registration_open', 'registration_closed', 'created'])) {
+            $_SESSION['error'] = 'Squad can only be finalized while the tournament is not yet ongoing.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $M_CoachRec    = $this->model('M_CoachTournamentRecommendation');
+        $M_TrainerRec  = $this->model('M_TrainerTournamentRecommendation');
+
+        $data['tournament']    = $tournament;
+        $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
+        $data['coach_recs']    = $M_CoachRec->getRecommendationsByTournament($id);
+        $data['trainer_recs']  = $M_TrainerRec->getRecommendationsByTournament($id);
+        $data['team']          = $M_Tournament->getTeam($id);
+
+        $this->view('coach/tournaments/finalize', $data);
+    }
+
+    public function save_team_selection($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('coach/tournaments'); return; }
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can select the squad.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament   = $M_Tournament->getTournamentById($id);
+        if (!$tournament) { redirect('coach/tournaments'); return; }
+
+        // Clear existing draft and rebuild
+        $M_Tournament->clearTeamDraft($id);
+
+        $selected = $_POST['selected'] ?? [];   // array of player IDs
+        $roles    = $_POST['roles'] ?? [];       // player_id => role string
+
+        foreach ($selected as $playerId) {
+            $playerId = (int)$playerId;
+            if (!$playerId) continue;
+            $M_Tournament->addPlayerToTeam([
+                'tournament_id' => $id,
+                'player_id'     => $playerId,
+                'role'          => $roles[$playerId] ?? null,
+                'selected_by'   => $_SESSION['user_id'],
+            ]);
+        }
+
+        // If "confirm" button pressed, lock the squad
+        if (!empty($_POST['confirm'])) {
+            $M_Tournament->confirmTeam($id, $_SESSION['user_id']);
+            $M_Tournament->announceTeam($id);
+            $_SESSION['success'] = 'Squad confirmed and announced successfully.';
+        } else {
+            $_SESSION['success'] = 'Squad draft saved.';
+        }
+
+        redirect('coach/tournament_detail/' . $id);
     }
 }
 ?>

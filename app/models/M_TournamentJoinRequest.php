@@ -26,11 +26,10 @@ class M_TournamentJoinRequest
     {
         $this->db->query(
             'SELECT tjr.*, u.Name, u.Email,
-                    pp.ProfileImage,
+                    u.ProfileImage,
                     COUNT(DISTINCT ctr.RecommendationID) AS CoachRecs,
                     COUNT(DISTINCT ttr.RecommendationID) AS TrainerRecs
              FROM tournament_join_request tjr
-             JOIN playerprofile pp ON pp.PlayerID = tjr.PlayerID
              JOIN user u ON u.UserID = tjr.PlayerID
              LEFT JOIN coach_tournament_recommendations ctr
                     ON ctr.PlayerID = tjr.PlayerID AND ctr.TournamentID = tjr.TournamentID
