@@ -1892,5 +1892,282 @@ class Admin extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
     }
+
+    // =========================================================================
+    // TOURNAMENT MANAGEMENT
+    // =========================================================================
+
+    public function tournaments()
+    {
+        $M_Tournament = $this->model('M_Tournament');
+        $data['tournaments'] = $M_Tournament->getTournaments();
+        $this->view('admin/tournaments/index', $data);
+    }
+
+    public function create_tournament()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'name'                  => trim($_POST['name'] ?? ''),
+                'age_group'             => trim($_POST['age_group'] ?? ''),
+                'format'                => $_POST['format'] ?? 'T20',
+                'description'           => trim($_POST['description'] ?? ''),
+                'tdate'                 => $_POST['tdate'] ?? '',
+                'registration_deadline' => $_POST['registration_deadline'] ?? null,
+                'max_players'           => !empty($_POST['max_players']) ? (int)$_POST['max_players'] : null,
+                'location'              => trim($_POST['location'] ?? ''),
+                'prize_pool'            => !empty($_POST['prize_pool']) ? (float)$_POST['prize_pool'] : 0,
+                'created_by'            => $_SESSION['user_id'],
+            ];
+
+            if (empty($data['name']) || empty($data['tdate'])) {
+                $_SESSION['error'] = 'Tournament name and date are required.';
+                redirect('admin/create_tournament');
+                return;
+            }
+
+            $M_Tournament = $this->model('M_Tournament');
+            $id = $M_Tournament->createTournament($data);
+            $_SESSION['success'] = 'Tournament created successfully.';
+            redirect('admin/tournament_detail/' . $id);
+        } else {
+            $this->view('admin/tournaments/create', []);
+        }
+    }
+
+    public function edit_tournament($id = null)
+    {
+        if (!$id) { redirect('admin/tournaments'); return; }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) { $_SESSION['error'] = 'Tournament not found.'; redirect('admin/tournaments'); return; }
+
+        // Lock editing once ongoing
+        if (in_array($tournament->Status, ['ongoing', 'completed', 'cancelled'])) {
+            $_SESSION['error'] = 'Cannot edit a tournament that is ongoing, completed, or cancelled.';
+            redirect('admin/tournament_detail/' . $id);
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'name'                  => trim($_POST['name'] ?? ''),
+                'age_group'             => trim($_POST['age_group'] ?? ''),
+                'format'                => $_POST['format'] ?? 'T20',
+                'description'           => trim($_POST['description'] ?? ''),
+                'tdate'                 => $_POST['tdate'] ?? '',
+                'registration_deadline' => $_POST['registration_deadline'] ?? null,
+                'max_players'           => !empty($_POST['max_players']) ? (int)$_POST['max_players'] : null,
+                'location'              => trim($_POST['location'] ?? ''),
+                'prize_pool'            => !empty($_POST['prize_pool']) ? (float)$_POST['prize_pool'] : 0,
+            ];
+
+            if (empty($data['name']) || empty($data['tdate'])) {
+                $_SESSION['error'] = 'Tournament name and date are required.';
+                redirect('admin/edit_tournament/' . $id);
+                return;
+            }
+
+            $M_Tournament->updateTournament($id, $data);
+            $_SESSION['success'] = 'Tournament updated successfully.';
+            redirect('admin/tournament_detail/' . $id);
+        } else {
+            $this->view('admin/tournaments/edit', ['tournament' => $tournament]);
+        }
+    }
+
+    public function tournament_detail($id = null)
+    {
+        if (!$id) { redirect('admin/tournaments'); return; }
+
+        $M_Tournament    = $this->model('M_Tournament');
+        $M_JoinRequest   = $this->model('M_TournamentJoinRequest');
+        $M_CoachRec      = $this->model('M_CoachTournamentRecommendation');
+        $M_TrainerRec    = $this->model('M_TrainerTournamentRecommendation');
+        $M_Result        = $this->model('M_TournamentResult');
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) { $_SESSION['error'] = 'Tournament not found.'; redirect('admin/tournaments'); return; }
+
+        $data['tournament']    = $tournament;
+        $data['team']          = $M_Tournament->getTeam($id);
+        $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
+        $data['coach_recs']    = $M_CoachRec->getRecommendationsByTournament($id);
+        $data['trainer_recs']  = $M_TrainerRec->getRecommendationsByTournament($id);
+        $data['result']        = $M_Result->getResult($id);
+        $data['player_stats']  = $M_Result->getAllStatsForTournament($id);
+
+        $this->view('admin/tournaments/detail', $data);
+    }
+
+    public function update_tournament_status($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/tournaments'); return; }
+
+        $allowed = ['created','registration_open','registration_closed','team_announced','ongoing','completed','cancelled'];
+        $newStatus = $_POST['status'] ?? '';
+
+        if (!in_array($newStatus, $allowed)) {
+            $_SESSION['error'] = 'Invalid status.';
+            redirect('admin/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $M_Tournament->updateStatus($id, $newStatus);
+        $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        redirect('admin/tournament_detail/' . $id);
+    }
+
+    public function cancel_tournament($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/tournaments'); return; }
+
+        $reason = trim($_POST['cancel_reason'] ?? '');
+        if (empty($reason)) {
+            $_SESSION['error'] = 'A cancellation reason is required.';
+            redirect('admin/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament  = $this->model('M_Tournament');
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+
+        $M_Tournament->updateStatus($id, 'cancelled', $reason);
+        $M_JoinRequest->rejectAllPending($id, $_SESSION['user_id']);
+
+        $_SESSION['success'] = 'Tournament cancelled and all pending join requests rejected.';
+        redirect('admin/tournament_detail/' . $id);
+    }
+
+    public function approve_join_request($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+            return;
+        }
+
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $req = $M_JoinRequest->getRequestById($id);
+        if (!$req) { echo json_encode(['success' => false, 'message' => 'Request not found.']); return; }
+
+        $M_JoinRequest->updateStatus($id, 'approved', $_SESSION['user_id'], $_POST['notes'] ?? null);
+        echo json_encode(['success' => true, 'message' => 'Join request approved.']);
+    }
+
+    public function reject_join_request($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+            return;
+        }
+
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $req = $M_JoinRequest->getRequestById($id);
+        if (!$req) { echo json_encode(['success' => false, 'message' => 'Request not found.']); return; }
+
+        $M_JoinRequest->updateStatus($id, 'rejected', $_SESSION['user_id'], $_POST['notes'] ?? null);
+        echo json_encode(['success' => true, 'message' => 'Join request rejected.']);
+    }
+
+    public function publish_team($tournamentId = null)
+    {
+        if (!$tournamentId || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/tournaments'); return; }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($tournamentId);
+
+        if (!$tournament || $tournament->Status !== 'registration_closed') {
+            $_SESSION['error'] = 'Team can only be published when tournament is in registration_closed status.';
+            redirect('admin/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_Tournament->announceTeam($tournamentId);
+        $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
+        redirect('admin/tournament_detail/' . $tournamentId);
+    }
+
+    public function enter_results($tournamentId = null)
+    {
+        if (!$tournamentId) { redirect('admin/tournaments'); return; }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $M_Result     = $this->model('M_TournamentResult');
+
+        $tournament = $M_Tournament->getTournamentById($tournamentId);
+        if (!$tournament) { redirect('admin/tournaments'); return; }
+
+        if (!in_array($tournament->Status, ['ongoing', 'completed'])) {
+            $_SESSION['error'] = 'Results can only be entered for ongoing or completed tournaments.';
+            redirect('admin/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $resultData = [
+                'tournament_id'    => $tournamentId,
+                'position'         => $_POST['position'] ?? 'DNS',
+                'opponent_in_final'=> trim($_POST['opponent_in_final'] ?? ''),
+                'match_format'     => $_POST['match_format'] ?? null,
+                'won_by'           => trim($_POST['won_by'] ?? ''),
+                'man_of_tournament'=> !empty($_POST['man_of_tournament']) ? (int)$_POST['man_of_tournament'] : null,
+                'summary_notes'    => trim($_POST['summary_notes'] ?? ''),
+                'entered_by'       => $_SESSION['user_id'],
+            ];
+            $M_Result->saveResult($resultData);
+
+            // Save per-player stats if submitted
+            if (!empty($_POST['player_stats']) && is_array($_POST['player_stats'])) {
+                foreach ($_POST['player_stats'] as $pid => $stats) {
+                    $M_Result->savePlayerStats([
+                        'tournament_id'   => $tournamentId,
+                        'player_id'       => $pid,
+                        'matches_played'  => (int)($stats['matches'] ?? 0),
+                        'total_runs'      => (int)($stats['runs'] ?? 0),
+                        'total_wickets'   => (int)($stats['wickets'] ?? 0),
+                        'batting_average' => !empty($stats['bat_avg']) ? (float)$stats['bat_avg'] : null,
+                        'bowling_average' => !empty($stats['bowl_avg']) ? (float)$stats['bowl_avg'] : null,
+                        'strike_rate'     => !empty($stats['sr']) ? (float)$stats['sr'] : null,
+                        'economy_rate'    => !empty($stats['er']) ? (float)$stats['er'] : null,
+                    ]);
+                }
+            }
+
+            // Auto-complete tournament
+            if ($tournament->Status === 'ongoing') {
+                $M_Tournament->updateStatus($tournamentId, 'completed');
+            }
+
+            $_SESSION['success'] = 'Results saved successfully.';
+            redirect('admin/tournament_detail/' . $tournamentId);
+        } else {
+            $data['tournament'] = $tournament;
+            $data['team']       = $M_Tournament->getTeam($tournamentId);
+            $data['result']     = $M_Result->getResult($tournamentId);
+            $data['stats']      = $M_Result->getAllStatsForTournament($tournamentId);
+            $this->view('admin/tournaments/results', $data);
+        }
+    }
+
+    public function set_head_coach()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/staff'); return; }
+
+        $coachId = (int)($_POST['coach_id'] ?? 0);
+        if (!$coachId) { $_SESSION['error'] = 'Invalid coach.'; redirect('admin/staff'); return; }
+
+        $db = new Database();
+        // Unset all first, then set the chosen one
+        $db->query('UPDATE coachprofile SET IsHeadCoach = 0');
+        $db->execute();
+        $db->query('UPDATE coachprofile SET IsHeadCoach = 1 WHERE CoachID = :id');
+        $db->bind(':id', $coachId);
+        $db->execute();
+
+        $_SESSION['success'] = 'Head Coach designation updated.';
+        redirect('admin/staff');
+    }
 }
 ?>

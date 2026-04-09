@@ -64,6 +64,18 @@
                         <span>Injury Reports</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/tournaments" class="nav-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Tournaments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/my_recommendations" class="nav-link">
+                        <i class="fas fa-star"></i>
+                        <span>My Recommendations</span>
+                    </a>
+                </li>
                
             </ul>
         </nav>

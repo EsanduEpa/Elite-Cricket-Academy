@@ -239,19 +239,86 @@ class Trainer extends Controller {
     }
 
     public function tournaments() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
+        requireAuth(['Trainer']);
+        $M_Tournament = $this->model('M_Tournament');
+        $data = [
+            'title'       => 'Tournaments',
+            'tournaments' => $M_Tournament->getPublicTournaments(),
+        ];
+        $this->view('trainer/tournaments/index', $data);
+    }
+
+    public function tournament_detail($id) {
+        requireAuth(['Trainer']);
+        $id = (int)$id;
+        $M_Tournament = $this->model('M_Tournament');
+        $M_TTR        = $this->model('M_TrainerTournamentRecommendation');
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            flash('tournament_message', 'Tournament not found.', 'alert alert-danger');
+            redirect('trainer/tournaments');
+        }
+
+        $trainerId = $_SESSION['user_id'];
+        $data = [
+            'title'      => $tournament->Name,
+            'tournament' => $tournament,
+            'team'       => $M_Tournament->getTeam($id),
+            'my_recs'    => $M_TTR->getRecommendationsByTrainer($trainerId),
+        ];
+        // Filter my_recs to this tournament only
+        $data['my_recs_for_tournament'] = array_filter($data['my_recs'], function($r) use ($id) {
+            return (int)$r->TournamentID === $id;
+        });
+
+        $this->view('trainer/tournaments/detail', $data);
+    }
+
+    public function recommend_player($id) {
+        requireAuth(['Trainer']);
+        $id           = (int)$id;
+        $M_Tournament = $this->model('M_Tournament');
+        $M_TTR        = $this->model('M_TrainerTournamentRecommendation');
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            flash('tournament_message', 'Tournament not found.', 'alert alert-danger');
+            redirect('trainer/tournaments');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $trainerId = $_SESSION['user_id'];
+            $playerId  = (int)$_POST['player_id'];
+            $result    = $M_TTR->addRecommendation($trainerId, $id, $playerId, [
+                'role'     => trim($_POST['role'] ?? ''),
+                'reason'   => trim($_POST['reason'] ?? ''),
+                'comments' => trim($_POST['comments'] ?? ''),
+            ]);
+            if ($result['success']) {
+                flash('tournament_message', $result['message'], 'alert alert-success');
+            } else {
+                flash('tournament_message', $result['message'], 'alert alert-danger');
+            }
+            redirect('trainer/tournament_detail/' . $id);
         }
 
         $data = [
-            'title' => 'Tournaments',
-            'tournaments' => [] // $this->trainerModel->getTournaments()
+            'title'      => 'Recommend Player – ' . $tournament->Name,
+            'tournament' => $tournament,
+            'players'    => $this->model('M_TournamentJoinRequest')->getRequestsByTournament($id),
         ];
+        $this->view('trainer/tournaments/recommend', $data);
+    }
 
-        $this->view('trainer/tournaments', $data);
+    public function my_recommendations() {
+        requireAuth(['Trainer']);
+        $M_TTR = $this->model('M_TrainerTournamentRecommendation');
+        $data  = [
+            'title' => 'My Tournament Recommendations',
+            'recs'  => $M_TTR->getRecommendationsByTrainer($_SESSION['user_id']),
+        ];
+        $this->view('trainer/tournaments/my_recommendations', $data);
     }
 
     public function nutrition() {

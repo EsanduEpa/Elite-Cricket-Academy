@@ -490,18 +490,82 @@ class Player extends Controller {
     
     // Tournaments
     public function tournaments() {
-        $eventModel = $this->model('Event');
-        $academyEvents = $eventModel->getUpcomingEvents(20); // fetch up to 20 upcoming events
+        requireAuth(['Player']);
+        $M_Tournament  = $this->model('M_Tournament');
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $playerId      = $_SESSION['user_id'];
+
+        $tournaments = $M_Tournament->getPublicTournaments();
+        $myRequests  = [];
+        foreach ($tournaments as $t) {
+            $req = $M_JoinRequest->getRequestByPlayer($t->TournamentID, $playerId);
+            if ($req) {
+                $myRequests[$t->TournamentID] = $req;
+            }
+        }
+
         $data = [
-            'title' => 'Tournaments',
-            'player' => $this->getPlayerData(),
-            'upcomingTournaments' => $this->getUpcomingTournaments(),
-            'enrolledTournaments' => $this->getEnrolledTournaments(),
-            'completedTournaments' => $this->getCompletedTournaments(),
-            'tournamentStats' => $this->getTournamentStats(),
-            'academyEvents' => $academyEvents
+            'title'       => 'Tournaments',
+            'player'      => $this->getPlayerData(),
+            'tournaments' => $tournaments,
+            'my_requests' => $myRequests,
         ];
-        $this->view('player/tournaments', $data);
+        $this->view('player/tournaments/index', $data);
+    }
+
+    public function tournament_detail($id) {
+        requireAuth(['Player']);
+        $id            = (int)$id;
+        $M_Tournament  = $this->model('M_Tournament');
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $playerId      = $_SESSION['user_id'];
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            flash('tournament_message', 'Tournament not found.', 'alert alert-danger');
+            redirect('player/tournaments');
+        }
+
+        $data = [
+            'title'      => $tournament->Name,
+            'player'     => $this->getPlayerData(),
+            'tournament' => $tournament,
+            'team'       => $tournament->IsTeamAnnounced ? $M_Tournament->getTeam($id) : [],
+            'my_request' => $M_JoinRequest->getRequestByPlayer($id, $playerId),
+        ];
+        $this->view('player/tournaments/detail', $data);
+    }
+
+    public function join_tournament($id) {
+        requireAuth(['Player']);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/tournaments');
+        }
+        $id            = (int)$id;
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $playerId      = $_SESSION['user_id'];
+
+        if ($M_JoinRequest->hasExistingRequest($id, $playerId)) {
+            flash('tournament_message', 'You have already submitted a join request for this tournament.', 'alert alert-warning');
+            redirect('player/tournament_detail/' . $id);
+        }
+
+        $message = trim($_POST['message'] ?? '');
+        $M_JoinRequest->createRequest($id, $playerId, $message);
+        flash('tournament_message', 'Your join request has been submitted successfully.', 'alert alert-success');
+        redirect('player/tournament_detail/' . $id);
+    }
+
+    public function cancel_join_request($id) {
+        requireAuth(['Player']);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/tournaments');
+        }
+        $requestId     = (int)$id;
+        $M_JoinRequest = $this->model('M_TournamentJoinRequest');
+        $M_JoinRequest->cancelByPlayer($requestId, $_SESSION['user_id']);
+        flash('tournament_message', 'Your join request has been cancelled.', 'alert alert-info');
+        redirect('player/tournaments');
     }
 
     // Equipment Rentals

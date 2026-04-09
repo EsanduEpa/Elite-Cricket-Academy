@@ -56,6 +56,12 @@
                         <span>Tournaments</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/trainer/my_recommendations" class="nav-link">
+                        <i class="fas fa-star"></i>
+                        <span>My Recommendations</span>
+                    </a>
+                </li>
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
