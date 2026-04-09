@@ -540,13 +540,23 @@ class Trainer extends Controller {
         $supplementModel = $this->model('M_SupplementPlan');
         
         // Get trainer's supplement plans
-        $supplementPlans = $supplementModel->getSupplementPlansByTrainer($_SESSION['user_id']);
+        $supplementPlans = $supplementModel->getAllPlans($_SESSION['user_id']);
         $players = $supplementModel->getAllPlayers();
+        $groups = $supplementModel->getPlayerGroups();
+
+        $errors = $_SESSION['supplement_form_errors'] ?? [];
+        $old = $_SESSION['supplement_form_old'] ?? [];
+        unset($_SESSION['supplement_form_errors'], $_SESSION['supplement_form_old']);
 
         $data = [
             'title' => 'Supplement Plans',
             'supplement_plans' => $supplementPlans,
-            'players' => $players
+            'players' => $players,
+            'groups' => $groups,
+            'plan_options' => $this->getSupplementPlanOptions(),
+            'supplement_plan_library' => $this->getSupplementPlanLibrary(),
+            'errors' => $errors,
+            'old' => $old,
         ];
 
         $this->view('trainer/supplements', $data);
@@ -918,30 +928,252 @@ class Trainer extends Controller {
             
             // Sanitize POST data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            
-            $data = [
-                'trainer_id' => $_SESSION['user_id'],
-                'player_id' => $_POST['player_id'],
-                'supplement_details' => $_POST['supplement_details'],
-                'dosage' => $_POST['dosage'],
-                'duration' => $_POST['duration'],
-                'status' => 'active'
-            ];
-            
-            // Validate data
-            if (empty($data['player_id']) || empty($data['supplement_details']) || empty($data['dosage']) || empty($data['duration'])) {
-                flash('supplement_message', 'All fields are required', 'alert alert-danger');
-            } else {
-                // Add supplement plan
-                if ($supplementModel->addSupplementPlan($data)) {
-                    flash('supplement_message', 'Supplement plan added successfully');
-                } else {
-                    flash('supplement_message', 'Failed to add supplement plan', 'alert alert-danger');
+            [$errors, $data] = $this->validateSupplementPlan($_POST, $supplementModel);
+
+            if (!empty($errors)) {
+                $_SESSION['supplement_form_errors'] = $errors;
+                $_SESSION['supplement_form_old'] = $data;
+                $firstError = reset($errors) ?: 'Please review the highlighted supplement fields.';
+                flash('supplement_message', $firstError, 'alert alert-danger');
+                redirect('trainer/supplements');
+                return;
+            }
+
+            $data['trainer_id'] = $_SESSION['user_id'];
+
+            if (($data['assignment_mode'] ?? 'individual') === 'group') {
+                $data['player_ids'] = $supplementModel->getPlayerIdsByGroup($data['player_group'] ?? '');
+                if (empty($data['player_ids'])) {
+                    $_SESSION['supplement_form_errors'] = ['player_group' => 'No players were found for the selected group.'];
+                    $_SESSION['supplement_form_old'] = $data;
+                    flash('supplement_message', 'No players were found for the selected group.', 'alert alert-danger');
+                    redirect('trainer/supplements');
+                    return;
                 }
+            }
+
+            if ($supplementModel->createPlan($data)) {
+                flash('supplement_message', 'Supplement plan added successfully');
+            } else {
+                flash('supplement_message', 'Failed to add supplement plan', 'alert alert-danger');
             }
         }
         
         redirect('trainer/supplements');
+    }
+
+    // Update supplement plan
+    public function updateSupplementPlan($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $supplementModel = $this->model('M_SupplementPlan');
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
+            [$errors, $data] = $this->validateSupplementPlan($_POST, $supplementModel);
+
+            if (!empty($errors)) {
+                $_SESSION['supplement_form_errors'] = $errors;
+                $_SESSION['supplement_form_old'] = $data;
+                $firstError = reset($errors) ?: 'Please review the highlighted supplement fields.';
+                flash('supplement_message', $firstError, 'alert alert-danger');
+                redirect('trainer/supplements');
+                return;
+            }
+
+            $existingPlan = $supplementModel->getPlanById((int)$id, $_SESSION['user_id']);
+            if (!$existingPlan) {
+                flash('supplement_message', 'Plan not found or access denied.', 'alert alert-danger');
+                redirect('trainer/supplements');
+                return;
+            }
+
+            if (($data['assignment_mode'] ?? 'individual') === 'group') {
+                $data['player_ids'] = $supplementModel->getPlayerIdsByGroup($data['player_group'] ?? '');
+                if (empty($data['player_ids'])) {
+                    $_SESSION['supplement_form_errors'] = ['player_group' => 'No players were found for the selected group.'];
+                    $_SESSION['supplement_form_old'] = $data;
+                    flash('supplement_message', 'No players were found for the selected group.', 'alert alert-danger');
+                    redirect('trainer/supplements');
+                    return;
+                }
+            }
+
+            $data['plan_id'] = (int)$id;
+
+            if ($supplementModel->updatePlan($data)) {
+                flash('supplement_message', 'Supplement plan updated successfully');
+            } else {
+                flash('supplement_message', 'Failed to update supplement plan', 'alert alert-danger');
+            }
+        }
+
+        redirect('trainer/supplements');
+    }
+
+    // Delete supplement plan
+    public function deleteSupplementPlan($id) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('trainer/supplements');
+            return;
+        }
+
+        $supplementModel = $this->model('M_SupplementPlan');
+        if ($supplementModel->deletePlan((int)$id, $_SESSION['user_id'])) {
+            flash('supplement_message', 'Supplement plan deleted successfully');
+        } else {
+            flash('supplement_message', 'Delete failed or plan not found.', 'alert alert-danger');
+        }
+
+        redirect('trainer/supplements');
+    }
+
+    private function getSupplementPlanOptions(): array {
+        return [
+            'Strength & Muscle Gain Plan',
+            'Endurance & Performance Plan',
+            'Recovery Plan',
+            'General Health Plan',
+            'Hydration Support Plan',
+            'Injury Recovery Plan',
+        ];
+    }
+
+    private function getSupplementPlanLibrary(): array {
+        return [
+            'Strength & Muscle Gain Plan' => [
+                'category' => 'strength',
+                'dosage' => 'Whey Protein: 25g post-workout; Creatine: 5g daily; Multivitamin: 1 tablet daily',
+                'details' => "Goal: Support lean muscle gain and strength development.\n\nIncludes:\n- Whey Protein\n- Creatine\n- Multivitamins\n\nGuidelines:\n- Take protein after training.\n- Creatine should be taken daily, even on rest days.\n- Multivitamin with breakfast.",
+            ],
+            'Endurance & Performance Plan' => [
+                'category' => 'performance',
+                'dosage' => 'Electrolytes during sessions; BCAAs during long sessions; Energy gels optional',
+                'details' => "Goal: Improve endurance and maintain intensity across long training blocks and match play.\n\nIncludes:\n- Electrolytes\n- BCAAs\n- Energy gels (optional)\n\nGuidelines:\n- Use electrolytes during heat or heavy sweat loss.\n- BCAAs can be used during prolonged sessions.\n- Energy gels are optional for match-day fuel.",
+            ],
+            'Recovery Plan' => [
+                'category' => 'recovery',
+                'dosage' => 'Protein: 20-30g post-session; Omega-3 daily; Magnesium at night',
+                'details' => "Goal: Improve recovery between sessions and reduce muscle fatigue.\n\nIncludes:\n- Protein\n- Omega-3\n- Magnesium\n\nGuidelines:\n- Take protein shortly after exercise.\n- Use omega-3 with meals.\n- Magnesium is best taken in the evening.",
+            ],
+            'General Health Plan' => [
+                'category' => 'health',
+                'dosage' => 'Multivitamin: 1 tablet daily; Vitamin D as prescribed; Fish Oil with meals',
+                'details' => "Goal: Maintain general wellness and fill common micronutrient gaps.\n\nIncludes:\n- Multivitamins\n- Vitamin D\n- Fish Oil\n\nGuidelines:\n- Keep the routine simple and consistent.\n- Take with meals to reduce stomach upset.",
+            ],
+            'Hydration Support Plan' => [
+                'category' => 'hydration',
+                'dosage' => 'Electrolytes only: before, during, and after sessions as needed',
+                'details' => "Goal: Prevent dehydration and maintain performance in hot conditions.\n\nIncludes:\n- Electrolytes only\n\nGuidelines:\n- Use before intense outdoor sessions.\n- Rehydrate during and after training.",
+            ],
+            'Injury Recovery Plan' => [
+                'category' => 'injury',
+                'dosage' => 'Collagen daily; Vitamin C with food; Omega-3 with meals',
+                'details' => "Goal: Support tissue repair and rehabilitation after injury.\n\nIncludes:\n- Collagen\n- Vitamin C\n- Omega-3\n\nGuidelines:\n- Use consistently during rehab.\n- Combine with physiotherapy and rest recommendations.",
+            ],
+        ];
+    }
+
+    private function validateSupplementPlan(array $post, $supplementModel): array {
+        $library = $this->getSupplementPlanLibrary();
+        $defaultPlanName = array_key_first($library) ?: '';
+        $planName = trim(htmlspecialchars($post['supplement_plan_name'] ?? '', ENT_QUOTES, 'UTF-8'));
+        if ($planName === '' && $defaultPlanName !== '') {
+            $planName = $defaultPlanName;
+        }
+        if ($planName !== '' && !array_key_exists($planName, $library) && $defaultPlanName !== '') {
+            $planName = $defaultPlanName;
+        }
+        $assignmentMode = trim(strtolower($post['assignment_mode'] ?? 'individual'));
+        if (!in_array($assignmentMode, ['individual', 'group'], true)) {
+            $assignmentMode = 'individual';
+        }
+
+        $rawPlayerIds = $post['player_ids'] ?? [];
+        if (!is_array($rawPlayerIds)) {
+            $rawPlayerIds = [];
+        }
+        $playerIds = [];
+        foreach ($rawPlayerIds as $playerId) {
+            $playerId = (int)$playerId;
+            if ($playerId > 0) {
+                $playerIds[] = $playerId;
+            }
+        }
+        if (empty($playerIds) && !empty($post['player_id'])) {
+            $playerIds[] = (int)$post['player_id'];
+        }
+
+        $playerIds = array_values(array_unique($playerIds));
+        $playerGroup = trim($post['player_group'] ?? '');
+        $notes = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $details = trim(htmlspecialchars($post['supplement_details'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $dosage = trim(htmlspecialchars($post['dosage'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $duration = trim($post['duration'] ?? '');
+        $status = trim(strtolower($post['status'] ?? 'active'));
+        $createdDate = trim($post['created_date'] ?? '');
+
+        $errors = [];
+
+        if ($assignmentMode === 'group') {
+            if ($playerGroup === '') {
+                $errors['player_group'] = 'Please select a player group.';
+            }
+        } elseif (empty($playerIds)) {
+            $errors['player_ids'] = 'Please select at least one player.';
+        }
+
+        if ($details === '' && isset($library[$planName])) {
+            $details = $library[$planName]['details'];
+        }
+
+        if ($dosage === '' && isset($library[$planName])) {
+            $dosage = $library[$planName]['dosage'];
+        }
+
+        // Dosage is template-driven in the UI; keep it optional if a template has no dosage.
+        if ($dosage === '') {
+            $dosage = null;
+        }
+
+        if ($details === '' && $planName !== '') {
+            $details = 'Supplement template: ' . $planName;
+        }
+
+        if ($notes !== '' && strlen($notes) > 1000) {
+            $errors['notes'] = 'Notes must be 1000 characters or fewer.';
+        }
+
+        if ($duration === '') {
+            $errors['duration'] = 'Duration is required.';
+        } elseif (!ctype_digit($duration) || (int)$duration <= 0) {
+            $errors['duration'] = 'Duration must be a whole number greater than 0.';
+        }
+
+        if ($createdDate === '') {
+            $errors['created_date'] = 'Created date is required.';
+        } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $createdDate)) {
+            $errors['created_date'] = 'Invalid date format.';
+        }
+
+        if (!in_array($status, ['active', 'inactive'], true)) {
+            $status = 'active';
+        }
+
+        $fields = [
+            'supplement_plan_name' => $planName,
+            'assignment_mode' => $assignmentMode,
+            'player_ids' => $playerIds,
+            'player_group' => $playerGroup,
+            'supplement_details' => $details,
+            'dosage' => $dosage,
+            'notes' => $notes,
+            'duration' => $duration,
+            'status' => $status,
+            'created_date' => $createdDate,
+        ];
+
+        $fields['player_id'] = !empty($playerIds) ? (int)$playerIds[0] : 0;
+
+        return [$errors, $fields];
     }
 
     // Upload/Update Profile Image
