@@ -293,9 +293,35 @@
     .supplement-card {
         padding: 20px 15px;
     }
+
+    .supplement-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .supplement-page .dashboard-header .header-content,
+    .supplement-page .schedule-card .card-header .header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .supplement-page .header-actions {
+        width: 100%;
+        display: grid;
+        gap: 10px;
+    }
+
+    .supplement-page .header-actions .btn,
+    .supplement-page .header-actions button {
+        width: 100%;
+        justify-content: center;
+    }
     
     .dosage-box,
     .warning-box {
         padding: 12px;
+    }
+
+    .supplement-page .supplement-plan-card {
+        min-width: 0;
     }
 }

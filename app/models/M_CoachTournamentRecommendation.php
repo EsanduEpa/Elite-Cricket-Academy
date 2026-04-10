@@ -44,20 +44,7 @@ class M_CoachTournamentRecommendation
                 return ['success' => false, 'message' => 'Role and reason are required'];
             }
 
-            // Verify coach owns the player
-            $this->db->query("
-                SELECT COUNT(*) as count FROM playercoachassignment 
-                WHERE CoachID = :coachId AND PlayerID = :playerId AND Status = 'active'
-            ");
-            $this->db->bind(':coachId', $coachId);
-            $this->db->bind(':playerId', $playerId);
-            $result = $this->db->resultSet();
-            
-            if (empty($result) || $result[0]['count'] == 0) {
-                return ['success' => false, 'message' => 'Coach does not own this player'];
-            }
-
-            // Verify tournament exists and is upcoming
+            // Verify tournament exists and is not completed/cancelled
             $this->db->query("
                 SELECT TournamentID, Status FROM tournament 
                 WHERE TournamentID = :tournamentId
@@ -69,7 +56,7 @@ class M_CoachTournamentRecommendation
                 return ['success' => false, 'message' => 'Tournament not found'];
             }
 
-            if ($tournament['Status'] === 'completed' || $tournament['Status'] === 'cancelled') {
+            if ($tournament->Status === 'completed' || $tournament->Status === 'cancelled') {
                 return ['success' => false, 'message' => 'Cannot recommend players for completed/cancelled tournaments'];
             }
 
@@ -121,7 +108,7 @@ class M_CoachTournamentRecommendation
                     ctr.*,
                     u_coach.Name as CoachName,
                     t.Name as TournamentName,
-                    t.StartDate as TournamentDate,
+                    t.tdate as TournamentDate,
                     t.Location as TournamentLocation,
                     p.PlayerID as PlayerID,
                     up.Name as PlayerName,
@@ -132,7 +119,7 @@ class M_CoachTournamentRecommendation
                 JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
                 JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.UserID = up.UserID
+                JOIN user up ON p.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.CoachID = :coachId
             ";
@@ -181,7 +168,7 @@ class M_CoachTournamentRecommendation
                     u_coach.Name as CoachName,
                     u_coach.UserID as CoachID,
                     t.Name as TournamentName,
-                    t.StartDate as TournamentDate,
+                    t.tdate as TournamentDate,
                     p.PlayerID,
                     up.Name as PlayerName,
                     p.BattingStyle,
@@ -191,7 +178,7 @@ class M_CoachTournamentRecommendation
                 JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
                 JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.UserID = up.UserID
+                JOIN user up ON p.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.TournamentID = :tournamentId
             ";
@@ -460,11 +447,48 @@ class M_CoachTournamentRecommendation
             $this->db->bind(':coachId', $coachId);
 
             $result = $this->db->resultSet();
-            return !empty($result) && $result[0]['count'] > 0;
+            return !empty($result) && $result[0]->count > 0;
 
         } catch (Exception $e) {
             error_log('Error in checkDuplicateRecommendation: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Get all players assigned to a coach
+     * 
+     * @param int $coachId - ID of the coach
+     * @return array - Array of assigned players with stats
+     */
+    public function getCoachAssignedPlayers($coachId)
+    {
+        try {
+            $this->db->query("
+                SELECT 
+                    p.PlayerID,
+                    u.Name as PlayerName,
+                    u.UserID,
+                    p.BattingStyle,
+                    p.BowlingStyle,
+                    pca.AssignmentType,
+                    pca.Status as AssignmentStatus,
+                    (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
+                FROM playercoachassignment pca
+                JOIN playerprofile p ON pca.PlayerID = p.PlayerID
+                JOIN user u ON p.PlayerID = u.UserID
+                WHERE pca.CoachID = :coachId 
+                AND pca.Status = 'active'
+                AND u.Status = 'active'
+                ORDER BY u.Name ASC
+            ");
+
+            $this->db->bind(':coachId', $coachId);
+            return $this->db->resultSet();
+
+        } catch (Exception $e) {
+            error_log('Error in getCoachAssignedPlayers: ' . $e->getMessage());
+            return [];
         }
     }
 
@@ -483,7 +507,7 @@ class M_CoachTournamentRecommendation
                     u_coach.Name as CoachName,
                     u_coach.Email as CoachEmail,
                     t.Name as TournamentName,
-                    t.StartDate as TournamentDate,
+                    t.tdate as TournamentDate,
                     t.Location as TournamentLocation,
                     t.Status as TournamentStatus,
                     p.PlayerID,
@@ -496,7 +520,7 @@ class M_CoachTournamentRecommendation
                 JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
                 JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.UserID = up.UserID
+                JOIN user up ON p.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.RecommendationID = :id
             ");
@@ -543,7 +567,7 @@ class M_CoachTournamentRecommendation
             // Format results
             $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0];
             foreach ($results as $row) {
-                $stats[$row['Status']] = $row['count'];
+                $stats[$row->Status] = $row->count;
             }
 
             return $stats;
@@ -569,7 +593,7 @@ class M_CoachTournamentRecommendation
             ");
             $this->db->bind(':coachId', $coachId);
             $result = $this->db->single();
-            return $result['count'] ?? 0;
+            return $result->count ?? 0;
 
         } catch (Exception $e) {
             error_log('Error in getPendingCount: ' . $e->getMessage());
