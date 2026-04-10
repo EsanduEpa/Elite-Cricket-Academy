@@ -10,7 +10,7 @@ class Shop extends Controller {
 
     public function index() {
         // Check if user is logged in as shop employee
-        if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'Shop') {
+        if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ShopEmployee') {
             redirect('shop/dashboard');
         }
         
@@ -33,11 +33,11 @@ class Shop extends Controller {
 
     public function dashboard() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee']);
         
         $data = [
             'title' => 'Shop Dashboard - Elite Cricket Gear',
-            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'user_name' => $_SESSION['user_name'] ?? 'ShopEmployee',
             'stats' => $this->getDashboardStats()
         ];
         
@@ -944,7 +944,7 @@ class Shop extends Controller {
 
     /** GET /shop/counter */
     public function counter() {
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee']);
         require_once APPROOT . '/libraries/SlotBookingService.php';
 
         $slotModel = $this->model('M_SlotPlayer');
@@ -959,7 +959,7 @@ class Shop extends Controller {
 
     /** POST /shop/searchplayer  (AJAX) */
     public function searchplayer() {
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee']);
         header('Content-Type: application/json');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -981,7 +981,7 @@ class Shop extends Controller {
 
     /** POST /shop/slotbook */
     public function slotbook() {
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee']);
         require_once APPROOT . '/libraries/SlotBookingService.php';
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -1008,6 +1008,7 @@ class Shop extends Controller {
         }
 
         $slotModel = $this->model('M_SlotPlayer');
+        $participantCount = max(1, (int)($_POST['participant_count'] ?? 1));
         $result    = $slotModel->createBooking(
             $occurrenceId,
             $playerId,
@@ -1016,7 +1017,8 @@ class Shop extends Controller {
             null,                // subscriptionId — not required for walk-in
             (float)($_POST['amount'] ?? 0),
             'cash',              // payMethod
-            'paid'               // payStatus
+            'paid',              // payStatus
+            $participantCount
         );
 
         if ($result === true) {

@@ -130,10 +130,12 @@ class SlotBookingService {
     // =========================================================
 
     /**
-     * Returns ['ok' => true,  'spots_left' => N]
-     *      or ['ok' => false, 'code' => 'full', 'message' => '...']
+     * For facility_only and private occurrences, one confirmed booking reserves the slot.
+     * MaxParticipants represents the group size allowed within that single booking,
+     * not the number of separate bookings allowed for the same occurrence.
      *
-     * If neither occurrence nor template has MaxParticipants set, capacity is unlimited.
+     * Returns ['ok' => true,  'spots_left' => N, 'group_capacity' => N|null]
+     *      or ['ok' => false, 'code' => 'full', 'message' => '...']
      */
     public static function checkCapacity(int $occurrenceId): array {
         $db = new Database();
@@ -141,13 +143,14 @@ class SlotBookingService {
         $db->query(
             'SELECT so.MaxParticipants  AS OccMax,
                     st.MaxParticipants  AS TplMax,
+                    st.SlotType,
                     COUNT(sb.BookingID) AS Booked
              FROM slot_occurrence so
              LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
              LEFT JOIN slot_booking  sb ON sb.OccurrenceID = so.OccurrenceID
                     AND sb.Status NOT IN (\'cancelled\')
              WHERE so.OccurrenceID = :oid
-             GROUP BY so.OccurrenceID, so.MaxParticipants, st.MaxParticipants'
+             GROUP BY so.OccurrenceID, so.MaxParticipants, st.MaxParticipants, st.SlotType'
         );
         $db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
         $row = $db->single();
@@ -156,25 +159,28 @@ class SlotBookingService {
             return ['ok' => false, 'code' => 'not_found', 'message' => 'Occurrence not found.'];
         }
 
-        // Occurrence-level override takes priority; fall back to template value
-        $max    = $row->OccMax ?? $row->TplMax ?? null;
-        $booked = (int) $row->Booked;
-
-        // No cap defined — unlimited
-        if ($max === null) {
+        // Capacity is only enforced for facility_only and private slot types
+        if (!in_array($row->SlotType, ['facility_only', 'private'], true)) {
             return ['ok' => true, 'spots_left' => null];
         }
 
-        $max = (int) $max;
+        // Occurrence-level override takes priority; fall back to template value.
+        // This value is the allowed headcount inside a single reservation.
+        $max    = $row->OccMax ?? $row->TplMax ?? null;
+        $booked = (int) $row->Booked;
 
-        if ($booked >= $max) {
+        if ($booked >= 1) {
             return [
                 'ok'      => false,
                 'code'    => 'full',
-                'message' => 'This session is full (' . $booked . '/' . $max . ' places taken).',
+                'message' => 'This slot is already reserved.',
             ];
         }
 
-        return ['ok' => true, 'spots_left' => $max - $booked];
+        return [
+            'ok'             => true,
+            'spots_left'     => 1,
+            'group_capacity' => $max !== null ? (int) $max : null,
+        ];
     }
 }

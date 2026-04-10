@@ -217,9 +217,7 @@
 
                                 <h3 class="card-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
 
-                                <?php if (!empty($product->Description)): ?>
-                                    <p class="card-description"><?php echo htmlspecialchars(substr($product->Description, 0, 100)) . (strlen($product->Description) > 100 ? '...' : ''); ?></p>
-                                <?php endif; ?>
+                              
 
                                 <?php if (!empty($product->Category)): ?>
                                     <div class="card-tags">
@@ -237,13 +235,7 @@
                                     <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
                                 </div>
 
-                                <div class="product-stock">
-                                    <?php if ($product->StockQuantity > 0): ?>
-                                        ✓ In Stock (<?php echo $product->StockQuantity; ?> available)
-                                    <?php else: ?>
-                                        ✗ Out of Stock
-                                    <?php endif; ?>
-                                </div>
+                                
 
                                 <div class="product-actions">
                                     <button class="btn btn-view js-view-product"

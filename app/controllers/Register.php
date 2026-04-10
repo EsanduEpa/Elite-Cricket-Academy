@@ -37,6 +37,9 @@ class Register extends Controller {
         }
 
         // DETERMINE REQUEST TYPE: GET (show form) or POST (process form)
+        // Load membership plans for both GET and POST
+        $membershipPlans = $this->userModel->getActiveMembershipPlans();
+
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             // === FORM SUBMISSION - PROCESS REGISTRATION ===
             // Process form - sanitize input data
@@ -53,6 +56,7 @@ class Register extends Controller {
                 'username' => trim($_POST['username']),
                 'password' => trim($_POST['password']),
                 'confirmPassword' => trim($_POST['confirmPassword']),
+                'membershipPlan' => trim($_POST['membershipPlan'] ?? ''),
                 
                 // ERROR MESSAGE PLACEHOLDERS - Start empty, filled if validation fails
                 'fullName_err' => '',
@@ -63,7 +67,9 @@ class Register extends Controller {
                 'school_err' => '',
                 'username_err' => '',
                 'password_err' => '',
-                'confirmPassword_err' => ''
+                'confirmPassword_err' => '',
+                'membershipPlan_err' => '',
+                'membershipPlans' => $membershipPlans
             ];
 
             // === STEP 3: VALIDATION - Check all input fields ===
@@ -162,13 +168,23 @@ class Register extends Controller {
                 $data['confirmPassword_err'] = 'Passwords do not match';
             }
 
+            // VALIDATE MEMBERSHIP PLAN
+            if(empty($data['membershipPlan'])) {
+                $data['membershipPlan_err'] = 'Please select a membership plan';
+            } else {
+                $selectedPlan = $this->userModel->getMembershipPlanById((int)$data['membershipPlan']);
+                if(!$selectedPlan) {
+                    $data['membershipPlan_err'] = 'Please select a valid membership plan';
+                }
+            }
+
             // === STEP 4: CHECK IF VALIDATION PASSED ===
             // If all _err fields are empty, validation passed
             if(empty($data['fullName_err']) && empty($data['dateOfBirth_err']) && 
                empty($data['address_err']) && empty($data['email_err']) && 
                empty($data['contactNumber_err']) && empty($data['school_err']) && 
                empty($data['username_err']) && empty($data['password_err']) && 
-               empty($data['confirmPassword_err'])) {
+               empty($data['confirmPassword_err']) && empty($data['membershipPlan_err'])) {
                 
                 // Hash password
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -186,9 +202,31 @@ class Register extends Controller {
                             'school' => $data['school']
                         ]);
                     } catch (Exception $e) {
+                        error_log("Player profile creation failed: " . $e->getMessage());
+                    }
+
+                    // STEP 7b: CREATE PLAYER SUBSCRIPTION
+                    try {
+                        $subscriptionCreated = $this->userModel->createPlayerSubscription(
+                            $userId,
+                            (int)$data['membershipPlan'],
+                            $selectedPlan->MonthlyFee
+                        );
+
+                        if ($subscriptionCreated) {
+                            $assigned = $this->userModel->autoAssignSkillCoachesAndPrograms(
+                                $userId,
+                                (int)$data['membershipPlan']
+                            );
+
+                            if (!$assigned) {
+                                error_log('Auto assignment skipped or failed for player #' . $userId);
+                            }
+                        }
+                    } catch (Exception $e) {
                         // Non-critical: Profile can be completed later by user
                         // Log error for debugging but don't stop registration flow
-                        error_log("Player profile creation failed: " . $e->getMessage());
+                        error_log("Subscription creation failed: " . $e->getMessage());
                     }
                     
                     // STEP 8: LOG ACTIVITY (Optional - for admin monitoring)
@@ -237,6 +275,7 @@ class Register extends Controller {
                 'username' => '',
                 'password' => '',
                 'confirmPassword' => '',
+                'membershipPlan' => '',
                 'fullName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',
@@ -245,7 +284,9 @@ class Register extends Controller {
                 'school_err' => '',
                 'username_err' => '',
                 'password_err' => '',
-                'confirmPassword_err' => ''
+                'confirmPassword_err' => '',
+                'membershipPlan_err' => '',
+                'membershipPlans' => $membershipPlans
             ];
 
             // Load view

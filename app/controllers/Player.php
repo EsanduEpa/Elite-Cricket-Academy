@@ -6,6 +6,7 @@ class Player extends Controller {
     private $achievementModel;
     private $productModel;
     private $trainerModel;
+    private $slotPlayerModel;
     
     public function __construct() {
         // Check authentication for all player pages
@@ -16,6 +17,7 @@ class Player extends Controller {
         $this->achievementModel = $this->model('M_Achievement');
         $this->productModel = $this->model('M_Product');
         $this->trainerModel = $this->model('M_Trainer');
+        $this->slotPlayerModel = $this->model('M_SlotPlayer');
     }
     
     private function requireLogin() {
@@ -34,10 +36,9 @@ class Player extends Controller {
     // Main dashboard
     public function index() {
         $playerData = $this->getPlayerData();
-        $sessionModel = $this->model('M_Session');
         $coachSessions = [];
         if (isset($playerData['id'])) {
-            $coachSessions = $sessionModel->getUpcomingSessionsForPlayer($playerData['id']);
+            $coachSessions = $this->slotPlayerModel->getUpcomingCoachSessions((int)$playerData['id']);
         }
 
         $data = [
@@ -46,6 +47,7 @@ class Player extends Controller {
             'todaySchedule' => $this->getTodaySchedule(),
             'upcomingSchedule' => $this->getUpcomingSchedule(),
             'upcomingBookings' => $this->getUpcomingBookings(),
+            'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
             'performanceStats' => $this->getPerformanceStats(),
@@ -68,6 +70,7 @@ class Player extends Controller {
             'todaySchedule' => $this->getTodaySchedule(),
             'upcomingSchedule' => $this->getUpcomingSchedule(),
             'upcomingBookings' => $this->getUpcomingBookings(),
+            'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
             'performanceStats' => $this->getPerformanceStats(),
@@ -87,12 +90,11 @@ class Player extends Controller {
     public function training() {
         $this->requireLogin();
         $playerId     = (int)$_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
         $data = [
             'title'            => 'Training Schedule',
             'player'           => $this->getPlayerData(),
-            'todaySessions'    => $sessionModel->getTodayScheduleForPlayer($playerId),
-            'upcomingSessions' => $sessionModel->getUpcomingSessionsForPlayer($playerId),
+            'todaySessions'    => $this->getTodaySchedule(),
+            'upcomingSessions' => $this->slotPlayerModel->getUpcomingScheduleSessions($playerId),
         ];
         $this->view('player/training', $data);
     }
@@ -101,8 +103,7 @@ class Player extends Controller {
     public function calendar() {
         $this->requireLogin();
         $playerId     = (int)$_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
-        $bookings     = $sessionModel->getUpcomingBookingsForPlayer($playerId);
+        $bookings     = $this->slotPlayerModel->getUpcomingBookingFeed($playerId);
 
         // Format for FullCalendar JSON
         $events = [];
@@ -110,14 +111,18 @@ class Player extends Controller {
             'coach'   => '#4A90E2',
             'trainer' => '#27ae60',
             'session' => '#9b59b6',
+            'program' => '#7c3aed',
             'facility'=> '#e67e22',
         ];
         foreach ($bookings as $b) {
             $color = $typeColors[$b->booking_type] ?? '#7f8c8d';
+            $title = $b->reason ?: ucfirst($b->booking_type) . ' Session';
+            if (!empty($b->practitioner_name)) {
+                $title .= ' — ' . $b->practitioner_name;
+            }
             $events[] = [
                 'id'    => $b->booking_type . '_' . $b->id,
-                'title' => ($b->reason ?: ucfirst($b->booking_type) . ' Session')
-                           . ' — ' . ($b->practitioner_name ?? ''),
+                'title' => $title,
                 'start' => $b->date . 'T' . $b->StartTime,
                 'end'   => $b->date . 'T' . $b->EndTime,
                 'color' => $color,
@@ -624,8 +629,7 @@ class Player extends Controller {
         }
 
         // Max 2 hours per day per facility per player
-        $sessionModel = $this->model('M_Session');
-        $hoursAlready = $sessionModel->getPlayerDailyFacilityHours($playerId, $facilityId, $date);
+        $hoursAlready = $this->slotPlayerModel->getPlayerDailyFacilityHours($playerId, $facilityId, $date);
         if (($hoursAlready + $duration) > 2) {
             $remaining = max(0, 2 - $hoursAlready);
             echo json_encode(['success' => false, 'message' => 'Maximum 2 hours per facility per day. You have ' . $remaining . 'h remaining today.']);
@@ -633,7 +637,7 @@ class Player extends Controller {
         }
 
         // No double-booking of the same facility slot
-        if ($sessionModel->facilityHasTimeConflict($facilityId, $date, $startTime, $endTime)) {
+        if ($this->slotPlayerModel->facilityHasTimeConflict($facilityId, $date, $startTime, $endTime)) {
             echo json_encode(['success' => false, 'message' => 'This facility is already booked for the selected time slot. Please choose a different time.']);
             ob_end_flush(); exit;
         }
@@ -644,7 +648,7 @@ class Player extends Controller {
         $hourlyRate = (float)($facility->HourlyRate ?? 0);
         $totalCost  = $hourlyRate * $duration;
 
-        $id = $sessionModel->bookFacility([
+        $id = $this->slotPlayerModel->bookFacility([
             'facility_id' => $facilityId,
             'player_id'   => $playerId,
             'date'        => $date,
@@ -680,8 +684,7 @@ class Player extends Controller {
             ob_end_flush(); exit;
         }
 
-        $sessionModel = $this->model('M_Session');
-        $rows = $sessionModel->getUnavailableTimes($facilityId, $date);
+        $rows = $this->slotPlayerModel->getUnavailableTimes($facilityId, $date);
         $result = [];
         foreach ($rows as $r) {
             $result[] = ['start' => $r->StartTime, 'end' => $r->EndTime];
@@ -831,12 +834,7 @@ class Player extends Controller {
     
     private function getTodaySchedule() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        $sessions = $sessionModel->getTodayScheduleForPlayer($playerId);
-        if (!empty($sessions)) {
-            return $sessions;
-        }
-        return [];
+        return $this->slotPlayerModel->getTodaySchedule($playerId);
     }
     
     private function getUpcomingSchedule() {
@@ -858,8 +856,32 @@ class Player extends Controller {
     
     private function getUpcomingBookings() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        return $sessionModel->getUpcomingBookingsForPlayer($playerId);
+        return $this->slotPlayerModel->getUpcomingBookingFeed($playerId);
+    }
+
+    private function buildDashboardCalendarEvents(): array {
+        $events = [];
+
+        foreach ($this->getUpcomingBookings() as $booking) {
+            $start = $booking->StartTime ?? '00:00:00';
+            $end = $booking->EndTime ?? $start;
+            $duration = '';
+
+            if (!empty($start) && !empty($end)) {
+                $duration = date('g:i A', strtotime($start)) . ' - ' . date('g:i A', strtotime($end));
+            }
+
+            $events[] = [
+                'date' => $booking->date,
+                'time' => $start,
+                'type' => $booking->booking_type,
+                'title' => $booking->reason ?: ucfirst($booking->booking_type),
+                'location' => $booking->location ?? ($booking->practitioner_name ?? 'Academy'),
+                'duration' => $duration,
+            ];
+        }
+
+        return $events;
     }
     
     private function getRentalsDue() {
@@ -876,24 +898,17 @@ class Player extends Controller {
     
     private function getTrainingSessions() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        return $sessionModel->getUpcomingSessionsForPlayer($playerId);
+        return $this->slotPlayerModel->getUpcomingScheduleSessions($playerId);
     }
     
     private function getCoachSessions() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        $bookings = $sessionModel->getUpcomingBookingsForPlayer($playerId);
-        // Filter to only coach sessions
-        return array_values(array_filter($bookings, function($b) {
-            return (isset($b->booking_type) && $b->booking_type === 'coach');
-        }));
+        return $this->slotPlayerModel->getUpcomingCoachSessions($playerId);
     }
     
     private function getFacilityReservations() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        return $sessionModel->getFacilityBookingsForPlayer($playerId);
+        return $this->slotPlayerModel->getFacilityBookingsForPlayer($playerId);
     }
     
     private function getMedicalHistory() {
@@ -1026,8 +1041,7 @@ class Player extends Controller {
 
     private function getMyFacilityBookings() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $sessionModel = $this->model('M_Session');
-        return $sessionModel->getFacilityBookingsForPlayer($playerId);
+        return $this->slotPlayerModel->getFacilityBookingsForPlayer($playerId);
     }
 
     private function getFacilityStats() {

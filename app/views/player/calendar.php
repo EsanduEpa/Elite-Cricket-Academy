@@ -62,6 +62,7 @@
             <span style="display:flex;align-items:center;gap:6px;font-size:13px;"><span style="width:14px;height:14px;border-radius:3px;background:#4A90E2;display:inline-block;"></span> Coach Session</span>
             <span style="display:flex;align-items:center;gap:6px;font-size:13px;"><span style="width:14px;height:14px;border-radius:3px;background:#27ae60;display:inline-block;"></span> Trainer Session</span>
             <span style="display:flex;align-items:center;gap:6px;font-size:13px;"><span style="width:14px;height:14px;border-radius:3px;background:#9b59b6;display:inline-block;"></span> Group Session</span>
+            <span style="display:flex;align-items:center;gap:6px;font-size:13px;"><span style="width:14px;height:14px;border-radius:3px;background:#7c3aed;display:inline-block;"></span> Assigned Program</span>
             <span style="display:flex;align-items:center;gap:6px;font-size:13px;"><span style="width:14px;height:14px;border-radius:3px;background:#e67e22;display:inline-block;"></span> Facility Booking</span>
         </div>
 
