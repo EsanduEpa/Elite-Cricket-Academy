@@ -56,8 +56,9 @@ class Playerslots extends Controller {
             redirect('playerslots/available');
         }
 
-        $occurrenceId = (int)($_POST['occurrence_id'] ?? 0);
-        $playerId     = $this->playerId();
+        $occurrenceId     = (int)($_POST['occurrence_id'] ?? 0);
+        $playerId         = $this->playerId();
+        $participantCount = max(1, (int)($_POST['participant_count'] ?? 1));
 
         if ($occurrenceId <= 0) {
             $_SESSION['slot_error'] = 'Invalid session selected.';
@@ -72,7 +73,8 @@ class Playerslots extends Controller {
             null,             // subscriptionId  — model resolves via entitlement check
             0.0,              // amount (subscription covers cost)
             null,             // payMethod
-            'not_required'    // payStatus
+            'not_required',   // payStatus
+            $participantCount
         );
 
         if ($result === true) {
@@ -119,6 +121,87 @@ class Playerslots extends Controller {
             'upcoming' => $upcoming,
             'past'     => $past,
         ]);
+    }
+
+    /** GET /playerslots/facilities[?facility=N&date=YYYY-MM-DD&slot=N] */
+    public function facilities() {
+        $playerId   = $this->playerId();
+        $facilityId = (int)($_GET['facility'] ?? 0);
+        $date       = trim($_GET['date'] ?? '');
+        $slotId     = (int)($_GET['slot'] ?? 0);
+
+        // Sanitise date input
+        if ($date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date = '';
+        }
+        if ($date !== '' && $date < date('Y-m-d')) {
+            $date = date('Y-m-d');
+        }
+
+        $facilities  = $this->slotModel->getAllFacilities();
+        $timeBands   = $this->slotModel->getTimeBands();
+        $occurrences = $this->slotModel->getFacilityOccurrences($playerId, $facilityId, $date, $slotId);
+
+        $this->view('player/facility_slots', [
+            'title'       => 'Facility Booking',
+            'player'      => $this->playerData(),
+            'facilities'  => $facilities,
+            'timeBands'   => $timeBands,
+            'occurrences' => $occurrences,
+            'filter'      => [
+                'facility' => $facilityId,
+                'date'     => $date,
+                'slot'     => $slotId,
+            ],
+        ]);
+    }
+
+    /** POST /playerslots/bookfacility */
+    public function bookfacility() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('playerslots/facilities');
+        }
+
+        $occurrenceId     = (int)($_POST['occurrence_id'] ?? 0);
+        $playerId         = $this->playerId();
+        $amount           = max(0.0, (float)($_POST['amount'] ?? 0.0));
+        $participantCount = max(1, (int)($_POST['participant_count'] ?? 1));
+        $payStatus        = $amount > 0.0 ? 'paid'         : 'not_required';
+        $payMethod        = $amount > 0.0 ? 'card'         : null;
+
+        if ($occurrenceId <= 0) {
+            $_SESSION['slot_error'] = 'Invalid slot selected.';
+            redirect('playerslots/facilities');
+        }
+
+        $result = $this->slotModel->createBooking(
+            $occurrenceId,
+            $playerId,
+            'self',
+            $playerId,
+            null,
+            $amount,
+            $payMethod,
+            $payStatus,
+            $participantCount
+        );
+
+        if ($result === true) {
+            $_SESSION['slot_success'] = 'Facility slot booked successfully!';
+            redirect('playerslots/bookings');
+        }
+
+        $messages = [
+            'duplicate'       => 'You have already booked this slot.',
+            'full'            => 'This slot is fully booked.',
+            'active_injury'   => 'You have an active medical flag. Please see the admin before booking.',
+            'no_subscription' => 'You need an active subscription to book this slot.',
+            'plan_mismatch'   => 'Your current plan does not include facility access. Please upgrade your plan.',
+            'not_found'       => 'Slot not found.',
+            'error'           => 'An unexpected error occurred. Please try again.',
+        ];
+        $_SESSION['slot_error'] = $messages[$result] ?? $messages['error'];
+        redirect('playerslots/facilities');
     }
 
     /** POST /playerslots/cancel */

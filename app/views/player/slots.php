@@ -100,6 +100,7 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training"         class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance"             class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/facilities"   class="nav-link"><i class="fas fa-building"></i><span>Book Facility</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings"    class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments"      class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical"          class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
@@ -173,16 +174,19 @@
                 <?php
                 $typeClass = 'badge-' . ($occ->SlotType ?? 'program');
                 $typeLabel = str_replace('_', ' ', ucfirst($occ->SlotType ?? 'Program'));
-                $maxSpots  = $occ->OccMax ?: $occ->TplMax;
-                $spotsLeft = isset($occ->spotsLeft) ? (int)$occ->spotsLeft : max(0, $maxSpots - $occ->BookedCount);
-                $spotsClass = $spotsLeft === 0 ? 'none' : ($spotsLeft <= 3 ? 'low' : '');
+                $groupCapacity = $occ->OccMax ?: $occ->TplMax;
                 ?>
                 <div class="slot-card <?php echo $occ->blocked ? 'blocked' : ''; ?>">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <span class="slot-type-badge <?php echo $typeClass; ?>"><?php echo $typeLabel; ?></span>
                         <?php if (!$occ->blocked): ?>
-                            <span class="slots-left <?php echo $spotsClass; ?>">
-                                <i class="fas fa-users"></i> <?php echo $spotsLeft; ?> spot<?php echo $spotsLeft !== 1 ? 's' : ''; ?> left
+                            <span class="slots-left">
+                                <i class="fas fa-users"></i>
+                                <?php if (!empty($groupCapacity)): ?>
+                                    Up to <?php echo (int)$groupCapacity; ?> participant<?php echo (int)$groupCapacity !== 1 ? 's' : ''; ?>
+                                <?php else: ?>
+                                    Private use
+                                <?php endif; ?>
                             </span>
                         <?php endif; ?>
                     </div>

@@ -1572,10 +1572,10 @@ class Coach extends Controller {
         header('Content-Type: application/json');
         
         $coachId = $_SESSION['user_id'];
-        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        $userModel = $this->model('M_Users');
         
         try {
-            $players = $recommendationModel->getCoachAssignedPlayers($coachId);
+            $players = $userModel->getCoachAssignedPlayers($coachId);
             
             if (empty($players)) {
                 echo json_encode([

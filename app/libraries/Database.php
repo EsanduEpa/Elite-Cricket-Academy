@@ -95,6 +95,25 @@
             return $this->dbh->lastInsertId();
         }
 
+        public function beginTransaction(){
+            return $this->dbh->beginTransaction();
+        }
+
+        public function commit(){
+            return $this->dbh->commit();
+        }
+
+        public function rollBack(){
+            if ($this->dbh->inTransaction()) {
+                return $this->dbh->rollBack();
+            }
+            return false;
+        }
+
+        public function inTransaction(){
+            return $this->dbh->inTransaction();
+        }
+
         //get error info from last statement
         public function getError(){
             return $this->statement ? $this->statement->errorInfo() : ['00000', null, 'No statement executed'];
