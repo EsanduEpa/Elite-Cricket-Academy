@@ -39,12 +39,8 @@
                         </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Events & Tournaments</span>
-                        </a>
-                    </li>
+                                   <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
+
                     
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">

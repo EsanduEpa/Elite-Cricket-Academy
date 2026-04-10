@@ -32,9 +32,11 @@ class Core {
         $this->currentController = new $this->currentController;
 
         if(isset($url[1])) {
+            $requestedMethod = str_replace('-', '_', $url[1]);
+
             // Check if the method exists in the controller
-            if(method_exists($this->currentController, $url[1])) {
-                $this->currentMethod = $url[1];
+            if(method_exists($this->currentController, $requestedMethod)) {
+                $this->currentMethod = $requestedMethod;
                 unset($url[1]);
             }
 

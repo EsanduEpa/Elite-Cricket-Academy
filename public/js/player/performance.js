@@ -1,5 +1,11 @@
 // Performance Analytics JavaScript
 
+function getPerformanceBaseUrl() {
+    const page = document.getElementById('performancePage');
+    const urlRoot = page?.dataset?.urlroot || `${window.location.origin}/Elite`;
+    return `${urlRoot}/performance`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializePerformancePage();
 });
@@ -165,12 +171,20 @@ function updateChartData(chart, period) {
 // Modal functionality
 function initializeModals() {
     const performanceModal = document.getElementById('performanceModal');
-    const modalClose = performanceModal.querySelector('.modal-close');
+    if (!performanceModal) {
+        return;
+    }
+
+    const modalClose = performanceModal.querySelector('.close, .modal-close');
     const cancelBtn = performanceModal.querySelector('.btn-outline');
     
     // Close modal handlers
-    modalClose.addEventListener('click', closePerformanceModal);
-    cancelBtn.addEventListener('click', closePerformanceModal);
+    if (modalClose) {
+        modalClose.addEventListener('click', closePerformanceModal);
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closePerformanceModal);
+    }
     
     // Close modal when clicking outside
     performanceModal.addEventListener('click', function(e) {
@@ -179,19 +193,21 @@ function initializeModals() {
         }
     });
     
-    // Form submission
-    const performanceForm = performanceModal.querySelector('.performance-form');
-    performanceForm.addEventListener('submit', handlePerformanceSubmission);
+    const performanceForm = document.getElementById('performanceStatsForm') || performanceModal.querySelector('.performance-form');
     
     // Auto-calculate strike rate
-    const runsInput = performanceForm.querySelector('input[type="number"]:nth-of-type(1)');
-    const ballsInput = performanceForm.querySelector('input[type="number"]:nth-of-type(2)');
-    const strikeRateInput = performanceForm.querySelector('input[readonly]');
+    const runsInput = document.getElementById('runsScored');
+    const ballsInput = document.getElementById('ballsFaced');
+    const strikeRateInput = performanceForm ? performanceForm.querySelector('input[readonly]') : null;
     
     function calculateStrikeRate() {
         const runs = parseFloat(runsInput.value) || 0;
         const balls = parseFloat(ballsInput.value) || 0;
         
+        if (!strikeRateInput) {
+            return;
+        }
+
         if (balls > 0) {
             const strikeRate = ((runs / balls) * 100).toFixed(2);
             strikeRateInput.value = strikeRate;
@@ -200,8 +216,12 @@ function initializeModals() {
         }
     }
     
-    runsInput.addEventListener('input', calculateStrikeRate);
-    ballsInput.addEventListener('input', calculateStrikeRate);
+    if (runsInput) {
+        runsInput.addEventListener('input', calculateStrikeRate);
+    }
+    if (ballsInput) {
+        ballsInput.addEventListener('input', calculateStrikeRate);
+    }
 }
 
 function openPerformanceModal() {
@@ -472,14 +492,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== PERFORMANCE STATISTICS FUNCTIONS ====================
 
 // Open Performance Statistics Modal
-function openPerformanceModal() {
+function openPerformanceModal(selectedMatchId = '') {
     const modal = document.getElementById('performanceModal');
     if (modal) {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
         
         // Load available matches
-        loadAvailableMatches();
+        loadAvailableMatches(selectedMatchId);
         
         // Reset form to "add" mode
         const form = document.getElementById('performanceStatsForm');
@@ -538,7 +558,7 @@ function closePerformanceModal() {
 }
 
 // Load Available Matches for dropdown
-function loadAvailableMatches() {
+function loadAvailableMatches(selectedMatchId = '') {
     const matchSelect = document.getElementById('matchSelect');
     if (!matchSelect) return;
     
@@ -546,7 +566,7 @@ function loadAvailableMatches() {
     matchSelect.innerHTML = '<option value="">Loading matches...</option>';
     matchSelect.disabled = true;
     
-    fetch(`${window.location.origin}/Elite/performance/getAvailableMatches`)
+    fetch(`${getPerformanceBaseUrl()}/getAvailableMatches`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.matches) {
@@ -565,6 +585,10 @@ function loadAvailableMatches() {
                     option.textContent = `${date} - ${match.OpponentTeam} at ${match.Venue} (${match.TournamentName})`;
                     matchSelect.appendChild(option);
                 });
+
+                if (selectedMatchId) {
+                    matchSelect.value = String(selectedMatchId);
+                }
                 
                 matchSelect.disabled = false;
             } else {
@@ -607,8 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const performanceId = document.getElementById('performanceIdEdit')?.value;
             
             const url = isEditMode && performanceId 
-                ? `${window.location.origin}/Elite/player/editPerformanceStats`
-                : `${window.location.origin}/Elite/performance/addPerformanceStats`;
+                ? `${getPerformanceBaseUrl()}/editPerformanceStats`
+                : `${getPerformanceBaseUrl()}/addPerformanceStats`;
             
             // Submit form via AJAX
             fetch(url, {
@@ -726,7 +750,7 @@ if (typeof showNotification === 'undefined') {
 
 // View Match Performance Details
 function viewMatchDetails(performanceId) {
-    fetch(`${window.location.origin}/Elite/player/getPerformanceRecord?id=${performanceId}`)
+    fetch(`${getPerformanceBaseUrl()}/getPerformanceRecord?id=${performanceId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.performance) {
@@ -811,14 +835,14 @@ function closeDetailsModal() {
 // Edit Match Performance
 function editMatchPerformance(performanceId) {
     // Fetch performance data
-    fetch(`${window.location.origin}/Elite/player/getPerformanceRecord?id=${performanceId}`)
+    fetch(`${getPerformanceBaseUrl()}/getPerformanceRecord?id=${performanceId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.performance) {
                 const perf = data.performance;
                 
                 // Open the modal
-                openPerformanceModal();
+                openPerformanceModal(perf.MatchID || '');
                 
                 // Wait for modal to be fully loaded
                 setTimeout(() => {
@@ -884,7 +908,7 @@ function deleteMatchPerformance(performanceId) {
     const formData = new FormData();
     formData.append('performance_id', performanceId);
     
-    fetch(`${window.location.origin}/Elite/player/deletePerformanceStats`, {
+    fetch(`${getPerformanceBaseUrl()}/deletePerformanceStats`, {
         method: 'POST',
         body: formData
     })

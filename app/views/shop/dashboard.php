@@ -39,12 +39,7 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
-                        <i class="fas fa-warehouse"></i>
-                        <span>Inventory</span>
-                    </a>
-                </li>
+              
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/rentals" class="nav-link">
@@ -114,9 +109,7 @@
         <div class="summary-cards">
             <div class="summary-card">
                 <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
+                    
                     <div class="card-info">
                         <span class="number"><?php echo $data['stats']['total_orders']; ?></span>
                         <span class="label">Total Orders</span>
@@ -131,9 +124,7 @@
             
             <div class="summary-card">
                 <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                    
                     <div class="card-info">
                         <span class="number" style="color: #f5576c;"><?php echo $data['stats']['pending_orders']; ?></span>
                         <span class="label">Pending Orders</span>
@@ -148,9 +139,7 @@
             
             <div class="summary-card">
                 <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
-                        <i class="fas fa-rupee-sign"></i>
-                    </div>
+                  
                     <div class="card-info">
                         <span class="number">₨<?php echo number_format($data['stats']['monthly_revenue']); ?></span>
                         <span class="label">Monthly Revenue</span>
@@ -165,9 +154,7 @@
             
             <div class="summary-card">
                 <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
-                        <i class="fas fa-box"></i>
-                    </div>
+                    
                     <div class="card-info">
                         <span class="number"><?php echo $data['stats']['total_products']; ?></span>
                         <span class="label">Total Products</span>

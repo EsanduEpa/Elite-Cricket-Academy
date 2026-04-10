@@ -142,11 +142,21 @@ class Admin extends Controller {
         // Get staff members from database
         $staffMembers = $userModel->getStaffMembers();
         $staffStats = $userModel->getStaffStats();
+        $coaches = $userModel->getAllCoachProfiles();
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $coachAssignedPlayers = [];
+
+        foreach ($coaches as $coach) {
+            $coachAssignedPlayers[(int)$coach->coach_id] = $userModel->getCoachAssignedPlayers((int)$coach->coach_id);
+        }
         
         $data = [
             'title' => 'Staff Management - Elite Cricket Academy',
             'staff_members' => $staffMembers,
-            'staff_stats' => $staffStats
+            'staff_stats' => $staffStats,
+            'coaches' => $coaches,
+            'coachAssignments' => $coachAssignments,
+            'coachAssignedPlayers' => $coachAssignedPlayers
         ];
         
         $this->view('admin/staff', $data);
@@ -1415,6 +1425,47 @@ class Admin extends Controller {
         $this->view('admin/players', $data);
     }
 
+    public function save_coach_skill_age_groups()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('admin/staff');
+            return;
+        }
+
+        $coachId = (int)($_POST['coach_id'] ?? 0);
+        $coachingType = trim($_POST['coaching_type'] ?? '');
+        $ageGroups = $_POST['age_groups'] ?? [];
+        $validCoachingTypes = ['batting', 'bowling', 'fielding'];
+        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'];
+
+        if ($coachId <= 0 || !in_array($coachingType, $validCoachingTypes, true)) {
+            $_SESSION['error'] = 'Please choose a coach and coaching type.';
+            redirect('admin/staff');
+            return;
+        }
+
+        $ageGroups = array_values(array_intersect($validAgeGroups, is_array($ageGroups) ? $ageGroups : []));
+        if (empty($ageGroups)) {
+            $_SESSION['error'] = 'Select at least one age group.';
+            redirect('admin/staff');
+            return;
+        }
+
+        $userModel = $this->model('M_Users');
+        $saved = $userModel->replaceCoachSkillAgeGroupAssignments(
+            $coachId,
+            $coachingType,
+            $ageGroups,
+            (int)($_SESSION['user_id'] ?? 0) ?: null
+        );
+
+        $_SESSION[$saved ? 'success' : 'error'] = $saved
+            ? 'Coach skill age-group assignments updated.'
+            : 'Failed to update coach skill age-group assignments.';
+
+        redirect('admin/staff');
+    }
+
     // Player Statistics
     public function player_statistics($playerId = null) {
         // In production, fetch real player data by ID
@@ -2157,18 +2208,16 @@ class Admin extends Controller {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/staff'); return; }
 
         $coachId = (int)($_POST['coach_id'] ?? 0);
-        if (!$coachId) { $_SESSION['error'] = 'Invalid coach.'; redirect('admin/staff'); return; }
+        $redirectTo = trim($_POST['redirect_to'] ?? 'admin/staff');
+        if (!$coachId) { $_SESSION['error'] = 'Invalid coach.'; redirect($redirectTo); return; }
 
-        $db = new Database();
-        // Unset all first, then set the chosen one
-        $db->query('UPDATE coachprofile SET IsHeadCoach = 0');
-        $db->execute();
-        $db->query('UPDATE coachprofile SET IsHeadCoach = 1 WHERE CoachID = :id');
-        $db->bind(':id', $coachId);
-        $db->execute();
+        $userModel = $this->model('M_Users');
+        $saved = $userModel->updateHeadCoachDesignation($coachId);
 
-        $_SESSION['success'] = 'Head Coach designation updated.';
-        redirect('admin/staff');
+        $_SESSION[$saved ? 'success' : 'error'] = $saved
+            ? 'Head Coach designation updated.'
+            : 'Failed to update Head Coach designation.';
+        redirect($redirectTo);
     }
 }
 ?>

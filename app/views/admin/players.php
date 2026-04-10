@@ -880,7 +880,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔍 Player Management - Initializing button handlers...');
-            
+
             // Add Player Button Handler
             const addPlayerBtn = document.getElementById('addPlayerBtn');
             const addPlayerModal = document.getElementById('addPlayerModal');

@@ -358,6 +358,9 @@
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
+<script>
+window.APP_URLROOT = <?php echo json_encode(URLROOT); ?>;
+</script>
 <script src="<?php echo URLROOT; ?>/js/coach/tournament-recommendations.js"></script>
 
 <script>
