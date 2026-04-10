@@ -31,25 +31,34 @@
         <div class="programs-container">
             <h2>Our Programs</h2>
             <div class="programs-grid">
-                <?php foreach (($data['programs'] ?? []) as $program): ?>
+                <?php if (!empty($data['programs'])): ?>
+                    <?php foreach ($data['programs'] as $program): ?>
+                        <div class="program-card">
+                            <div class="program-image <?php echo htmlspecialchars($program['image_class']); ?>"></div>
+                            <div class="program-content">
+                                <h3><?php echo htmlspecialchars($program['name']); ?></h3>
+                                <p><?php echo htmlspecialchars($program['description']); ?></p>
+                                <p>
+                                    <?php echo (int)$program['sessions_per_week']; ?> sessions/week
+                                    <?php if (!empty($program['private_sessions'])): ?>
+                                        • <?php echo (int)$program['private_sessions']; ?> private sessions
+                                    <?php endif; ?>
+                                    <?php if (!empty($program['facility_access'])): ?>
+                                        • Facility access included
+                                    <?php endif; ?>
+                                </p>
+                                <p><strong>Monthly Fee:</strong> Rs. <?php echo number_format((float)$program['monthly_fee'], 2); ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <div class="program-card">
-                        <div class="program-image <?php echo htmlspecialchars($program['image_class']); ?>"></div>
                         <div class="program-content">
-                            <h3><?php echo htmlspecialchars($program['name']); ?></h3>
-                            <p><?php echo htmlspecialchars($program['description']); ?></p>
-                            <p>
-                                <?php echo (int)$program['sessions_per_week']; ?> sessions/week
-                                <?php if (!empty($program['private_sessions'])): ?>
-                                    • <?php echo (int)$program['private_sessions']; ?> private sessions
-                                <?php endif; ?>
-                                <?php if (!empty($program['facility_access'])): ?>
-                                    • Facility access included
-                                <?php endif; ?>
-                            </p>
-                            <p><strong>Monthly Fee:</strong> Rs. <?php echo number_format((float)$program['monthly_fee'], 2); ?></p>
+                            <h3>Programs will appear here soon</h3>
+                            <p>Membership plans from the database are not available yet.</p>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -58,25 +67,33 @@
     <section class="coaches" id="coaches">
         <h2>Meet Our Coaches</h2>
         <div class="coaches-grid">
-            <?php foreach (($data['coaches'] ?? []) as $coach): ?>
+            <?php if (!empty($data['coaches'])): ?>
+                <?php foreach ($data['coaches'] as $coach): ?>
+                    <div class="coach-card">
+                        <?php if (!empty($coach->image)): ?>
+                            <img src="<?php echo URLROOT . '/' . ltrim((string)$coach->image, '/'); ?>" alt="<?php echo htmlspecialchars($coach->name); ?>" class="coach-photo">
+                        <?php else: ?>
+                            <div class="coach-avatar"></div>
+                        <?php endif; ?>
+                        <h3><?php echo htmlspecialchars($coach->name); ?></h3>
+                        <p>
+                            <?php echo htmlspecialchars((string)($coach->specialization ?? 'Coach')); ?>
+                            <?php if (!empty($coach->experience_years)): ?>
+                                • <?php echo (int)$coach->experience_years; ?> years experience
+                            <?php endif; ?>
+                            <?php if (!empty($coach->IsHeadCoach)): ?>
+                                • Head Coach
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
                 <div class="coach-card">
-                    <?php if (!empty($coach->image)): ?>
-                        <img src="<?php echo URLROOT . '/' . ltrim((string)$coach->image, '/'); ?>" alt="<?php echo htmlspecialchars($coach->name); ?>" class="coach-photo">
-                    <?php else: ?>
-                        <div class="coach-avatar"></div>
-                    <?php endif; ?>
-                    <h3><?php echo htmlspecialchars($coach->name); ?></h3>
-                    <p>
-                        <?php echo htmlspecialchars((string)($coach->specialization ?? 'Coach')); ?>
-                        <?php if (!empty($coach->experience_years)): ?>
-                            • <?php echo (int)$coach->experience_years; ?> years experience
-                        <?php endif; ?>
-                        <?php if (!empty($coach->IsHeadCoach)): ?>
-                            • Head Coach
-                        <?php endif; ?>
-                    </p>
+                    <div class="coach-avatar"></div>
+                    <h3>Coach profiles unavailable</h3>
+                    <p>Active coach records have not been added yet.</p>
                 </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -86,24 +103,33 @@
             <h2>Facilities</h2>
             <div class="facilities-grid">
                 <?php $facilityClasses = ['indoor-nets', 'outdoor-pitches', 'fitness-center']; ?>
-                <?php foreach (($data['facilities'] ?? []) as $index => $facility): ?>
+                <?php if (!empty($data['facilities'])): ?>
+                    <?php foreach ($data['facilities'] as $index => $facility): ?>
+                        <div class="facility-card">
+                            <div class="facility-image <?php echo htmlspecialchars($facilityClasses[$index % count($facilityClasses)]); ?>"></div>
+                            <div class="facility-content">
+                                <h3><?php echo htmlspecialchars($facility->Name); ?></h3>
+                                <p>
+                                    Location: <?php echo htmlspecialchars((string)($facility->Location ?? 'TBA')); ?>
+                                    <?php if (!empty($facility->Capacity)): ?>
+                                        • Capacity: <?php echo (int)$facility->Capacity; ?>
+                                    <?php endif; ?>
+                                </p>
+                                <p>
+                                    Status: <?php echo htmlspecialchars(ucfirst((string)($facility->AvailabilityStatus ?? 'available'))); ?>
+                                    • Hourly Rate: Rs. <?php echo number_format((float)($facility->HourlyRate ?? 0), 2); ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <div class="facility-card">
-                        <div class="facility-image <?php echo htmlspecialchars($facilityClasses[$index % count($facilityClasses)]); ?>"></div>
                         <div class="facility-content">
-                            <h3><?php echo htmlspecialchars($facility->Name); ?></h3>
-                            <p>
-                                Location: <?php echo htmlspecialchars((string)($facility->Location ?? 'TBA')); ?>
-                                <?php if (!empty($facility->Capacity)): ?>
-                                    • Capacity: <?php echo (int)$facility->Capacity; ?>
-                                <?php endif; ?>
-                            </p>
-                            <p>
-                                Status: <?php echo htmlspecialchars(ucfirst((string)($facility->AvailabilityStatus ?? 'available'))); ?>
-                                • Hourly Rate: Rs. <?php echo number_format((float)($facility->HourlyRate ?? 0), 2); ?>
-                            </p>
+                            <h3>Facilities will appear here soon</h3>
+                            <p>Facility records are not available in the database yet.</p>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -152,24 +178,36 @@
         <div class="testimonials-container">
             <h2>Testimonials</h2>
             <div class="testimonials-grid">
-                <?php foreach (($data['testimonials'] ?? []) as $testimonial): ?>
+                <?php if (!empty($data['testimonials'])): ?>
+                    <?php foreach ($data['testimonials'] as $testimonial): ?>
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <div class="testimonial-avatar"></div>
+                                <div class="testimonial-info">
+                                    <h4><?php echo htmlspecialchars($testimonial['name']); ?></h4>
+                                    <div class="testimonial-date">
+                                        <?php echo !empty($testimonial['date']) ? date('Y-m-d', strtotime($testimonial['date'])) : ''; ?>
+                                        <?php if (!empty($testimonial['category'])): ?>
+                                            • <?php echo htmlspecialchars($testimonial['category']); ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stars"><?php echo str_repeat('★', (int)$testimonial['rating']); ?></div>
+                            <p class="testimonial-text">"<?php echo htmlspecialchars($testimonial['text']); ?>"</p>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <div class="testimonial-card">
                         <div class="testimonial-header">
                             <div class="testimonial-avatar"></div>
                             <div class="testimonial-info">
-                                <h4><?php echo htmlspecialchars($testimonial['name']); ?></h4>
-                                <div class="testimonial-date">
-                                    <?php echo !empty($testimonial['date']) ? date('Y-m-d', strtotime($testimonial['date'])) : ''; ?>
-                                    <?php if (!empty($testimonial['category'])): ?>
-                                        • <?php echo htmlspecialchars($testimonial['category']); ?>
-                                    <?php endif; ?>
-                                </div>
+                                <h4>No public feedback yet</h4>
+                                <div class="testimonial-date">Testimonials will appear here once members submit feedback.</div>
                             </div>
                         </div>
-                        <div class="stars"><?php echo str_repeat('★', (int)$testimonial['rating']); ?></div>
-                        <p class="testimonial-text">"<?php echo htmlspecialchars($testimonial['text']); ?>"</p>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>

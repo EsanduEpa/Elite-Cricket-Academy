@@ -2,25 +2,20 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/login.css">
 
-
-   
-
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Left Side - Cricket Image -->
-            <div class="image-section">
-                <div class="cricket-image">
-                    <img src="<?php echo URLROOT; ?>/img/hero1.jpg" alt="Cricket Player" />
-                </div>
-            </div>
-
-            <!-- Right Side - Login Form -->
+        <main class="main-content login-layout">
             <div class="form-section">
                 <div class="form-container">
-                    <h1 class="academy-title">Elite Cricket Academy</h1>
-                    
                     <div class="login-box">
-                        <h2>LOGIN</h2>
+                        <div class="login-box-header">
+                            <h1 class="academy-title">Elite Cricket Academy</h1>
+                            <p class="academy-subtitle">Sign in to continue to your account.</p>
+                        </div>
+
+                        <div class="login-intro">
+                            <h2>Welcome Back</h2>
+                            <p>Sign in with your username or email to continue.</p>
+                        </div>
                         
                         <!-- Show flash messages if any -->
                         <?php flash('register_success'); ?>
@@ -29,7 +24,10 @@
                         <form method="POST" action="<?php echo URLROOT; ?>/login" class="login-form">
                             <div class="form-group">
                                 <label for="email">Email or Username</label>
-                                <input type="text" id="email" name="email" placeholder="Enter your email or username" value="<?php echo $data['email']; ?>" required>
+                                <div class="input-shell">
+                                    <span class="input-icon"><i class="fas fa-user"></i></span>
+                                    <input type="text" id="email" name="email" placeholder="Enter your email or username" value="<?php echo $data['email']; ?>" required>
+                                </div>
                                 <div class="error-message <?php echo (!empty($data['email_err'])) ? 'show' : ''; ?>">
                                     <?php echo $data['email_err']; ?>
                                 </div>
@@ -37,17 +35,20 @@
                             
                             <div class="form-group">
                                 <label for="password">Password</label>
-                                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                                <div class="input-shell">
+                                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                                </div>
                                 <div class="error-message <?php echo (!empty($data['password_err'])) ? 'show' : ''; ?>">
                                     <?php echo $data['password_err']; ?>
                                 </div>
                             </div>
                             
-                            <div class="forgot-password">
+                            <div class="login-actions-row">
                                 <a href="#" id="forgotPasswordLink">Forgot password?</a>
                             </div>
                             
-                            <button type="submit" class="login-btn">Login</button>
+                            <button type="submit" class="login-btn">Sign In</button>
                         </form>
                         
                         <div class="divider">
@@ -64,7 +65,6 @@
                 </div>
             </div>
         </main>
-    </div>
 
     <!-- Forgot Password Modal -->
     <div class="modal" id="forgotPasswordModal">
