@@ -34,12 +34,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                             <span>Products</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
-                            <i class="fas fa-warehouse"></i>
-                            <span>Inventory</span>
-                        </a>
-                    </li>
+                   
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/shop/orders" class="nav-link">
                             <i class="fas fa-shopping-cart"></i>

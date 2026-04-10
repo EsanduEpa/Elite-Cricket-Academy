@@ -18,12 +18,18 @@ if (!function_exists('flash')) {
                 <p class="form-subtitle">Join Elite Cricket Academy &mdash; Train with the best</p>
                 
                 <?php flash('register_success'); ?>
+
+                <?php if (!empty($data['form_err'])): ?>
+                    <div class="error-message show" style="display:block; margin-bottom:16px; text-align:center;">
+                        <?php echo htmlspecialchars($data['form_err']); ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="success-message" id="successMessage">
                     Registration successful! Welcome to Elite Cricket Academy.
                 </div>
                 
-                <form id="registrationForm" method="POST" action="">
+                <form id="registrationForm" method="POST" action="<?php echo URLROOT; ?>/register">
 
                     <div class="form-divider"><span>Personal Info</span></div>
 
@@ -96,7 +102,8 @@ if (!function_exists('flash')) {
                     <div class="form-group">
                         <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
                         <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
-                        <input type="text" id="address" name="address" placeholder="Enter your address" value="<?php echo $data['address']; ?>" required></div>
+                        <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
+                        <small class="form-hint">Use this format: house number / street / town</small>
                         <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
                     </div>
 

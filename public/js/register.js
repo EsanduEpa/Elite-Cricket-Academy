@@ -1,21 +1,50 @@
+const registrationForm = document.getElementById('registrationForm');
+
+function getField(fieldName) {
+    return document.getElementById(fieldName);
+}
+
+function getErrorElement(fieldName) {
+    return document.getElementById(`${fieldName}Error`);
+}
+
+function clearFieldError(fieldName) {
+    const field = getField(fieldName);
+    const errorElement = getErrorElement(fieldName);
+
+    if (field) {
+        const formGroup = field.closest('.form-group');
+        if (formGroup) {
+            formGroup.classList.remove('error');
+        }
+    }
+
+    if (errorElement) {
+        errorElement.style.display = 'none';
+        errorElement.textContent = '';
+    }
+}
+
 // Form validation and submission
-document.getElementById('registrationForm').addEventListener('submit', function(e) {
+if (registrationForm) {
+registrationForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     // Clear previous errors
     clearErrors();
-    
+
     // Get form data
     const formData = {
-        fullName: document.getElementById('fullName').value.trim(),
-        dateOfBirth: document.getElementById('dateOfBirth').value,
-        address: document.getElementById('address').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        contactNumber: document.getElementById('contactNumber').value.trim(),
-        school: document.getElementById('school').value.trim(),
-        username: document.getElementById('username').value.trim(),
-        password: document.getElementById('password').value,
-        confirmPassword: document.getElementById('confirmPassword').value
+        fullName: getField('fullName').value.trim(),
+        dateOfBirth: getField('dateOfBirth').value,
+        address: getField('address').value.trim(),
+        email: getField('email').value.trim(),
+        contactNumber: getField('contactNumber').value.trim(),
+        school: getField('school').value.trim(),
+        username: getField('username').value.trim(),
+        password: getField('password').value,
+        confirmPassword: getField('confirmPassword').value,
+        membershipPlan: getField('membershipPlan') ? getField('membershipPlan').value.trim() : ''
     };
     
     let isValid = true;
@@ -32,7 +61,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     } else {
         const birthDate = new Date(formData.dateOfBirth);
         const today = new Date();
-        const age = today.getFullYear() - birthDate.getFullYear();
+        const howage = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
         
         // Adjust age if birthday hasn't occurred this year
@@ -84,6 +113,11 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         showError('username', 'Username must be at least 4 characters long');
         isValid = false;
     }
+
+    if (!formData.membershipPlan) {
+        showError('membershipPlan', 'Please select a membership plan');
+        isValid = false;
+    }
     
     // Enhanced password validation
     if (formData.password.length < 8) {
@@ -124,13 +158,17 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         this.submit();
     }
 });
+}
 
 function showError(fieldName, message) {
-    const field = document.getElementById(fieldName);
-    const errorElement = document.querySelector(`#${fieldName} + .error-message`);
+    const field = getField(fieldName);
+    const errorElement = getErrorElement(fieldName);
     
     if (field && errorElement) {
-        field.parentElement.classList.add('error');
+        const formGroup = field.closest('.form-group');
+        if (formGroup) {
+            formGroup.classList.add('error');
+        }
         errorElement.textContent = message;
         errorElement.style.display = 'block';
     }
@@ -153,6 +191,10 @@ function showLoading(show) {
     const spinner = document.getElementById('loadingSpinner');
     const buttonText = document.getElementById('buttonText');
     const button = document.querySelector('.register-submit-btn');
+
+    if (!spinner || !buttonText || !button) {
+        return;
+    }
     
     if (show) {
         spinner.style.display = 'inline-block';
@@ -160,29 +202,30 @@ function showLoading(show) {
         button.disabled = true;
     } else {
         spinner.style.display = 'none';
-        buttonText.textContent = 'Register';
+        buttonText.textContent = 'Create Account';
         button.disabled = false;
     }
 }
 
 // Real-time validation
-document.getElementById('confirmPassword').addEventListener('input', function() {
+const confirmPasswordField = getField('confirmPassword');
+if (confirmPasswordField) {
+confirmPasswordField.addEventListener('input', function() {
     const password = document.getElementById('password').value;
     const confirmPassword = this.value;
     
     if (password && confirmPassword && password !== confirmPassword) {
         showError('confirmPassword', 'Passwords do not match');
     } else if (password === confirmPassword && confirmPassword.length >= 8) {
-        document.getElementById('confirmPassword').parentElement.classList.remove('error');
-        const errorElement = document.querySelector('#confirmPassword + .error-message');
-        if (errorElement) {
-            errorElement.style.display = 'none';
-        }
+        clearFieldError('confirmPassword');
     }
 });
+}
 
 // Real-time password strength validation
-document.getElementById('password').addEventListener('input', function() {
+const passwordField = getField('password');
+if (passwordField) {
+passwordField.addEventListener('input', function() {
     const password = this.value;
     
     if (password.length > 0 && password.length < 8) {
@@ -206,18 +249,16 @@ document.getElementById('password').addEventListener('input', function() {
         if (passwordErrors.length > 0) {
             showError('password', 'Password needs: ' + passwordErrors.join(', '));
         } else {
-            // Password is strong
-            document.getElementById('password').parentElement.classList.remove('error');
-            const errorElement = document.querySelector('#password + .error-message');
-            if (errorElement) {
-                errorElement.style.display = 'none';
-            }
+            clearFieldError('password');
         }
     }
 });
+}
 
 // Real-time phone number validation
-document.getElementById('contactNumber').addEventListener('input', function() {
+const contactNumberField = getField('contactNumber');
+if (contactNumberField) {
+contactNumberField.addEventListener('input', function() {
     const phone = this.value;
     const phoneDigitsOnly = phone.replace(/[^0-9]/g, '');
     
@@ -229,18 +270,16 @@ document.getElementById('contactNumber').addEventListener('input', function() {
         } else if (phoneDigitsOnly.length > 15) {
             showError('contactNumber', 'Contact number cannot exceed 15 digits');
         } else {
-            // Valid phone number
-            document.getElementById('contactNumber').parentElement.classList.remove('error');
-            const errorElement = document.querySelector('#contactNumber + .error-message');
-            if (errorElement) {
-                errorElement.style.display = 'none';
-            }
+            clearFieldError('contactNumber');
         }
     }
 });
+}
 
 // Real-time date of birth validation
-document.getElementById('dateOfBirth').addEventListener('change', function() {
+const dateOfBirthField = getField('dateOfBirth');
+if (dateOfBirthField) {
+dateOfBirthField.addEventListener('change', function() {
     const birthDate = new Date(this.value);
     const today = new Date();
     const age = today.getFullYear() - birthDate.getFullYear();
@@ -256,17 +295,15 @@ document.getElementById('dateOfBirth').addEventListener('change', function() {
     } else if (adjustedAge > 100) {
         showError('dateOfBirth', 'Please enter a valid date of birth');
     } else {
-        // Valid date
-        document.getElementById('dateOfBirth').parentElement.classList.remove('error');
-        const errorElement = document.querySelector('#dateOfBirth + .error-message');
-        if (errorElement) {
-            errorElement.style.display = 'none';
-        }
+        clearFieldError('dateOfBirth');
     }
 });
+}
 
 // Username availability check (simulated)
-document.getElementById('username').addEventListener('blur', function() {
+const usernameField = getField('username');
+if (usernameField) {
+usernameField.addEventListener('blur', function() {
     const username = this.value.trim();
     if (username.length >= 4) {
         // Simulate username check
@@ -274,16 +311,22 @@ document.getElementById('username').addEventListener('blur', function() {
             const unavailableUsernames = ['admin', 'test', 'user123', 'cricket'];
             if (unavailableUsernames.includes(username.toLowerCase())) {
                 showError('username', 'Username already taken');
+            } else {
+                clearFieldError('username');
             }
         }, 500);
     }
 });
+}
 
 // Navigation
-document.querySelector('.login-btn').addEventListener('click', function(e) {
-    e.preventDefault();
-    alert('Login page would be displayed here.');
-});
+const loginButton = document.querySelector('.login-btn');
+if (loginButton) {
+    loginButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('Login page would be displayed here.');
+    });
+}
 
 // Home navigation
 const homeLink = document.querySelector('.nav-menu a[href="#home"]');

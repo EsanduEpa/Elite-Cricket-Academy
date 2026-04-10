@@ -1338,23 +1338,36 @@ class Coach extends Controller {
      * POST /coach/save_recommendation
      */
     public function save_recommendation() {
+        $isJsonRequest = stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false;
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'POST method required']);
+                return;
+            }
             redirect('coach/tournaments');
             return;
         }
 
         $coachId = $_SESSION['user_id'];
+        $input = $isJsonRequest ? (json_decode(file_get_contents('php://input'), true) ?? []) : $_POST;
 
-        $tournamentId    = intval($_POST['tournamentId'] ?? 0);
-        $playerId        = intval($_POST['playerId'] ?? 0);
-        $recommendedRole = trim($_POST['recommendedRole'] ?? '');
-        $reason          = trim($_POST['reason'] ?? '');
-        $comments        = trim($_POST['comments'] ?? '');
+        $tournamentId    = intval($input['tournamentId'] ?? 0);
+        $playerId        = intval($input['playerId'] ?? 0);
+        $recommendedRole = trim($input['recommendedRole'] ?? '');
+        $reason          = trim($input['reason'] ?? '');
+        $comments        = trim($input['comments'] ?? '');
 
         $formBack    = 'coach/recommend_players/' . $tournamentId;
         $detailPage  = 'coach/tournament_detail/' . $tournamentId;
 
         if (!$tournamentId || !$playerId || empty($recommendedRole) || empty($reason)) {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Player, Role, and Reason are all required.']);
+                return;
+            }
             $_SESSION['error'] = 'Player, Role, and Reason are all required.';
             redirect($formBack);
             return;
@@ -1369,12 +1382,56 @@ class Coach extends Controller {
         ]);
 
         if ($result['success']) {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Recommendation submitted successfully.']);
+                return;
+            }
             $_SESSION['success'] = 'Recommendation submitted successfully.';
             redirect($detailPage);
         } else {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => $result['message'] ?? 'Failed to save recommendation.']);
+                return;
+            }
             $_SESSION['error'] = $result['message'] ?? 'Failed to save recommendation.';
             redirect($formBack);
         }
+    }
+
+    /**
+     * Get a recommendation as JSON for edit forms.
+     * GET /coach/recommendation-details/{recommendationId}
+     */
+    public function recommendation_details($recommendationId = null) {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            echo json_encode(['success' => false, 'message' => 'GET method required']);
+            return;
+        }
+
+        if (!$recommendationId) {
+            echo json_encode(['success' => false, 'message' => 'Recommendation ID is required']);
+            return;
+        }
+
+        $coachId = $_SESSION['user_id'];
+        $recommendationModel = $this->model('M_CoachTournamentRecommendation');
+        $recommendation = $recommendationModel->getRecommendationDetails($recommendationId);
+
+        if (!$recommendation) {
+            echo json_encode(['success' => false, 'message' => 'Recommendation not found']);
+            return;
+        }
+
+        if ((int)$recommendation->CoachID !== (int)$coachId) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'recommendation' => $recommendation]);
     }
 
     /**
@@ -1428,12 +1485,14 @@ class Coach extends Controller {
             
             // Update recommendation
             $updateData = [
-                'recommended_role' => $recommendedRole,
+                'role' => $recommendedRole,
                 'reason' => $reason,
                 'comments' => $comments
             ];
-            
-            if ($recommendationModel->updateRecommendation($recommendationId, $updateData)) {
+
+            $result = $recommendationModel->updateRecommendation($recommendationId, $coachId, $updateData);
+
+            if (!empty($result['success'])) {
                 echo json_encode([
                     'success' => true,
                     'message' => 'Recommendation updated successfully'
@@ -1441,7 +1500,7 @@ class Coach extends Controller {
             } else {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Failed to update recommendation'
+                    'message' => $result['message'] ?? 'Failed to update recommendation'
                 ]);
             }
         } catch (Exception $e) {
@@ -1497,7 +1556,9 @@ class Coach extends Controller {
             }
             
             // Delete recommendation
-            if ($recommendationModel->deleteRecommendation($recommendationId)) {
+            $result = $recommendationModel->deleteRecommendation($recommendationId, $coachId);
+
+            if (!empty($result['success'])) {
                 echo json_encode([
                     'success' => true,
                     'message' => 'Recommendation deleted successfully'
@@ -1505,7 +1566,7 @@ class Coach extends Controller {
             } else {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Failed to delete recommendation'
+                    'message' => $result['message'] ?? 'Failed to delete recommendation'
                 ]);
             }
         } catch (Exception $e) {
