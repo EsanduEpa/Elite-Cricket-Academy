@@ -2029,6 +2029,37 @@ class Admin extends Controller {
         }
     }
 
+    private function getAvailableTournamentStatuses($tournament)
+    {
+        $transitions = [
+            'created'             => ['registration_open'],
+            'registration_open'   => ['registration_closed'],
+            'registration_closed' => $tournament->IsTeamAnnounced ? ['ongoing'] : ['team_announced', 'ongoing'],
+            'team_announced'      => ['ongoing'],
+            'ongoing'             => ['completed'],
+        ];
+
+        $availableStatuses = [];
+        $queue = $transitions[$tournament->Status] ?? [];
+
+        while (!empty($queue)) {
+            $status = array_shift($queue);
+            if (in_array($status, $availableStatuses, true)) {
+                continue;
+            }
+
+            $availableStatuses[] = $status;
+
+            foreach ($transitions[$status] ?? [] as $nextStatus) {
+                if (!in_array($nextStatus, $availableStatuses, true)) {
+                    $queue[] = $nextStatus;
+                }
+            }
+        }
+
+        return $availableStatuses;
+    }
+
     public function tournament_detail($id = null)
     {
         if (!$id) { redirect('admin/tournaments'); return; }
@@ -2049,6 +2080,7 @@ class Admin extends Controller {
         $data['trainer_recs']  = $M_TrainerRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
         $data['player_stats']  = $M_Result->getAllStatsForTournament($id);
+        $data['status_options'] = $this->getAvailableTournamentStatuses($tournament);
 
         $this->view('admin/tournaments/detail', $data);
     }
@@ -2057,7 +2089,15 @@ class Admin extends Controller {
     {
         if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/tournaments'); return; }
 
-        $allowed = ['created','registration_open','registration_closed','team_announced','ongoing','completed','cancelled'];
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('admin/tournaments');
+            return;
+        }
+
+        $allowed = $this->getAvailableTournamentStatuses($tournament);
         $newStatus = $_POST['status'] ?? '';
 
         if (!in_array($newStatus, $allowed)) {
@@ -2066,9 +2106,13 @@ class Admin extends Controller {
             return;
         }
 
-        $M_Tournament = $this->model('M_Tournament');
-        $M_Tournament->updateStatus($id, $newStatus);
-        $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        if ($newStatus === 'team_announced') {
+            $M_Tournament->announceTeam($id);
+            $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
+        } else {
+            $M_Tournament->updateStatus($id, $newStatus);
+            $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        }
         redirect('admin/tournament_detail/' . $id);
     }
 
