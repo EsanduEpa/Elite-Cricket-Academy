@@ -16,6 +16,7 @@ class Home extends Controller {
     public function index() {
         $data = [
             'title' => 'Elite Cricket Academy',
+            'full_width_footer' => true,
             'programs' => $this->getHomePrograms(),
             'coaches' => array_slice($this->userModel->getAllCoachProfiles(), 0, 6),
             'facilities' => array_slice($this->shopModel->getAllFacilities(), 0, 6),

@@ -12,7 +12,10 @@
 
 <header class="header">
     <nav class="nav-container">
-        <div class="logo">Elite Cricket Academy</div>
+        <a href="<?php echo URLROOT; ?>" class="logo-link" aria-label="Elite Cricket Academy home">
+            <img src="<?php echo URLROOT . '/img/' . rawurlencode('ELITE (1).png'); ?>" alt="Elite Cricket Academy logo" class="logo-mark">
+            <span class="logo">Elite Cricket Academy</span>
+        </a>
         
         <!-- Mobile Menu Toggle -->
         <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">

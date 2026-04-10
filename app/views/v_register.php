@@ -14,8 +14,9 @@ if (!function_exists('flash')) {
         <!-- Registration Form Section -->
         <div class="form-section">
             <div class="form-container">
-                <h1 class="form-title"><i class="fas fa-cricket-bat-ball" style="color:var(--brown-light);font-size:1.3rem;"></i> REGISTER</h1>
-                <p class="form-subtitle">Join Elite Cricket Academy &mdash; Train with the best</p>
+                <div class="register-page-header">
+                    <h1 class="form-title"><i class="fas fa-user-plus form-title-icon"></i> Create Your Account</h1>
+                </div>
                 
                 <?php flash('register_success'); ?>
 
@@ -33,7 +34,7 @@ if (!function_exists('flash')) {
 
                     <div class="form-divider"><span>Personal Info</span></div>
 
-                    <div class="form-row">
+                    <div class="form-row form-row-three">
                         <div class="form-group">
                             <label for="fullName"><i class="fas fa-user"></i> Full Name</label>
                             <div class="input-icon-wrap"><i class="fas fa-user field-icon"></i>
@@ -49,13 +50,16 @@ if (!function_exists('flash')) {
                         </div>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row form-row-three">
                         <div class="form-group">
                             <label for="email"><i class="fas fa-envelope"></i> Email</label>
                             <div class="input-icon-wrap"><i class="fas fa-envelope field-icon"></i>
                             <input type="email" id="email" name="email" placeholder="Enter your email" value="<?php echo $data['email']; ?>" required></div>
                             <div class="error-message <?php echo (!empty($data['email_err'])) ? 'show' : ''; ?>" id="emailError"><?php echo $data['email_err']; ?></div>
                         </div>
+                    
+
+            
                         <div class="form-group">
                             <label for="contactNumber"><i class="fas fa-phone"></i> Contact Number</label>
                             <div class="input-icon-wrap"><i class="fas fa-phone field-icon"></i>
@@ -65,9 +69,7 @@ if (!function_exists('flash')) {
                         </div>
                     </div>
 
-                    <div class="form-divider"><span>Academy Info</span></div>
-
-                    <div class="form-row">
+                    <div class="form-row form-row-three">
                         <div class="form-group">
                             <label for="school"><i class="fas fa-school"></i> School / Institution</label>
                             <div class="input-icon-wrap"><i class="fas fa-school field-icon"></i>
@@ -99,41 +101,45 @@ if (!function_exists('flash')) {
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
-                        <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
-                        <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
-                        <small class="form-hint">Use this format: house number / street / town</small>
-                        <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
+                    <div class="form-row form-row-address-plan">
+                        <div class="form-group form-group-address">
+                            <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                            <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
+                            <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
+                            <small class="form-hint">Use this format: house number / street / town</small>
+                            <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
+                        </div>
+
+                        <div class="form-group form-group-plan">
+                            <label for="membershipPlan"><i class="fas fa-medal"></i> Membership Plan</label>
+                            <div class="plan-select-row">
+                                <select id="membershipPlan" name="membershipPlan" class="plan-select" required>
+                                    <option value="">-- Select a Plan --</option>
+                                    <?php foreach($data['membershipPlans'] as $plan): ?>
+                                    <option value="<?php echo (int)$plan->PlanID; ?>"
+                                        <?php echo ($data['membershipPlan'] == $plan->PlanID) ? 'selected' : ''; ?>>
+                                        <?php echo ucfirst(htmlspecialchars($plan->PlanName)); ?> &mdash; Rs. <?php echo number_format($plan->MonthlyFee, 2); ?>/month
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="button" id="seePlanDetailsBtn" class="see-plan-btn">See Plan Details</button>
+                            </div>
+                            <div class="error-message <?php echo (!empty($data['membershipPlan_err'])) ? 'show' : ''; ?>" id="membershipPlanError"><?php echo $data['membershipPlan_err']; ?></div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="membershipPlan"><i class="fas fa-medal"></i> Membership Plan</label>
-                        <div class="plan-select-row">
-                            <select id="membershipPlan" name="membershipPlan" class="plan-select" required>
-                                <option value="">-- Select a Plan --</option>
-                                <?php foreach($data['membershipPlans'] as $plan): ?>
-                                <option value="<?php echo (int)$plan->PlanID; ?>"
-                                    <?php echo ($data['membershipPlan'] == $plan->PlanID) ? 'selected' : ''; ?>>
-                                    <?php echo ucfirst(htmlspecialchars($plan->PlanName)); ?> &mdash; Rs. <?php echo number_format($plan->MonthlyFee, 2); ?>/month
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="button" id="seePlanDetailsBtn" class="see-plan-btn">See Plan Details</button>
+                    <div class="register-actions-row">
+                        <button type="submit" class="register-submit-btn">
+                            <div class="loading" id="loadingSpinner"></div>
+                            <i class="fas fa-user-plus"></i>
+                            <span id="buttonText">Create Account</span>
+                        </button>
+
+                        <div class="login-link">
+                            Already have an account? <a href="<?php echo URLROOT; ?>/login">Login</a>
                         </div>
-                        <div class="error-message <?php echo (!empty($data['membershipPlan_err'])) ? 'show' : ''; ?>" id="membershipPlanError"><?php echo $data['membershipPlan_err']; ?></div>
                     </div>
-                    
-                    <button type="submit" class="register-submit-btn">
-                        <div class="loading" id="loadingSpinner"></div>
-                        <i class="fas fa-user-plus"></i>
-                        <span id="buttonText">Create Account</span>
-                    </button>
                 </form>
-                
-                <div class="login-link">
-                    Already have an account? <a href="<?php echo URLROOT; ?>/login">Login</a>
-                </div>
             </div>
         </div>
         
