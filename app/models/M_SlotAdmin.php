@@ -50,6 +50,8 @@ class M_SlotAdmin {
     }
 
     public function createTemplate(array $d): int {
+        $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+
         $this->db->query(
             'INSERT INTO slot_template
              (TemplateName, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
@@ -69,7 +71,7 @@ class M_SlotAdmin {
         $this->db->bind(':age',       $d['AgeGroup'] ?? null);
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
-        $this->db->bind(':max',       (int)($d['MaxParticipants'] ?? 10), PDO::PARAM_INT);
+        $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
         $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
         $this->db->bind(':rstart',    $d['RecurrenceStart']);
@@ -80,6 +82,8 @@ class M_SlotAdmin {
     }
 
     public function updateTemplate(int $id, array $d): bool {
+        $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+
         $this->db->query(
             'UPDATE slot_template SET
              TemplateName=:name, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
@@ -97,13 +101,29 @@ class M_SlotAdmin {
         $this->db->bind(':age',       $d['AgeGroup'] ?? null);
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
-        $this->db->bind(':max',       (int)($d['MaxParticipants'] ?? 10), PDO::PARAM_INT);
+        $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
         $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
         $this->db->bind(':rstart',    $d['RecurrenceStart']);
         $this->db->bind(':rend',      isset($d['RecurrenceEnd']) && $d['RecurrenceEnd'] !== '' ? $d['RecurrenceEnd'] : null);
         $this->db->bind(':id',        $id, PDO::PARAM_INT);
         return $this->db->execute();
+    }
+
+    private function normalizeTemplateMaxParticipants(array $data): ?int {
+        $slotType = strtolower(trim((string)($data['SlotType'] ?? '')));
+        $rawValue = trim((string)($data['MaxParticipants'] ?? ''));
+
+        if ($rawValue === '') {
+            return $slotType === 'program' ? null : 10;
+        }
+
+        $maxParticipants = (int) $rawValue;
+        if ($maxParticipants <= 0) {
+            return $slotType === 'program' ? null : 10;
+        }
+
+        return $maxParticipants;
     }
 
     public function toggleTemplate(int $id): bool {

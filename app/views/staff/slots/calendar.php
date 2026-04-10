@@ -7,6 +7,19 @@ $sidebar  = $isCoach ? 'coach-sidebar'   : 'trainer-sidebar';
 $logo     = $isCoach ? 'fa-chalkboard-teacher' : 'fa-user-tie';
 $panelName = $isCoach ? 'Coach Panel'    : 'Trainer Panel';
 $dashHref  = $isCoach ? '/coach/dashboard' : '/trainer';
+
+$getOccurrenceDisplayCount = static function($occ) {
+    return ($occ->SlotType ?? '') === 'program'
+        ? (int) ($occ->EligiblePlayerCount ?? 0)
+        : (int) ($occ->BookingCount ?? 0);
+};
+
+$getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount) {
+    $count = $getOccurrenceDisplayCount($occ);
+    return ($occ->SlotType ?? '') === 'program'
+        ? $count . ' eligible players'
+        : $count . ' booked';
+};
 ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/<?= $cssFile ?>.css">
 <style>
@@ -122,12 +135,12 @@ $dashHref  = $isCoach ? '/coach/dashboard' : '/trainer';
             <!-- Summary row -->
             <?php
             $totalSessions = 0;
-            $totalBooked   = 0;
+            $totalExpected = 0;
             foreach ($data['byDate'] as $occs) {
                 foreach ($occs as $occ) {
                     if ($occ->Status !== 'cancelled') {
                         $totalSessions++;
-                        $totalBooked += (int) $occ->BookingCount;
+                        $totalExpected += $getOccurrenceDisplayCount($occ);
                     }
                 }
             }
@@ -138,8 +151,8 @@ $dashHref  = $isCoach ? '/coach/dashboard' : '/trainer';
                     <div style="font-size:12px;color:#888;margin-top:2px;">Sessions this week</div>
                 </div>
                 <div style="background:#fff;border-radius:10px;padding:14px 22px;box-shadow:0 1px 6px rgba(0,0,0,.07);min-width:140px;">
-                    <div style="font-size:22px;font-weight:700;color:#004085;"><?= $totalBooked ?></div>
-                    <div style="font-size:12px;color:#888;margin-top:2px;">Total players booked</div>
+                    <div style="font-size:22px;font-weight:700;color:#004085;"><?= $totalExpected ?></div>
+                    <div style="font-size:12px;color:#888;margin-top:2px;">Eligible / booked players</div>
                 </div>
             </div>
 
@@ -201,7 +214,7 @@ $dashHref  = $isCoach ? '/coach/dashboard' : '/trainer';
                                         <?php endif; ?>
                                         <div style="margin-top:3px;">
                                             <i class="fas fa-users" style="font-size:10px;"></i>
-                                            <?= (int)$occ->BookingCount ?> / <?= (int)$occ->MaxSlots ?> booked
+                                            <?= htmlspecialchars($getOccurrenceCountLabel($occ)) ?>
                                         </div>
                                     </a>
                                 <?php endforeach; endif; ?>

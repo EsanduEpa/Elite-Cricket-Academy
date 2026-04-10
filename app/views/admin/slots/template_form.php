@@ -157,8 +157,9 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Max Participants <span style="color:#e74c3c;">*</span></label>
-                        <input type="number" name="MaxParticipants" min="1" max="100" required value="<?= $t->MaxParticipants ?? 10 ?>">
+                        <label>Max Participants <span style="color:#aaa;font-weight:400;">(optional for group programs)</span></label>
+                        <input type="number" name="MaxParticipants" min="1" max="100" value="<?= htmlspecialchars($t->MaxParticipants ?? '') ?>">
+                        <p class="hint" id="maxParticipantsHint">Leave blank for recurring group programs that are open to all eligible players in the selected age group.</p>
                     </div>
                     <div class="form-group">
                         <label>Price Per Session (Rs.)</label>
@@ -196,4 +197,28 @@
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slotTypeField = document.querySelector('select[name="SlotType"]');
+    const maxParticipantsField = document.querySelector('input[name="MaxParticipants"]');
+    const maxParticipantsHint = document.getElementById('maxParticipantsHint');
+
+    if (!slotTypeField || !maxParticipantsField || !maxParticipantsHint) {
+        return;
+    }
+
+    function syncMaxParticipantsHelp() {
+        if (slotTypeField.value === 'program') {
+            maxParticipantsField.placeholder = 'Leave blank to use age-group eligibility';
+            maxParticipantsHint.textContent = 'Leave blank for recurring group programs. The coach calendar will show eligible players based on template age group and assignments.';
+        } else {
+            maxParticipantsField.placeholder = 'Enter a capacity';
+            maxParticipantsHint.textContent = 'Use a numeric limit when this slot has a hard facility or session capacity.';
+        }
+    }
+
+    slotTypeField.addEventListener('change', syncMaxParticipantsHelp);
+    syncMaxParticipantsHelp();
+});
+</script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

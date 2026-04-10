@@ -7,6 +7,15 @@ $sidebar  = $isCoach ? 'coach-sidebar'   : 'trainer-sidebar';
 $logo     = $isCoach ? 'fa-chalkboard-teacher' : 'fa-user-tie';
 $occ      = $data['occurrence'];
 $canCancel = in_array($occ->Status, ['scheduled', 'active']);
+$isProgramSession = ($occ->SlotType ?? '') === 'program';
+$affectedPlayerCount = $isProgramSession ? (int) ($occ->EligiblePlayerCount ?? 0) : count($data['bookings']);
+$playerCountLabel = $isProgramSession ? 'Eligible Players' : 'Bookings';
+$playerListHeading = $isProgramSession ? 'Eligible Players' : 'Attendees';
+$playerListSummary = $isProgramSession ? $affectedPlayerCount . ' eligible' : $affectedPlayerCount . ' booked';
+$emptyPlayerText = $isProgramSession
+    ? 'No eligible players are currently assigned to this program.'
+    : 'No players have booked this session yet.';
+$cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players';
 ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/<?= $cssFile ?>.css">
 <style>
@@ -153,10 +162,16 @@ $canCancel = in_array($occ->Status, ['scheduled', 'active']);
                         <div class="detail-value"><?= htmlspecialchars($occ->FacilityName ?? '—') ?></div>
                     </div>
                     <div>
-                        <div class="detail-label">Bookings</div>
+                        <div class="detail-label"><?= htmlspecialchars($playerCountLabel) ?></div>
                         <div class="detail-value">
-                            <span style="font-size:16px;font-weight:700;color:#2e7d32;"><?= (int)$occ->BookingCount ?></span>
-                            <span style="color:#888;font-size:13px;"> / <?= (int)$occ->MaxSlots ?> max</span>
+                            <span style="font-size:16px;font-weight:700;color:#2e7d32;">
+                                <?= $isProgramSession ? (int)$occ->EligiblePlayerCount : (int)$occ->BookingCount ?>
+                            </span>
+                            <?php if (!$isProgramSession && $occ->MaxSlots !== null): ?>
+                                <span style="color:#888;font-size:13px;"> / <?= (int)$occ->MaxSlots ?> max</span>
+                            <?php elseif ($isProgramSession && !empty($occ->AgeGroup)): ?>
+                                <span style="color:#888;font-size:13px;"> for <?= htmlspecialchars($occ->AgeGroup) ?></span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php if ($occ->Status === 'cancelled' && $occ->CancelReason): ?>
@@ -177,11 +192,11 @@ $canCancel = in_array($occ->Status, ['scheduled', 'active']);
             <!-- ── Attendees ── -->
             <div class="detail-card">
                 <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;">
-                    <i class="fas fa-users"></i> Attendees
-                    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;"><?= count($data['bookings']) ?> booked</span>
+                    <i class="fas fa-users"></i> <?= htmlspecialchars($playerListHeading) ?>
+                    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;"><?= htmlspecialchars($playerListSummary) ?></span>
                 </h3>
                 <?php if (empty($data['bookings'])): ?>
-                    <p style="color:#888;font-size:13px;margin:0;">No players have booked this session yet.</p>
+                    <p style="color:#888;font-size:13px;margin:0;"><?= htmlspecialchars($emptyPlayerText) ?></p>
                 <?php else: ?>
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
@@ -217,9 +232,9 @@ $canCancel = in_array($occ->Status, ['scheduled', 'active']);
             <div class="detail-card" style="border-top:3px solid #dc3545;">
                 <h3 style="margin:0 0 12px;font-size:15px;color:#dc3545;"><i class="fas fa-ban"></i> Cancel This Session</h3>
                 <p style="font-size:13px;color:#666;margin-bottom:16px;">
-                    Cancelling will notify all booked players. This action cannot be undone.
-                    <?php if ((int)$occ->BookingCount > 0): ?>
-                        <strong style="color:#856404;"><?= (int)$occ->BookingCount ?> player(s) currently booked.</strong>
+                    Cancelling will notify all <?= htmlspecialchars($cancellationAudience) ?>. This action cannot be undone.
+                    <?php if ($affectedPlayerCount > 0): ?>
+                        <strong style="color:#856404;"><?= $affectedPlayerCount ?> player(s) currently affected.</strong>
                     <?php endif; ?>
                 </p>
                 <form method="POST" action="<?php echo URLROOT; ?>/staffslots/occurrence/<?= $occ->OccurrenceID ?>"

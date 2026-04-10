@@ -9,12 +9,10 @@
                     <div class="login-box">
                         <div class="login-box-header">
                             <h1 class="academy-title">Elite Cricket Academy</h1>
-                            <p class="academy-subtitle">Sign in to continue to your account.</p>
                         </div>
 
                         <div class="login-intro">
-                            <h2>Welcome Back</h2>
-                            <p>Sign in with your username or email to continue.</p>
+                            <h2>Login</h2>
                         </div>
                         
                         <!-- Show flash messages if any -->

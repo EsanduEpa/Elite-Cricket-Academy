@@ -116,7 +116,7 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                             <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->SlotLabel ?? '—') ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= $t->DayOfWeek ? $dayNames[(int)$t->DayOfWeek] : '<span style="color:#aaa;">Any</span>' ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->FacilityName ?? '—') ?></td>
-                            <td style="padding:12px 14px;font-size:13px;text-align:center;"><?= $t->MaxParticipants ?></td>
+                            <td style="padding:12px 14px;font-size:13px;text-align:center;"><?= $t->MaxParticipants !== null ? (int) $t->MaxParticipants : '<span style="color:#999;">Age-group based</span>' ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= $t->PricePerSession > 0 ? 'Rs. ' . number_format($t->PricePerSession,2) : '<span style="color:#27ae60;">Free</span>' ?></td>
                             <td style="padding:12px 14px;">
                                 <?php if ($t->IsActive): ?>
