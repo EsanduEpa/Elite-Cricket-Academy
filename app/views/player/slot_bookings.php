@@ -75,6 +75,7 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training"         class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance"             class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available"   class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/facilities"   class="nav-link"><i class="fas fa-building"></i><span>Book Facility</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments"      class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical"          class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
