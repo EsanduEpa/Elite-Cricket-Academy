@@ -104,10 +104,25 @@
                         <p>Manage coaches, trainers, and administrative staff</p>
                     </div>
                     <div class="header-actions">
+                        <button class="btn btn-primary" id="manageCoachAssignmentsBtn">
+                            <i class="fas fa-user-tie"></i> Coach Age Groups
+                        </button>
                         <div class="current-time" id="currentTime"></div>
                     </div>
                 </div>
             </div>
+
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 12px; background: #e8f7ee; color: #1f7a43; border: 1px solid #bfe5cd;">
+                    <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 12px; background: #fdecec; color: #b42318; border: 1px solid #f5c2c7;">
+                    <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Staff Management Content -->
             <div class="content-wrapper">
@@ -711,6 +726,211 @@
         </div>
     </div>
 
+    <div class="modal" id="coachAssignmentsModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-tie"></i> Coach Skill Age Groups</h2>
+                <button class="modal-close" type="button" id="closeCoachAssignmentsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="details-grid" style="margin-bottom: 24px;">
+                    <div class="detail-section">
+                        <h4><i class="fas fa-crown"></i> Head Coach</h4>
+                        <form method="POST" action="<?php echo URLROOT; ?>/admin/set_head_coach">
+                            <input type="hidden" name="redirect_to" value="admin/staff">
+                            <div class="form-group">
+                                <label for="headCoachSelect">Select Head Coach</label>
+                                <select id="headCoachSelect" name="coach_id" class="form-control" required>
+                                    <option value="">Select Head Coach</option>
+                                    <?php foreach (($data['coaches'] ?? []) as $coach): ?>
+                                        <option value="<?php echo (int)$coach->coach_id; ?>" <?php echo !empty($coach->IsHeadCoach) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($coach->name); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="modal-footer" style="justify-content:flex-start; margin-top: 16px;">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-crown"></i> Update Head Coach
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-layer-group"></i> Age Group Assignment</h4>
+                        <?php
+                        $mapCoachSpecializationToSkill = static function ($specialization) {
+                            $normalized = strtolower(trim((string) $specialization));
+
+                            if ($normalized === '') {
+                                return '';
+                            }
+
+                            if (strpos($normalized, 'bat') !== false) {
+                                return 'batting';
+                            }
+
+                            if (strpos($normalized, 'bowl') !== false) {
+                                return 'bowling';
+                            }
+
+                            if (strpos($normalized, 'field') !== false) {
+                                return 'fielding';
+                            }
+
+                            return '';
+                        };
+                        ?>
+                        <form method="POST" action="<?php echo URLROOT; ?>/admin/save_coach_skill_age_groups" id="coachAssignmentForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="assignmentCoachId">Coach</label>
+                                    <select id="assignmentCoachId" name="coach_id" class="form-control" required>
+                                        <option value="">Select Coach</option>
+                                        <?php foreach (($data['coaches'] ?? []) as $coach): ?>
+                                            <option value="<?php echo (int)$coach->coach_id; ?>" data-skill="<?php echo htmlspecialchars($mapCoachSpecializationToSkill($coach->specialization ?? '')); ?>">
+                                                <?php echo htmlspecialchars($coach->name); ?><?php echo !empty($coach->IsHeadCoach) ? ' (Head Coach)' : ''; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="assignmentCoachingType">Skill</label>
+                                    <select id="assignmentCoachingType" name="coaching_type" class="form-control" required>
+                                        <option value="">Select Skill</option>
+                                        <option value="batting">Batting</option>
+                                        <option value="bowling">Bowling</option>
+                                        <option value="fielding">Fielding</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Age Groups</label>
+                                <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px;">
+                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'] as $ageGroup): ?>
+                                        <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid #d8e0ef; border-radius:10px; background:#f8fbff; cursor:pointer;">
+                                            <input type="checkbox" name="age_groups[]" value="<?php echo htmlspecialchars($ageGroup); ?>" class="coach-age-group-checkbox">
+                                            <span><?php echo htmlspecialchars($ageGroup); ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                                <small>Choose one or more age groups for this coach and skill.</small>
+                            </div>
+
+                            <div class="modal-footer" style="justify-content:flex-start; margin-top: 16px;">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-save"></i> Save Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <?php $coachAssignedPlayers = $data['coachAssignedPlayers'] ?? []; ?>
+                <div class="detail-section">
+                    <h4><i class="fas fa-list"></i> Current Coach Assignment Matrix</h4>
+                    <div class="staff-table-section" style="margin-top: 12px; box-shadow:none; padding:0;">
+                        <table class="staff-table">
+                            <thead>
+                                <tr>
+                                    <th>Coach</th>
+                                    <th>Head Coach</th>
+                                    <th>Skill</th>
+                                    <th>Age Groups</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['coachAssignments'])): ?>
+                                    <?php foreach ($data['coachAssignments'] as $assignment): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($assignment->CoachName); ?></td>
+                                            <td>
+                                                <?php if (!empty($assignment->IsHeadCoach)): ?>
+                                                    <span class="status-badge active">Head Coach</span>
+                                                <?php else: ?>
+                                                    <span class="role-badge">No</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><span class="role-badge"><?php echo htmlspecialchars(ucfirst($assignment->CoachingType)); ?></span></td>
+                                            <td><?php echo htmlspecialchars($assignment->AgeGroups); ?></td>
+                                            <td>
+                                                <button type="button" class="action-btn view coach-players-view-btn"
+                                                        data-coach-id="<?php echo (int)$assignment->CoachID; ?>"
+                                                        data-coach-name="<?php echo htmlspecialchars($assignment->CoachName); ?>"
+                                                        title="View Assigned Players">
+                                                    <i class="fas fa-users"></i>
+                                                </button>
+                                                <button type="button" class="action-btn edit coach-assignment-edit-btn"
+                                                        data-coach-id="<?php echo (int)$assignment->CoachID; ?>"
+                                                        data-coaching-type="<?php echo htmlspecialchars($assignment->CoachingType); ?>"
+                                                        data-age-groups="<?php echo htmlspecialchars($assignment->AgeGroups); ?>"
+                                                        title="Edit Assignment">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; padding:24px; color:#64748b;">
+                                            No coach age-group assignments have been configured yet.
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="coachPlayersModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> Assigned Players</h2>
+                <button class="modal-close" type="button" id="closeCoachPlayersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4 id="coachPlayersModalTitle">Coach Assigned Players</h4>
+                    <div class="staff-table-section" style="margin-top: 12px; box-shadow:none; padding:0;">
+                        <table class="staff-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Assignment</th>
+                                    <th>Batting Style</th>
+                                    <th>Bowling Style</th>
+                                    <th>Tournaments</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coachPlayersTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                                        Select a coach to view assigned players.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript for Staff Management -->
@@ -725,6 +945,133 @@
         // Button click handler - similar to events.php
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔍 Staff Management - Initializing button handlers...');
+
+            const coachAssignmentsModal = document.getElementById('coachAssignmentsModal');
+            const manageCoachAssignmentsBtn = document.getElementById('manageCoachAssignmentsBtn');
+            const closeCoachAssignmentsModal = document.getElementById('closeCoachAssignmentsModal');
+            const coachPlayersModal = document.getElementById('coachPlayersModal');
+            const closeCoachPlayersModal = document.getElementById('closeCoachPlayersModal');
+            const coachPlayersModalTitle = document.getElementById('coachPlayersModalTitle');
+            const coachPlayersTableBody = document.getElementById('coachPlayersTableBody');
+            const coachSelect = document.getElementById('assignmentCoachId');
+            const skillSelect = document.getElementById('assignmentCoachingType');
+            const coachAssignedPlayers = <?php echo json_encode($coachAssignedPlayers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function syncCoachSkillSelection(preferredSkill = '') {
+                if (!coachSelect || !skillSelect) return;
+
+                const selectedOption = coachSelect.options[coachSelect.selectedIndex];
+                const mappedSkill = preferredSkill || selectedOption?.dataset.skill || '';
+
+                if (mappedSkill) {
+                    skillSelect.value = mappedSkill;
+                }
+            }
+
+            function openCoachAssignmentsModal() {
+                if (!coachAssignmentsModal) return;
+                coachAssignmentsModal.style.display = 'flex';
+            }
+
+            function closeCoachAssignmentsPanel() {
+                if (!coachAssignmentsModal) return;
+                coachAssignmentsModal.style.display = 'none';
+            }
+
+            function openCoachPlayersModal(coachId, coachName) {
+                if (!coachPlayersModal || !coachPlayersTableBody || !coachPlayersModalTitle) return;
+
+                const players = coachAssignedPlayers[String(coachId)] || coachAssignedPlayers[coachId] || [];
+                coachPlayersModalTitle.textContent = `${coachName} - Assigned Players`;
+
+                if (!players.length) {
+                    coachPlayersTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                                No players are currently assigned to this coach.
+                            </td>
+                        </tr>`;
+                } else {
+                    coachPlayersTableBody.innerHTML = players.map(player => `
+                        <tr>
+                            <td>${escapeHtml(player.PlayerName || '-')}</td>
+                            <td><span class="role-badge">${escapeHtml(player.AssignmentType || '-')}</span></td>
+                            <td>${escapeHtml(player.BattingStyle || '-')}</td>
+                            <td>${escapeHtml(player.BowlingStyle || '-')}</td>
+                            <td>${escapeHtml(player.TournamentCount ?? 0)}</td>
+                            <td><span class="status-badge ${String(player.AssignmentStatus || 'active').toLowerCase()}">${escapeHtml(player.AssignmentStatus || 'active')}</span></td>
+                        </tr>`).join('');
+                }
+
+                coachPlayersModal.style.display = 'flex';
+            }
+
+            function closeCoachPlayersPanel() {
+                if (!coachPlayersModal) return;
+                coachPlayersModal.style.display = 'none';
+            }
+
+            if (manageCoachAssignmentsBtn) {
+                manageCoachAssignmentsBtn.addEventListener('click', openCoachAssignmentsModal);
+            }
+
+            if (closeCoachAssignmentsModal) {
+                closeCoachAssignmentsModal.addEventListener('click', closeCoachAssignmentsPanel);
+            }
+
+            if (closeCoachPlayersModal) {
+                closeCoachPlayersModal.addEventListener('click', closeCoachPlayersPanel);
+            }
+
+            if (coachSelect) {
+                coachSelect.addEventListener('change', function() {
+                    syncCoachSkillSelection();
+                });
+            }
+
+            if (coachAssignmentsModal) {
+                const overlay = coachAssignmentsModal.querySelector('.modal-overlay');
+                if (overlay) {
+                    overlay.addEventListener('click', closeCoachAssignmentsPanel);
+                }
+            }
+
+            if (coachPlayersModal) {
+                const coachPlayersOverlay = coachPlayersModal.querySelector('.modal-overlay');
+                if (coachPlayersOverlay) {
+                    coachPlayersOverlay.addEventListener('click', closeCoachPlayersPanel);
+                }
+            }
+
+            document.querySelectorAll('.coach-assignment-edit-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    openCoachAssignmentsModal();
+
+                    const ageGroups = (this.dataset.ageGroups || '').split(',').map(value => value.trim()).filter(Boolean);
+
+                    if (coachSelect) coachSelect.value = this.dataset.coachId || '';
+                    syncCoachSkillSelection(this.dataset.coachingType || '');
+
+                    document.querySelectorAll('.coach-age-group-checkbox').forEach(checkbox => {
+                        checkbox.checked = ageGroups.includes(checkbox.value);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.coach-players-view-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    openCoachPlayersModal(this.dataset.coachId || '', this.dataset.coachName || 'Coach');
+                });
+            });
             
             const addStaffBtn = document.getElementById('addStaffBtn');
             const modal = document.getElementById('addStaffModal');

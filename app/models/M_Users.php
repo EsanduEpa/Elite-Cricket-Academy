@@ -19,6 +19,7 @@
 class M_Users {
     // Database connection object
     private $db;
+    private $lastErrorMessage = '';
 
     /**
      * CONSTRUCTOR - Initialize database connection
@@ -52,6 +53,8 @@ class M_Users {
      *   - Triggers welcome notification and email
      */
     public function register($data) {
+        $this->lastErrorMessage = '';
+
         // STEP 1: PREPARE SQL INSERT QUERY
         // Uses placeholders (:name) to prevent SQL injection
         // INSERT INTO table (columns) VALUES (placeholders)
@@ -98,13 +101,20 @@ class M_Users {
                 // Return the new user ID
                 return $this->db->lastInsertId();
             } else {
-                error_log("Database execution failed during user registration");
+                $errorInfo = $this->db->getError();
+                $this->lastErrorMessage = $errorInfo[2] ?? 'Unknown registration database error';
+                error_log("Database execution failed during user registration: " . $this->lastErrorMessage);
                 return false;
             }
         } catch (Exception $e) {
+            $this->lastErrorMessage = $e->getMessage();
             error_log("Database error during registration: " . $e->getMessage());
             return false;
         }
+    }
+
+    public function getLastErrorMessage() {
+        return $this->lastErrorMessage;
     }
 
     /**
@@ -545,6 +555,22 @@ class M_Users {
         return $this->db->execute();
     }
 
+    public function getActiveSubscriptionForPlayer(int $playerId): ?object {
+        $this->db->query(
+            'SELECT SubscriptionID, PlanID, Status, StartDate, EndDate
+             FROM playersubscription
+             WHERE PlayerID = :player_id
+               AND Status = :status
+             ORDER BY StartDate DESC, SubscriptionID DESC
+             LIMIT 1'
+        );
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':status', 'active');
+
+        $row = $this->db->single();
+        return $row ?: null;
+    }
+
     public function planRequiresCoachAllocation(int $planId): bool {
         $plan = $this->getMembershipPlanById($planId);
         if (!$plan) {
@@ -552,7 +578,11 @@ class M_Users {
         }
 
         $planName = strtolower(trim((string)($plan->PlanName ?? '')));
-        return strpos($planName, 'basic') !== false || strpos($planName, 'pro') !== false;
+        if (in_array($planName, ['general', 'private', 'pro'], true)) {
+            return true;
+        }
+
+        return (int)($plan->SessionsPerWeek ?? 0) > 0 || (int)($plan->PrivateSessionsIncluded ?? 0) > 0;
     }
 
     public function getAgeGroupForDateOfBirth(string $dob): string {
@@ -726,6 +756,93 @@ class M_Users {
             error_log('autoAssignSkillCoachesAndPrograms failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    public function getPlayerSkillCoachAssignments(int $playerId): array {
+        $this->db->query(
+            'SELECT psca.CoachingType,
+                    psca.AgeGroup,
+                    psca.CoachID,
+                    u.Name AS CoachName
+             FROM player_skill_coach_assignment psca
+             JOIN user u ON u.UserID = psca.CoachID
+             WHERE psca.PlayerID = :player_id
+             ORDER BY FIELD(psca.CoachingType, "batting", "bowling", "fielding"), u.Name ASC'
+        );
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function refreshPlayerAssignmentsOnLogin(int $playerId): array {
+        $player = $this->getUserById($playerId);
+        if (!$player || ($player->Role ?? '') !== 'Player') {
+            return [
+                'updated' => false,
+                'ageGroupChanged' => false,
+                'assignmentsChanged' => false,
+                'ageGroup' => null,
+                'assignments' => []
+            ];
+        }
+
+        $subscription = $this->getActiveSubscriptionForPlayer($playerId);
+        if (!$subscription) {
+            return [
+                'updated' => false,
+                'ageGroupChanged' => false,
+                'assignmentsChanged' => false,
+                'ageGroup' => null,
+                'assignments' => []
+            ];
+        }
+
+        $beforeAssignments = $this->getPlayerSkillCoachAssignments($playerId);
+        $beforeAgeGroup = $beforeAssignments[0]->AgeGroup ?? null;
+
+        if (!$this->autoAssignSkillCoachesAndPrograms($playerId, (int)$subscription->PlanID)) {
+            return [
+                'updated' => false,
+                'ageGroupChanged' => false,
+                'assignmentsChanged' => false,
+                'ageGroup' => $beforeAgeGroup,
+                'assignments' => $beforeAssignments
+            ];
+        }
+
+        $afterAssignments = $this->getPlayerSkillCoachAssignments($playerId);
+        $afterAgeGroup = $afterAssignments[0]->AgeGroup ?? $this->getAgeGroupForDateOfBirth((string)($player->DateOfBirth ?? ''));
+
+        $toSignature = static function (array $assignments): array {
+            $signature = [];
+
+            foreach ($assignments as $assignment) {
+                $signature[] = [
+                    'type' => (string)($assignment->CoachingType ?? ''),
+                    'coachId' => (int)($assignment->CoachID ?? 0),
+                    'coachName' => (string)($assignment->CoachName ?? ''),
+                    'ageGroup' => (string)($assignment->AgeGroup ?? '')
+                ];
+            }
+
+            return $signature;
+        };
+
+        $beforeSignature = $toSignature($beforeAssignments);
+        $afterSignature = $toSignature($afterAssignments);
+
+        $ageGroupChanged = $beforeAgeGroup !== null && $beforeAgeGroup !== ''
+            ? $beforeAgeGroup !== $afterAgeGroup
+            : !empty($afterAssignments);
+
+        $assignmentsChanged = $beforeSignature !== $afterSignature;
+
+        return [
+            'updated' => $ageGroupChanged || $assignmentsChanged,
+            'ageGroupChanged' => $ageGroupChanged,
+            'assignmentsChanged' => $assignmentsChanged,
+            'ageGroup' => $afterAgeGroup,
+            'assignments' => $afterAssignments
+        ];
     }
 
     // Create player profile for new registrations
@@ -1620,7 +1737,7 @@ class M_Users {
                         (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
                     FROM player_skill_coach_assignment psca
                     JOIN playerprofile p ON psca.PlayerID = p.PlayerID
-                    JOIN user u ON p.UserID = u.UserID
+                                        JOIN user u ON p.PlayerID = u.UserID
                     WHERE psca.CoachID = :coachId
                       AND u.Status = 'active'
                     ORDER BY u.Name ASC, psca.CoachingType ASC"
@@ -1641,7 +1758,7 @@ class M_Users {
                     (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
                 FROM playercoachassignment pca
                 JOIN playerprofile p ON pca.PlayerID = p.PlayerID
-                JOIN user u ON p.UserID = u.UserID
+                                JOIN user u ON p.PlayerID = u.UserID
                 WHERE pca.CoachID = :coachId
                   AND pca.Status = 'active'
                   AND u.Status = 'active'
@@ -1737,12 +1854,121 @@ class M_Users {
     // Get all coach profiles with user info
     public function getAllCoachProfiles() {
         $this->db->query('SELECT u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
-            cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications
+            cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications, cp.IsHeadCoach
             FROM User u
             JOIN coachprofile cp ON u.UserID = cp.CoachID
             WHERE u.Role = "Coach" AND u.Status = "active"
             ORDER BY u.Name');
         return $this->db->resultSet();
+    }
+
+    public function getCoachSkillAgeGroupAssignments(): array {
+        $this->db->query(
+            "SELECT csg.CoachID,
+                    u.Name AS CoachName,
+                    csg.CoachingType,
+                    GROUP_CONCAT(csg.AgeGroup ORDER BY csg.PriorityRank ASC SEPARATOR ', ') AS AgeGroups,
+                    cp.IsHeadCoach
+             FROM coach_skill_age_group_assignment csg
+             JOIN user u ON u.UserID = csg.CoachID
+             JOIN coachprofile cp ON cp.CoachID = csg.CoachID
+             WHERE csg.IsActive = 1
+             GROUP BY csg.CoachID, u.Name, csg.CoachingType, cp.IsHeadCoach
+             ORDER BY cp.IsHeadCoach DESC,
+                      u.Name ASC,
+                      FIELD(csg.CoachingType, 'batting', 'bowling', 'fielding')"
+        );
+
+        return $this->db->resultSet();
+    }
+
+    public function replaceCoachSkillAgeGroupAssignments(int $coachId, string $coachingType, array $ageGroups, ?int $assignedBy = null): bool {
+        $ageGroups = array_values(array_unique(array_filter(array_map('trim', $ageGroups))));
+
+        if (empty($ageGroups)) {
+            return false;
+        }
+
+        $startedTransaction = false;
+        if (method_exists($this->db, 'inTransaction') && method_exists($this->db, 'beginTransaction') && !$this->db->inTransaction()) {
+            $this->db->beginTransaction();
+            $startedTransaction = true;
+        }
+
+        try {
+            $this->db->query(
+                'DELETE FROM coach_skill_age_group_assignment
+                 WHERE CoachID = :coach_id AND CoachingType = :coaching_type'
+            );
+            $this->db->bind(':coach_id', $coachId, PDO::PARAM_INT);
+            $this->db->bind(':coaching_type', $coachingType);
+            if (!$this->db->execute()) {
+                throw new RuntimeException('Failed to clear existing coach skill assignments.');
+            }
+
+            foreach ($ageGroups as $index => $ageGroup) {
+                $this->db->query(
+                    'INSERT INTO coach_skill_age_group_assignment
+                     (CoachID, CoachingType, AgeGroup, PriorityRank, IsActive, Notes, AssignedBy)
+                     VALUES (:coach_id, :coaching_type, :age_group, :priority_rank, 1, :notes, :assigned_by)'
+                );
+                $this->db->bind(':coach_id', $coachId, PDO::PARAM_INT);
+                $this->db->bind(':coaching_type', $coachingType);
+                $this->db->bind(':age_group', $ageGroup);
+                $this->db->bind(':priority_rank', $index + 1, PDO::PARAM_INT);
+                $this->db->bind(':notes', 'Assigned by admin from staff management page');
+                $this->db->bind(':assigned_by', $assignedBy, $assignedBy === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+
+                if (!$this->db->execute()) {
+                    throw new RuntimeException('Failed to save coach skill age-group assignment.');
+                }
+            }
+
+            if ($startedTransaction && method_exists($this->db, 'commit')) {
+                $this->db->commit();
+            }
+
+            return true;
+        } catch (Throwable $e) {
+            if ($startedTransaction && method_exists($this->db, 'rollBack')) {
+                $this->db->rollBack();
+            }
+            error_log('Error in replaceCoachSkillAgeGroupAssignments: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateHeadCoachDesignation(int $coachId): bool {
+        $startedTransaction = false;
+        if (method_exists($this->db, 'inTransaction') && method_exists($this->db, 'beginTransaction') && !$this->db->inTransaction()) {
+            $this->db->beginTransaction();
+            $startedTransaction = true;
+        }
+
+        try {
+            $this->db->query('UPDATE coachprofile SET IsHeadCoach = 0');
+            if (!$this->db->execute()) {
+                throw new RuntimeException('Failed to clear previous head coach.');
+            }
+
+            $this->db->query('UPDATE coachprofile SET IsHeadCoach = 1 WHERE CoachID = :coach_id');
+            $this->db->bind(':coach_id', $coachId, PDO::PARAM_INT);
+            if (!$this->db->execute()) {
+                throw new RuntimeException('Failed to set new head coach.');
+            }
+
+            if ($startedTransaction && method_exists($this->db, 'commit')) {
+                $this->db->commit();
+            }
+
+            return true;
+        } catch (Throwable $e) {
+            if ($startedTransaction && method_exists($this->db, 'rollBack')) {
+                $this->db->rollBack();
+            }
+            error_log('Error in updateHeadCoachDesignation: ' . $e->getMessage());
+            return false;
+        }
     }
 
     // Get all trainer profiles with user info

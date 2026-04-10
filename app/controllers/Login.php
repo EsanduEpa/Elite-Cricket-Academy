@@ -96,6 +96,43 @@ class Login extends Controller {
                 if($loggedInUser) {
                     // === STEP 9: AUTHENTICATION SUCCESSFUL ===
                     // Credentials are valid - create user session
+
+                    $assignmentRefresh = null;
+                    if (($loggedInUser->Role ?? '') === 'Player') {
+                        $assignmentRefresh = $this->userModel->refreshPlayerAssignmentsOnLogin((int)$loggedInUser->UserID);
+
+                        if (!empty($assignmentRefresh['updated'])) {
+                            $notificationModel = $this->model('M_Notification');
+                            $assignmentLabels = [];
+
+                            foreach (($assignmentRefresh['assignments'] ?? []) as $assignment) {
+                                $assignmentLabels[] = ucfirst((string)$assignment->CoachingType) . ': ' . (string)$assignment->CoachName;
+                            }
+
+                            $messageParts = [];
+                            if (!empty($assignmentRefresh['ageGroupChanged']) && !empty($assignmentRefresh['ageGroup'])) {
+                                $messageParts[] = 'Your age group is now ' . $assignmentRefresh['ageGroup'] . '.';
+                            }
+
+                            if (!empty($assignmentRefresh['assignmentsChanged'])) {
+                                if (!empty($assignmentLabels)) {
+                                    $messageParts[] = 'Your coach assignments were refreshed: ' . implode(', ', $assignmentLabels) . '.';
+                                } else {
+                                    $messageParts[] = 'Your coach assignments were refreshed.';
+                                }
+                            }
+
+                            if (!empty($messageParts)) {
+                                $notificationModel->create(
+                                    (int)$loggedInUser->UserID,
+                                    'coach_assignment',
+                                    'Age Group / Coach Assignment Updated',
+                                    implode(' ', $messageParts),
+                                    URLROOT . '/player/dashboard'
+                                );
+                            }
+                        }
+                    }
                     
                     // Ensure session is started (safety check)
                     if (session_status() == PHP_SESSION_NONE) {

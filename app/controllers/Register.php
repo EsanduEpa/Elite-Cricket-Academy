@@ -57,6 +57,7 @@ class Register extends Controller {
                 'password' => trim($_POST['password']),
                 'confirmPassword' => trim($_POST['confirmPassword']),
                 'membershipPlan' => trim($_POST['membershipPlan'] ?? ''),
+                'form_err' => '',
                 
                 // ERROR MESSAGE PLACEHOLDERS - Start empty, filled if validation fails
                 'fullName_err' => '',
@@ -75,6 +76,8 @@ class Register extends Controller {
             // === STEP 3: VALIDATION - Check all input fields ===
             if(empty($data['fullName'])) {
                 $data['fullName_err'] = 'Please enter your full name';
+            } elseif(strlen($data['fullName']) < 2) {
+                $data['fullName_err'] = 'Please enter your full name (at least 2 characters)';
             }
 
             if(empty($data['dateOfBirth'])) {
@@ -102,11 +105,15 @@ class Register extends Controller {
             // VALIDATE ADDRESS - Required field
             if(empty($data['address'])) {
                 $data['address_err'] = 'Please enter your address';
+            } elseif(strlen($data['address']) < 10) {
+                $data['address_err'] = 'Please enter a complete address';
             }
 
             // VALIDATE EMAIL - Required and must be unique
             if(empty($data['email'])) {
                 $data['email_err'] = 'Please enter your email';
+            } elseif(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $data['email_err'] = 'Please enter a valid email address';
             } elseif($this->userModel->findUserByEmail($data['email'])) {
                 // DATABASE CHECK: Query database to ensure email is not already registered
                 // This prevents duplicate accounts with the same email
@@ -125,17 +132,23 @@ class Register extends Controller {
                 // Allow only numbers, +, -, spaces, and parentheses for formatting
                 } elseif(!preg_match('/^[0-9+\-\s()]+$/', $data['contactNumber'])) {
                     $data['contactNumber_err'] = 'Please enter a valid phone number';
+                } elseif(strlen($phone) > 15) {
+                    $data['contactNumber_err'] = 'Contact number cannot exceed 15 digits';
                 }
             }
 
             // VALIDATE SCHOOL - Required field (player's educational institution)
             if(empty($data['school'])) {
                 $data['school_err'] = 'Please enter your school/institution';
+            } elseif(strlen($data['school']) < 2) {
+                $data['school_err'] = 'Please enter your school/institution';
             }
 
             // VALIDATE USERNAME - Required and must be unique
             if(empty($data['username'])) {
                 $data['username_err'] = 'Please choose a username';
+            } elseif(strlen($data['username']) < 4) {
+                $data['username_err'] = 'Username must be at least 4 characters long';
             } elseif($this->userModel->findUserByUsername($data['username'])) {
                 // DATABASE CHECK: Ensure username is unique in the system
                 $data['username_err'] = 'Username is already taken';
@@ -250,9 +263,18 @@ class Register extends Controller {
                     flash('register_success', 'Registration successful! Welcome to Elite Cricket Academy.');
                     redirect('login');
                 } else {
-                    // REGISTRATION FAILED - Database error occurred
-                    // This could be due to connection issues, constraint violations, etc.
-                    die('Something went wrong during registration');
+                    $registrationError = (string)$this->userModel->getLastErrorMessage();
+
+                    if (stripos($registrationError, 'Duplicate entry') !== false && stripos($registrationError, 'Email') !== false) {
+                        $data['email_err'] = 'Email is already taken';
+                    } elseif (stripos($registrationError, 'Duplicate entry') !== false && stripos($registrationError, 'Username') !== false) {
+                        $data['username_err'] = 'Username is already taken';
+                    } else {
+                        $data['form_err'] = 'Registration could not be completed. Please check your details and try again.';
+                    }
+
+                    $this->view('v_register', $data);
+                    return;
                 }
             } else {
                 // === VALIDATION FAILED ===
@@ -276,6 +298,7 @@ class Register extends Controller {
                 'password' => '',
                 'confirmPassword' => '',
                 'membershipPlan' => '',
+                'form_err' => '',
                 'fullName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',

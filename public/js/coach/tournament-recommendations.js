@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAvailableTournaments();
 });
 
+const APP_URLROOT = window.APP_URLROOT || '';
+
 // ==================== INITIALIZATION ====================
 
 function initializeUI() {
@@ -119,7 +121,7 @@ function openEditModal(recommendationId) {
     submitBtnText.textContent = 'Update Recommendation';
 
     // Load recommendation data
-    fetch(`<?php echo URLROOT; ?>/coach/tournament-recommendations/${recommendationId}`)
+    fetch(`${APP_URLROOT}/coach/recommendation-details/${recommendationId}`)
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -188,9 +190,9 @@ function handleFormSubmit(e) {
     showLoadingSpinner(true);
 
     // Determine endpoint
-    const endpoint = mode === 'new' 
-        ? `<?php echo URLROOT; ?>/coach/save-recommendation`
-        : `<?php echo URLROOT; ?>/coach/update-recommendation/${recommendationId}`;
+    const endpoint = mode === 'new'
+        ? `${APP_URLROOT}/coach/save-recommendation`
+        : `${APP_URLROOT}/coach/update-recommendation/${recommendationId}`;
 
     const method = mode === 'new' ? 'POST' : 'PUT';
 
@@ -287,7 +289,7 @@ function handleDeleteClick(e) {
 
     showLoadingSpinner(true);
 
-    fetch(`<?php echo URLROOT; ?>/coach/delete-recommendation/${recommendationId}`, {
+    fetch(`${APP_URLROOT}/coach/delete-recommendation/${recommendationId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
     })
