@@ -103,9 +103,9 @@
                         <i class="fas fa-arrow-left"></i>
                         Continue Shopping
                     </a>
-                    <button class="btn btn-primary" id="checkout-btn" disabled>
-                        <i class="fas fa-credit-card"></i>
-                        Proceed to Checkout
+                    <button class="btn btn-primary" id="checkout-btn" disabled style="background:#28a745;border-color:#28a745;">
+                        <i class="fas fa-shopping-bag"></i>
+                        Checkout
                     </button>
                 </div>
             </div>
@@ -170,29 +170,29 @@
                     
                     <div class="summary-row">
                         <span>Subtotal:</span>
-                        <span id="cart-subtotal">₹0.00</span>
+                        <span id="cart-subtotal">LKR 0.00</span>
                     </div>
                     
                     <div class="summary-row">
                         <span>Shipping:</span>
-                        <span id="cart-shipping">₹0.00</span>
+                        <span id="cart-shipping">LKR 0.00</span>
                     </div>
                     
                     <div class="summary-row">
                         <span>Tax (10%):</span>
-                        <span id="cart-tax">₹0.00</span>
+                        <span id="cart-tax">LKR 0.00</span>
                     </div>
                     
                     <div class="summary-row discount-row" id="discount-row" style="display: none;">
                         <span>Discount:</span>
-                        <span id="cart-discount">-₹0.00</span>
+                        <span id="cart-discount">-LKR 0.00</span>
                     </div>
                     
                     <hr class="summary-divider">
                     
                     <div class="summary-row total-row">
                         <span><strong>Total:</strong></span>
-                        <span id="cart-total"><strong>₹0.00</strong></span>
+                        <span id="cart-total"><strong>LKR 0.00</strong></span>
                     </div>
 
                     <!-- Promo Code Section -->
@@ -205,45 +205,23 @@
                         <div id="promo-message" class="promo-message"></div>
                     </div>
 
-                    <!-- Payment Methods -->
-                    <div class="payment-methods">
-                        <h4>Payment Method</h4>
-                        <div class="payment-options">
-                            <label class="payment-option">
-                                <input type="radio" name="payment" value="card" checked>
-                                <div class="payment-info">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span>Credit/Debit Card</span>
-                                </div>
-                            </label>
-                            <label class="payment-option">
-                                <input type="radio" name="payment" value="paypal">
-                                <div class="payment-info">
-                                    <i class="fab fa-paypal"></i>
-                                    <span>PayPal</span>
-                                </div>
-                            </label>
-                            <label class="payment-option">
-                                <input type="radio" name="payment" value="bank">
-                                <div class="payment-info">
-                                    <i class="fas fa-university"></i>
-                                    <span>Bank Transfer</span>
-                                </div>
-                            </label>
-                            <label class="payment-option">
-                                <input type="radio" name="payment" value="cash">
-                                <div class="payment-info">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <span>Cash on Pickup</span>
-                                </div>
-                            </label>
+                    <!-- PayHere Payment -->
+                    <div class="payhere-section">
+                        <h4>Payment</h4>
+                        <div class="payhere-logo-row">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>PayHere Secure Checkout</span>
                         </div>
+                        <p class="payhere-note">You will be redirected to PayHere to complete your payment securely.</p>
                     </div>
+
+                    <!-- Hidden nonce for CSRF protection -->
+                    <input type="hidden" id="payhere_nonce" value="<?php echo htmlspecialchars($_SESSION['payhere_nonce'] ?? ''); ?>">
 
                     <!-- Checkout Button -->
                     <button class="btn btn-primary btn-large checkout-button" id="main-checkout-btn" onclick="proceedToCheckout()">
-                        <i class="fas fa-lock"></i>
-                        Secure Checkout
+                        <i class="fas fa-shopping-bag"></i>
+                        Checkout
                     </button>
 
                     <!-- Security Info -->

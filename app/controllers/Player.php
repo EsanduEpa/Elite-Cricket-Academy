@@ -707,9 +707,13 @@ class Player extends Controller {
 
     // Shopping Cart
     public function cart() {
+        // Generate a nonce for cart → PayHere POST anti-CSRF
+        if (empty($_SESSION['payhere_nonce'])) {
+            $_SESSION['payhere_nonce'] = bin2hex(random_bytes(16));
+        }
         $data = [
-            'title' => 'Shopping Cart',
-            'player' => $this->getPlayerData()
+            'title'  => 'Shopping Cart',
+            'player' => $this->getPlayerData(),
         ];
         $this->view('player/cart', $data);
     }
@@ -721,6 +725,111 @@ class Player extends Controller {
             'player' => $this->getPlayerData()
         ];
         $this->view('player/checkout', $data);
+    }
+
+    // ── PayHere integration ────────────────────────────────
+
+    /** POST /player/payhere_checkout — generate hash and auto-submit to PayHere */
+    public function payhere_checkout() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/cart');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $playerData = $this->getPlayerData();
+
+        $orderId  = 'ELITE-' . $playerData['id'] . '-' . time();
+        $currency = 'LKR';
+        $amount   = number_format((float)($_POST['cart_total'] ?? 0), 2, '.', '');
+
+        if ((float)$amount <= 0) {
+            $_SESSION['cart_error'] = 'Invalid cart total. Please try again.';
+            redirect('player/cart');
+        }
+
+        // Summarise items for the PayHere "items" field
+        $rawItems  = [];
+        $decoded   = json_decode($_POST['cart_items'] ?? '[]', true);
+        if (is_array($decoded)) {
+            foreach ($decoded as $it) {
+                $name = htmlspecialchars($it['Name'] ?? $it['name'] ?? 'Item', ENT_QUOTES);
+                $qty  = (int)($it['quantity'] ?? 1);
+                $rawItems[] = "{$name} x{$qty}";
+            }
+        }
+        $itemsLabel = $rawItems ? implode(', ', $rawItems) : 'Cricket Academy Purchase';
+
+        $nameParts = explode(' ', trim($playerData['name']), 2);
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        $_SESSION['payhere_nonce']         = bin2hex(random_bytes(16));
+
+        $data = [
+            'title'   => 'Redirecting to PayHere...',
+            'player'  => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id'    => $orderId,
+                'amount'      => $amount,
+                'currency'    => $currency,
+                'items'       => $itemsLabel,
+                'hash'        => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url'  => URLROOT . '/player/payhere_return',
+                'cancel_url'  => URLROOT . '/player/payhere_cancel',
+                'notify_url'  => URLROOT . '/player/payhere_notify',
+                'first_name'  => $nameParts[0] ?? 'Player',
+                'last_name'   => $nameParts[1] ?? '',
+                'email'       => $playerData['email'],
+                'phone'       => $playerData['phone'] ?: '0000000000',
+                'address'     => $playerData['address'] ?: 'N/A',
+                'city'        => 'Colombo',
+                'country'     => 'Sri Lanka',
+            ],
+        ];
+        $this->view('player/payhere_gateway', $data);
+    }
+
+    /** GET /player/payhere_return — PayHere browser redirect on payment success */
+    public function payhere_return() {
+        $data = [
+            'title'    => 'Payment Successful',
+            'player'   => $this->getPlayerData(),
+            'order_id' => htmlspecialchars($_GET['order_id'] ?? ''),
+        ];
+        $this->view('player/payhere_return', $data);
+    }
+
+    /** GET /player/payhere_cancel — PayHere browser redirect when user cancels */
+    public function payhere_cancel() {
+        $data = [
+            'title'  => 'Payment Cancelled',
+            'player' => $this->getPlayerData(),
+        ];
+        $this->view('player/payhere_cancel', $data);
+    }
+
+    /** POST /player/payhere_notify — Server-to-server webhook from PayHere */
+    public function payhere_notify() {
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $logFile = APPROOT . '/../payhere_notify_log.txt';
+        $orderId     = $_POST['order_id']       ?? '';
+        $amount      = $_POST['payhere_amount'] ?? '';
+        $currency    = $_POST['payhere_currency'] ?? '';
+        $statusCode  = $_POST['status_code']   ?? '';
+
+        if (PayHere::verifyNotify($_POST)) {
+            PayHere::log($logFile, "SUCCESS order=$orderId amount=$amount $currency");
+            // TODO: mark shop order as paid in DB
+        } else {
+            PayHere::log($logFile, "UNVERIFIED/FAILED status=$statusCode order=$orderId");
+        }
+
+        http_response_code(200);
+        echo 'OK';
+        exit;
     }
 
     // Backwards-compatible route for older links
