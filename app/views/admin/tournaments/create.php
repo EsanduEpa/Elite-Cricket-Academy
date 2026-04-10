@@ -107,6 +107,14 @@
                         <textarea name="description" rows="4" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;resize:vertical;box-sizing:border-box;" placeholder="Tournament details visible to players..."><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
                     </div>
 
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Initial Status</label>
+                        <select name="status" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                            <option value="created" <?php echo (($_POST['status'] ?? 'created') === 'created') ? 'selected' : ''; ?>>Created (not visible to players)</option>
+                            <option value="registration_open" <?php echo (($_POST['status'] ?? '') === 'registration_open') ? 'selected' : ''; ?>>Registration Open (players can apply)</option>
+                        </select>
+                    </div>
+
                 </div>
 
                 <div style="margin-top:24px;display:flex;gap:12px;">

@@ -62,7 +62,7 @@ class M_Tournament
             'INSERT INTO tournament 
              (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status)
              VALUES
-             (:name, :agegroup, :format, :desc, :tdate, :regdeadline, :maxplayers, :location, :prizepool, :createdby, "created")'
+             (:name, :agegroup, :format, :desc, :tdate, :regdeadline, :maxplayers, :location, :prizepool, :createdby, :status)'
         );
         $this->db->bind(':name',        $data['name']);
         $this->db->bind(':agegroup',    $data['age_group'] ?? null);
@@ -74,6 +74,7 @@ class M_Tournament
         $this->db->bind(':location',    $data['location'] ?? null);
         $this->db->bind(':prizepool',   $data['prize_pool'] ?? 0);
         $this->db->bind(':createdby',   $data['created_by']);
+        $this->db->bind(':status',      $data['status'] ?? 'created');
         $this->db->execute();
         return $this->db->lastInsertId();
     }
