@@ -1969,6 +1969,7 @@ class Admin extends Controller {
                 'location'              => trim($_POST['location'] ?? ''),
                 'prize_pool'            => !empty($_POST['prize_pool']) ? (float)$_POST['prize_pool'] : 0,
                 'created_by'            => $_SESSION['user_id'],
+                'status'                => in_array($_POST['status'] ?? '', ['created','registration_open']) ? $_POST['status'] : 'created',
             ];
 
             if (empty($data['name']) || empty($data['tdate'])) {
