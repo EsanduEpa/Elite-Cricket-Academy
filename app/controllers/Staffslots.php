@@ -112,6 +112,59 @@ class Staffslots extends Controller {
     }
 
     // =========================================================
+    // ATTENDANCE  —  /staffslots/attendance/{id}
+    // =========================================================
+    public function attendance($id = null) {
+        if (!$id) redirect('staffslots/calendar');
+
+        $model      = $this->model('M_SlotStaff');
+        $occurrence = $model->getOccurrenceDetail((int) $id, $this->userId);
+
+        if (!$occurrence) redirect('staffslots/calendar');
+
+        $error   = null;
+        $success = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
+            $statuses = $_POST['attendance']; // [bookingId => 'attended'|'missed'|'confirmed']
+            $marked   = 0;
+            $failed   = 0;
+
+            foreach ($statuses as $bookingId => $status) {
+                if (!in_array($status, ['attended', 'missed'], true)) {
+                    continue; // skip unchanged/confirmed entries
+                }
+                $result = $model->markAttendance((int) $bookingId, $status, $this->userId);
+                if ($result === true) {
+                    $marked++;
+                } else {
+                    $failed++;
+                }
+            }
+
+            if ($failed > 0 && $marked === 0) {
+                $error = 'Could not save attendance. Please try again.';
+            } elseif ($failed > 0) {
+                $success = "Saved {$marked} record(s); {$failed} could not be updated.";
+            } else {
+                $success = "Attendance saved for {$marked} player(s).";
+            }
+
+            // Reload bookings after update
+        }
+
+        $data = [
+            'title'      => 'Mark Attendance',
+            'role'       => $this->role,
+            'occurrence' => $occurrence,
+            'bookings'   => $model->getBookingsForOccurrence((int) $id),
+            'error'      => $error,
+            'success'    => $success,
+        ];
+        $this->view('staff/slots/attendance', $data);
+    }
+
+    // =========================================================
     // PRIVATE SESSION  —  /staffslots/private
     // =========================================================
     public function private_session() {
@@ -133,6 +186,8 @@ class Staffslots extends Controller {
 
                 if (is_int($result) && $result > 0) {
                     redirect('staffslots/occurrence/' . $result);
+                } elseif ($result === 'time_conflict') {
+                    $error = 'You are already assigned to another session in that time band on that date.';
                 } elseif ($result === 'duplicate') {
                     $error = 'This facility is already booked for that time band on that date.';
                 } else {

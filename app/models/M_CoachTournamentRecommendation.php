@@ -469,43 +469,6 @@ class M_CoachTournamentRecommendation
     }
 
     /**
-     * Get all players assigned to a coach
-     * 
-     * @param int $coachId - ID of the coach
-     * @return array - Array of assigned players with stats
-     */
-    public function getCoachAssignedPlayers($coachId)
-    {
-        try {
-            $this->db->query("
-                SELECT 
-                    p.PlayerID,
-                    u.Name as PlayerName,
-                    u.UserID,
-                    p.BattingStyle,
-                    p.BowlingStyle,
-                    pca.AssignmentType,
-                    pca.Status as AssignmentStatus,
-                    (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
-                FROM playercoachassignment pca
-                JOIN playerprofile p ON pca.PlayerID = p.PlayerID
-                JOIN user u ON p.UserID = u.UserID
-                WHERE pca.CoachID = :coachId 
-                AND pca.Status = 'active'
-                AND u.Status = 'active'
-                ORDER BY u.Name ASC
-            ");
-
-            $this->db->bind(':coachId', $coachId);
-            return $this->db->resultSet();
-
-        } catch (Exception $e) {
-            error_log('Error in getCoachAssignedPlayers: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    /**
      * Get recommendation details with all related data
      * 
      * @param int $recommendationId - ID of the recommendation

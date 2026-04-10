@@ -167,7 +167,12 @@
                                     <?php echo date('g:i A', strtotime($b->EndTime)); ?>
                                 </small>
                             </td>
-                            <td><?php echo htmlspecialchars($b->TemplateName ?? '—'); ?></td>
+                            <td>
+                                <?php echo htmlspecialchars($b->TemplateName ?? '—'); ?>
+                                <?php if (($b->BookingSource ?? '') === 'system'): ?>
+                                    <br><small style="color:#7c3aed;font-weight:600;">Assigned Program</small>
+                                <?php endif; ?>
+                            </td>
                             <td><?php echo htmlspecialchars($b->FacilityName ?? '—'); ?></td>
                             <td><span class="status-badge status-<?php echo $b->Status; ?>"><?php echo ucfirst($b->Status); ?></span></td>
                             <td>
@@ -230,7 +235,12 @@
                                     <?php echo date('g:i A', strtotime($b->EndTime)); ?>
                                 </small>
                             </td>
-                            <td><?php echo htmlspecialchars($b->TemplateName ?? '—'); ?></td>
+                            <td>
+                                <?php echo htmlspecialchars($b->TemplateName ?? '—'); ?>
+                                <?php if (($b->BookingSource ?? '') === 'system'): ?>
+                                    <br><small style="color:#7c3aed;font-weight:600;">Assigned Program</small>
+                                <?php endif; ?>
+                            </td>
                             <td><?php echo htmlspecialchars($b->FacilityName ?? '—'); ?></td>
                             <td><span class="status-badge status-<?php echo $b->Status; ?>"><?php echo ucfirst($b->Status); ?></span></td>
                             <td style="font-size:12px;color:#64748b;"><?php echo ucfirst(str_replace('_', ' ', $b->BookingSource)); ?></td>

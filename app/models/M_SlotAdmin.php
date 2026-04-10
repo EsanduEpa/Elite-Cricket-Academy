@@ -260,6 +260,9 @@ class M_SlotAdmin {
                 if ($ok) {
                     $newId = (int) $this->db->lastInsertId();
                     $this->_auditLog('occurrence', $newId, 'create', null, null, 'scheduled', null, $adminId);
+                    if (($template->SlotType ?? null) === 'program') {
+                        $this->autoEnrollAssignedPlayersForOccurrence($newId, $adminId);
+                    }
                     $inserted++;
                 } else {
                     $err = $this->db->getError();
@@ -282,6 +285,52 @@ class M_SlotAdmin {
 
         return ['inserted' => $inserted, 'skipped' => $skipped, 'skipped_dates' => $skippedDates];
     }
+
+        private function autoEnrollAssignedPlayersForOccurrence(int $occurrenceId, int $adminId): void {
+                $this->db->query(
+                        "INSERT INTO slot_booking
+                                 (OccurrenceID, PlayerID, BookingSource, SubscriptionID, Status, ParticipantCount,
+                            AmountCharged, PaymentStatus, PaymentMethod, BookedBy)
+                         SELECT so.OccurrenceID,
+                                        stpa.PlayerID,
+                                        'system',
+                                        (
+                                                SELECT ps.SubscriptionID
+                                                FROM playersubscription ps
+                                                WHERE ps.PlayerID = stpa.PlayerID
+                                                    AND ps.Status = 'active'
+                                                ORDER BY ps.SubscriptionID DESC
+                                                LIMIT 1
+                                        ) AS SubscriptionID,
+                                        'confirmed',
+                                        1,
+                                        0.00,
+                                        'not_required',
+                                        NULL,
+                                        NULL
+                         FROM slot_occurrence so
+                         JOIN slot_template_player_assignment stpa
+                             ON stpa.TemplateID = so.TemplateID
+                            AND stpa.IsActive = 1
+                         LEFT JOIN slot_booking sb
+                             ON sb.OccurrenceID = so.OccurrenceID
+                            AND sb.PlayerID = stpa.PlayerID
+                         WHERE so.OccurrenceID = :oid
+                             AND sb.BookingID IS NULL"
+                );
+                $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+                $this->db->execute();
+
+                $this->db->query(
+                        'INSERT INTO activitylog (UserID, Action, Description, IPAddress)
+                         VALUES (:uid, :action, :description, :ip)'
+                );
+                $this->db->bind(':uid', $adminId, PDO::PARAM_INT);
+                $this->db->bind(':action', 'slot_auto_enroll');
+                $this->db->bind(':description', 'Auto-enrolled assigned players for occurrence #' . $occurrenceId);
+                $this->db->bind(':ip', $_SERVER['REMOTE_ADDR'] ?? null);
+                $this->db->execute();
+        }
 
     /**
      * Occurrences in a date range with full detail for the calendar view.
