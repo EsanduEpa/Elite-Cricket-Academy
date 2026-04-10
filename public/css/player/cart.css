@@ -913,6 +913,18 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     margin: 1.5rem 0;
+    background: #28a745 !important;
+    border-color: #28a745 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.checkout-button:hover:not(:disabled) {
+    background: #218838 !important;
+    border-color: #1e7e34 !important;
 }
 
 .security-info {
@@ -1297,4 +1309,64 @@ body {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* ── Product image in cart table (compact) ─────────────── */
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.product-image {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+}
+
+.product-image img {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+/* ── PayHere payment section ───────────────────────────── */
+.payhere-section {
+    margin: 1.25rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.payhere-section h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+.payhere-logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    color: #1a73e8;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.payhere-logo-row img {
+    height: 28px;
+}
+
+.payhere-note {
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin: 0;
+}
 }

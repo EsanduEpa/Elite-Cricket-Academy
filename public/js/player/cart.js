@@ -112,7 +112,7 @@ function createCartItemElement(item, index) {
         <td class="col-product">
             <div class="product-info">
                 <div class="product-image">
-                    <img src="${item.image || 'https://via.placeholder.com/80x60?text=Product'}" alt="${name}" />
+                    <img src="${item.image || 'https://via.placeholder.com/52x52?text=Item'}" alt="${name}" />
                 </div>
                 <div class="product-details">
                     <h4 class="product-name">${name}</h4>
@@ -125,7 +125,7 @@ function createCartItemElement(item, index) {
             </div>
         </td>
         <td class="col-price">
-            <span class="price-value">₹${Number(price).toFixed(2)}</span>
+            <span class="price-value">LKR ${Number(price).toFixed(2)}</span>
         </td>
         <td class="col-quantity">
             <div class="quantity-controls">
@@ -135,7 +135,7 @@ function createCartItemElement(item, index) {
             </div>
         </td>
         <td class="col-total">
-            <span class="total-value">₹${(Number(price) * (item.quantity || 1)).toFixed(2)}</span>
+            <span class="total-value">LKR ${(Number(price) * (item.quantity || 1)).toFixed(2)}</span>
         </td>
         <td class="col-actions">
             <div class="action-buttons">
@@ -232,15 +232,15 @@ function updateCartSummary() {
         if (el) el.textContent = text;
     };
 
-    setText('cart-subtotal', `₹${subtotal.toFixed(2)}`);
-    setText('cart-shipping', shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`);
-    setText('cart-tax', `₹${tax.toFixed(2)}`);
-    setText('cart-total', `₹${total.toFixed(2)}`);
+    setText('cart-subtotal', `LKR ${subtotal.toFixed(2)}`);
+    setText('cart-shipping', shipping === 0 ? 'FREE' : `LKR ${shipping.toFixed(2)}`);
+    setText('cart-tax', `LKR ${tax.toFixed(2)}`);
+    setText('cart-total', `LKR ${total.toFixed(2)}`);
 
     const discountRow = document.getElementById('discount-row');
     if (currentDiscount > 0) {
         if (discountRow) discountRow.style.display = 'flex';
-        setText('cart-discount', `-₹${discount.toFixed(2)}`);
+        setText('cart-discount', `-LKR ${discount.toFixed(2)}`);
     } else {
         if (discountRow) discountRow.style.display = 'none';
     }
@@ -303,7 +303,7 @@ function loadRecentlyViewed() {
             <img src="${item.image}" alt="${item.name}" />
             <div class="item-info">
                 <h5>${item.name}</h5>
-                <span class="price">₹${Number(item.price || 0).toFixed(2)}</span>
+                <span class="price">LKR ${Number(item.price || 0).toFixed(2)}</span>
             </div>
             <button class="btn btn-sm" onclick="addToCartFromRecent('${item.id}')">Add to Cart</button>
         `;
@@ -326,7 +326,7 @@ function loadRecommendedProducts() {
             <div class="item-info">
                 <h5>${product.name}</h5>
                 <span class="category">${product.category}</span>
-                <span class="price">₹${Number(product.price || 0).toFixed(2)}</span>
+                <span class="price">LKR ${Number(product.price || 0).toFixed(2)}</span>
             </div>
             <button class="btn btn-primary btn-sm" onclick="addRecommendedToCart('${product.id}')">
                 <i class="fas fa-plus"></i> Add to Cart
@@ -422,6 +422,35 @@ function getSelectedItems() {
     return selectedItems;
 }
 
+// Post cart data to server and redirect to PayHere
+function submitToPayhere(items, total) {
+    const urlRoot = getCartUrlRoot();
+    const action  = urlRoot ? `${urlRoot}/player/payhere_checkout` : '/player/payhere_checkout';
+
+    // Build a temporary form and submit it
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = action;
+
+    const addField = (name, value) => {
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = name;
+        input.value = value;
+        form.appendChild(input);
+    };
+
+    addField('cart_items', JSON.stringify(items));
+    addField('cart_total', total.toFixed(2));
+
+    // CSRF-like: include session-based nonce if available
+    const nonceEl = document.getElementById('payhere_nonce');
+    if (nonceEl) addField('nonce', nonceEl.value);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
 // Checkout single item
 function checkoutSingleItem(index) {
     if (!cart[index]) {
@@ -430,16 +459,8 @@ function checkoutSingleItem(index) {
     }
 
     const selectedItem = cart[index];
-    const checkoutData = {
-        items: [selectedItem],
-        total: Number(selectedItem.Price || selectedItem.price || 0) * (selectedItem.quantity || 1),
-        type: 'single'
-    };
-
-    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
-
-    const urlRoot = getCartUrlRoot();
-    window.location.href = urlRoot ? `${urlRoot}/player/checkout` : '/player/checkout';
+    const total = Number(selectedItem.Price || selectedItem.price || 0) * (selectedItem.quantity || 1);
+    submitToPayhere([selectedItem], total);
 }
 
 // Proceed to checkout
@@ -451,21 +472,15 @@ function proceedToCheckout() {
         return;
     }
 
-    let total = 0;
-    selectedItems.forEach(item => {
-        total += Number(item.Price || item.price || 0) * (item.quantity || 1);
-    });
+    const subtotal = selectedItems.reduce((sum, item) => {
+        return sum + Number(item.Price || item.price || 0) * (item.quantity || 1);
+    }, 0);
+    const shipping = subtotal > 100 ? 0 : 15;
+    const tax      = subtotal * 0.10;
+    const discount = subtotal * currentDiscount;
+    const total    = subtotal + shipping + tax - discount;
 
-    const checkoutData = {
-        items: selectedItems,
-        total: total,
-        type: 'multiple'
-    };
-
-    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
-
-    const urlRoot = getCartUrlRoot();
-    window.location.href = urlRoot ? `${urlRoot}/player/checkout` : '/player/checkout';
+    submitToPayhere(selectedItems, total);
 }
 
 // Close checkout modal
