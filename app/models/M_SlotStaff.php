@@ -26,16 +26,23 @@ class M_SlotStaff {
         if ($headCoach) {
             $this->db->query(
                 'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status, so.Notes,
+                                                so.TemplateID,
                         so.MaxParticipants AS OccMax,
                         COALESCE(st.TemplateName, \'Private Session\') AS SessionName,
                         COALESCE(st.SlotType, \'private\') AS SlotType,
+                                                st.AgeGroup,
+                                                st.Category,
                         tb.SlotLabel, tb.StartTime, tb.EndTime,
                         f.Name AS FacilityName,
                         (SELECT COUNT(*) FROM slot_booking sb
                          WHERE sb.OccurrenceID = so.OccurrenceID
                            AND sb.Status != \'cancelled\'
                         ) AS BookingCount,
-                        COALESCE(so.MaxParticipants, st.MaxParticipants, 10) AS MaxSlots
+                                                (SELECT COUNT(*) FROM slot_template_player_assignment stpa
+                                                 WHERE stpa.TemplateID = so.TemplateID
+                                                     AND stpa.IsActive = 1
+                                                ) AS EligiblePlayerCount,
+                                                COALESCE(so.MaxParticipants, st.MaxParticipants) AS MaxSlots
                  FROM slot_occurrence so
                  LEFT JOIN slot_template  st ON st.TemplateID = so.TemplateID
                  JOIN  slot_time_band tb ON tb.SlotID      = so.SlotID
@@ -50,16 +57,23 @@ class M_SlotStaff {
 
         $this->db->query(
             'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status, so.Notes,
+                                        so.TemplateID,
                     so.MaxParticipants AS OccMax,
                     COALESCE(st.TemplateName, \'Private Session\') AS SessionName,
                     COALESCE(st.SlotType, \'private\') AS SlotType,
+                                        st.AgeGroup,
+                                        st.Category,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
                     (SELECT COUNT(*) FROM slot_booking sb
                      WHERE sb.OccurrenceID = so.OccurrenceID
                        AND sb.Status != \'cancelled\'
                     ) AS BookingCount,
-                    COALESCE(so.MaxParticipants, st.MaxParticipants, 10) AS MaxSlots
+                                        (SELECT COUNT(*) FROM slot_template_player_assignment stpa
+                                         WHERE stpa.TemplateID = so.TemplateID
+                                             AND stpa.IsActive = 1
+                                        ) AS EligiblePlayerCount,
+                                        COALESCE(so.MaxParticipants, st.MaxParticipants) AS MaxSlots
              FROM slot_occurrence so
              LEFT JOIN slot_template  st ON st.TemplateID = so.TemplateID
              JOIN  slot_time_band tb ON tb.SlotID      = so.SlotID
@@ -102,17 +116,24 @@ class M_SlotStaff {
         $sql =
             'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status,
                     so.CancelReason, so.Notes, so.GeneratedBy,
+                                        so.TemplateID,
                     so.MaxParticipants AS OccMax,
                     COALESCE(st.TemplateName, \'Private Session\') AS SessionName,
                     COALESCE(st.SlotType, \'private\') AS SlotType,
                     COALESCE(st.StaffType, \'coach\') AS StaffType,
+                                        st.AgeGroup,
+                                        st.Category,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
-                    COALESCE(so.MaxParticipants, st.MaxParticipants, 10) AS MaxSlots,
+                                        COALESCE(so.MaxParticipants, st.MaxParticipants) AS MaxSlots,
                     (SELECT COUNT(*) FROM slot_booking sb
                      WHERE sb.OccurrenceID = so.OccurrenceID
                        AND sb.Status != \'cancelled\'
-                    ) AS BookingCount
+                                        ) AS BookingCount,
+                                        (SELECT COUNT(*) FROM slot_template_player_assignment stpa
+                                         WHERE stpa.TemplateID = so.TemplateID
+                                             AND stpa.IsActive = 1
+                                        ) AS EligiblePlayerCount
              FROM slot_occurrence so
              LEFT JOIN slot_template  st ON st.TemplateID = so.TemplateID
              JOIN  slot_time_band tb ON tb.SlotID      = so.SlotID

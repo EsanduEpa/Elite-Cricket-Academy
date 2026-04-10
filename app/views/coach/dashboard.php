@@ -24,13 +24,7 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Sessions</span>
-                        </a>
-                    </li>
+                  
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
                             <i class="fas fa-calendar-check"></i>
