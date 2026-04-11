@@ -4,6 +4,12 @@
     <section class="hero" id="home">
         <div class="hero-content">
             <h1>Elite Cricket Academy</h1>
+            <p style="max-width: 760px; margin: 0 auto; font-size: 1.1rem; line-height: 1.8;">
+                <?php echo (int)($data['homeStats']['program_count'] ?? 0); ?> active programs,
+                <?php echo (int)($data['homeStats']['coach_count'] ?? 0); ?> coaches,
+                <?php echo (int)($data['homeStats']['facility_count'] ?? 0); ?> facilities, and
+                <?php echo (int)($data['homeStats']['upcoming_event_count'] ?? 0); ?> upcoming events.
+            </p>
             <button class="explore-btn">Explore Programs</button>
         </div>
     </section>
@@ -20,134 +26,39 @@
         <p>With a track record of producing successful players who have represented their countries and played in major leagues worldwide, Elite Cricket Academy continues to be the preferred choice for serious cricket development. Join us in your journey to cricket excellence.</p>
     </section>
 
-    <!-- Featured Equipment Section -->
-    <section class="featured-equipment">
-        <div class="featured-container">
-            <h2>Premium Cricket Equipment</h2>
-            <p class="section-subtitle">Professional grade equipment trusted by champions</p>
-            <div class="equipment-grid">
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/cricket-bat-pro.svg" alt="Pro Series Cricket Bat">
-                        <div class="equipment-overlay">
-                            <span class="price">$299.99</span>
-                            <span class="rating">★★★★★ 4.8</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Pro Series Cricket Bat</h3>
-                        <p>Professional grade cricket bat made from premium English willow</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/cricket-ball-leather.svg" alt="Premium Leather Cricket Ball">
-                        <div class="equipment-overlay">
-                            <span class="price">$45.99</span>
-                            <span class="rating">★★★★★ 4.9</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Premium Leather Ball</h3>
-                        <p>Hand-stitched leather cricket ball for professional matches</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/batting-gloves.svg" alt="Professional Batting Gloves">
-                        <div class="equipment-overlay">
-                            <span class="price">$89.99</span>
-                            <span class="rating">★★★★★ 4.7</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Professional Gloves</h3>
-                        <p>Superior protection and grip for serious batsmen</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/cricket-helmet.svg" alt="Elite Cricket Helmet">
-                        <div class="equipment-overlay">
-                            <span class="price">$159.99</span>
-                            <span class="rating">★★★★★ 4.8</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Elite Cricket Helmet</h3>
-                        <p>Advanced protection helmet with superior ventilation</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/cricket-leg-pads.svg" alt="Cricket Leg Pads">
-                        <div class="equipment-overlay">
-                            <span class="price">$129.99</span>
-                            <span class="rating">★★★★★ 4.6</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Cricket Leg Pads</h3>
-                        <p>Lightweight and durable leg protection for batsmen</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-                <div class="equipment-card">
-                    <div class="equipment-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/training-jersey.svg" alt="Training Jersey">
-                        <div class="equipment-overlay">
-                            <span class="price">$59.99</span>
-                            <span class="rating">★★★★★ 4.5</span>
-                        </div>
-                    </div>
-                    <div class="equipment-content">
-                        <h3>Training Jersey</h3>
-                        <p>Moisture-wicking performance jersey for training and matches</p>
-                        <button class="view-equipment-btn">View Details</button>
-                    </div>
-                </div>
-            </div>
-            <div class="shop-link-container">
-                <a href="<?php echo URLROOT; ?>/shop/accessories" class="shop-all-btn">
-                    <span>Shop All Equipment</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
-    </section>
-
     <!-- Programs Section -->
     <section class="programs" id="programs">
         <div class="programs-container">
             <h2>Our Programs</h2>
             <div class="programs-grid">
-                <div class="program-card">
-                    <div class="program-image youth-program"></div>
-                    <div class="program-content">
-                        <h3>Youth Cricket Program</h3>
-                        <p>Develop fundamental and advanced game essentials in a fun and challenging environment.</p>
+                <?php if (!empty($data['programs'])): ?>
+                    <?php foreach ($data['programs'] as $program): ?>
+                        <div class="program-card">
+                            <div class="program-image <?php echo htmlspecialchars($program['image_class']); ?>"></div>
+                            <div class="program-content">
+                                <h3><?php echo htmlspecialchars($program['name']); ?></h3>
+                                <p><?php echo htmlspecialchars($program['description']); ?></p>
+                                <p>
+                                    <?php echo (int)$program['sessions_per_week']; ?> sessions/week
+                                    <?php if (!empty($program['private_sessions'])): ?>
+                                        • <?php echo (int)$program['private_sessions']; ?> private sessions
+                                    <?php endif; ?>
+                                    <?php if (!empty($program['facility_access'])): ?>
+                                        • Facility access included
+                                    <?php endif; ?>
+                                </p>
+                                <p><strong>Monthly Fee:</strong> Rs. <?php echo number_format((float)$program['monthly_fee'], 2); ?></p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="program-card">
+                        <div class="program-content">
+                            <h3>Programs will appear here soon</h3>
+                            <p>Membership plans from the database are not available yet.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="program-card">
-                    <div class="program-image advanced-training"></div>
-                    <div class="program-content">
-                        <h3>Advanced Cricket Training</h3>
-                        <p>Intensive training for aspiring professionals, focusing on advanced techniques and strategies.</p>
-                    </div>
-                </div>
-                <div class="program-card">
-                    <div class="program-image coaching-camps"></div>
-                    <div class="program-content">
-                        <h3>Specialized Coaching Camps</h3>
-                        <p>Short-term, focused training sessions on specific aspects of the game, led by expert coaches.</p>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -156,21 +67,33 @@
     <section class="coaches" id="coaches">
         <h2>Meet Our Coaches</h2>
         <div class="coaches-grid">
-            <div class="coach-card">
-                <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Coach Alex Turner" class="coach-photo">
-                <h3>Kumara Darmasena</h3>
-                <p>Former National Team Player</p>
-            </div>
-            <div class="coach-card">
-                <img src="<?php echo URLROOT; ?>/img/coach2.jpg" alt="Coach Ben Carter" class="coach-photo">
-                <h3>Ben Carter</h3>
-                <p>Certified Cricket Coach</p>
-            </div>
-            <div class="coach-card">
-                <img src="<?php echo URLROOT; ?>/img/coach3.webp" alt="Coach Chris Evans" class="coach-photo">
-                <h3>Kumara Sangakkara</h3>
-                <p>Specialist Batting Coach</p>
-            </div>
+            <?php if (!empty($data['coaches'])): ?>
+                <?php foreach ($data['coaches'] as $coach): ?>
+                    <div class="coach-card">
+                        <?php if (!empty($coach->image)): ?>
+                            <img src="<?php echo URLROOT . '/' . ltrim((string)$coach->image, '/'); ?>" alt="<?php echo htmlspecialchars($coach->name); ?>" class="coach-photo">
+                        <?php else: ?>
+                            <div class="coach-avatar"></div>
+                        <?php endif; ?>
+                        <h3><?php echo htmlspecialchars($coach->name); ?></h3>
+                        <p>
+                            <?php echo htmlspecialchars((string)($coach->specialization ?? 'Coach')); ?>
+                            <?php if (!empty($coach->experience_years)): ?>
+                                • <?php echo (int)$coach->experience_years; ?> years experience
+                            <?php endif; ?>
+                            <?php if (!empty($coach->IsHeadCoach)): ?>
+                                • Head Coach
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="coach-card">
+                    <div class="coach-avatar"></div>
+                    <h3>Coach profiles unavailable</h3>
+                    <p>Active coach records have not been added yet.</p>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -179,27 +102,34 @@
         <div class="facilities-container">
             <h2>Facilities</h2>
             <div class="facilities-grid">
-                <div class="facility-card">
-                    <div class="facility-image indoor-nets"></div>
-                    <div class="facility-content">
-                        <h3>Indoor Training Nets</h3>
-                        <p>State-of-the-art indoor nets for year-round training, equipped with advanced technology.</p>
+                <?php $facilityClasses = ['indoor-nets', 'outdoor-pitches', 'fitness-center']; ?>
+                <?php if (!empty($data['facilities'])): ?>
+                    <?php foreach ($data['facilities'] as $index => $facility): ?>
+                        <div class="facility-card">
+                            <div class="facility-image <?php echo htmlspecialchars($facilityClasses[$index % count($facilityClasses)]); ?>"></div>
+                            <div class="facility-content">
+                                <h3><?php echo htmlspecialchars($facility->Name); ?></h3>
+                                <p>
+                                    Location: <?php echo htmlspecialchars((string)($facility->Location ?? 'TBA')); ?>
+                                    <?php if (!empty($facility->Capacity)): ?>
+                                        • Capacity: <?php echo (int)$facility->Capacity; ?>
+                                    <?php endif; ?>
+                                </p>
+                                <p>
+                                    Status: <?php echo htmlspecialchars(ucfirst((string)($facility->AvailabilityStatus ?? 'available'))); ?>
+                                    • Hourly Rate: Rs. <?php echo number_format((float)($facility->HourlyRate ?? 0), 2); ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="facility-card">
+                        <div class="facility-content">
+                            <h3>Facilities will appear here soon</h3>
+                            <p>Facility records are not available in the database yet.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="facility-card">
-                    <div class="facility-image outdoor-pitches"></div>
-                    <div class="facility-content">
-                        <h3>Outdoor Practice Pitches</h3>
-                        <p>Full-sized outdoor pitches providing realistic match conditions for practice.</p>
-                    </div>
-                </div>
-                <div class="facility-card">
-                    <div class="facility-image fitness-center"></div>
-                    <div class="facility-content">
-                        <h3>Accessories Shop & Rental</h3>
-                        <p>We offer a wide range of cricket accessories for purchase and rental.</p>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -207,14 +137,40 @@
     <!-- Events Section -->
     <section class="events">
         <h2>Upcoming Events</h2>
-        <div class="event-card">
-            <div class="event-content">
-                <h3>Summer Cricket Camp</h3>
-                <p>Join our intensive summer camp for skill development and match practice.</p>
-                <button class="learn-more-btn">Learn More</button>
+        <?php if (!empty($data['events'])): ?>
+            <?php foreach ($data['events'] as $event): ?>
+                <div class="event-card" style="margin-bottom: 24px;">
+                    <div class="event-content">
+                        <h3><?php echo htmlspecialchars((string)($event['title'] ?? 'Upcoming Event')); ?></h3>
+                        <p><?php echo htmlspecialchars((string)($event['description'] ?? '')); ?></p>
+                        <p>
+                            <strong>Date:</strong>
+                            <?php echo !empty($event['event_date']) ? date('M d, Y h:i A', strtotime((string)$event['event_date'])) : 'TBA'; ?>
+                            <?php if (!empty($event['location'])): ?>
+                                • <strong>Location:</strong> <?php echo htmlspecialchars((string)$event['location']); ?>
+                            <?php endif; ?>
+                        </p>
+                        <p>
+                            <strong>Type:</strong> <?php echo htmlspecialchars((string)($event['Type'] ?? 'Event')); ?>
+                            <?php if (isset($event['RegistrationFee']) && $event['RegistrationFee'] !== null): ?>
+                                • <strong>Fee:</strong> Rs. <?php echo number_format((float)$event['RegistrationFee'], 2); ?>
+                            <?php endif; ?>
+                        </p>
+                        <a class="learn-more-btn" href="#contact">Contact Us</a>
+                    </div>
+                    <div class="event-image"></div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="event-card">
+                <div class="event-content">
+                    <h3>No upcoming events</h3>
+                    <p>New academy events will appear here as soon as they are scheduled in the system.</p>
+                    <a class="learn-more-btn" href="#contact">Contact Us</a>
+                </div>
+                <div class="event-image"></div>
             </div>
-            <div class="event-image"></div>
-        </div>
+        <?php endif; ?>
     </section>
 
     <!-- Testimonials Section -->
@@ -222,39 +178,36 @@
         <div class="testimonials-container">
             <h2>Testimonials</h2>
             <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="<?php echo URLROOT; ?>/img/coach1.jpg" alt="Ethan Harper" class="testimonial-photo">
-                        <div class="testimonial-info">
-                            <h4>Kapila Hewage</h4>
-                            <div class="testimonial-date">2025-06-15</div>
+                <?php if (!empty($data['testimonials'])): ?>
+                    <?php foreach ($data['testimonials'] as $testimonial): ?>
+                        <div class="testimonial-card">
+                            <div class="testimonial-header">
+                                <div class="testimonial-avatar"></div>
+                                <div class="testimonial-info">
+                                    <h4><?php echo htmlspecialchars($testimonial['name']); ?></h4>
+                                    <div class="testimonial-date">
+                                        <?php echo !empty($testimonial['date']) ? date('Y-m-d', strtotime($testimonial['date'])) : ''; ?>
+                                        <?php if (!empty($testimonial['category'])): ?>
+                                            • <?php echo htmlspecialchars($testimonial['category']); ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stars"><?php echo str_repeat('★', (int)$testimonial['rating']); ?></div>
+                            <p class="testimonial-text">"<?php echo htmlspecialchars($testimonial['text']); ?>"</p>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="testimonial-card">
+                        <div class="testimonial-header">
+                            <div class="testimonial-avatar"></div>
+                            <div class="testimonial-info">
+                                <h4>No public feedback yet</h4>
+                                <div class="testimonial-date">Testimonials will appear here once members submit feedback.</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"Elite Cricket Academy has transformed my game. The coaches are incredibly knowledgeable and supportive, and the facilities are top-notch. I've seen significant improvement in my batting and overall performance."</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="<?php echo URLROOT; ?>/img/coach2.jpg" alt="Kaveesha Kawindya" class="testimonial-photo">
-                        <div class="testimonial-info">
-                            <h4>Kaveesha Kawindya</h4>
-                            <div class="testimonial-date">2025-07-02</div>
-                        </div>
-                    </div>
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"The training programs are well-structured and challenging. The coaches push you to be your best, and the competitive environment is great for growth. Highly recommend!"</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="<?php echo URLROOT; ?>/img/coach3.webp" alt="Kumara Dissanayala" class="testimonial-photo">
-                        <div class="testimonial-info">
-                            <h4>Kumara Dissanayala</h4>
-                            <div class="testimonial-date">2025-06-10</div>
-                        </div>
-                    </div>
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"The specialized coaching camps are fantastic. I attended the batting camp and learned so much in a short amount of time. The coaches provided personalized feedback that helped me refine my technique."</p>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -293,28 +246,46 @@
                 <div class="contact-icon">📍</div>
                 <div class="contact-details">
                     <h4>Address</h4>
-                    <p>123 Cricket Ground Road<br>Sports Complex, Colombo 03<br>Sri Lanka</p>
+                    <p>
+                        <?php if (!empty($data['contact']['address_lines'])): ?>
+                            <?php echo nl2br(htmlspecialchars(implode("\n", $data['contact']['address_lines']))); ?>
+                        <?php else: ?>
+                            Address details will appear here once academy location records are available.
+                        <?php endif; ?>
+                    </p>
                 </div>
             </div>
             <div class="contact-item">
                 <div class="contact-icon">📞</div>
                 <div class="contact-details">
                     <h4>Phone</h4>
-                    <p>+94 11 234 5678<br>+94 77 123 4567</p>
+                    <p>
+                        <?php if (!empty($data['contact']['phones'])): ?>
+                            <?php echo nl2br(htmlspecialchars(implode("\n", $data['contact']['phones']))); ?>
+                        <?php else: ?>
+                            Phone details will appear here once event contact records are available.
+                        <?php endif; ?>
+                    </p>
                 </div>
             </div>
             <div class="contact-item">
                 <div class="contact-icon">✉️</div>
                 <div class="contact-details">
                     <h4>Email</h4>
-                    <p>info@elitecricketacademy.lk<br>admissions@elitecricketacademy.lk</p>
+                    <p>
+                        <?php if (!empty($data['contact']['emails'])): ?>
+                            <?php echo nl2br(htmlspecialchars(implode("\n", $data['contact']['emails']))); ?>
+                        <?php else: ?>
+                            Email details will appear here once event contact records are available.
+                        <?php endif; ?>
+                    </p>
                 </div>
                 </div>
             <div class="contact-item">
                 <div class="contact-icon">🕒</div>
                 <div class="contact-details">
                     <h4>Operating Hours</h4>
-                    <p>Monday - Friday: 6:00 AM - 10:00 PM<br>Saturday - Sunday: 7:00 AM - 8:00 PM</p>
+                    <p><?php echo htmlspecialchars((string)($data['contact']['hours'] ?? '')); ?></p>
                 </div>
             </div>
         </div>

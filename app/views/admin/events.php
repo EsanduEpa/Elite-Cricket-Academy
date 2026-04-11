@@ -36,7 +36,7 @@
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#player-management" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                         <i class="fas fa-user-graduate"></i>
                         <span>Player Management</span>
                     </a>
@@ -57,6 +57,20 @@
                     </a>
                 </li>
                 
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
+                        <i class="fas fa-clock"></i>
+                        <span>Slot Management</span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
@@ -102,6 +116,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Flash Messages -->
+        <?php flash('event_message'); ?>
 
         <!-- Event Statistics Cards -->
         <div class="stats-grid">
@@ -216,12 +233,14 @@
                                     <?php echo $event['description']; ?>
                                 </td>
                                 <td class="actions-cell">
-                                    <button class="btn-action-table edit" onclick="editEvent(<?php echo $event['id']; ?>)" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <button 
+    class="btn-action-table edit" 
+    onclick="editEvent(<?php echo isset($event['EventID']) ? (int)$event['EventID'] : (isset($event['id']) ? (int)$event['id'] : 0); ?>)" 
+    title="Edit"
+>
+    <i class="fas fa-edit"></i>
+</button>
+                                    <!-- No delete button for upcoming events -->
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -285,9 +304,18 @@
                                     <button class="btn-action-table view" onclick="viewEvent(<?php echo $event['id']; ?>)" title="View">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <?php if (!empty($event['can_delete'])): ?>
+                                        <button class="btn-action-table delete" onclick="deleteEvent(<?php echo $event['id']; ?>)" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn-action-table delete disabled" 
+                                                title="Can only delete events 6 months after end date" 
+                                                style="opacity: 0.5; cursor: not-allowed;" 
+                                                disabled>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -337,7 +365,7 @@
             </div>
 
             <!-- Form Content -->
-            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/createEvent" method="POST">
+            <form id="eventWizardForm" action="<?php echo URLROOT; ?>/admin/create_event" method="POST">
                 <div class="wizard-content">
                     <!-- Step 1: Basic Details -->
                     <div class="step-content active" data-step="1">
@@ -359,13 +387,15 @@
                                 <label for="eventType">Event Type <span class="required">*</span></label>
                                 <select id="eventType" name="event_type" class="form-control" required>
                                     <option value="">Select Event Type</option>
-                                    <option value="tournament">Tournament</option>
-                                    <option value="training_camp">Training Camp</option>
-                                    <option value="match">Match/Game</option>
-                                    <option value="workshop">Workshop/Clinic</option>
-                                    <option value="trial">Trial/Selection</option>
-                                    <option value="meeting">Team Meeting</option>
-                                    <option value="other">Other</option>
+                                    <option value="Tournament">Tournament</option>
+                                    <option value="Training Camp">Training Camp</option>
+                                    <option value="Match">Match</option>
+                                    <option value="Workshop">Workshop</option>
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Competition">Competition</option>
+                                    <option value="Trial">Trial</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Other">Other</option>
                                 </select>
                                 <div class="error-message" id="eventTypeError">Please select an event type</div>
                             </div>
@@ -512,44 +542,6 @@
                                        placeholder="+94 77 123 4567" required>
                                 <div class="error-message" id="contactPhoneError">Please enter a valid phone number</div>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="secondaryContact">Secondary Contact Person</label>
-                            <input type="text" id="secondaryContact" name="secondary_contact" class="form-control" 
-                                   placeholder="Backup organizer (optional)">
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="secondaryEmail">Secondary Email</label>
-                                <input type="email" id="secondaryEmail" name="secondary_email" class="form-control" 
-                                       placeholder="backup@elitecricket.com">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secondaryPhone">Secondary Phone</label>
-                                <input type="tel" id="secondaryPhone" name="secondary_phone" class="form-control" 
-                                       placeholder="+94 71 987 6543">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="eventCoordinator">Event Coordinator</label>
-                            <select id="eventCoordinator" name="event_coordinator" class="form-control">
-                                <option value="">Select Coordinator</option>
-                                <option value="john_doe">John Doe (Head Coach)</option>
-                                <option value="jane_smith">Jane Smith (Academy Manager)</option>
-                                <option value="mike_wilson">Mike Wilson (Senior Coach)</option>
-                                <option value="sarah_johnson">Sarah Johnson (Assistant Manager)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="specialRequirements">Special Requirements / Notes</label>
-                            <textarea id="specialRequirements" name="special_requirements" class="form-control" 
-                                    placeholder="Any special arrangements, equipment needs, dietary requirements, accessibility considerations, etc." 
-                                    rows="3"></textarea>
                         </div>
                     </div>
 
@@ -1164,22 +1156,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== EVENTS PAGE DEBUG ===');
-    console.log('URLROOT:', '<?php echo URLROOT; ?>');
-    console.log('CSS file path:', '<?php echo URLROOT; ?>/css/admin/create-event-wizard.css');
-    console.log('JS file path:', '<?php echo URLROOT; ?>/js/admin/create-event-wizard.js');
-    
-    // Check if modal exists
-    const modal = document.getElementById('createEventModal');
-    console.log('Modal element found:', !!modal);
-    
-    // Check if button exists
-    const button = document.getElementById('createEventBtn');
-    console.log('Button element found:', !!button);
-    
-    // Check if openCreateEventModal function exists
-    console.log('openCreateEventModal function exists:', typeof openCreateEventModal);
-    
     // Initialize calendar
     const calendarEl = document.getElementById('eventCalendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1202,28 +1178,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Updated event handlers for new wizard modal
-    const createEventBtn = document.getElementById('createEventBtn');
-    const createTournamentBtn = document.getElementById('createTournamentBtn');
+    // Note: Create Event button handler is now in create-event-wizard.js to avoid timing issues
+    // Note: Create Tournament button handler is in create-tournament-wizard.js
     
-    if (createEventBtn) {
-        createEventBtn.addEventListener('click', () => {
-            console.log('Create Event button clicked!');
-            openCreateEventModal();
-        });
-    } else {
-        console.error('Create Event button not found!');
-    }
-    
-    if (createTournamentBtn) {
-        createTournamentBtn.addEventListener('click', () => {
-            console.log('Create Tournament button clicked!');
-            openTournamentModal();
-        });
-    } else {
-        console.error('Create Tournament button not found!');
-    }
-
     // Other existing event handlers
     const viewAllUpcomingBtn = document.getElementById('viewAllUpcomingBtn');
     const viewAllPastBtn = document.getElementById('viewAllPastBtn');
@@ -1235,72 +1192,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewAllPastBtn) {
         viewAllPastBtn.addEventListener('click', () => viewAllEvents('past'));
     }
-    
-    // Debug function
-    window.debugWizard = function() {
-        console.log('=== WIZARD DEBUG INFO ===');
-        const modal = document.getElementById('createEventModal');
-        const steps = document.querySelectorAll('.step-content');
-        const activeSteps = document.querySelectorAll('.step-content.active');
-        
-        console.log('Modal element:', modal);
-        console.log('Modal classes:', modal ? modal.className : 'Not found');
-        console.log('Total steps found:', steps.length);
-        console.log('Active steps found:', activeSteps.length);
-        
-        steps.forEach((step, index) => {
-            const stepNum = step.getAttribute('data-step');
-            const isActive = step.classList.contains('active');
-            const display = window.getComputedStyle(step).display;
-            const opacity = window.getComputedStyle(step).opacity;
-            
-            console.log(`Step ${stepNum}: active=${isActive}, display=${display}, opacity=${opacity}`);
-        });
-        
-        if (window.eventWizard) {
-            console.log('Current wizard step:', window.eventWizard.currentStep);
-        } else {
-            console.log('EventWizard not initialized');
-        }
-        console.log('========================');
-    };
-    
-    // Simple modal test function
-    window.testModal = function() {
-        const modal = document.getElementById('createEventModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Modal test: Showing modal manually');
-        } else {
-            console.error('Modal test: Modal not found');
-        }
-    };
-    
-    // Test button click manually
-    window.testButton = function() {
-        const btn = document.getElementById('createEventBtn');
-        if (btn) {
-            btn.click();
-            console.log('Button test: Clicked button manually');
-        } else {
-            console.error('Button test: Button not found');
-        }
-    };
-    
-    // Tournament modal test function
-    window.testTournamentModal = function() {
-        const modal = document.getElementById('createTournamentModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            console.log('Tournament modal test: Showing modal manually');
-        } else {
-            console.error('Tournament modal test: Modal not found');
-        }
-    };
 });
 
 // Legacy function for viewing all events
@@ -1317,15 +1208,8 @@ function refreshEvents() {
     location.reload(); // Simple refresh - can be improved with AJAX
 }
 
-// Legacy functions for existing events (can be updated later)
-function editEvent(eventId) {
-    // Fetch event details and populate form
-    fetch(`<?php echo URLROOT; ?>/admin/get_event/${eventId}`)
-        .then(response => response.json())
-        .then(event => {
-            alert('Edit functionality will be updated to use the new wizard format');
-        });
-}
+// Note: editEvent() function and edit wizard functionality is now in events.js
+
 
 function deleteEvent(eventId) {
     if (confirm('Are you sure you want to delete this event?')) {
@@ -1354,19 +1238,26 @@ function filterEvents() {
             }
         }
         
-        // Date filter (simplified - would need actual dates in production)
+        // Date filter
         if (dateFilter !== 'all' && showRow) {
-            const dateText = row.querySelector('.date-cell')?.textContent || '';
+            const dateText = row.querySelector('.date-cell')?.textContent.trim() || '';
             const today = new Date();
-            
-            if (dateFilter === 'today' && !dateText.includes(today.getDate().toString())) {
-                showRow = false;
-            } else if (dateFilter === 'week') {
-                // Filter for this week
-                showRow = true; // Simplified
-            } else if (dateFilter === 'month') {
-                // Filter for this month
-                showRow = true; // Simplified
+            today.setHours(0, 0, 0, 0);
+            const rowDate = new Date(dateText);
+
+            if (!isNaN(rowDate.getTime())) {
+                rowDate.setHours(0, 0, 0, 0);
+                if (dateFilter === 'today') {
+                    showRow = rowDate.getTime() === today.getTime();
+                } else if (dateFilter === 'week') {
+                    const weekAgo = new Date(today);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    const weekAhead = new Date(today);
+                    weekAhead.setDate(weekAhead.getDate() + 7);
+                    showRow = rowDate >= weekAgo && rowDate <= weekAhead;
+                } else if (dateFilter === 'month') {
+                    showRow = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+                }
             }
         }
         
@@ -1381,6 +1272,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeFilter) typeFilter.addEventListener('change', filterEvents);
     if (dateFilter) dateFilter.addEventListener('change', filterEvents);
+    
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessage = document.getElementById('msg-flash');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.classList.add('alert-fade-out');
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 500);
+        }, 5000);
+    }
 });
 </script>
 

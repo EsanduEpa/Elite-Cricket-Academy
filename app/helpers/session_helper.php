@@ -60,17 +60,25 @@ function requireAuth($allowedRoles = []) {
         }
         
         if (!isset($_SESSION['user_id'])) {
-            // Create mock session based on the required role
-            $_SESSION['user_id'] = 999;
-            $_SESSION['user_name'] = 'Dev User';
-            $_SESSION['user_email'] = 'dev@test.com';
-            
             // Set role based on what's being accessed
             if (!empty($allowedRoles)) {
-                $_SESSION['user_role'] = $allowedRoles[0]; // Use first allowed role
+                $_SESSION['user_role'] = $allowedRoles[0];
             } else {
-                $_SESSION['user_role'] = 'Admin'; // Default to Admin in dev mode
+                $_SESSION['user_role'] = 'Admin';
             }
+            
+            // Use appropriate real user IDs for each role to avoid empty data
+            $roleUserMap = [
+                'Admin'        => 1,
+                'Coach'        => 3,
+                'Player'       => 6,
+                'Trainer'      => 4,
+                'Shop'         => 5,
+                'ShopEmployee' => 5,
+            ];
+            $_SESSION['user_id'] = $roleUserMap[$_SESSION['user_role']] ?? 1;
+            $_SESSION['user_name'] = $_SESSION['user_role'] . ' User';
+            $_SESSION['user_email'] = strtolower($_SESSION['user_role']) . '@cricketacademy.com';
         }
         return; // Skip authentication in dev mode
     }
@@ -81,8 +89,26 @@ function requireAuth($allowedRoles = []) {
         session_start();
     }
     
+    // Check if this is an AJAX request
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $isJsonRequest = (isset($_SERVER['CONTENT_TYPE']) && 
+                     strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+                     (isset($_SERVER['HTTP_ACCEPT']) && 
+                     strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+    
     // Check if user is logged in
     if (!isLoggedIn()) {
+        if ($isAjax || $isJsonRequest) {
+            // Return JSON error for AJAX requests
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Please login to access this resource'
+            ]);
+            exit();
+        }
         flash('login_required', 'Please login to access this page', 'alert alert-danger');
         redirect('login');
         exit();
@@ -90,6 +116,16 @@ function requireAuth($allowedRoles = []) {
     
     // Check if role is allowed (if roles specified)
     if (!empty($allowedRoles) && !in_array($_SESSION['user_role'], $allowedRoles)) {
+        if ($isAjax || $isJsonRequest) {
+            // Return JSON error for AJAX requests
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'You do not have permission to access this resource'
+            ]);
+            exit();
+        }
         flash('access_denied', 'You do not have permission to access this page', 'alert alert-danger');
         // Redirect to their own dashboard
         redirectToDashboard();

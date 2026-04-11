@@ -19,6 +19,13 @@
             //initiate pdo
             try {
                 $this->dbh = new PDO($dsn, $this->user, $this->password, $options);
+                
+                // Set PDO to preserve natural column name casing from database
+                $this->dbh->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
+                
+                // Ensure error mode and default fetch mode are set
+                $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $this->dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
             } catch (PDOException $e) {
                 $this->error = $e->getMessage();
                 echo "Connection failed: " . $this->error;
@@ -53,7 +60,12 @@
         //excute the prepared statement
         public function execute() {
             try {
-                return $this->statement->execute();
+                $result = $this->statement->execute();
+                if (!$result) {
+                    $errorInfo = $this->statement->errorInfo();
+                    error_log("Database execution failed with error: " . print_r($errorInfo, true));
+                }
+                return $result;
             } catch (PDOException $e) {
                 error_log("Database execution error: " . $e->getMessage());
                 error_log("SQL Error Info: " . print_r($this->statement->errorInfo(), true));
@@ -81,6 +93,30 @@
         //get last insert id
         public function lastInsertId(){
             return $this->dbh->lastInsertId();
+        }
+
+        public function beginTransaction(){
+            return $this->dbh->beginTransaction();
+        }
+
+        public function commit(){
+            return $this->dbh->commit();
+        }
+
+        public function rollBack(){
+            if ($this->dbh->inTransaction()) {
+                return $this->dbh->rollBack();
+            }
+            return false;
+        }
+
+        public function inTransaction(){
+            return $this->dbh->inTransaction();
+        }
+
+        //get error info from last statement
+        public function getError(){
+            return $this->statement ? $this->statement->errorInfo() : ['00000', null, 'No statement executed'];
         }
     }
 ?>

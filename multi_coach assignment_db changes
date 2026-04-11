@@ -1,0 +1,74 @@
+CREATE TABLE IF NOT EXISTS coach_skill_age_group_assignment (
+    CoachSkillGroupID INT(11) NOT NULL AUTO_INCREMENT,
+    CoachID           INT(11) NOT NULL,
+    CoachingType      ENUM('batting','bowling','fielding') NOT NULL,
+    AgeGroup          VARCHAR(50) NOT NULL,
+    PriorityRank      INT(11) NOT NULL DEFAULT 1,
+    IsActive          TINYINT(1) NOT NULL DEFAULT 1,
+    Notes             TEXT DEFAULT NULL,
+    AssignedBy        INT(11) DEFAULT NULL,
+    CreatedAt         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt         DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (CoachSkillGroupID),
+    UNIQUE KEY uq_csg_coach_skill_age (CoachID, CoachingType, AgeGroup),
+    KEY idx_csg_skill_age (CoachingType, AgeGroup, IsActive),
+    CONSTRAINT fk_csg_coach FOREIGN KEY (CoachID) REFERENCES coachprofile (CoachID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_csg_assigned_by FOREIGN KEY (AssignedBy) REFERENCES user (UserID) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+INSERT IGNORE INTO coach_skill_age_group_assignment
+    (CoachID, CoachingType, AgeGroup, PriorityRank, IsActive, Notes)
+SELECT cp.CoachID, 'batting', 'Open', 1, 1, 'Seeded from coachprofile specialization'
+FROM coachprofile cp
+WHERE cp.Specialization IN ('Batting', 'All-rounder');
+
+INSERT IGNORE INTO coach_skill_age_group_assignment
+    (CoachID, CoachingType, AgeGroup, PriorityRank, IsActive, Notes)
+SELECT cp.CoachID, 'bowling', 'Open', 1, 1, 'Seeded from coachprofile specialization'
+FROM coachprofile cp
+WHERE cp.Specialization IN ('Bowling', 'All-rounder');
+
+INSERT IGNORE INTO coach_skill_age_group_assignment
+    (CoachID, CoachingType, AgeGroup, PriorityRank, IsActive, Notes)
+SELECT cp.CoachID, 'fielding', 'Open', 2, 1, 'Seeded from all-rounder specialization; refine manually'
+FROM coachprofile cp
+WHERE cp.Specialization = 'All-rounder';
+
+
+CREATE TABLE IF NOT EXISTS player_skill_coach_assignment (
+    PlayerID          INT(11) NOT NULL,
+    CoachingType      ENUM('batting','bowling','fielding') NOT NULL,
+    CoachID           INT(11) NOT NULL,
+    AgeGroup          VARCHAR(50) NOT NULL,
+    AssignmentSource  ENUM('auto_registration','admin_manual','system_refresh') NOT NULL DEFAULT 'auto_registration',
+    AssignedBy        INT(11) DEFAULT NULL,
+    AssignedAt        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Notes             TEXT DEFAULT NULL,
+    PRIMARY KEY (PlayerID, CoachingType),
+    KEY idx_psca_coach (CoachID),
+    KEY idx_psca_age_group (AgeGroup),
+    CONSTRAINT fk_psca_player FOREIGN KEY (PlayerID) REFERENCES user (UserID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_psca_coach FOREIGN KEY (CoachID) REFERENCES coachprofile (CoachID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_psca_assigned_by FOREIGN KEY (AssignedBy) REFERENCES user (UserID) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS slot_template_player_assignment (
+    TemplateID         INT(11) NOT NULL,
+    PlayerID           INT(11) NOT NULL,
+    CoachingType       ENUM('batting','bowling','fielding') DEFAULT NULL,
+    AgeGroup           VARCHAR(50) DEFAULT NULL,
+    AssignmentSource   ENUM('auto_plan','admin_manual','system_refresh') NOT NULL DEFAULT 'auto_plan',
+    AssignedBy         INT(11) DEFAULT NULL,
+    AssignedAt         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    IsActive           TINYINT(1) NOT NULL DEFAULT 1,
+    Notes              TEXT DEFAULT NULL,
+    PRIMARY KEY (TemplateID, PlayerID),
+    KEY idx_stpa_player (PlayerID, IsActive),
+    CONSTRAINT fk_stpa_template FOREIGN KEY (TemplateID) REFERENCES slot_template (TemplateID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_stpa_player FOREIGN KEY (PlayerID) REFERENCES user (UserID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_stpa_assigned_by FOREIGN KEY (AssignedBy) REFERENCES user (UserID) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE slot_booking
+MODIFY BookingSource ENUM('self','admin','shop_employee','system') NOT NULL DEFAULT 'self';

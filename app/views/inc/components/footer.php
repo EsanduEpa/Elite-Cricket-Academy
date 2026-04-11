@@ -1,5 +1,6 @@
-<footer class="footer" aria-label="Site Footer">
-    <div class="footer-container" style="text-align:center; max-width:900px; margin:0 auto; padding:2.5rem 1rem 1rem;">
+<?php $isFullWidthFooter = !empty($data['full_width_footer']); ?>
+<footer class="footer<?php echo $isFullWidthFooter ? ' footer-full-width' : ''; ?>" aria-label="Site Footer">
+    <div class="footer-container<?php echo $isFullWidthFooter ? ' footer-container-full-width' : ''; ?>" style="text-align:center; <?php echo $isFullWidthFooter ? 'max-width:none; width:100%;' : 'max-width:900px;'; ?> margin:0 auto; padding:2.5rem 1rem 1rem;">
         <div style="margin-bottom:1.5rem;">
             <span style="font-size:2rem; font-weight:bold; color:#4A90E2; vertical-align:middle;">Elite Cricket Academy</span>
         </div>

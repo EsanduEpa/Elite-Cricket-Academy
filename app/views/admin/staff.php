@@ -34,7 +34,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#player-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                             <i class="fas fa-user-graduate"></i>
                             <span>Player Management</span>
                         </a>
@@ -51,10 +51,23 @@
                         <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
-                            <span class="badge">12</span>
                         </a>
                     </li>
                     
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            <span>Slot Management</span>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
@@ -91,10 +104,25 @@
                         <p>Manage coaches, trainers, and administrative staff</p>
                     </div>
                     <div class="header-actions">
+                        <button class="btn btn-primary" id="manageCoachAssignmentsBtn">
+                            <i class="fas fa-user-tie"></i> Coach Age Groups
+                        </button>
                         <div class="current-time" id="currentTime"></div>
                     </div>
                 </div>
             </div>
+
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 12px; background: #e8f7ee; color: #1f7a43; border: 1px solid #bfe5cd;">
+                    <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 12px; background: #fdecec; color: #b42318; border: 1px solid #f5c2c7;">
+                    <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Staff Management Content -->
             <div class="content-wrapper">
@@ -105,11 +133,8 @@
                             <i class="fas fa-chalkboard-teacher"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>12</h3>
+                            <h3><?php echo $data['staff_stats']->total_coaches ?? 0; ?></h3>
                             <p>Total Coaches</p>
-                            <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 2 this month
-                            </span>
                         </div>
                     </div>
 
@@ -118,11 +143,8 @@
                             <i class="fas fa-dumbbell"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>5</h3>
+                            <h3><?php echo $data['staff_stats']->total_trainers ?? 0; ?></h3>
                             <p>Trainers</p>
-                            <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 1 this month
-                            </span>
                         </div>
                     </div>
 
@@ -131,11 +153,8 @@
                             <i class="fas fa-user-shield"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>3</h3>
-                            <p>Administrators</p>
-                            <span class="stat-change neutral">
-                                <i class="fas fa-minus"></i> No change
-                            </span>
+                            <h3><?php echo $data['staff_stats']->active_staff ?? 0; ?></h3>
+                            <p>Active Staff</p>
                         </div>
                     </div>
 
@@ -144,36 +163,9 @@
                             <i class="fas fa-store"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>2</h3>
+                            <h3><?php echo $data['staff_stats']->total_shop_employees ?? 0; ?></h3>
                             <p>Shop Staff</p>
-                            <span class="stat-change neutral">
-                                <i class="fas fa-minus"></i> No change
-                            </span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Role Requests Section -->
-                <div class="role-requests-section" id="roleRequestsSection" style="display: none;">
-                    <div class="section-header">
-                        <h2><i class="fas fa-user-clock"></i> Pending Role Requests</h2>
-                        <span class="badge-count" id="requestCount">0</span>
-                    </div>
-                    <div class="role-requests-table-wrapper">
-                        <table class="role-requests-table" id="roleRequestsTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Requested Role</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="roleRequestsTableBody">
-                                <!-- Role request rows will be dynamically inserted here -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 
@@ -221,7 +213,62 @@
                             </tr>
                         </thead>
                         <tbody id="staffTableBody">
-                            <!-- Staff rows will be dynamically inserted here -->
+                            <?php if (!empty($data['staff_members'])): ?>
+                                <?php foreach ($data['staff_members'] as $staff): ?>
+                            <tr>
+                                <td><input type="checkbox" class="staff-checkbox"></td>
+                                <td>
+                                    <div class="staff-info">
+                                        <h4><?php echo htmlspecialchars($staff->Name); ?></h4>
+                                        <p><?php echo htmlspecialchars($staff->Department ?? $staff->Role); ?></p>
+                                    </div>
+                                </td>
+                                <td><span class="role-badge <?php echo strtolower($staff->Role); ?>"><?php echo htmlspecialchars($staff->Role); ?></span></td>
+                                <td><?php echo htmlspecialchars($staff->Email); ?></td>
+                                <td><?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($staff->DateJoined)); ?></td>
+                                <td><span class="status-badge <?php echo strtolower($staff->Status); ?>"><?php echo ucfirst($staff->Status); ?></span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                data-staff-role="<?php echo htmlspecialchars($staff->Role); ?>"
+                                                data-staff-email="<?php echo htmlspecialchars($staff->Email); ?>"
+                                                data-staff-phone="<?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?>"
+                                                data-staff-joined="<?php echo date('M d, Y', strtotime($staff->DateJoined)); ?>"
+                                                data-staff-status="<?php echo htmlspecialchars($staff->Status); ?>"
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                data-staff-role="<?php echo htmlspecialchars($staff->Role); ?>"
+                                                data-staff-email="<?php echo htmlspecialchars($staff->Email); ?>"
+                                                data-staff-phone="<?php echo htmlspecialchars($staff->PhoneNumber ?? 'N/A'); ?>"
+                                                data-staff-status="<?php echo htmlspecialchars($staff->Status); ?>"
+                                                title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete" 
+                                                data-staff-id="<?php echo $staff->UserID; ?>"
+                                                data-staff-name="<?php echo htmlspecialchars($staff->Name); ?>"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px;">
+                                    <i class="fas fa-users" style="font-size: 48px; color: #ddd; margin-bottom: 10px;"></i>
+                                    <p style="color: #999;">No staff members found</p>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -229,7 +276,11 @@
                 <!-- Pagination -->
                 <div class="pagination-section">
                     <div class="pagination-info">
-                        Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="totalStaff">22</span> staff members
+                        <?php 
+                        $totalStaff = !empty($data['staff_members']) ? count($data['staff_members']) : 0;
+                        $showingEnd = min(10, $totalStaff);
+                        ?>
+                        Showing <span id="showingStart">1</span> to <span id="showingEnd"><?php echo $showingEnd; ?></span> of <span id="totalStaff"><?php echo $totalStaff; ?></span> staff members
                     </div>
                     <div class="pagination-controls">
                         <button class="pagination-btn" id="prevPage">
@@ -286,36 +337,28 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="firstName">
-                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
-                                    </label>
-                                    <input type="text" id="firstName" name="firstName" required 
-                                           placeholder="Enter first name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="lastName">
-                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
-                                    </label>
-                                    <input type="text" id="lastName" name="lastName" required
-                                           placeholder="Enter last name">
-                                </div>
+                            <div class="form-group">
+                                <label for="fullName">
+                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="fullName" name="fullName" required 
+                                       placeholder="Enter full name">
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="dateOfBirth">
-                                        <i class="fas fa-birthday-cake"></i> Date of Birth
+                                        <i class="fas fa-birthday-cake"></i> Date of Birth <span class="required">*</span>
                                     </label>
-                                    <input type="date" id="dateOfBirth" name="dateOfBirth">
+                                    <input type="date" id="dateOfBirth" name="dateOfBirth" max="<?php echo date('Y-m-d'); ?>" required>
+                                    <small class="form-hint" style="display: block; font-size: 0.8rem; color: #666; margin-top: 0.25rem; font-style: italic;">Staff member must be at least 16 years old</small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nationality">
-                                        <i class="fas fa-flag"></i> Nationality
+                                    <label for="school">
+                                        <i class="fas fa-school"></i> School/Institution
                                     </label>
-                                    <input type="text" id="nationality" name="nationality" 
-                                           placeholder="e.g., Sri Lankan">
+                                    <input type="text" id="school" name="school" 
+                                           placeholder="e.g., Royal College, University of Colombo">
                                 </div>
                             </div>
                         </div>
@@ -329,24 +372,15 @@
                                 </label>
                                 <input type="email" id="email" name="email" required
                                        placeholder="staff@example.com">
-                                <small>This will be used for login credentials</small>
+                                <small>This will be used for login and communication</small>
                             </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="phone">
-                                        <i class="fas fa-phone"></i> Phone Number <span class="required">*</span>
-                                    </label>
-                                    <input type="tel" id="phone" name="phone" required
-                                           placeholder="+94 XX XXX XXXX">
-                                </div>
-                                <div class="form-group">
-                                    <label for="emergencyContact">
-                                        <i class="fas fa-phone-square"></i> Emergency Contact
-                                    </label>
-                                    <input type="tel" id="emergencyContact" name="emergencyContact"
-                                           placeholder="+94 XX XXX XXXX">
-                                </div>
+                            <div class="form-group">
+                                <label for="phone">
+                                    <i class="fas fa-phone"></i> Phone Number <span class="required">*</span>
+                                </label>
+                                <input type="tel" id="phone" name="phone" required
+                                       placeholder="+94 77 123 4567">
                             </div>
 
                             <div class="form-group">
@@ -358,54 +392,47 @@
                             </div>
                         </div>
 
+                        <!-- Login Credentials -->
+                        <div class="form-section">
+                            <h4><i class="fas fa-key"></i> Login Credentials</h4>
+                            <div class="form-group">
+                                <label for="username">
+                                    <i class="fas fa-user-circle"></i> Username <span class="required">*</span>
+                                </label>
+                                <input type="text" id="username" name="username" required
+                                       placeholder="Enter username for login">
+                                <small>Username must be unique</small>
+                            </div>
+
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <p><strong>Default Password:</strong> The system will set the default password as <code>staff123456</code>. The staff member should change this upon first login.</p>
+                            </div>
+                        </div>
+
                         <!-- Role & Position -->
                         <div class="form-section">
                             <h4><i class="fas fa-user-tag"></i> Role & Position</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="role">
-                                        <i class="fas fa-user-tag"></i> Role <span class="required">*</span>
-                                    </label>
-                                    <select id="role" name="role" required>
-                                        <option value="">Select Role</option>
-                                        <option value="coach">Coach</option>
-                                        <option value="head_coach">Head Coach</option>
-                                        <option value="trainer">Trainer</option>
-                                        <option value="admin">Administrator</option>
-                                        <option value="shopkeeper">Shop Staff</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="joinDate">
-                                        <i class="fas fa-calendar"></i> Join Date <span class="required">*</span>
-                                    </label>
-                                    <input type="date" id="joinDate" name="joinDate" required>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="specialization">
-                                        <i class="fas fa-certificate"></i> Specialization
-                                    </label>
-                                    <input type="text" id="specialization" name="specialization" 
-                                           placeholder="e.g., Batting Coach, Fitness Trainer">
-                                </div>
-                                <div class="form-group">
-                                    <label for="experience">
-                                        <i class="fas fa-award"></i> Years of Experience
-                                    </label>
-                                    <input type="number" id="experience" name="experience" min="0"
-                                           placeholder="Enter years">
-                                </div>
+                            <div class="form-group">
+                                <label for="role">
+                                    <i class="fas fa-user-tag"></i> Role <span class="required">*</span>
+                                </label>
+                                <select id="role" name="role" required>
+                                    <option value="">Select Role</option>
+                                    <option value="Coach">Coach</option>
+                                    <option value="Trainer">Trainer</option>
+                                    <option value="Admin">Administrator</option>
+                                    <option value="ShopEmployee">Shop Employee</option>
+                                </select>
+                                <small>Select the primary role for this staff member</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="qualifications">
-                                    <i class="fas fa-graduation-cap"></i> Qualifications
+                                <label for="notes">
+                                    <i class="fas fa-sticky-note"></i> Notes (Optional)
                                 </label>
-                                <textarea id="qualifications" name="qualifications" rows="2"
-                                          placeholder="List relevant certifications"></textarea>
+                                <textarea id="notes" name="notes" rows="2"
+                                          placeholder="Any additional notes about this staff member"></textarea>
                             </div>
                         </div>
                     </div>
@@ -427,8 +454,8 @@
                                     <span class="review-value" id="reviewDOB">-</span>
                                 </div>
                                 <div class="review-item">
-                                    <span class="review-label">Nationality:</span>
-                                    <span class="review-value" id="reviewNationality">-</span>
+                                    <span class="review-label">School/Institution:</span>
+                                    <span class="review-value" id="reviewSchool">-</span>
                                 </div>
                             </div>
                         </div>
@@ -444,13 +471,23 @@
                                     <span class="review-label">Phone:</span>
                                     <span class="review-value" id="reviewPhone">-</span>
                                 </div>
-                                <div class="review-item">
-                                    <span class="review-label">Emergency Contact:</span>
-                                    <span class="review-value" id="reviewEmergency">-</span>
-                                </div>
                                 <div class="review-item full-width">
                                     <span class="review-label">Address:</span>
                                     <span class="review-value" id="reviewAddress">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h4><i class="fas fa-key"></i> Login Credentials</h4>
+                            <div class="review-grid">
+                                <div class="review-item">
+                                    <span class="review-label">Username:</span>
+                                    <span class="review-value" id="reviewUsername">-</span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="review-label">Default Password:</span>
+                                    <span class="review-value"><code>staff123456</code></span>
                                 </div>
                             </div>
                         </div>
@@ -462,21 +499,9 @@
                                     <span class="review-label">Role:</span>
                                     <span class="review-value" id="reviewRole">-</span>
                                 </div>
-                                <div class="review-item">
-                                    <span class="review-label">Join Date:</span>
-                                    <span class="review-value" id="reviewJoinDate">-</span>
-                                </div>
-                                <div class="review-item">
-                                    <span class="review-label">Specialization:</span>
-                                    <span class="review-value" id="reviewSpecialization">-</span>
-                                </div>
-                                <div class="review-item">
-                                    <span class="review-label">Experience:</span>
-                                    <span class="review-value" id="reviewExperience">-</span>
-                                </div>
                                 <div class="review-item full-width">
-                                    <span class="review-label">Qualifications:</span>
-                                    <span class="review-value" id="reviewQualifications">-</span>
+                                    <span class="review-label">Notes:</span>
+                                    <span class="review-value" id="reviewNotes">-</span>
                                 </div>
                             </div>
                         </div>
@@ -490,7 +515,7 @@
 
                         <div class="info-box">
                             <i class="fas fa-info-circle"></i>
-                            <p>A system-generated password will be created and sent to the staff member's email address. They can change it upon first login.</p>
+                            <p>The default password <code>staff123456</code> will be set. The staff member should change this password upon first login. If "Send via email" is checked, the credentials will be emailed to the staff member.</p>
                         </div>
                     </div>
 
@@ -607,6 +632,76 @@
         </div>
     </div>
 
+    <!-- View Staff Details Modal -->
+    <div class="modal" id="viewStaffModal">
+        <div class="modal-overlay" id="viewModalOverlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Staff Member Details</h2>
+                <button class="modal-close" id="closeViewModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="staff-details-container">
+                    <div class="staff-header-section">
+                        <div class="staff-avatar-large">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="staff-header-info">
+                            <h3 id="viewStaffName">-</h3>
+                            <p class="staff-role-badge" id="viewStaffRoleBadge">-</p>
+                            <p class="staff-status" id="viewStaffStatusBadge">-</p>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-section">
+                            <h4><i class="fas fa-id-card"></i> Personal Information</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name:</span>
+                                <span class="detail-value" id="viewFullName">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value" id="viewEmail">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone:</span>
+                                <span class="detail-value" id="viewPhone">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Date Joined:</span>
+                                <span class="detail-value" id="viewJoined">-</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4><i class="fas fa-briefcase"></i> Role & Status</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Role:</span>
+                                <span class="detail-value" id="viewRole">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Status:</span>
+                                <span class="detail-value" id="viewStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="var modal = document.getElementById('viewStaffModal'); modal.classList.remove('active'); modal.style.display = 'none';">
+                            Close
+                        </button>
+                        <button type="button" class="btn-primary" id="editFromViewBtn">
+                            <i class="fas fa-edit"></i> Edit Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div class="modal" id="deleteStaffModal">
         <div class="modal-overlay" id="deleteModalOverlay"></div>
@@ -631,6 +726,211 @@
         </div>
     </div>
 
+    <div class="modal" id="coachAssignmentsModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-tie"></i> Coach Skill Age Groups</h2>
+                <button class="modal-close" type="button" id="closeCoachAssignmentsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="details-grid" style="margin-bottom: 24px;">
+                    <div class="detail-section">
+                        <h4><i class="fas fa-crown"></i> Head Coach</h4>
+                        <form method="POST" action="<?php echo URLROOT; ?>/admin/set_head_coach">
+                            <input type="hidden" name="redirect_to" value="admin/staff">
+                            <div class="form-group">
+                                <label for="headCoachSelect">Select Head Coach</label>
+                                <select id="headCoachSelect" name="coach_id" class="form-control" required>
+                                    <option value="">Select Head Coach</option>
+                                    <?php foreach (($data['coaches'] ?? []) as $coach): ?>
+                                        <option value="<?php echo (int)$coach->coach_id; ?>" <?php echo !empty($coach->IsHeadCoach) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($coach->name); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="modal-footer" style="justify-content:flex-start; margin-top: 16px;">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-crown"></i> Update Head Coach
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-layer-group"></i> Age Group Assignment</h4>
+                        <?php
+                        $mapCoachSpecializationToSkill = static function ($specialization) {
+                            $normalized = strtolower(trim((string) $specialization));
+
+                            if ($normalized === '') {
+                                return '';
+                            }
+
+                            if (strpos($normalized, 'bat') !== false) {
+                                return 'batting';
+                            }
+
+                            if (strpos($normalized, 'bowl') !== false) {
+                                return 'bowling';
+                            }
+
+                            if (strpos($normalized, 'field') !== false) {
+                                return 'fielding';
+                            }
+
+                            return '';
+                        };
+                        ?>
+                        <form method="POST" action="<?php echo URLROOT; ?>/admin/save_coach_skill_age_groups" id="coachAssignmentForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="assignmentCoachId">Coach</label>
+                                    <select id="assignmentCoachId" name="coach_id" class="form-control" required>
+                                        <option value="">Select Coach</option>
+                                        <?php foreach (($data['coaches'] ?? []) as $coach): ?>
+                                            <option value="<?php echo (int)$coach->coach_id; ?>" data-skill="<?php echo htmlspecialchars($mapCoachSpecializationToSkill($coach->specialization ?? '')); ?>">
+                                                <?php echo htmlspecialchars($coach->name); ?><?php echo !empty($coach->IsHeadCoach) ? ' (Head Coach)' : ''; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="assignmentCoachingType">Skill</label>
+                                    <select id="assignmentCoachingType" name="coaching_type" class="form-control" required>
+                                        <option value="">Select Skill</option>
+                                        <option value="batting">Batting</option>
+                                        <option value="bowling">Bowling</option>
+                                        <option value="fielding">Fielding</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Age Groups</label>
+                                <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px;">
+                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'] as $ageGroup): ?>
+                                        <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid #d8e0ef; border-radius:10px; background:#f8fbff; cursor:pointer;">
+                                            <input type="checkbox" name="age_groups[]" value="<?php echo htmlspecialchars($ageGroup); ?>" class="coach-age-group-checkbox">
+                                            <span><?php echo htmlspecialchars($ageGroup); ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                                <small>Choose one or more age groups for this coach and skill.</small>
+                            </div>
+
+                            <div class="modal-footer" style="justify-content:flex-start; margin-top: 16px;">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-save"></i> Save Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <?php $coachAssignedPlayers = $data['coachAssignedPlayers'] ?? []; ?>
+                <div class="detail-section">
+                    <h4><i class="fas fa-list"></i> Current Coach Assignment Matrix</h4>
+                    <div class="staff-table-section" style="margin-top: 12px; box-shadow:none; padding:0;">
+                        <table class="staff-table">
+                            <thead>
+                                <tr>
+                                    <th>Coach</th>
+                                    <th>Head Coach</th>
+                                    <th>Skill</th>
+                                    <th>Age Groups</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['coachAssignments'])): ?>
+                                    <?php foreach ($data['coachAssignments'] as $assignment): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($assignment->CoachName); ?></td>
+                                            <td>
+                                                <?php if (!empty($assignment->IsHeadCoach)): ?>
+                                                    <span class="status-badge active">Head Coach</span>
+                                                <?php else: ?>
+                                                    <span class="role-badge">No</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><span class="role-badge"><?php echo htmlspecialchars(ucfirst($assignment->CoachingType)); ?></span></td>
+                                            <td><?php echo htmlspecialchars($assignment->AgeGroups); ?></td>
+                                            <td>
+                                                <button type="button" class="action-btn view coach-players-view-btn"
+                                                        data-coach-id="<?php echo (int)$assignment->CoachID; ?>"
+                                                        data-coach-name="<?php echo htmlspecialchars($assignment->CoachName); ?>"
+                                                        title="View Assigned Players">
+                                                    <i class="fas fa-users"></i>
+                                                </button>
+                                                <button type="button" class="action-btn edit coach-assignment-edit-btn"
+                                                        data-coach-id="<?php echo (int)$assignment->CoachID; ?>"
+                                                        data-coaching-type="<?php echo htmlspecialchars($assignment->CoachingType); ?>"
+                                                        data-age-groups="<?php echo htmlspecialchars($assignment->AgeGroups); ?>"
+                                                        title="Edit Assignment">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; padding:24px; color:#64748b;">
+                                            No coach age-group assignments have been configured yet.
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="coachPlayersModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> Assigned Players</h2>
+                <button class="modal-close" type="button" id="closeCoachPlayersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4 id="coachPlayersModalTitle">Coach Assigned Players</h4>
+                    <div class="staff-table-section" style="margin-top: 12px; box-shadow:none; padding:0;">
+                        <table class="staff-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Assignment</th>
+                                    <th>Batting Style</th>
+                                    <th>Bowling Style</th>
+                                    <th>Tournaments</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coachPlayersTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                                        Select a coach to view assigned players.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript for Staff Management -->
@@ -645,6 +945,133 @@
         // Button click handler - similar to events.php
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔍 Staff Management - Initializing button handlers...');
+
+            const coachAssignmentsModal = document.getElementById('coachAssignmentsModal');
+            const manageCoachAssignmentsBtn = document.getElementById('manageCoachAssignmentsBtn');
+            const closeCoachAssignmentsModal = document.getElementById('closeCoachAssignmentsModal');
+            const coachPlayersModal = document.getElementById('coachPlayersModal');
+            const closeCoachPlayersModal = document.getElementById('closeCoachPlayersModal');
+            const coachPlayersModalTitle = document.getElementById('coachPlayersModalTitle');
+            const coachPlayersTableBody = document.getElementById('coachPlayersTableBody');
+            const coachSelect = document.getElementById('assignmentCoachId');
+            const skillSelect = document.getElementById('assignmentCoachingType');
+            const coachAssignedPlayers = <?php echo json_encode($coachAssignedPlayers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function syncCoachSkillSelection(preferredSkill = '') {
+                if (!coachSelect || !skillSelect) return;
+
+                const selectedOption = coachSelect.options[coachSelect.selectedIndex];
+                const mappedSkill = preferredSkill || selectedOption?.dataset.skill || '';
+
+                if (mappedSkill) {
+                    skillSelect.value = mappedSkill;
+                }
+            }
+
+            function openCoachAssignmentsModal() {
+                if (!coachAssignmentsModal) return;
+                coachAssignmentsModal.style.display = 'flex';
+            }
+
+            function closeCoachAssignmentsPanel() {
+                if (!coachAssignmentsModal) return;
+                coachAssignmentsModal.style.display = 'none';
+            }
+
+            function openCoachPlayersModal(coachId, coachName) {
+                if (!coachPlayersModal || !coachPlayersTableBody || !coachPlayersModalTitle) return;
+
+                const players = coachAssignedPlayers[String(coachId)] || coachAssignedPlayers[coachId] || [];
+                coachPlayersModalTitle.textContent = `${coachName} - Assigned Players`;
+
+                if (!players.length) {
+                    coachPlayersTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                                No players are currently assigned to this coach.
+                            </td>
+                        </tr>`;
+                } else {
+                    coachPlayersTableBody.innerHTML = players.map(player => `
+                        <tr>
+                            <td>${escapeHtml(player.PlayerName || '-')}</td>
+                            <td><span class="role-badge">${escapeHtml(player.AssignmentType || '-')}</span></td>
+                            <td>${escapeHtml(player.BattingStyle || '-')}</td>
+                            <td>${escapeHtml(player.BowlingStyle || '-')}</td>
+                            <td>${escapeHtml(player.TournamentCount ?? 0)}</td>
+                            <td><span class="status-badge ${String(player.AssignmentStatus || 'active').toLowerCase()}">${escapeHtml(player.AssignmentStatus || 'active')}</span></td>
+                        </tr>`).join('');
+                }
+
+                coachPlayersModal.style.display = 'flex';
+            }
+
+            function closeCoachPlayersPanel() {
+                if (!coachPlayersModal) return;
+                coachPlayersModal.style.display = 'none';
+            }
+
+            if (manageCoachAssignmentsBtn) {
+                manageCoachAssignmentsBtn.addEventListener('click', openCoachAssignmentsModal);
+            }
+
+            if (closeCoachAssignmentsModal) {
+                closeCoachAssignmentsModal.addEventListener('click', closeCoachAssignmentsPanel);
+            }
+
+            if (closeCoachPlayersModal) {
+                closeCoachPlayersModal.addEventListener('click', closeCoachPlayersPanel);
+            }
+
+            if (coachSelect) {
+                coachSelect.addEventListener('change', function() {
+                    syncCoachSkillSelection();
+                });
+            }
+
+            if (coachAssignmentsModal) {
+                const overlay = coachAssignmentsModal.querySelector('.modal-overlay');
+                if (overlay) {
+                    overlay.addEventListener('click', closeCoachAssignmentsPanel);
+                }
+            }
+
+            if (coachPlayersModal) {
+                const coachPlayersOverlay = coachPlayersModal.querySelector('.modal-overlay');
+                if (coachPlayersOverlay) {
+                    coachPlayersOverlay.addEventListener('click', closeCoachPlayersPanel);
+                }
+            }
+
+            document.querySelectorAll('.coach-assignment-edit-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    openCoachAssignmentsModal();
+
+                    const ageGroups = (this.dataset.ageGroups || '').split(',').map(value => value.trim()).filter(Boolean);
+
+                    if (coachSelect) coachSelect.value = this.dataset.coachId || '';
+                    syncCoachSkillSelection(this.dataset.coachingType || '');
+
+                    document.querySelectorAll('.coach-age-group-checkbox').forEach(checkbox => {
+                        checkbox.checked = ageGroups.includes(checkbox.value);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.coach-players-view-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    openCoachPlayersModal(this.dataset.coachId || '', this.dataset.coachName || 'Coach');
+                });
+            });
             
             const addStaffBtn = document.getElementById('addStaffBtn');
             const modal = document.getElementById('addStaffModal');
@@ -679,6 +1106,200 @@
             } else {
                 console.error('❌ Add Staff button not found!');
             }
+            
+            // Handle action buttons with event delegation
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.action-btn');
+                if (!target) return;
+                
+                const staffId = target.dataset.staffId;
+                const staffName = target.dataset.staffName;
+                
+                if (target.classList.contains('view')) {
+                    // View staff details in modal
+                    const staffData = {
+                        id: staffId,
+                        name: staffName,
+                        role: target.dataset.staffRole,
+                        email: target.dataset.staffEmail,
+                        phone: target.dataset.staffPhone,
+                        joined: target.dataset.staffJoined,
+                        status: target.dataset.staffStatus
+                    };
+                    
+                    openViewModal(staffData);
+                    
+                } else if (target.classList.contains('edit')) {
+                    // Edit staff - open edit modal
+                    const staffData = {
+                        id: staffId,
+                        name: staffName,
+                        role: target.dataset.staffRole,
+                        email: target.dataset.staffEmail,
+                        phone: target.dataset.staffPhone,
+                        status: target.dataset.staffStatus
+                    };
+                    
+                    openEditModal(staffData);
+                    
+                } else if (target.classList.contains('delete')) {
+                    // Delete staff with confirmation
+                    if (confirm(`Are you sure you want to delete ${staffName}?\n\nThis action cannot be undone.`)) {
+                        // Send delete request
+                        fetch(`${URLROOT}/admin/delete_staff/${staffId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Staff member deleted successfully!');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.message || 'Failed to delete staff member'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        });
+                    }
+                }
+            });
+
+            // Function to open view modal
+            function openViewModal(staffData) {
+                const modal = document.getElementById('viewStaffModal');
+                
+                // Populate modal with data
+                document.getElementById('viewStaffName').textContent = staffData.name;
+                document.getElementById('viewFullName').textContent = staffData.name;
+                document.getElementById('viewStaffRoleBadge').textContent = staffData.role;
+                document.getElementById('viewStaffRoleBadge').className = 'staff-role-badge role-badge ' + staffData.role.toLowerCase();
+                document.getElementById('viewStaffStatusBadge').textContent = staffData.status;
+                document.getElementById('viewStaffStatusBadge').className = 'staff-status status-badge ' + staffData.status.toLowerCase();
+                document.getElementById('viewEmail').textContent = staffData.email;
+                document.getElementById('viewPhone').textContent = staffData.phone;
+                document.getElementById('viewJoined').textContent = staffData.joined;
+                document.getElementById('viewRole').textContent = staffData.role;
+                document.getElementById('viewStatus').textContent = staffData.status.charAt(0).toUpperCase() + staffData.status.slice(1);
+                
+                // Store staff ID for edit button
+                document.getElementById('editFromViewBtn').dataset.staffId = staffData.id;
+                document.getElementById('editFromViewBtn').dataset.staffData = JSON.stringify(staffData);
+                
+                // Show modal
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            }
+
+            // Function to open edit modal
+            function openEditModal(staffData) {
+                const modal = document.getElementById('editStaffModal');
+                
+                // Parse name into first and last name
+                const nameParts = staffData.name.split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                
+                // Populate form with data
+                document.getElementById('editStaffId').value = staffData.id;
+                document.getElementById('editFirstName').value = firstName;
+                document.getElementById('editLastName').value = lastName;
+                document.getElementById('editEmail').value = staffData.email;
+                document.getElementById('editPhone').value = staffData.phone;
+                document.getElementById('editRole').value = staffData.role.toLowerCase().replace(' ', '_');
+                document.getElementById('editStatus').value = staffData.status.toLowerCase();
+                
+                // Show modal
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            }
+
+            // Edit from view modal button
+            document.getElementById('editFromViewBtn').addEventListener('click', function() {
+                const staffData = JSON.parse(this.dataset.staffData);
+                const viewModal = document.getElementById('viewStaffModal');
+                viewModal.classList.remove('active');
+                viewModal.style.display = 'none';
+                openEditModal(staffData);
+            });
+
+            // Close modals
+            document.getElementById('closeViewModal').addEventListener('click', function() {
+                const modal = document.getElementById('viewStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('viewModalOverlay').addEventListener('click', function() {
+                const modal = document.getElementById('viewStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('closeEditModal').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('editModalOverlay').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                const modal = document.getElementById('editStaffModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+
+            // Handle edit form submission
+            document.getElementById('editStaffForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const staffId = document.getElementById('editStaffId').value;
+                
+                // Convert FormData to JSON
+                const data = {
+                    staffId: staffId,
+                    firstName: formData.get('firstName'),
+                    lastName: formData.get('lastName'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    role: formData.get('role'),
+                    status: formData.get('status'),
+                    specialization: formData.get('specialization'),
+                    address: formData.get('address')
+                };
+                
+                // Send update request
+                fetch(`${URLROOT}/admin/update_staff`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Staff member updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to update staff member'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
         });
     </script>
 </body>

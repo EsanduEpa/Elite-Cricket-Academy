@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-orders.css">
 
 <div class="admin-layout">
     <!-- Shop Sidebar -->
@@ -38,13 +38,7 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
-                        <i class="fas fa-warehouse"></i>
-                        <span>Inventory</span>
-                    </a>
-                </li>
-                
+               
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/rentals" class="nav-link">
                         <i class="fas fa-tools"></i>
@@ -52,24 +46,10 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/reviews" class="nav-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews & Feedback</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
                     </a>
                 </li>
                 
@@ -79,8 +59,30 @@
                         <span>Facility Management</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/shop/counter" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Counter Booking</span>
+                    </a>
+                </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -100,7 +102,7 @@
                     <h3>Total Orders</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">156</span>
+                            <span class="number"><?php echo $data['stats']['total']; ?></span>
                             <span class="label">All Time</span>
                         </div>
                     </div>
@@ -115,7 +117,7 @@
                     <h3>Pending Orders</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number urgent">8</span>
+                            <span class="number urgent"><?php echo $data['stats']['pending']; ?></span>
                             <span class="label">Need Processing</span>
                         </div>
                     </div>
@@ -123,15 +125,15 @@
             </div>
             
             <div class="summary-card">
-                <div class="card-icon" style="background: linear-gradient(45d, #4ECDC4, #5EDDD4);">
+                <div class="card-icon" style="background: linear-gradient(45deg, #4ECDC4, #5EDDD4);">
                     <i class="fas fa-truck"></i>
                 </div>
                 <div class="card-content">
-                    <h3>In Transit</h3>
+                    <h3>Processing</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">15</span>
-                            <span class="label">Being Delivered</span>
+                            <span class="number"><?php echo $data['stats']['processing']; ?></span>
+                            <span class="label">Being Processed</span>
                         </div>
                     </div>
                 </div>
@@ -145,8 +147,8 @@
                     <h3>Completed</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">133</span>
-                            <span class="label">This Month</span>
+                            <span class="number"><?php echo $data['stats']['completed']; ?></span>
+                            <span class="label">Orders Done</span>
                         </div>
                     </div>
                 </div>
@@ -156,19 +158,19 @@
         <!-- Order Filters -->
         <div class="filter-section">
             <div class="filter-tabs">
-                <a href="<?php echo URLROOT; ?>/shop/orders" class="filter-tab <?php echo ($data['current_status'] == 'all') ? 'active' : ''; ?>">
+                <a href="<?php echo URLROOT; ?>/shop/orders/all" class="filter-tab <?php echo $data['current_status'] === 'all' ? 'active' : ''; ?>">
                     <i class="fas fa-list"></i> All Orders
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/pending" class="filter-tab <?php echo ($data['current_status'] == 'pending') ? 'active' : ''; ?>">
+                <a href="<?php echo URLROOT; ?>/shop/orders/pending" class="filter-tab <?php echo $data['current_status'] === 'pending' ? 'active' : ''; ?>">
                     <i class="fas fa-clock"></i> Pending
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/processing" class="filter-tab <?php echo ($data['current_status'] == 'processing') ? 'active' : ''; ?>">
+                <a href="<?php echo URLROOT; ?>/shop/orders/processing" class="filter-tab <?php echo $data['current_status'] === 'processing' ? 'active' : ''; ?>">
                     <i class="fas fa-cog"></i> Processing
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/completed" class="filter-tab <?php echo ($data['current_status'] == 'completed') ? 'active' : ''; ?>">
+                <a href="<?php echo URLROOT; ?>/shop/orders/completed" class="filter-tab <?php echo $data['current_status'] === 'completed' ? 'active' : ''; ?>">
                     <i class="fas fa-check"></i> Completed
                 </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/cancelled" class="filter-tab <?php echo ($data['current_status'] == 'cancelled') ? 'active' : ''; ?>">
+                <a href="<?php echo URLROOT; ?>/shop/orders/cancelled" class="filter-tab <?php echo $data['current_status'] === 'cancelled' ? 'active' : ''; ?>">
                     <i class="fas fa-times"></i> Cancelled
                 </a>
             </div>
@@ -193,129 +195,88 @@
                 </div>
             </div>
             
-            <div class="table-content">
-                <table id="ordersTable">
+            <div class="table-content" style="overflow-x: auto;">
+                <table id="ordersTable" class="dashboard-table" style="width: 100%; min-width: 900px;">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="width: 120px;">Order ID</th>
+                            <th style="width: 150px;">Customer</th>
+                            <th style="width: 100px;">Date</th>
+                            <th style="width: 70px;">Items</th>
+                            <th style="width: 90px;">Total</th>
+                            <th style="width: 80px;">Payment</th>
+                            <th style="width: 110px;">Status</th>
+                            <th style="width: 130px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>#ORD-2025-156</td>
-                            <td>
-                                <div>
-                                    <strong>John Smith</strong><br>
-                                    <small>john@example.com</small>
-                                </div>
-                            </td>
-                            <td>Oct 18, 2025<br><small>10:30 AM</small></td>
-                            <td>3 items</td>
-                            <td>₨ 12,500</td>
-                            <td>
-                                <span class="status-badge status-card">Card</span>
-                            </td>
-                            <td>
-                                <select class="status-dropdown" onchange="updateOrderStatus(156, this.value)">
-                                    <option value="pending" selected>Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewOrder(156)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="printInvoice(156)">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="processPayment(156)">
-                                        <i class="fas fa-credit-card"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ORD-2025-155</td>
-                            <td>
-                                <div>
-                                    <strong>Sarah Johnson</strong><br>
-                                    <small>sarah@example.com</small>
-                                </div>
-                            </td>
-                            <td>Oct 17, 2025<br><small>2:15 PM</small></td>
-                            <td>2 items</td>
-                            <td>₨ 8,200</td>
-                            <td>
-                                <span class="status-badge status-cash">Cash</span>
-                            </td>
-                            <td>
-                                <select class="status-dropdown" onchange="updateOrderStatus(155, this.value)">
-                                    <option value="pending">Pending</option>
-                                    <option value="processing" selected>Processing</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewOrder(155)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="printInvoice(155)">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="trackDelivery(155)">
-                                        <i class="fas fa-truck"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#ORD-2025-154</td>
-                            <td>
-                                <div>
-                                    <strong>Mike Wilson</strong><br>
-                                    <small>mike@example.com</small>
-                                </div>
-                            </td>
-                            <td>Oct 16, 2025<br><small>4:45 PM</small></td>
-                            <td>1 item</td>
-                            <td>₨ 4,500</td>
-                            <td>
-                                <span class="status-badge status-online">Online</span>
-                            </td>
-                            <td>
-                                <select class="status-dropdown" onchange="updateOrderStatus(154, this.value)">
-                                    <option value="pending">Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="completed" selected>Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewOrder(154)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-secondary" onclick="printInvoice(154)">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn-small btn-info" onclick="requestReview(154)">
-                                        <i class="fas fa-star"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php if(isset($data['orders']) && !empty($data['orders'])): ?>
+                            <?php foreach($data['orders'] as $order): ?>
+                                <tr>
+                                    <td>
+                                        <div class="table-cell-primary">#ORD-<?php echo str_pad($order->OrderID, 4, '0', STR_PAD_LEFT); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo $order->CustomerName; ?></div>
+                                        <div class="table-cell-details"><?php echo $order->Email; ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo date('M d, Y', strtotime($order->OrderDate)); ?></div>
+                                        <div class="table-cell-secondary"><?php echo date('g:i A', strtotime($order->OrderDate)); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo $order->item_count; ?> item<?php echo $order->item_count > 1 ? 's' : ''; ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary">₨ <?php echo number_format($order->TotalAmount); ?></div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge status-<?php echo strtolower($order->PaymentMethod); ?>"><?php echo ucfirst($order->PaymentMethod); ?></span>
+                                    </td>
+                                    <td>
+                                        <select class="status-dropdown" onchange="updateOrderStatus(<?php echo $order->OrderID; ?>, this.value)">
+                                            <option value="pending" <?php echo $order->Status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                            <option value="processing" <?php echo $order->Status === 'processing' ? 'selected' : ''; ?>>Processing</option>
+                                            <option value="completed" <?php echo $order->Status === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                            <option value="cancelled" <?php echo $order->Status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-small btn-primary" onclick="viewOrder(<?php echo $order->OrderID; ?>)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn-small btn-secondary" onclick="printInvoice(<?php echo $order->OrderID; ?>)">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                            <?php if($order->Status === 'pending'): ?>
+                                                <button class="btn-small btn-success" onclick="processPayment(<?php echo $order->OrderID; ?>)">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </button>
+                                            <?php elseif($order->Status === 'processing'): ?>
+                                                <button class="btn-small btn-warning" onclick="trackDelivery(<?php echo $order->OrderID; ?>)">
+                                                    <i class="fas fa-truck"></i>
+                                                </button>
+                                            <?php elseif($order->Status === 'completed'): ?>
+                                                <button class="btn-small btn-info" onclick="requestReview(<?php echo $order->OrderID; ?>)">
+                                                    <i class="fas fa-star"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 3rem;">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                        <h3>No Orders Found</h3>
+                                        <p>There are no orders to display.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -342,17 +303,6 @@
 
 <!-- JavaScript -->
 <script>
-// Filter tabs functionality
-document.querySelectorAll('.filter-tab').forEach(tab => {
-    tab.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        // Filter orders based on status
-        filterOrdersByStatus(this.href.split('/').pop());
-    });
-});
-
 // Search functionality
 document.getElementById('orderSearch').addEventListener('input', function() {
     filterOrders(this.value);
@@ -362,11 +312,6 @@ document.getElementById('orderSearch').addEventListener('input', function() {
 document.getElementById('paymentFilter').addEventListener('change', function() {
     filterOrdersByPayment(this.value);
 });
-
-function filterOrdersByStatus(status) {
-    console.log('Filtering by status:', status);
-    // Implementation would filter the table rows
-}
 
 function filterOrders(searchTerm) {
     const table = document.getElementById('ordersTable');
@@ -384,14 +329,55 @@ function filterOrders(searchTerm) {
 }
 
 function filterOrdersByPayment(payment) {
-    console.log('Filtering by payment:', payment);
-    // Implementation would filter the table rows
+    if (payment === 'all') {
+        const rows = document.getElementById('ordersTable').getElementsByTagName('tr');
+        for (let i = 1; i < rows.length; i++) {
+            rows[i].style.display = '';
+        }
+        return;
+    }
+    
+    const table = document.getElementById('ordersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const badge = row.querySelector('.table-badge');
+        if (badge && badge.textContent.toLowerCase() === payment.replace('_', ' ')) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
 }
 
 function updateOrderStatus(orderId, status) {
-    console.log(`Updating order ${orderId} to status: ${status}`);
-    // Implementation would send AJAX request to update status
-    showNotification(`Order #${orderId} status updated to ${status}`, 'success');
+    fetch('<?php echo URLROOT; ?>/shop/updateOrderStatus', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            orderId: orderId,
+            status: status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Reload page after a short delay to show updated status
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to update order status', 'error');
+    });
 }
 
 function viewOrder(orderId) {

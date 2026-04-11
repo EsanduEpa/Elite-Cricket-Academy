@@ -1060,3 +1060,22 @@
         gap: 10px;
     }
 }
+
+/* No Events Message */
+.no-events {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #94a3b8;
+}
+
+.no-events i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-events p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}

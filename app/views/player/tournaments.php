@@ -1,4 +1,4 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/tournaments.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/tournaments.css">
@@ -31,19 +31,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                            <i class="fas fa-calendar"></i>
+                    <li class="nav-item active">                        <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
                             <span>Bookings</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
+                    <li class="nav-item">                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>
                         </a>
@@ -133,13 +131,15 @@
                 </div>
             </div>
 
-            <!-- Available Tournaments -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-calendar-plus"></i> Available Tournaments</h2>
+            <!-- Available Tournaments and My Enrollments - Two Tables Per Row -->
+            <div class="performance-tables-row">
+                <!-- Available Tournaments -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-calendar-plus"></i> Available Tournaments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -209,13 +209,13 @@
                 </div>
             </div>
 
-            <!-- My Enrollments -->
-            <div class="schedule-card upcoming-schedule">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-user-check"></i> My Enrollments</h2>
+                <!-- My Enrollments -->
+                <div class="schedule-card upcoming-schedule">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-user-check"></i> My Enrollments</h2>
+                        </div>
                     </div>
-                </div>
                 <div class="card-content">
                     <table class="dashboard-table">
                         <thead>
@@ -255,6 +255,7 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
 
@@ -333,6 +334,75 @@
             </div>
 
             <!-- Tournament Actions -->
+            <!-- Academy Events Table -->
+            <div class="schedule-card upcoming-schedule">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h2><i class="fas fa-calendar"></i> Academy Events</h2>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($data['academyEvents'])): ?>
+                                <?php foreach ($data['academyEvents'] as $event): ?>
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <div class="table-cell-primary">
+                                                <?php echo date('M d', strtotime($event['event_date'])); ?>
+                                            </div>
+                                            <div class="table-cell-secondary">
+                                                <?php echo date('l', strtotime($event['event_date'])); ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="table-cell-title">
+                                                <?php echo htmlspecialchars($event['title']); ?>
+                                            </div>
+                                            <div class="table-cell-details">
+                                                <?php echo htmlspecialchars($event['description']); ?>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge">
+                                                <?php echo htmlspecialchars($event['Type']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <?php echo htmlspecialchars($event['location']); ?>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="table-badge status-<?php echo strtolower($event['Status']); ?>">
+                                                <?php echo htmlspecialchars($event['Status']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <button class="action-btn" onclick="alert('Event details coming soon!')">
+                                                <i class="fas fa-info-circle"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" style="text-align:center; color:#888;">No upcoming academy events found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Tournament Actions -->
             <div class="quick-actions">
                 <h3>Tournament Actions</h3>
                 <div class="action-buttons">
@@ -350,11 +420,7 @@
         </div>
     </div>
 
-    <script>
-        function showTournamentDetails(tournamentId) {
-            alert('Tournament details for ' + tournamentId + ' coming soon!');
-        }
-    </script>
+    <script src="<?php echo URLROOT; ?>/js/player/tournaments.js"></script>
 
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>

@@ -1,0 +1,639 @@
+/* ================================================================
+   nutrition_crud.css  —  Nutrition CRUD pages (index, create, edit)
+   Theme: light blue (#4A90E2) + white, matching dashboard.css
+   ================================================================ */
+
+/* ─── BUTTONS ────────────────────────────────────────────────────
+   Defined with higher specificity than dashboard.css so they win
+   on all nutrition CRUD pages.
+───────────────────────────────────────────────────────────────── */
+.nc-page .btn,
+.nc-page a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .48rem 1.1rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .18s ease, box-shadow .18s ease, transform .12s ease;
+    white-space: nowrap;
+    line-height: 1.45;
+    box-sizing: border-box;
+    /* Ensure shadows are never clipped by parent overflow */
+    position: relative;
+    z-index: 1;
+}
+.nc-page .btn:active,
+.nc-page a.btn:active { transform: translateY(1px); }
+
+/* Primary — light blue (matches app's #4A90E2) */
+.nc-page .btn-primary,
+.nc-page a.btn-primary {
+    background: #4A90E2;
+    color: #fff;
+}
+.nc-page .btn-primary:hover,
+.nc-page a.btn-primary:hover {
+    background: #357abd;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(74,144,226,.4);
+    transform: translateY(-1px);
+}
+
+/* Success — green */
+.nc-page .btn-success,
+.nc-page a.btn-success {
+    background: #2ecc71;
+    color: #fff;
+}
+.nc-page .btn-success:hover,
+.nc-page a.btn-success:hover {
+    background: #27ae60;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(46,204,113,.4);
+    transform: translateY(-1px);
+}
+
+/* Danger — red */
+.nc-page .btn-danger,
+.nc-page a.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+.nc-page .btn-danger:hover,
+.nc-page a.btn-danger:hover {
+    background: #c0392b;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(231,76,60,.4);
+    transform: translateY(-1px);
+}
+
+/* Secondary — soft gray */
+.nc-page .btn-secondary,
+.nc-page a.btn-secondary {
+    background: #8e9ba7;
+    color: #fff;
+}
+.nc-page .btn-secondary:hover,
+.nc-page a.btn-secondary:hover {
+    background: #6c757d;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(108,117,125,.3);
+    transform: translateY(-1px);
+}
+
+/* Small variant */
+.nc-page .btn-sm,
+.nc-page a.btn-sm {
+    padding: .3rem .75rem;
+    font-size: .78rem;
+    border-radius: 6px;
+}
+
+/* ─── PAGE HEADER ────────────────────────────────────────────────
+   Matches the dashboard-header gradient in dashboard.css
+───────────────────────────────────────────────────────────────── */
+.nc-header {
+    background: linear-gradient(135deg, rgba(74,144,226,.95) 0%, rgba(53,122,189,.9) 100%);
+    color: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    margin: 0 0 1.5rem;
+    box-shadow: 0 8px 24px rgba(74,144,226,.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    /* Do NOT use overflow:hidden here — it would clip button shadows */
+}
+.nc-header-text h1 {
+    margin: 0 0 .15rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.nc-header-text p {
+    margin: 0;
+    font-size: .9rem;
+    opacity: .85;
+    color: #fff;
+}
+.nc-header-actions {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.nc-btn.nc-btn-secondary,
+.nc-btn.nc-btn-primary {
+    border-radius: 999px;
+    padding: .78rem 1.1rem;
+    font-weight: 700;
+}
+
+.nc-btn.nc-btn-secondary {
+    background: #8e9ba7;
+    color: #fff;
+}
+
+.nc-btn.nc-btn-primary {
+    background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(74,144,226,.18);
+}
+
+/* ─── FLASH MESSAGES ─────────────────────────────────────────────*/
+.alert {
+    border-radius: 10px;
+    padding: .8rem 1.1rem;
+    font-size: .875rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #b8dac2;
+}
+.alert-danger {
+    background: #fde8e6;
+    color: #7b2020;
+    border: 1px solid #f5c6c6;
+}
+
+/* ─── CARD ───────────────────────────────────────────────────────
+   KEY FIX: overflow:visible (not hidden) so button box-shadows
+   and hover lifts are never clipped by the card boundary.
+   border-radius still works — it just doesn't clip children.
+───────────────────────────────────────────────────────────────── */
+.nc-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(74,144,226,.12);
+    box-shadow: 0 4px 18px rgba(74,144,226,.1);
+    margin-bottom: 1.5rem;
+    overflow: visible;          /* ← was "hidden" — that was clipping buttons */
+}
+
+.nc-card-header {
+    padding: .9rem 1.4rem;
+    border-bottom: 1px solid rgba(74,144,226,.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(74,144,226,.04);
+    border-radius: 14px 14px 0 0;  /* match card corners */
+}
+.nc-card-header h2 {
+    margin: 0;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.nc-card-body { padding: 1.5rem; }
+
+/* ─── TABLE ──────────────────────────────────────────────────────
+   overflow-x:auto on the wrapper handles wide tables on mobile.
+   The table itself is never clipped by the card (overflow:visible).
+───────────────────────────────────────────────────────────────── */
+.nc-table-wrap {
+    overflow-x: auto;
+    /* Clip just the table scroll, not the buttons */
+    border-radius: 0 0 14px 14px;
+}
+
+.nc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    min-width: 640px;   /* prevents columns from squashing on tablet */
+}
+
+.nc-table thead tr {
+    background: rgba(74,144,226,.07);
+    border-bottom: 2px solid rgba(74,144,226,.15);
+}
+.nc-table th {
+    padding: .75rem 1rem;
+    text-align: left;
+    font-weight: 700;
+    color: #4A90E2;
+    white-space: nowrap;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.nc-table tbody tr {
+    border-bottom: 1px solid rgba(74,144,226,.07);
+    transition: background .13s;
+}
+.nc-table tbody tr:last-child { border-bottom: none; }
+.nc-table tbody tr:hover { background: rgba(74,144,226,.04); }
+
+.nc-table td {
+    padding: .85rem 1rem;
+    color: #333;
+    vertical-align: middle;
+}
+
+/* ─── ACTIONS CELL ───────────────────────────────────────────────
+   KEY FIX: white-space:nowrap + overflow:visible ensures the
+   Edit/Delete buttons are never wrapped onto a new line or clipped.
+───────────────────────────────────────────────────────────────── */
+.nc-table td.actions-col {
+    white-space: nowrap;
+    width: 1%;           /* shrink column to fit content exactly */
+    overflow: visible;
+    padding-right: 1.25rem;
+}
+
+.nc-actions {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: nowrap;
+    overflow: visible;
+}
+.nc-actions form { margin: 0; display: inline; }
+
+/* ─── PLAN NAME CELL ─────────────────────────────────────────── */
+.nc-plan-name { font-weight: 600; color: #2c3e50; display: block; }
+.nc-plan-id   { font-size: .72rem; color: #adb5bd; display: block; margin-top: .05rem; }
+
+/* ─── DIET PREVIEW ───────────────────────────────────────────── */
+.nc-diet-preview {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #6c757d;
+    font-size: .85rem;
+    display: block;
+}
+
+/* ─── STATUS BADGES ──────────────────────────────────────────── */
+.nc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .75rem;
+    border-radius: 20px;
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+}
+.nc-badge-active {
+    background: rgba(46,204,113,.1);
+    color: #1a7a42;
+    border: 1px solid rgba(46,204,113,.25);
+}
+.nc-badge-inactive {
+    background: rgba(231,76,60,.08);
+    color: #a93226;
+    border: 1px solid rgba(231,76,60,.2);
+}
+
+/* ─── EMPTY STATE ────────────────────────────────────────────── */
+.nc-empty {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    color: #6c757d;
+}
+.nc-empty .nc-empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    margin: 0 auto 1.1rem;
+}
+.nc-empty h3   { margin: 0 0 .4rem; color: #2c3e50; font-size: 1.1rem; font-weight: 700; }
+.nc-empty h5   { margin: 0 0 .35rem; color: #2c3e50; font-size: 1rem; font-weight: 700; }
+.nc-empty p    { margin: 0 0 1.2rem; font-size: .84rem; }
+
+/* ─── FORM FIELDS ────────────────────────────────────────────── */
+.nc-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.nc-field-row.full  { grid-template-columns: 1fr; }
+.nc-field-row.third { grid-template-columns: 1fr 1fr 1fr; }
+
+.nc-field { display: flex; flex-direction: column; }
+
+.nc-field label {
+    font-size: .8125rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: .4rem;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+.nc-field label .req { color: #e74c3c; margin-left: .05rem; }
+
+.nc-field .form-control {
+    border: 1.5px solid #d0dae6;
+    border-radius: 8px;
+    padding: .6rem .85rem;
+    font-size: .9rem;
+    color: #2c3e50;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color .2s, box-shadow .2s;
+}
+.nc-field .form-control:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74,144,226,.15);
+}
+.nc-field .form-control.is-invalid {
+    border-color: #e74c3c;
+}
+.nc-field .form-control.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(231,76,60,.15);
+}
+.nc-field textarea.form-control {
+    resize: vertical;
+    min-height: 140px;
+}
+
+.nc-assignment-grid {
+    margin-bottom: 1.1rem;
+}
+
+.nc-assignment-mode-panel {
+    position: relative;
+}
+
+.nc-assignment-mode-panel[hidden] {
+    display: none !important;
+}
+
+.nc-player-picker {
+    position: relative;
+}
+
+.nc-player-picker.is-invalid .nc-picker-trigger,
+.nc-assignment-mode-panel .form-control.is-invalid {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231,76,60,.12);
+}
+
+.nc-picker-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    text-align: left;
+    border: 1.5px solid #d0dae6;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: .85rem 1rem;
+    cursor: pointer;
+    color: #2c3e50;
+    box-shadow: 0 2px 10px rgba(74,144,226,.05);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+
+.nc-picker-trigger:hover,
+.nc-player-picker.is-open .nc-picker-trigger {
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74,144,226,.12);
+}
+
+.nc-picker-trigger-label {
+    display: block;
+    font-size: .76rem;
+    font-weight: 800;
+    color: #4A90E2;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.nc-picker-trigger-summary {
+    display: block;
+    margin-top: .15rem;
+    font-size: .92rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.nc-picker-caret {
+    color: #6c757d;
+    transition: transform .18s ease;
+}
+
+.nc-player-picker.is-open .nc-picker-caret {
+    transform: rotate(180deg);
+}
+
+.nc-picker-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + .55rem);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(74,144,226,.16);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(44,62,80,.15);
+    padding: .95rem;
+}
+
+.nc-picker-panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: .8rem;
+}
+
+.nc-picker-panel-head strong {
+    display: block;
+    color: #2c3e50;
+    font-size: .95rem;
+}
+
+.nc-picker-panel-head span {
+    display: block;
+    margin-top: .2rem;
+    color: #6c757d;
+    font-size: .78rem;
+}
+
+.nc-picker-toolbar {
+    display: flex;
+    gap: .45rem;
+    flex-wrap: wrap;
+    margin-bottom: .85rem;
+}
+
+.nc-picker-options {
+    display: grid;
+    gap: .55rem;
+    max-height: 260px;
+    overflow: auto;
+    padding-right: .2rem;
+}
+
+.nc-picker-option {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    padding: .75rem .85rem;
+    border: 1px solid rgba(74,144,226,.1);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f9fcff 100%);
+    cursor: pointer;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease, background .18s ease;
+}
+
+.nc-picker-option:hover {
+    border-color: rgba(74,144,226,.28);
+    box-shadow: 0 8px 18px rgba(74,144,226,.08);
+    transform: translateY(-1px);
+}
+
+.nc-picker-option input {
+    margin-top: .2rem;
+    accent-color: #4A90E2;
+}
+
+.nc-picker-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: .12rem;
+}
+
+.nc-picker-option-name {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.nc-picker-option-email {
+    font-size: .78rem;
+    color: #6c757d;
+}
+
+.nc-player-count {
+    margin-left: .35rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #357abd;
+    background: rgba(74,144,226,.1);
+    padding: .22rem .55rem;
+    border-radius: 999px;
+}
+
+.nc-help-text {
+    margin-top: .35rem;
+    font-size: .76rem;
+    color: #6c757d;
+}
+
+.nc-assignment-mode-panel .form-control {
+    border-radius: 12px;
+}
+
+.nc-form-actions .nc-btn-secondary,
+.nc-form-actions .nc-btn-primary {
+    min-width: 180px;
+}
+
+.nc-form-actions .nc-btn-primary.is-loading {
+    opacity: .85;
+    cursor: not-allowed;
+}
+
+/* Validation error text */
+.invalid-feedback {
+    color: #e74c3c;
+    font-size: .8rem;
+    margin-top: .3rem;
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+}
+
+/* ─── FORM SUBTITLE ──────────────────────────────────────────── */
+.nc-form-sub {
+    color: #6c757d;
+    font-size: .85rem;
+    margin: 0 0 1.5rem;
+}
+
+/* ─── FORM ACTION BUTTONS BAR ────────────────────────────────── */
+.nc-form-actions {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(74,144,226,.1);
+    margin-top: .75rem;
+    flex-wrap: wrap;
+    /* overflow:visible so button shadows are never clipped */
+    overflow: visible;
+}
+.nc-form-actions .push-left { margin-right: auto; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .nc-header {
+        padding: 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .nc-header-text h1 { font-size: 1.2rem; }
+
+    .nc-field-row,
+    .nc-field-row.third { grid-template-columns: 1fr; }
+
+    .nc-card-body { padding: 1rem; }
+
+    .nc-picker-panel {
+        position: static;
+        margin-top: .55rem;
+    }
+
+    .nc-picker-panel-head {
+        flex-direction: column;
+    }
+
+    .nc-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .nc-form-actions .push-left { margin-right: 0; }
+    .nc-form-actions .btn,
+    .nc-form-actions a.btn { justify-content: center; width: 100%; }
+
+    .nc-table { min-width: 480px; }
+}

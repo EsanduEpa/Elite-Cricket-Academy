@@ -158,13 +158,133 @@ class M_Trainer {
         return $this->db->execute();
     }
 
-    // Workout Management
-    public function getWorkoutPlans() {
-        $this->db->query('SELECT wp.*, p.name as player_name 
-                         FROM workout_plans wp 
-                         LEFT JOIN players p ON wp.player_id = p.id 
-                         ORDER BY wp.created_at DESC');
+    /**
+     * Returns own active/draft plans + other trainers' active plans (read-only).
+     * Each row has is_own (1/0) and trainer_name so the view can badge them.
+     * Archived plans are excluded from the visible library.
+     */
+    public function getWorkoutPlansWithVisibility($trainer_id) {
+        $this->db->query('
+            SELECT
+                wp.PlanID,
+                wp.TrainerID,
+                wp.workoutname,
+                wp.frequency,
+                wp.Duration,
+                wp.VideoLink,
+                wp.Intensity,
+                wp.NotSuitableFor,
+                wp.Benefits,
+                wp.Status,
+                wp.CreatedDate,
+                u.Name  AS trainer_name,
+                IF(wp.TrainerID = :trainer_id, 1, 0) AS is_own,
+                COUNT(wpp.PlayerID) AS assigned_count
+            FROM workoutplan wp
+            JOIN `user` u ON wp.TrainerID = u.UserID
+            LEFT JOIN workoutplan_player wpp
+                ON wp.PlanID = wpp.PlanID AND wpp.Status = \'active\'
+            WHERE wp.Status != \'archived\'
+            GROUP BY wp.PlanID
+            ORDER BY is_own DESC, wp.CreatedDate DESC
+        ');
+        $this->db->bind(':trainer_id', $trainer_id);
         return $this->db->resultSet();
+    }
+
+    /**
+     * Get all players assigned to a specific plan (with assignment lifecycle fields).
+     */
+    public function getAssignedPlayersForPlan($plan_id) {
+        $this->db->query('
+            SELECT
+                pp.PlayerID,
+                u.Name          AS player_name,
+                u.Email         AS player_email,
+                wpp.AssignedBy,
+                wpp.AssignedDate,
+                wpp.EndDate,
+                wpp.Status      AS assignment_status,
+                assigned_t.Name AS assigned_by_name
+            FROM workoutplan_player wpp
+            JOIN playerprofile pp  ON wpp.PlayerID  = pp.PlayerID
+            JOIN `user` u          ON pp.PlayerID   = u.UserID
+            LEFT JOIN `user` assigned_t ON wpp.AssignedBy = assigned_t.UserID
+            WHERE wpp.PlanID = :plan_id
+            ORDER BY wpp.AssignedDate DESC
+        ');
+        $this->db->bind(':plan_id', $plan_id);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Assign a workout plan to a player.
+     * Returns 'duplicate' if the player already has an active assignment for this plan,
+     * true on success, false on DB failure.
+     */
+    public function assignPlanToPlayer($data) {
+        // Block duplicate active assignment
+        $this->db->query('
+            SELECT 1 FROM workoutplan_player
+            WHERE PlanID = :plan_id AND PlayerID = :player_id AND Status = \'active\'
+        ');
+        $this->db->bind(':plan_id',   $data['plan_id']);
+        $this->db->bind(':player_id', $data['player_id']);
+        if ($this->db->single()) {
+            return 'duplicate';
+        }
+
+        $this->db->query('
+            INSERT INTO workoutplan_player
+                (PlanID, PlayerID, AssignedDate, AssignedBy, Status, EndDate)
+            VALUES
+                (:plan_id, :player_id, CURDATE(), :assigned_by, \'active\', :end_date)
+            ON DUPLICATE KEY UPDATE
+                AssignedBy   = VALUES(AssignedBy),
+                AssignedDate = CURDATE(),
+                Status       = \'active\',
+                EndDate      = VALUES(EndDate)
+        ');
+        $this->db->bind(':plan_id',     $data['plan_id']);
+        $this->db->bind(':player_id',   $data['player_id']);
+        $this->db->bind(':assigned_by', $data['assigned_by']);
+        $this->db->bind(':end_date',    !empty($data['end_date']) ? $data['end_date'] : null);
+        return $this->db->execute() ? true : false;
+    }
+
+    /**
+     * Unassign (delete) a plan from a player.
+     * Only the trainer who originally assigned it may remove it.
+     */
+    public function unassignPlanFromPlayer($plan_id, $player_id, $trainer_id) {
+        $this->db->query('
+            DELETE FROM workoutplan_player
+            WHERE PlanID = :plan_id AND PlayerID = :player_id AND AssignedBy = :trainer_id
+        ');
+        $this->db->bind(':plan_id',    $plan_id);
+        $this->db->bind(':player_id',  $player_id);
+        $this->db->bind(':trainer_id', $trainer_id);
+        return $this->db->execute();
+    }
+
+    /**
+     * Update the status of a player's assignment (active / completed / paused).
+     * Only the assigning trainer may change the status.
+     */
+    public function updateAssignmentStatus($plan_id, $player_id, $trainer_id, $status) {
+        $allowed = ['active', 'completed', 'paused'];
+        if (!in_array($status, $allowed)) return false;
+
+        $this->db->query('
+            UPDATE workoutplan_player
+            SET Status = :status
+            WHERE PlanID = :plan_id AND PlayerID = :player_id AND AssignedBy = :trainer_id
+        ');
+        $this->db->bind(':status',     $status);
+        $this->db->bind(':plan_id',    $plan_id);
+        $this->db->bind(':player_id',  $player_id);
+        $this->db->bind(':trainer_id', $trainer_id);
+        return $this->db->execute();
     }
 
     public function getExercises() {
@@ -173,20 +293,69 @@ class M_Trainer {
     }
 
     public function addWorkoutPlan($data) {
-        $this->db->query('INSERT INTO workout_plans 
-                         (player_id, trainer_id, plan_name, description, exercises, duration, difficulty_level, notes) 
-                         VALUES (:player_id, :trainer_id, :plan_name, :description, :exercises, :duration, :difficulty_level, :notes)');
-        
-        $this->db->bind(':player_id', $data['player_id']);
-        $this->db->bind(':trainer_id', $data['trainer_id']);
-        $this->db->bind(':plan_name', $data['plan_name']);
-        $this->db->bind(':description', $data['description']);
-        $this->db->bind(':exercises', $data['exercises']);
-        $this->db->bind(':duration', $data['duration']);
-        $this->db->bind(':difficulty_level', $data['difficulty_level']);
-        $this->db->bind(':notes', $data['notes']);
+        $this->db->query('INSERT INTO workoutplan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits)
+            VALUES (:trainer_id, :workoutname, :frequency, :duration, :videolink, :intensity, :notsuitablefor, :benefits)');
+
+        $this->db->bind(':trainer_id',     $data['trainer_id']);
+        $this->db->bind(':workoutname',    $data['workoutname']);
+        $this->db->bind(':frequency',      $data['frequency']);
+        $this->db->bind(':duration',       $data['duration']);
+        $this->db->bind(':videolink',      $data['videolink']);
+        $this->db->bind(':intensity',      $data['intensity']);
+        $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
+        $this->db->bind(':benefits',       $data['benefits']);
 
         return $this->db->execute();
+    }
+
+    // Update workout plan
+    public function updateWorkoutPlan($data) {
+        $this->db->query('UPDATE workoutplan 
+            SET workoutname = :workoutname, 
+                frequency = :frequency, 
+                Duration = :duration,
+                VideoLink = :videolink,
+                Intensity = :intensity,
+                NotSuitableFor = :notsuitablefor,
+                Benefits = :benefits
+            WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
+        
+        $this->db->bind(':plan_id', $data['plan_id']);
+        $this->db->bind(':trainer_id', $data['trainer_id']);
+        $this->db->bind(':workoutname', $data['workoutname']);
+        $this->db->bind(':frequency', $data['frequency']);
+        $this->db->bind(':duration', $data['duration']);
+        $this->db->bind(':videolink', $data['videolink']);
+        $this->db->bind(':intensity', $data['intensity']);
+        $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
+        $this->db->bind(':benefits', $data['benefits']);
+        
+        return $this->db->execute();
+    }
+
+    // Delete workout plan
+    public function deleteWorkoutPlan($plan_id, $trainer_id) {
+        $this->db->query('DELETE FROM workoutplan 
+            WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
+        
+        $this->db->bind(':plan_id', $plan_id);
+        $this->db->bind(':trainer_id', $trainer_id);
+        
+        return $this->db->execute();
+    }
+
+    // Get single workout plan by ID
+    public function getWorkoutPlanById($plan_id) {
+        $this->db->query('SELECT *, Duration AS durationdays FROM workoutplan WHERE PlanID = :plan_id');
+        $this->db->bind(':plan_id', $plan_id);
+        
+        return $this->db->single();
+    }
+
+    // Get all players for dropdown
+    public function getAllPlayers() {
+        $this->db->query('SELECT pp.PlayerID, u.Name FROM playerprofile pp JOIN `user` u ON pp.PlayerID = u.UserID ORDER BY u.Name');
+        return $this->db->resultSet();
     }
 
     // Medical Records
@@ -244,11 +413,6 @@ class M_Trainer {
         return $this->db->resultSet();
     }
 
-    public function getAllPlayers() {
-        $this->db->query('SELECT * FROM players ORDER BY name ASC');
-        return $this->db->resultSet();
-    }
-
     // Dashboard Statistics
     public function getDashboardStats($trainer_id) {
         $stats = [];
@@ -276,5 +440,41 @@ class M_Trainer {
         $stats['upcoming_tournaments'] = $this->db->single()->count;
         
         return $stats;
+    }
+
+    // Get workout plans assigned to a player (includes assignment lifecycle fields)
+    public function getWorkoutPlansByPlayer($playerId) {
+        $this->db->query('
+            SELECT
+                wp.*,
+                u.Name          AS trainer_name,
+                wpp.AssignedDate,
+                wpp.EndDate,
+                wpp.Status      AS assignment_status,
+                ab.Name         AS assigned_by_name
+            FROM workoutplan wp
+            JOIN workoutplan_player wpp ON wp.PlanID = wpp.PlanID
+            JOIN `user` u               ON wp.TrainerID = u.UserID
+            LEFT JOIN `user` ab          ON wpp.AssignedBy = ab.UserID
+            WHERE wpp.PlayerID = :player_id
+            ORDER BY
+                FIELD(wpp.Status, \'active\', \'paused\', \'completed\'),
+                wpp.AssignedDate DESC
+        ');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->resultSet();
+    }
+
+    // Get trainer bookings (appointments) from the trainerappointment table  
+    public function getTrainerAppointments($trainerId) {
+        $this->db->query('SELECT ta.*, u.Name AS player_name, u.Email AS player_email,
+            pp.BattingStyle, pp.BowlingStyle, pp.PlayingRole
+            FROM trainerappointment ta
+            JOIN user u ON ta.PlayerID = u.UserID
+            LEFT JOIN playerprofile pp ON ta.PlayerID = pp.PlayerID
+            WHERE ta.TrainerID = :trainer_id
+            ORDER BY ta.AppointmentDate DESC, ta.StartTime ASC');
+        $this->db->bind(':trainer_id', $trainerId);
+        return $this->db->resultSet();
     }
 }

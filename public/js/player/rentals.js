@@ -9,6 +9,7 @@ function initializeRentalsPage() {
     
     initRentalFiltering();
     initRentalModals();
+    initRentalImageFallbacks();
     initRentalCart();
     setMinimumDates();
     
@@ -53,9 +54,8 @@ function updateRentalNavButtons(activeCategory) {
     const navBtns = document.querySelectorAll('.rental-nav-btn');
     navBtns.forEach(btn => {
         btn.classList.remove('active');
-        
-        // Check if this button corresponds to the active category
-        const btnCategory = btn.getAttribute('onclick')?.match(/filterRentalsByCategory\('([^']+)'\)/)?.[1];
+
+        const btnCategory = btn.dataset.category;
         if (btnCategory === activeCategory) {
             btn.classList.add('active');
         }
@@ -91,12 +91,18 @@ function updateRentalResultsCount(category) {
 function initRentalModals() {
     // Add event listeners for rental buttons
     document.addEventListener('click', function(e) {
+        const navButton = e.target.closest('.rental-nav-btn');
+        if (navButton) {
+            filterRentalsByCategory(navButton.dataset.category || 'all');
+            return;
+        }
+
         if (e.target.classList.contains('rent-equipment')) {
             const rentalData = e.target.dataset;
             openRentalModal(rentalData);
         }
         
-        if (e.target.classList.contains('rental-close-btn')) {
+        if (e.target.classList.contains('modal-close-btn')) {
             closeRentalModal();
         }
         
@@ -124,7 +130,7 @@ function openRentalModal(rentalData) {
     document.body.style.overflow = 'hidden';
     
     // Add animation
-    const modalContent = modal.querySelector('.rental-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -138,7 +144,7 @@ function closeRentalModal() {
     const modal = document.getElementById('rentalModal');
     if (!modal) return;
     
-    const modalContent = modal.querySelector('.rental-modal-content');
+    const modalContent = modal.querySelector('.modal-content');
     modalContent.style.transform = 'scale(0.7)';
     modalContent.style.opacity = '0';
     
@@ -151,23 +157,23 @@ function closeRentalModal() {
 function createRentalModal() {
     const modal = document.createElement('div');
     modal.id = 'rentalModal';
-    modal.className = 'rental-modal';
+    modal.className = 'modal-overlay';
     modal.style.display = 'none';
-    
+
     modal.innerHTML = `
-        <div class="rental-modal-content" style="transition: all 0.2s ease;">
-            <div class="rental-modal-header">
+        <div class="modal-content" style="transition: all 0.2s ease;">
+            <div class="modal-header">
                 <h3>Equipment Rental</h3>
-                <button class="rental-close-btn">&times;</button>
+                <button class="modal-close-btn">&times;</button>
             </div>
-            <div class="rental-modal-body">
+            <div class="modal-body">
                 <div id="rental-details"></div>
                 <form id="rental-form">
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-start-date">Start Date:</label>
                         <input type="date" id="rental-start-date" required>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-duration">Rental Duration:</label>
                         <select id="rental-duration" required>
                             <option value="1">1 Day</option>
@@ -177,7 +183,7 @@ function createRentalModal() {
                             <option value="30">1 Month</option>
                         </select>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-quantity">Quantity:</label>
                         <select id="rental-quantity" required>
                             <option value="1">1</option>
@@ -187,39 +193,49 @@ function createRentalModal() {
                             <option value="5">5</option>
                         </select>
                     </div>
-                    <div class="rental-form-group">
+                    <div class="form-group">
                         <label for="rental-pickup">Pickup Method:</label>
                         <select id="rental-pickup" required>
                             <option value="pickup">Pickup from Academy</option>
-                            <option value="delivery">Home Delivery (+$5)</option>
+                            <option value="delivery">Home Delivery (+Rs. 5)</option>
                         </select>
                     </div>
                 </form>
-                <div class="rental-total">
-                    <strong>Total: $<span id="rental-total-amount">0.00</span></strong>
+                <div class="total-display">
+                    <strong>Total: Rs. <span id="rental-total-amount">0.00</span></strong>
                 </div>
             </div>
-            <div class="rental-modal-actions">
-                <button class="btn-secondary" onclick="closeRentalModal()">Cancel</button>
-                <button class="btn-primary" onclick="confirmRental()">Confirm Rental</button>
+            <div class="modal-actions">
+                <button class="btn-modal secondary js-rental-cancel" type="button">Cancel</button>
+                <button class="btn-modal primary js-rental-confirm" type="button">Confirm Rental</button>
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
+
+    const cancelButton = modal.querySelector('.js-rental-cancel');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', closeRentalModal);
+    }
+
+    const confirmButton = modal.querySelector('.js-rental-confirm');
+    if (confirmButton) {
+        confirmButton.addEventListener('click', confirmRental);
+    }
 }
 
 function populateRentalDetails(rentalData) {
     const detailsDiv = document.getElementById('rental-details');
     if (!detailsDiv) return;
+
+    const dailyRate = parseFloat(rentalData.rate || '0');
     
     detailsDiv.innerHTML = `
         <div class="rental-equipment-info">
             <h4>${rentalData.name}</h4>
             <p><strong>Condition:</strong> ${rentalData.condition || 'Excellent'}</p>
-            <p><strong>Daily Rate:</strong> $${rentalData.daily || '15.00'}</p>
-            <p><strong>Weekly Rate:</strong> $${rentalData.weekly || '75.00'}</p>
-            <p><strong>Monthly Rate:</strong> $${rentalData.monthly || '200.00'}</p>
+            <p><strong>Rate:</strong> Rs. ${Number.isFinite(dailyRate) ? dailyRate.toFixed(2) : '0.00'} / day</p>
         </div>
     `;
 }
@@ -250,21 +266,8 @@ function calculateRentalTotal(rentalData) {
     const pickup = document.getElementById('rental-pickup').value;
     const totalSpan = document.getElementById('rental-total-amount');
     
-    let baseRate = parseFloat(rentalData.daily || '15.00');
-    let multiplier = 1;
-    
-    // Calculate rate based on duration
-    if (duration >= 30) {
-        baseRate = parseFloat(rentalData.monthly || '200.00');
-        multiplier = Math.ceil(duration / 30);
-    } else if (duration >= 7) {
-        baseRate = parseFloat(rentalData.weekly || '75.00');
-        multiplier = Math.ceil(duration / 7);
-    } else {
-        multiplier = duration;
-    }
-    
-    let total = baseRate * multiplier * quantity;
+    const dailyRate = parseFloat(rentalData.rate || '0');
+    let total = (Number.isFinite(dailyRate) ? dailyRate : 0) * duration * quantity;
     
     // Add delivery fee
     if (pickup === 'delivery') {
@@ -324,7 +327,7 @@ Start Date: ${rentalDetails.startDate}
 Duration: ${durationText}
 Quantity: ${rentalDetails.quantity}
 Pickup: ${pickupText}
-Total: $${rentalDetails.total}
+Total: Rs. ${rentalDetails.total}
 
 You will receive a confirmation email shortly with pickup/delivery details.`);
 }
@@ -346,9 +349,7 @@ function addToRentalCart(equipmentData) {
         cart.push({
             id: equipmentData.id,
             name: equipmentData.name,
-            daily: equipmentData.daily,
-            weekly: equipmentData.weekly,
-            monthly: equipmentData.monthly,
+            rate: equipmentData.rate,
             condition: equipmentData.condition,
             image: equipmentData.image,
             quantity: 1
@@ -416,6 +417,17 @@ function initRentalFiltering() {
     }, 100);
 }
 
+function initRentalImageFallbacks() {
+    document.querySelectorAll('#rentals-grid img[data-fallback-src]').forEach(function (image) {
+        image.addEventListener('error', function handleImageError() {
+            if (image.src !== image.dataset.fallbackSrc) {
+                image.src = image.dataset.fallbackSrc;
+            }
+            image.removeEventListener('error', handleImageError);
+        });
+    });
+}
+
 // Search functionality
 function initRentalSearch() {
     const searchInput = document.getElementById('rental-search');
@@ -455,7 +467,7 @@ style.textContent = `
         transition: opacity 0.3s ease, transform 0.3s ease;
     }
     
-    .rental-modal-content {
+    .modal-content {
         transition: all 0.2s ease;
     }
 `;

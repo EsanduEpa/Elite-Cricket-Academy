@@ -1,7 +1,9 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Log errors but don't display them (prevents HTML output in JSON responses)
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
 class Core {
@@ -30,9 +32,11 @@ class Core {
         $this->currentController = new $this->currentController;
 
         if(isset($url[1])) {
+            $requestedMethod = str_replace('-', '_', $url[1]);
+
             // Check if the method exists in the controller
-            if(method_exists($this->currentController, $url[1])) {
-                $this->currentMethod = $url[1];
+            if(method_exists($this->currentController, $requestedMethod)) {
+                $this->currentMethod = $requestedMethod;
                 unset($url[1]);
             }
 

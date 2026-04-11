@@ -1,0 +1,9 @@
+# Ignore all uploaded profile images
+*
+
+# But keep this .gitignore file
+!.gitignore
+
+# Keep a placeholder or default image if added later
+!.gitkeep
+!default-avatar.png

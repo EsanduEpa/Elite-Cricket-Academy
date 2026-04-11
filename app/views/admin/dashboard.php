@@ -33,27 +33,39 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#player-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                             <i class="fas fa-user-graduate"></i>
                             <span>Player Management</span>
                         </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Events & Tournaments</span>
-                        </a>
-                    </li>
+                                   <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
+
                     
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
-                            <span class="badge">12</span>
+                            <?php if($data['totalPendingFeedback'] > 0): ?>
+                            <span class="badge"><?php echo $data['totalPendingFeedback']; ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
                     
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            <span>Slot Management</span>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
@@ -64,19 +76,18 @@
             </nav>
             
             <!-- Admin Profile -->
-            <div class="admin-profile">
+            <div class="profile-section">
                 <div class="profile-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <div class="profile-info">
-                    <span class="admin-name">Admin User</span>
-                    <span class="admin-role">Super Administrator</span>
-                </div>
-                            <div class="logout-btn">
-                <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
+                <div class="profile-role">Super Administrator</div>
+                <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
                 </a>
-            </div>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
         </div>
         
@@ -103,7 +114,7 @@
                             <i class="fas fa-users-cog"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">24</span>
+                            <span class="number"><?php echo $data['totalStaff']; ?></span>
                             <span class="label">Total Staff</span>
                         </div>
                     </div>
@@ -118,7 +129,7 @@
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">8</span>
+                            <span class="number"><?php echo count($data['upcomingEvents']); ?></span>
                             <span class="label">Upcoming Events</span>
                         </div>
                     </div>
@@ -133,7 +144,7 @@
                             <i class="fas fa-comments"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">12</span>
+                            <span class="number"><?php echo $data['totalPendingFeedback']; ?></span>
                             <span class="label">Pending Reviews</span>
                         </div>
                     </div>
@@ -148,7 +159,7 @@
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="card-info">
-                            <span class="number">$45,680</span>
+                            <span class="number">RS <?php echo number_format($data['monthlyRevenue'] ?? 0); ?></span>
                             <span class="label">Monthly Revenue</span>
                         </div>
                     </div>
@@ -222,66 +233,40 @@
                                 <th>Description</th>
                                 <th>Date & Time</th>
                                 <th>Status</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="activityTableBody">
-                            <tr>
-                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
-                                <td>New player registered: Sarah Johnson (Age 14)</td>
-                                <td>Oct 19, 2025 - 10:30 AM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(1)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge event"><i class="fas fa-calendar-plus"></i> Event</span></td>
-                                <td>Tournament scheduled: Junior Championship 2025</td>
-                                <td>Oct 19, 2025 - 08:15 AM</td>
-                                <td><span class="status-badge scheduled">Scheduled</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(2)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge feedback"><i class="fas fa-star"></i> Feedback</span></td>
-                                <td>5-star feedback received from parent of Alex Kumar</td>
-                                <td>Oct 18, 2025 - 04:45 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(3)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge payment"><i class="fas fa-credit-card"></i> Payment</span></td>
-                                <td>Payment received: $450 from Emma Wilson</td>
-                                <td>Oct 18, 2025 - 02:20 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(4)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge staff"><i class="fas fa-user-tie"></i> Staff</span></td>
-                                <td>New coach hired: Michael Roberts (Former State Player)</td>
-                                <td>Oct 17, 2025 - 09:00 AM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(5)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge training"><i class="fas fa-dumbbell"></i> Training</span></td>
-                                <td>Advanced batting session completed: 15 participants</td>
-                                <td>Oct 16, 2025 - 05:30 PM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(6)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge maintenance"><i class="fas fa-tools"></i> Maintenance</span></td>
-                                <td>Equipment maintenance completed for Ground A</td>
-                                <td>Oct 16, 2025 - 11:00 AM</td>
-                                <td><span class="status-badge completed">Completed</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(7)">Show More</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="activity-badge registration"><i class="fas fa-user-plus"></i> Registration</span></td>
-                                <td>New player registered: David Chen (Age 12)</td>
-                                <td>Oct 15, 2025 - 03:15 PM</td>
-                                <td><span class="status-badge active">Active</span></td>
-                                <td><button class="btn-show-more" onclick="showActivityDetails(8)">Show More</button></td>
-                            </tr>
+                            <?php if(!empty($data['recentActivities'])): ?>
+                                <?php foreach($data['recentActivities'] as $activity): ?>
+                                    <tr>
+                                        <td>
+                                            <span class="activity-badge <?php echo strtolower($activity->action); ?>">
+                                                <i class="fas fa-<?php 
+                                                    // Map activity action to icon
+                                                    $icon = 'info-circle'; // default
+                                                    if(stripos($activity->action, 'login') !== false) $icon = 'sign-in-alt';
+                                                    elseif(stripos($activity->action, 'register') !== false || stripos($activity->action, 'created') !== false) $icon = 'user-plus';
+                                                    elseif(stripos($activity->action, 'update') !== false || stripos($activity->action, 'edit') !== false) $icon = 'edit';
+                                                    elseif(stripos($activity->action, 'delete') !== false) $icon = 'trash';
+                                                    elseif(stripos($activity->action, 'event') !== false) $icon = 'calendar-alt';
+                                                    elseif(stripos($activity->action, 'feedback') !== false) $icon = 'comment';
+                                                    echo $icon;
+                                                ?>"></i> 
+                                                <?php echo htmlspecialchars($activity->action); ?>
+                                            </span>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($activity->details); ?></td>
+                                        <td><?php echo htmlspecialchars($activity->timestamp); ?></td>
+                                        <td><span class="status-badge active">Completed</span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 20px; color: #999;">
+                                        <i class="fas fa-info-circle"></i> No recent activities found
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -293,30 +278,30 @@
                     <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                 </div>
                 <div class="quick-actions-grid">
-                    <button class="action-btn primary" onclick="openModal('addPlayer')">
+                    <a href="<?php echo URLROOT; ?>/admin/players" class="action-btn primary">
                         <i class="fas fa-user-plus"></i>
                         <span>Add New Player</span>
-                    </button>
-                    <button class="action-btn secondary" onclick="openModal('scheduleEvent')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/events" class="action-btn secondary">
                         <i class="fas fa-calendar-plus"></i>
                         <span>Schedule Event</span>
-                    </button>
-                    <button class="action-btn success" onclick="openModal('generateReport')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/reports" class="action-btn success">
                         <i class="fas fa-file-alt"></i>
                         <span>Generate Report</span>
-                    </button>
-                    <button class="action-btn warning" onclick="openModal('sendNotification')">
-                        <i class="fas fa-bell"></i>
-                        <span>Send Notification</span>
-                    </button>
-                    <button class="action-btn info" onclick="openModal('manageStaff')">
-                        <i class="fas fa-users-cog"></i>
-                        <span>Manage Staff</span>
-                    </button>
-                    <button class="action-btn danger" onclick="openModal('reviewFeedback')">
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/staff" class="action-btn warning">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Add New Staff</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/finance" class="action-btn info">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Manage Finance</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="action-btn danger">
                         <i class="fas fa-comments"></i>
                         <span>Review Feedback</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -356,15 +341,25 @@
                     }
                 }
                 
-                // Time filter (simplified - would need actual dates in production)
+                // Time filter
                 if (timeFilter !== 'all' && showRow) {
-                    const dateText = row.cells[2].textContent;
+                    const dateText = row.cells[2].textContent.trim();
                     const today = new Date();
-                    
-                    if (timeFilter === 'today' && !dateText.includes('Oct 19')) {
-                        showRow = false;
-                    } else if (timeFilter === 'week' && !dateText.includes('Oct 1')) {
-                        showRow = false;
+                    today.setHours(0, 0, 0, 0);
+
+                    // Parse the date from cell text (expect formats like "Feb 17, 2026" or "2026-02-17")
+                    const rowDate = new Date(dateText);
+                    if (!isNaN(rowDate.getTime())) {
+                        rowDate.setHours(0, 0, 0, 0);
+                        if (timeFilter === 'today') {
+                            showRow = rowDate.getTime() === today.getTime();
+                        } else if (timeFilter === 'week') {
+                            const weekAgo = new Date(today);
+                            weekAgo.setDate(weekAgo.getDate() - 7);
+                            showRow = rowDate >= weekAgo && rowDate <= today;
+                        } else if (timeFilter === 'month') {
+                            showRow = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+                        }
                     }
                 }
                 

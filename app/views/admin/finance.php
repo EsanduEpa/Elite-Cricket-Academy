@@ -34,7 +34,7 @@
                     </li>
                     
                     <li class="nav-item">
-                        <a href="#player-management" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/admin/players" class="nav-link">
                             <i class="fas fa-user-graduate"></i>
                             <span>Player Management</span>
                         </a>
@@ -52,6 +52,13 @@
                             <i class="fas fa-comments"></i>
                             <span>Feedback Monitoring</span>
                             <span class="badge">12</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reports</span>
                         </a>
                     </li>
                     
@@ -134,10 +141,10 @@
                         <i class="fas fa-receipt"></i>
                     </div>
                     <div class="card-content">
-                        <div class="card-value">LKR <?php echo number_format($data['monthlyRevenue'] / 30); ?></div>
+                        <div class="card-value">LKR <?php echo number_format($data['dailyAverage']); ?></div>
                         <div class="card-label">Daily Average</div>
-                        <div class="card-trend positive">
-                            <i class="fas fa-arrow-up"></i> 5.2% increase
+                        <div class="card-trend <?php echo $data['growthRate'] >= 0 ? 'positive' : 'negative'; ?>">
+                            <i class="fas fa-arrow-<?php echo $data['growthRate'] >= 0 ? 'up' : 'down'; ?>"></i> <?php echo abs($data['growthRate']); ?>% growth
                         </div>
                     </div>
                 </div>
@@ -147,10 +154,10 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="card-content">
-                        <div class="card-value"><?php echo count(array_filter($data['recentPayments'], function($payment) { return $payment['status'] === 'pending'; })); ?></div>
+                        <div class="card-value"><?php echo $data['pendingCount']; ?></div>
                         <div class="card-label">Pending Payments</div>
                         <div class="card-trend neutral">
-                            <i class="fas fa-minus"></i> No change
+                            <i class="fas fa-clock"></i> Requires attention
                         </div>
                     </div>
                 </div>
@@ -184,16 +191,6 @@
                                 </div>
                                 <div class="category-percentage"><?php echo $data['revenueCategories']['membership_fees']['percentage']; ?>%</div>
                             </div>
-                            <div class="category-details">
-                                <div class="detail-item">
-                                    <span>Monthly Average</span>
-                                    <span>LKR <?php echo number_format($data['revenueCategories']['membership_fees']['monthly']); ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Growth Rate</span>
-                                    <span class="positive">+<?php echo $data['revenueCategories']['membership_fees']['growth']; ?>%</span>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="category-card shop-sales">
@@ -202,66 +199,10 @@
                                     <i class="fas fa-shopping-cart"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h3>Equipment Sales</h3>
+                                    <h3>Shop Sales</h3>
                                     <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['shop_sales']['amount']); ?></div>
                                 </div>
                                 <div class="category-percentage"><?php echo $data['revenueCategories']['shop_sales']['percentage']; ?>%</div>
-                            </div>
-                            <div class="category-details">
-                                <div class="detail-item">
-                                    <span>Monthly Average</span>
-                                    <span>LKR <?php echo number_format($data['revenueCategories']['shop_sales']['monthly']); ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Growth Rate</span>
-                                    <span class="positive">+<?php echo $data['revenueCategories']['shop_sales']['growth']; ?>%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="category-card facility-rental">
-                            <div class="category-header">
-                                <div class="category-icon">
-                                    <i class="fas fa-building"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h3>Facility Rental</h3>
-                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['facility_rental']['amount']); ?></div>
-                                </div>
-                                <div class="category-percentage"><?php echo $data['revenueCategories']['facility_rental']['percentage']; ?>%</div>
-                            </div>
-                            <div class="category-details">
-                                <div class="detail-item">
-                                    <span>Monthly Average</span>
-                                    <span>LKR <?php echo number_format($data['revenueCategories']['facility_rental']['monthly']); ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Growth Rate</span>
-                                    <span class="positive">+<?php echo $data['revenueCategories']['facility_rental']['growth']; ?>%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="category-card equipment-rental">
-                            <div class="category-header">
-                                <div class="category-icon">
-                                    <i class="fas fa-tools"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h3>Equipment Rental</h3>
-                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['equipment_rental']['amount']); ?></div>
-                                </div>
-                                <div class="category-percentage"><?php echo $data['revenueCategories']['equipment_rental']['percentage']; ?>%</div>
-                            </div>
-                            <div class="category-details">
-                                <div class="detail-item">
-                                    <span>Monthly Average</span>
-                                    <span>LKR <?php echo number_format($data['revenueCategories']['equipment_rental']['monthly']); ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Growth Rate</span>
-                                    <span class="positive">+<?php echo $data['revenueCategories']['equipment_rental']['growth']; ?>%</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -329,44 +270,45 @@
                             </tr>
                         </thead>
                         <tbody id="paymentsTableBody">
-                            <?php foreach ($data['recentPayments'] as $payment): ?>
-                            <tr class="payment-row" data-status="<?php echo $payment['status']; ?>" data-type="<?php echo strtolower(str_replace(' ', '_', $payment['type'])); ?>">
-                                <td class="payment-id"><?php echo $payment['id']; ?></td>
-                                <td class="payment-type">
-                                    <span class="type-badge <?php echo strtolower(str_replace(' ', '-', $payment['type'])); ?>">
-                                        <?php echo $payment['type']; ?>
-                                    </span>
-                                </td>
-                                <td class="customer-name"><?php echo $payment['customer']; ?></td>
-                                <td class="payment-amount">LKR <?php echo number_format($payment['amount']); ?></td>
-                                <td class="payment-date"><?php echo date('M d, Y', strtotime($payment['date'])); ?></td>
-                                <td class="payment-method">
-                                    <span class="method-badge <?php echo strtolower($payment['method']); ?>">
-                                        <i class="fas fa-<?php echo $payment['method'] === 'Card' ? 'credit-card' : ($payment['method'] === 'Cash' ? 'money-bills' : ($payment['method'] === 'Online' ? 'globe' : 'university')); ?>"></i>
-                                        <?php echo $payment['method']; ?>
-                                    </span>
-                                </td>
-                                <td class="payment-status">
-                                    <span class="status-badge <?php echo $payment['status']; ?>">
-                                        <i class="fas fa-<?php echo $payment['status'] === 'completed' ? 'check-circle' : ($payment['status'] === 'pending' ? 'clock' : 'times-circle'); ?>"></i>
-                                        <?php echo ucfirst($payment['status']); ?>
-                                    </span>
-                                </td>
-                                <td class="payment-actions">
-                                    <button class="action-btn view" onclick="viewPayment('<?php echo $payment['id']; ?>')" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <?php if ($payment['status'] === 'pending'): ?>
-                                    <button class="action-btn approve" onclick="approvePayment('<?php echo $payment['id']; ?>')" title="Approve Payment">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <?php endif; ?>
-                                    <button class="action-btn download" onclick="downloadReceipt('<?php echo $payment['id']; ?>')" title="Download Receipt">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                            <?php if(!empty($data['recentTransactions'])): ?>
+                                <?php foreach ($data['recentTransactions'] as $payment): ?>
+                                <tr class="payment-row" data-status="<?php echo $payment['status']; ?>" data-type="<?php echo strtolower(str_replace(' ', '_', $payment['type'])); ?>">
+                                    <td class="payment-id"><?php echo htmlspecialchars($payment['id']); ?></td>
+                                    <td class="payment-type">
+                                        <span class="type-badge <?php echo strtolower(str_replace(' ', '-', $payment['type'])); ?>">
+                                            <?php echo htmlspecialchars($payment['type']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="customer-name"><?php echo htmlspecialchars($payment['customer']); ?></td>
+                                    <td class="payment-amount">LKR <?php echo number_format($payment['amount'], 2); ?></td>
+                                    <td class="payment-date"><?php echo date('M d, Y', strtotime($payment['date'])); ?></td>
+                                    <td class="payment-method">
+                                        <span class="method-badge <?php echo strtolower($payment['method']); ?>">
+                                            <i class="fas fa-<?php echo strtolower($payment['method']) === 'card' ? 'credit-card' : (strtolower($payment['method']) === 'cash' ? 'money-bills' : (strtolower($payment['method']) === 'online' ? 'globe' : 'university')); ?>"></i>
+                                            <?php echo $payment['method']; ?>
+                                        </span>
+                                    </td>
+                                    <td class="payment-status">
+                                        <span class="status-badge <?php echo $payment['status']; ?>">
+                                            <i class="fas fa-<?php echo $payment['status'] === 'completed' ? 'check-circle' : ($payment['status'] === 'pending' ? 'clock' : 'times-circle'); ?>"></i>
+                                            <?php echo ucfirst($payment['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="payment-actions">
+                                        <button class="action-btn view" onclick="viewPayment('<?php echo htmlspecialchars($payment['id']); ?>')" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px;"></i>
+                                        <p>No transactions found</p>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -374,7 +316,7 @@
                 <!-- Pagination -->
                 <div class="pagination-container">
                     <div class="pagination-info">
-                        Showing 1-<?php echo count($data['recentPayments']); ?> of <?php echo count($data['recentPayments']); ?> transactions
+                                    Showing 1-<?php echo count($data['recentTransactions']); ?> of <?php echo count($data['recentTransactions']); ?> transactions
                     </div>
                     <div class="pagination">
                         <button class="page-btn prev" disabled>
@@ -395,25 +337,29 @@
                 </div>
 
                 <div class="performance-grid">
-                    <?php foreach ($data['topSellingItems'] as $index => $item): ?>
-                    <div class="performance-card rank-<?php echo $index + 1; ?>">
-                        <div class="rank-badge">#<?php echo $index + 1; ?></div>
-                        <div class="item-info">
-                            <div class="item-name"><?php echo $item['item']; ?></div>
-                            <div class="item-category"><?php echo ucfirst(str_replace('_', ' ', $item['category'])); ?></div>
-                        </div>
-                        <div class="item-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Revenue</span>
-                                <span class="stat-value">LKR <?php echo number_format($item['revenue']); ?></span>
+                    <?php if(!empty($data['topSources'])): ?>
+                        <?php foreach ($data['topSources'] as $index => $item): ?>
+                        <div class="performance-card rank-<?php echo $index + 1; ?>">
+                            <div class="rank-badge">#<?php echo $index + 1; ?></div>
+                            <div class="item-info">
+                                <div class="item-name"><?php echo htmlspecialchars($item['item']); ?></div>
+                                <div class="item-category"><?php echo ucfirst(str_replace('_', ' ', $item['category'])); ?></div>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Quantity/Sessions</span>
-                                <span class="stat-value"><?php echo $item['quantity']; ?></span>
+                            <div class="item-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Revenue</span>
+                                    <span class="stat-value">LKR <?php echo number_format($item['revenue']); ?></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Quantity</span>
+                                    <span class="stat-value"><?php echo $item['quantity']; ?></span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p style="text-align: center; padding: 40px; color: #999;">No revenue data available yet</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

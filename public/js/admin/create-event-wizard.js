@@ -11,6 +11,42 @@ class EventWizard {
         this.bindEvents();
         this.updateProgress();
         this.setMinDates();
+        this.addValidationStyles();
+    }
+
+    addValidationStyles() {
+        // Add CSS for error animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes errorPulse {
+                0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                50% { transform: translate(-50%, -50%) scale(1.05); }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            }
+            .form-control.error {
+                border-color: #dc3545 !important;
+                background-color: #fff5f5 !important;
+            }
+            .form-control.success {
+                border-color: #28a745 !important;
+                background-color: #f0fff4 !important;
+            }
+            .error-message {
+                display: none;
+                color: #dc3545;
+                font-size: 12px;
+                margin-top: 5px;
+            }
+            .error-message.show {
+                display: block;
+                animation: slideDown 0.3s ease;
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     bindEvents() {
@@ -47,15 +83,23 @@ class EventWizard {
     }
 
     nextStep() {
-        if (this.validateCurrentStep()) {
-            this.saveCurrentStepData();
-            if (this.currentStep < this.totalSteps) {
-                this.currentStep++;
-                this.showStep(this.currentStep);
-                this.updateProgress();
-                if (this.currentStep === 4) {
-                    this.populateSummary();
-                }
+        // Validate current step before proceeding
+        if (!this.validateCurrentStep()) {
+            console.log('Validation failed, staying on step', this.currentStep);
+            return; // Don't proceed if validation fails
+        }
+        
+        console.log('Validation passed, proceeding to next step');
+        this.saveCurrentStepData();
+        
+        if (this.currentStep < this.totalSteps) {
+            this.currentStep++;
+            this.showStep(this.currentStep);
+            this.updateProgress();
+            
+            // Populate summary on last step
+            if (this.currentStep === 4) {
+                this.populateSummary();
             }
         }
     }
@@ -143,23 +187,39 @@ class EventWizard {
     }
 
     validateCurrentStep() {
-        const currentStepElement = document.querySelector(`[data-step="${this.currentStep}"]`);
+        const currentStepElement = document.querySelector(`.step-content[data-step="${this.currentStep}"]`);
         if (!currentStepElement) return false;
         
         const requiredFields = currentStepElement.querySelectorAll('[required]');
         let isValid = true;
+        let firstInvalidField = null;
 
+        // Validate all required fields
         requiredFields.forEach(field => {
             if (!this.validateField(field)) {
                 isValid = false;
+                if (!firstInvalidField) {
+                    firstInvalidField = field;
+                }
             }
         });
 
-        // Additional validations
+        // Additional validations based on step
         if (this.currentStep === 2) {
             if (!this.validateDates()) {
                 isValid = false;
             }
+        }
+
+        // Show alert if validation fails
+        if (!isValid) {
+            if (firstInvalidField) {
+                firstInvalidField.focus();
+                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Show notification
+            this.showValidationError('Please fill all required fields correctly before proceeding.');
         }
 
         return isValid;
@@ -192,15 +252,71 @@ class EventWizard {
         if (field.type === 'tel' && value) {
             const phoneRegex = /^[\+]?[0-9\s\-\(\)]+$/;
             if (!phoneRegex.test(value) || value.length < 10) {
-                this.showError(field, errorElement, 'Please enter a valid phone number');
+                this.showError(field, errorElement, 'Please enter a valid phone number (at least 10 digits)');
                 return false;
             }
         }
 
         // Number validation
         if (field.type === 'number' && value) {
-            if (isNaN(value) || value < 0) {
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) {
                 this.showError(field, errorElement, 'Please enter a valid number');
+                return false;
+            }
+            if (numValue < 0) {
+                this.showError(field, errorElement, 'Value cannot be negative');
+                return false;
+            }
+            // Check max participants limit
+            if (field.id === 'maxParticipants' && numValue > 10000) {
+                this.showError(field, errorElement, 'Maximum participants cannot exceed 10,000');
+                return false;
+            }
+            // Check registration fee limit
+            if (field.id === 'registrationFee' && numValue > 1000000) {
+                this.showError(field, errorElement, 'Registration fee seems too high');
+                return false;
+            }
+        }
+
+        // Text field validation (name, venue, etc.)
+        if (field.type === 'text' && value) {
+            if (value.length < 3) {
+                this.showError(field, errorElement, 'Please enter at least 3 characters');
+                return false;
+            }
+            if (value.length > 200) {
+                this.showError(field, errorElement, 'Maximum 200 characters allowed');
+                return false;
+            }
+        }
+
+        // Date validation
+        if (field.type === 'date' && value) {
+            const selectedDate = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                this.showError(field, errorElement, 'Date cannot be in the past');
+                return false;
+            }
+        }
+
+        // Time validation
+        if (field.type === 'time' && value) {
+            const [hours, minutes] = value.split(':').map(Number);
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                this.showError(field, errorElement, 'Please enter a valid time');
+                return false;
+            }
+        }
+
+        // Select validation
+        if (field.tagName === 'SELECT' && field.hasAttribute('required')) {
+            if (!value || value === '') {
+                this.showError(field, errorElement, 'Please select an option');
                 return false;
             }
         }
@@ -218,7 +334,12 @@ class EventWizard {
         const endDate = document.getElementById('endDate').value;
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
+        const regStart = document.getElementById('registrationStart').value;
+        const regEnd = document.getElementById('registrationEnd').value;
 
+        let isValid = true;
+
+        // Validate start and end dates
         if (startDate && endDate) {
             const start = new Date(startDate + ' ' + (startTime || '00:00'));
             const end = new Date(endDate + ' ' + (endTime || '23:59'));
@@ -226,12 +347,55 @@ class EventWizard {
             if (end <= start) {
                 this.showError(document.getElementById('endDate'), 
                               document.getElementById('endDateError'), 
-                              'End date must be after start date');
-                return false;
+                              'End date/time must be after start date/time');
+                isValid = false;
+            }
+
+            // Check if event duration is too long (more than 1 year)
+            const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
+            if (daysDiff > 365) {
+                this.showError(document.getElementById('endDate'), 
+                              document.getElementById('endDateError'), 
+                              'Event duration cannot exceed 1 year');
+                isValid = false;
             }
         }
 
-        return true;
+        // Validate same-day event times
+        if (startDate && endDate && startDate === endDate && startTime && endTime) {
+            if (startTime >= endTime) {
+                this.showError(document.getElementById('endTime'), 
+                              document.getElementById('endTimeError'), 
+                              'End time must be after start time');
+                isValid = false;
+            }
+        }
+
+        // Validate registration dates
+        if (regStart && regEnd) {
+            const regStartDate = new Date(regStart);
+            const regEndDate = new Date(regEnd);
+
+            if (regEndDate <= regStartDate) {
+                this.showError(document.getElementById('registrationEnd'), 
+                              document.getElementById('registrationEndError'), 
+                              'Registration close time must be after open time');
+                isValid = false;
+            }
+
+            // Registration should close before event starts
+            if (startDate && regEnd) {
+                const eventStart = new Date(startDate + ' ' + (startTime || '00:00'));
+                if (regEndDate > eventStart) {
+                    this.showError(document.getElementById('registrationEnd'), 
+                                  document.getElementById('registrationEndError'), 
+                                  'Registration must close before event starts');
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
     }
 
     showError(field, errorElement, message) {
@@ -248,6 +412,50 @@ class EventWizard {
         if (errorElement) {
             errorElement.classList.remove('show');
         }
+    }
+
+    showValidationError(message) {
+        // Create a more prominent error notification
+        const notification = document.createElement('div');
+        notification.className = 'validation-error-notification';
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #dc3545;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+            font-size: 16px;
+            animation: errorPulse 0.3s ease;
+            max-width: 500px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            notification.style.transition = 'all 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
 
     saveCurrentStepData() {
@@ -334,29 +542,85 @@ class EventWizard {
 
     submitForm(e) {
         e.preventDefault();
+        console.log('=== MODAL EVENT FORM SUBMISSION STARTED ===');
+        console.log('Current step:', this.currentStep);
         
-        if (this.validateCurrentStep()) {
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
+        // Final validation check
+        if (!this.validateCurrentStep()) {
+            console.error('✗ Final validation failed - form not submitted');
+            this.showValidationError('Please review and fill all required fields correctly.');
+            return;
+        }
+        
+        console.log('✓ Final validation passed');
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('eventWizardForm');
+        
+        if (!form) {
+            console.error('❌ Form not found!');
+            alert('Error: Form element not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Verify form action
+        if (!form.action || form.action === '') {
+            console.error('❌ Form action is empty!');
+            alert('Error: Form action URL is missing. Please contact support.');
+            return;
+        }
+        
+        console.log('Form found:', form);
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+        
+        // Collect and log form data
+        const formData = new FormData(form);
+        console.log('Form data being submitted:');
+        let fieldCount = 0;
+        let emptyRequired = [];
+        
+        for (let [key, value] of formData.entries()) {
+            fieldCount++;
+            console.log(`  ${fieldCount}. ${key}: ${value || '(empty)'}`);
             
-            // Show loading state
-            submitBtn.innerHTML = '<div class="loading"></div> Creating Event...';
-            submitBtn.disabled = true;
+            // Check if required field is empty
+            const field = form.querySelector(`[name="${key}"]`);
+            if (field && field.hasAttribute('required') && !value) {
+                emptyRequired.push(key);
+            }
+        }
+        
+        console.log(`Total fields: ${fieldCount}`);
+        
+        if (emptyRequired.length > 0) {
+            console.error('❌ Required fields are empty:', emptyRequired);
+            this.showValidationError('Please fill all required fields:\n- ' + emptyRequired.join('\n- '));
+            
+            // Re-enable submit button
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        // Show loading state
+        submitBtn.innerHTML = '<div class="loading"></div> Creating Event...';
+        submitBtn.disabled = true;
+        console.log('✓ Submit button disabled, showing loading state');
 
-            // Simulate form submission - replace with actual form submission
-            setTimeout(() => {
-                // Reset form and close modal
-                this.resetWizard();
-                closeCreateEventModal();
-                
-                // Show success message
-                showNotification('Event created successfully!', 'success');
-                
-                // Refresh events if needed
-                if (typeof refreshEvents === 'function') {
-                    refreshEvents();
-                }
-            }, 2000);
+        console.log('✓ Submitting form to server...');
+        
+        // Try to submit the form
+        try {
+            form.submit();
+            console.log('✓ Form.submit() called successfully');
+        } catch (error) {
+            console.error('❌ Form submission error:', error);
+            alert('Error submitting form: ' + error.message);
+            
+            // Re-enable submit button
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Create Event';
+            submitBtn.disabled = false;
         }
     }
 
@@ -548,13 +812,25 @@ function showNotification(message, type = 'info') {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 create-event-wizard.js DOMContentLoaded fired');
+    
     // Setup enhanced modal close handlers
     setupModalCloseHandlers();
     
     // Bind create event button
     const createEventBtn = document.getElementById('createEventBtn');
+    console.log('🔘 Create Event button found in wizard JS:', !!createEventBtn);
+    
     if (createEventBtn) {
-        createEventBtn.addEventListener('click', openCreateEventModal);
+        createEventBtn.addEventListener('click', function(e) {
+            console.log('🎯 CREATE EVENT BUTTON CLICKED! (from wizard.js)');
+            e.preventDefault();
+            e.stopPropagation();
+            openCreateEventModal();
+        });
+        console.log('✅ Event listener attached to Create Event button');
+    } else {
+        console.error('❌ Create Event button NOT FOUND in wizard JS!');
     }
     
     // Close modal when clicking outside

@@ -1,6 +1,29 @@
 ﻿/* Performance Page - Uses Standard Dashboard Components */
-/* Import base dashboard styles */
-@import url('dashboard.css');
+/* Base dashboard styles loaded in header */
+
+/* Two Tables Per Row Layout */
+.performance-tables-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 2rem;
+}
+
+.performance-tables-row .schedule-card {
+    margin-bottom: 0;
+}
+
+/* Responsive - Stack on smaller screens */
+@media (max-width: 1024px) {
+    .performance-tables-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .performance-tables-row .schedule-card {
+        margin-bottom: 0;
+    }
+}
 
 /* Performance-specific icon colors */
 .stat-icon i.fa-baseball-ball,
@@ -36,3 +59,304 @@
 .schedule-details i.fa-star {
     color: gold !important;
 }
+
+.profile-logout-spacing {
+    margin-top: 15px;
+}
+
+.table-cell-center {
+    text-align: center;
+}
+
+.table-empty-row {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}
+
+.details-column {
+    width: 20%;
+}
+
+.metric-emphasis {
+    font-weight: 700;
+}
+
+.metric-emphasis-blue {
+    color: #4A90E2;
+}
+
+.metric-emphasis-green {
+    color: #27ae60;
+}
+
+.metric-emphasis-red {
+    color: #e74c3c;
+}
+
+.action-btn-compact {
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+.action-btn-xs {
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.action-btn-spaced {
+    margin-right: 5px;
+}
+
+.action-btn-danger {
+    background: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.achievement-actions-cell {
+    white-space: nowrap;
+}
+
+.performance-metric {
+    font-size: 20px;
+}
+
+.performance-metric-blue {
+    color: #4A90E2;
+}
+
+.performance-metric-green {
+    color: #27ae60;
+}
+
+.performance-metric-orange {
+    color: #e67e22;
+}
+
+.performance-metric-purple {
+    color: #9b59b6;
+}
+
+.performance-metric-red {
+    color: #e74c3c;
+}
+
+.performance-metric-gold {
+    color: #f39c12;
+}
+
+.table-empty-block {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}
+
+.table-empty-block-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.table-empty-panel-cell {
+    text-align: center;
+    padding: 40px;
+}
+
+.table-empty-panel {
+    color: #7f8c8d;
+}
+
+.table-empty-panel-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.table-empty-panel-title {
+    margin: 10px 0;
+    color: #7f8c8d;
+}
+
+.achievement-badge-default {
+    background: #3498db;
+}
+
+.achievement-badge-century {
+    background: gold;
+    color: black;
+}
+
+.achievement-badge-wicket {
+    background: #e74c3c;
+}
+
+.achievement-badge-team {
+    background: #27ae60;
+}
+
+.table-badge-compact {
+    font-size: 11px;
+}
+
+.match-history-row-win {
+    background-color: rgba(39, 174, 96, 0.1);
+}
+
+.match-history-row-loss {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.match-history-row-draw {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.match-history-row-other {
+    background-color: rgba(241, 196, 15, 0.1);
+}
+
+.performance-modal-header-green {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.performance-modal-header-dark {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+}
+
+.modal-icon-white {
+    color: #fff;
+}
+
+.form-group-spaced {
+    margin-bottom: 25px;
+}
+
+.label-icon-blue {
+    color: #3498db;
+    margin-right: 8px;
+}
+
+.label-icon-red {
+    color: #e74c3c;
+    margin-right: 8px;
+}
+
+.label-icon-green {
+    color: #27ae60;
+    margin-right: 8px;
+}
+
+.label-icon-gold {
+    color: #f1c40f;
+    margin-right: 8px;
+}
+
+.achievement-textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.performance-fieldset-blue {
+    border: 2px solid #3498db;
+}
+
+.performance-fieldset-red {
+    border: 2px solid #e74c3c;
+}
+
+.performance-fieldset-green {
+    border: 2px solid #27ae60;
+}
+
+.performance-fieldset-legend-blue {
+    color: #3498db;
+}
+
+.performance-fieldset-legend-red {
+    color: #e74c3c;
+}
+
+.performance-fieldset-legend-green {
+    color: #27ae60;
+}
+
+.performance-submit-button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.achievement-form-loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.achievement-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.achievement-form-loading-text {
+    margin-top: 15px;
+    color: #7f8c8d;
+}
+
+.achievement-text-group {
+    margin-bottom: 30px;
+}
+
+.verification-status-group {
+    margin-bottom: 30px;
+    display: none;
+}
+
+.achievement-button {
+    padding: 14px 28px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.achievement-button-secondary {
+    background: #95a5a6;
+}
+
+.achievement-button-secondary:hover {
+    background: #7f8c8d;
+}
+
+.achievement-button-primary {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+}
+
+.achievement-button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .achievement-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

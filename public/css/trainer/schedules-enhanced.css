@@ -1,0 +1,661 @@
+/* ===== Enhanced Training Schedules Page Styles ===== */
+.schedules-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+/* Glass Card System */
+.schedules-glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.schedules-glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+    border-radius: 20px 20px 0 0;
+}
+
+.schedules-glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Enhanced Headers */
+.schedules-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.schedules-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.schedules-header-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-header-content h2 {
+    color: #1e40af;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.schedules-header-content p {
+    color: #64748b;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Enhanced Date Display */
+.schedules-date-display {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Week Navigation */
+.schedules-week-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.schedules-week-display {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 150px;
+    text-align: center;
+}
+
+/* Enhanced Tables */
+.schedules-table-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.schedules-enhanced-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.schedules-enhanced-table thead {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.schedules-enhanced-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.schedules-enhanced-table th i {
+    margin-right: 0.5rem;
+    opacity: 0.8;
+}
+
+.schedules-enhanced-table tbody tr {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s ease;
+}
+
+.schedules-enhanced-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+    transform: scale(1.01);
+}
+
+.schedules-enhanced-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Enhanced Time Display */
+.schedules-time-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.schedules-time-primary {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.schedules-time-secondary {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* Enhanced Session Badges */
+.schedules-session-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.schedules-session-badge.youth-session {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-session-badge.private-session {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.schedules-session-badge.team-session {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.schedules-session-badge.fitness-session {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Enhanced Status Badges */
+.schedules-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.schedules-status-badge.confirmed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.schedules-status-badge.pending {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.schedules-status-badge.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-status-badge.paused {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.schedules-status-badge.rest {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.schedules-status-badge.complete {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.schedules-status-badge.scheduled {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-status-badge.planning {
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+    color: white;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+}
+
+/* Enhanced Buttons */
+.schedules-enhanced-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.schedules-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+}
+
+.schedules-btn-secondary {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    color: #374151;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.schedules-btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+}
+
+/* Action Buttons */
+.schedules-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.schedules-btn-action {
+    width: 35px;
+    height: 35px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.schedules-btn-action.edit {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.schedules-btn-action.edit:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: scale(1.1);
+}
+
+.schedules-btn-action.view {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.schedules-btn-action.view:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+    transform: scale(1.1);
+}
+
+.schedules-btn-action.pause {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+.schedules-btn-action.pause:hover {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    transform: scale(1.1);
+}
+
+.schedules-btn-action.play {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.schedules-btn-action.play:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: scale(1.1);
+}
+
+.schedules-btn-action.delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.schedules-btn-action.delete:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: scale(1.1);
+}
+
+/* Enhanced Statistics Grid */
+.schedules-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.schedules-stat-card {
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.schedules-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+}
+
+.schedules-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.2);
+}
+
+.stat-sessions::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-participants::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.stat-hours::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-attendance::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.schedules-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.stat-sessions .schedules-stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.stat-participants .schedules-stat-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-hours .schedules-stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-attendance .schedules-stat-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.schedules-stat-info {
+    flex: 1;
+}
+
+.schedules-stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e40af;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.schedules-stat-label {
+    font-size: 0.95rem;
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.schedules-stat-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.schedules-stat-change.positive {
+    color: #10b981;
+}
+
+.schedules-stat-change.neutral {
+    color: #6b7280;
+}
+
+/* Enhanced Quick Actions */
+.schedules-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.schedules-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+
+.schedules-action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 16px 16px 0 0;
+}
+
+.schedules-action-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.schedules-action-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.schedules-action-text {
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Enhanced Table Cell Content */
+.schedules-table-cell-title {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.schedules-table-cell-details {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.schedules-table-cell-primary {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.schedules-table-cell-secondary {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* Navigation Buttons */
+.schedules-nav-btn {
+    width: 35px;
+    height: 35px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #3b82f6;
+}
+
+.schedules-nav-btn:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .schedules-quick-actions {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .schedules-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .schedules-container {
+        padding: 0.5rem;
+        gap: 1.5rem;
+    }
+    
+    .schedules-glass-card {
+        padding: 1.5rem;
+    }
+    
+    .schedules-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .schedules-header-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .schedules-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .schedules-quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .schedules-week-navigation {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .schedules-enhanced-table {
+        font-size: 0.8rem;
+    }
+    
+    .schedules-enhanced-table th,
+    .schedules-enhanced-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .schedules-header-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .schedules-quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedules-action-btn {
+        padding: 1rem;
+    }
+    
+    .schedules-action-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+}

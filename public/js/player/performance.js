@@ -1,5 +1,11 @@
 // Performance Analytics JavaScript
 
+function getPerformanceBaseUrl() {
+    const page = document.getElementById('performancePage');
+    const urlRoot = page?.dataset?.urlroot || `${window.location.origin}/Elite`;
+    return `${urlRoot}/performance`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializePerformancePage();
 });
@@ -19,6 +25,85 @@ function initializePerformancePage() {
     
     // Initialize export functionality
     initializeExportReport();
+
+    initializePerformanceViewActions();
+}
+
+function initializePerformanceViewActions() {
+    document.addEventListener('click', function (event) {
+        const actionTrigger = event.target.closest('[data-performance-action]');
+        if (actionTrigger) {
+            const action = actionTrigger.dataset.performanceAction;
+            const achievementId = actionTrigger.dataset.achievementId;
+
+            if (action === 'add-achievement') {
+                event.preventDefault();
+                showAddAchievementModal();
+                return;
+            }
+
+            if (action === 'close-achievement-modal') {
+                event.preventDefault();
+                closeAchievementModal();
+                return;
+            }
+
+            if (action === 'close-performance-modal') {
+                event.preventDefault();
+                closePerformanceModal();
+                return;
+            }
+
+            if (action === 'open-performance-modal') {
+                event.preventDefault();
+                openPerformanceModal();
+                return;
+            }
+
+            if (action === 'view-achievement' && achievementId) {
+                event.preventDefault();
+                viewAchievement(achievementId);
+                return;
+            }
+
+            if (action === 'edit-achievement' && achievementId) {
+                event.preventDefault();
+                editAchievement(achievementId);
+                return;
+            }
+
+            if (action === 'delete-achievement' && achievementId) {
+                event.preventDefault();
+                deleteAchievement(achievementId);
+                return;
+            }
+
+            const performanceId = actionTrigger.dataset.performanceId;
+
+            if (action === 'view-match-performance' && performanceId) {
+                event.preventDefault();
+                viewMatchDetails(performanceId);
+                return;
+            }
+
+            if (action === 'edit-match-performance' && performanceId) {
+                event.preventDefault();
+                editMatchPerformance(performanceId);
+                return;
+            }
+
+            if (action === 'delete-match-performance' && performanceId) {
+                event.preventDefault();
+                deleteMatchPerformance(performanceId);
+            }
+        }
+
+        const placeholderTrigger = event.target.closest('[data-placeholder-message]');
+        if (placeholderTrigger) {
+            event.preventDefault();
+            alert(placeholderTrigger.dataset.placeholderMessage);
+        }
+    });
 }
 
 // Tab functionality
@@ -51,14 +136,21 @@ function initializePerformanceChart() {
     const ctx = document.getElementById('performanceChart');
     if (!ctx) return;
 
+    // Chart data - injected from server via PHP
+    const serverChartData = window.performanceData?.chartData || {};
+    const defaultLabels = serverChartData.labels || [];
+    const battingData = serverChartData.batting || [];
+    const bowlingData = serverChartData.bowling || [];
+    const strikeRateData = serverChartData.strikeRate || [];
+
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            labels: defaultLabels,
             datasets: [
                 {
                     label: 'Batting Average',
-                    data: [35.2, 38.5, 42.1, 39.8, 45.3, 42.5],
+                    data: battingData,
                     borderColor: '#4A90E2',
                     backgroundColor: 'rgba(74, 144, 226, 0.1)',
                     fill: true,
@@ -66,7 +158,7 @@ function initializePerformanceChart() {
                 },
                 {
                     label: 'Bowling Average',
-                    data: [32.1, 29.8, 31.2, 28.9, 26.5, 28.3],
+                    data: bowlingData,
                     borderColor: '#e74c3c',
                     backgroundColor: 'rgba(231, 76, 60, 0.1)',
                     fill: true,
@@ -74,7 +166,7 @@ function initializePerformanceChart() {
                 },
                 {
                     label: 'Strike Rate',
-                    data: [118.5, 125.2, 132.8, 128.4, 135.6, 130.2],
+                    data: strikeRateData,
                     borderColor: '#27ae60',
                     backgroundColor: 'rgba(39, 174, 96, 0.1)',
                     fill: true,
@@ -140,30 +232,13 @@ function initializePerformanceChart() {
     }
 }
 
-// Update chart data based on period
+// Update chart data based on period - data from server via PHP
 function updateChartData(chart, period) {
-    let labels, battingData, bowlingData, strikeRateData;
-    
-    switch(period) {
-        case '3':
-            labels = ['Oct', 'Nov', 'Dec'];
-            battingData = [39.8, 45.3, 42.5];
-            bowlingData = [28.9, 26.5, 28.3];
-            strikeRateData = [128.4, 135.6, 130.2];
-            break;
-        case '6':
-            labels = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            battingData = [38.2, 41.1, 39.8, 45.3, 42.5, 44.2];
-            bowlingData = [30.1, 29.5, 28.9, 26.5, 28.3, 27.8];
-            strikeRateData = [125.8, 129.3, 128.4, 135.6, 130.2, 133.1];
-            break;
-        case '12':
-            labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            battingData = [35.2, 38.5, 42.1, 39.8, 45.3, 42.5, 38.2, 41.1, 39.8, 45.3, 42.5, 44.2];
-            bowlingData = [32.1, 29.8, 31.2, 28.9, 26.5, 28.3, 30.1, 29.5, 28.9, 26.5, 28.3, 27.8];
-            strikeRateData = [118.5, 125.2, 132.8, 128.4, 135.6, 130.2, 125.8, 129.3, 128.4, 135.6, 130.2, 133.1];
-            break;
-    }
+    const periodData = window.performanceData?.periodData?.[period] || {};
+    const labels = periodData.labels || [];
+    const battingData = periodData.batting || [];
+    const bowlingData = periodData.bowling || [];
+    const strikeRateData = periodData.strikeRate || [];
     
     chart.data.labels = labels;
     chart.data.datasets[0].data = battingData;
@@ -175,12 +250,20 @@ function updateChartData(chart, period) {
 // Modal functionality
 function initializeModals() {
     const performanceModal = document.getElementById('performanceModal');
-    const modalClose = performanceModal.querySelector('.modal-close');
+    if (!performanceModal) {
+        return;
+    }
+
+    const modalClose = performanceModal.querySelector('.close, .modal-close');
     const cancelBtn = performanceModal.querySelector('.btn-outline');
     
     // Close modal handlers
-    modalClose.addEventListener('click', closePerformanceModal);
-    cancelBtn.addEventListener('click', closePerformanceModal);
+    if (modalClose) {
+        modalClose.addEventListener('click', closePerformanceModal);
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closePerformanceModal);
+    }
     
     // Close modal when clicking outside
     performanceModal.addEventListener('click', function(e) {
@@ -189,19 +272,21 @@ function initializeModals() {
         }
     });
     
-    // Form submission
-    const performanceForm = performanceModal.querySelector('.performance-form');
-    performanceForm.addEventListener('submit', handlePerformanceSubmission);
+    const performanceForm = document.getElementById('performanceStatsForm');
     
     // Auto-calculate strike rate
-    const runsInput = performanceForm.querySelector('input[type="number"]:nth-of-type(1)');
-    const ballsInput = performanceForm.querySelector('input[type="number"]:nth-of-type(2)');
-    const strikeRateInput = performanceForm.querySelector('input[readonly]');
+    const runsInput = document.getElementById('runsScored');
+    const ballsInput = document.getElementById('ballsFaced');
+    const strikeRateInput = performanceForm ? performanceForm.querySelector('input[readonly]') : null;
     
     function calculateStrikeRate() {
         const runs = parseFloat(runsInput.value) || 0;
         const balls = parseFloat(ballsInput.value) || 0;
         
+        if (!strikeRateInput) {
+            return;
+        }
+
         if (balls > 0) {
             const strikeRate = ((runs / balls) * 100).toFixed(2);
             strikeRateInput.value = strikeRate;
@@ -210,24 +295,40 @@ function initializeModals() {
         }
     }
     
-    runsInput.addEventListener('input', calculateStrikeRate);
-    ballsInput.addEventListener('input', calculateStrikeRate);
+    if (runsInput) {
+        runsInput.addEventListener('input', calculateStrikeRate);
+    }
+    if (ballsInput) {
+        ballsInput.addEventListener('input', calculateStrikeRate);
+    }
 }
 
 function openPerformanceModal() {
     const modal = document.getElementById('performanceModal');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
 }
 
 function closePerformanceModal() {
     const modal = document.getElementById('performanceModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
     
     // Reset form
-    const form = modal.querySelector('.performance-form');
-    form.reset();
+    const form = document.getElementById('performanceStatsForm');
+    if (form) {
+        form.reset();
+    }
 }
 
 function handlePerformanceSubmission(e) {
@@ -303,20 +404,20 @@ function handleEditPerformance(e) {
     openPerformanceModal();
     
     // In a real app, would populate form with existing performance data
-    const form = document.querySelector('.performance-form');
+    const form = document.getElementById('performanceStatsForm');
     // Example: form.querySelector('input[type="number"]').value = existingRuns;
 }
 
 function showDetailsModal(title, card) {
     const modal = document.createElement('div');
-    modal.className = 'modal details-modal';
+    modal.className = 'modal app-modal details-modal';
     modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-info-circle"></i> ${title}</h3>
-                <button class="modal-close">&times;</button>
+        <div class="modal-content app-modal__dialog app-modal__dialog--standard">
+            <div class="modal-header app-modal__header">
+                <h3 class="app-modal__title"><i class="fas fa-info-circle"></i> ${title}</h3>
+                <button class="modal-close app-modal__close" type="button">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body app-modal__body">
                 <p>Detailed information about this match/tournament would be displayed here.</p>
                 <p>This could include:</p>
                 <ul>
@@ -327,30 +428,38 @@ function showDetailsModal(title, card) {
                     <li>Performance analysis</li>
                 </ul>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer app-modal__footer">
                 <button class="btn btn-outline close-details">Close</button>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
-    modal.classList.add('active');
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
     
     // Event listeners
     modal.querySelector('.modal-close').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => document.body.removeChild(modal), 300);
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        document.body.removeChild(modal);
     });
     
     modal.querySelector('.close-details').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => document.body.removeChild(modal), 300);
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        document.body.removeChild(modal);
     });
     
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-            modal.classList.remove('active');
-            setTimeout(() => document.body.removeChild(modal), 300);
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            document.body.removeChild(modal);
         }
     });
 }
@@ -426,18 +535,17 @@ function showSuccessMessage(message) {
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const activeModal = document.querySelector('.modal.active');
+        const activeModal = document.querySelector('.app-modal.app-modal--visible');
         if (activeModal) {
-            activeModal.classList.remove('active');
-            document.body.style.overflow = '';
+            activeModal.classList.remove('app-modal--visible');
+            activeModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
             
             // Remove dynamically created modals
             if (activeModal.classList.contains('details-modal')) {
-                setTimeout(() => {
-                    if (document.body.contains(activeModal)) {
-                        document.body.removeChild(activeModal);
-                    }
-                }, 300);
+                if (document.body.contains(activeModal)) {
+                    document.body.removeChild(activeModal);
+                }
             }
         }
     }
@@ -478,3 +586,792 @@ function initializeScrollAnimations() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initializeScrollAnimations, 500);
 });
+
+// ==================== PERFORMANCE STATISTICS FUNCTIONS ====================
+
+function updatePerformanceModalHeader(mode = 'add') {
+    const modal = document.getElementById('performanceModal');
+    if (!modal) {
+        return;
+    }
+
+    const title = modal.querySelector('.app-modal__title');
+    const subtitle = modal.querySelector('.app-modal__subtitle');
+    const icon = modal.querySelector('.app-modal__icon i');
+    const header = modal.querySelector('.app-modal__header');
+
+    if (header) {
+        header.classList.remove('app-modal__header--success', 'app-modal__header--danger', 'app-modal__header--neutral');
+        header.style.background = '';
+    }
+
+    if (mode === 'edit') {
+        if (title) {
+            title.textContent = 'Edit Performance Statistics';
+        }
+        if (subtitle) {
+            subtitle.textContent = 'Update an existing performance entry using the same shared modal and register-style form layout.';
+        }
+        if (icon) {
+            icon.className = 'fas fa-pen-to-square';
+        }
+        return;
+    }
+
+    if (title) {
+        title.textContent = 'Add Performance Statistics';
+    }
+    if (subtitle) {
+        subtitle.textContent = 'Submit your latest batting, bowling, and fielding figures in the same register-style layout used across player forms.';
+    }
+    if (icon) {
+        icon.className = 'fas fa-chart-bar';
+    }
+}
+
+// Open Performance Statistics Modal
+function openPerformanceModal(selectedMatchId = '') {
+    const modal = document.getElementById('performanceModal');
+    if (modal) {
+        modal.classList.add('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        
+        // Load available matches
+        loadAvailableMatches(selectedMatchId);
+        
+        // Reset form to "add" mode
+        const form = document.getElementById('performanceStatsForm');
+        if (form) {
+            form.reset();
+            form.dataset.mode = 'add';
+            
+            // Remove edit performance ID if it exists
+            const perfIdInput = document.getElementById('performanceIdEdit');
+            if (perfIdInput) {
+                perfIdInput.remove();
+            }
+            
+            updatePerformanceModalHeader('add');
+            
+            // Reset submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Submit Performance Statistics';
+            }
+        }
+        
+        // Animate modal in
+        setTimeout(() => {
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.animation = 'slideIn 0.3s ease-out';
+            }
+        }, 10);
+    }
+}
+
+// Close Performance Statistics Modal
+function closePerformanceModal() {
+    const modal = document.getElementById('performanceModal');
+    if (modal) {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.animation = 'slideOut 0.3s ease-in';
+        }
+        
+        setTimeout(() => {
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }, 300);
+    }
+}
+
+// Load Available Matches for dropdown
+function loadAvailableMatches(selectedMatchId = '') {
+    const matchSelect = document.getElementById('matchSelect');
+    if (!matchSelect) return;
+    
+    // Show loading state
+    matchSelect.innerHTML = '<option value="">Loading matches...</option>';
+    matchSelect.disabled = true;
+    
+    fetch(`${getPerformanceBaseUrl()}/getAvailableMatches`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.matches) {
+                matchSelect.innerHTML = '<option value="">-- Select a match --</option>';
+                
+                data.matches.forEach(match => {
+                    const option = document.createElement('option');
+                    option.value = match.MatchID;
+                    
+                    const date = new Date(match.Date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    
+                    option.textContent = `${date} - ${match.OpponentTeam} at ${match.Venue} (${match.TournamentName})`;
+                    matchSelect.appendChild(option);
+                });
+
+                if (selectedMatchId) {
+                    matchSelect.value = String(selectedMatchId);
+                }
+                
+                matchSelect.disabled = false;
+            } else {
+                matchSelect.innerHTML = '<option value="">No matches available</option>';
+                showNotification('No matches available to add performance for', 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading matches:', error);
+            matchSelect.innerHTML = '<option value="">Error loading matches</option>';
+            showNotification('Failed to load matches. Please try again.', 'error');
+        });
+}
+
+// Handle Performance Statistics Form Submission
+document.addEventListener('DOMContentLoaded', function() {
+    const performanceForm = document.getElementById('performanceStatsForm');
+    if (performanceForm) {
+        performanceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(performanceForm);
+            
+            // Validate required fields
+            const matchId = formData.get('match_id');
+            if (!matchId) {
+                showNotification('Please select a match', 'error');
+                return;
+            }
+            
+            // Disable submit button
+            const submitBtn = performanceForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            // Determine if we're adding or editing based on presence of performance_id
+            const isEditMode = performanceForm.dataset.mode === 'edit';
+            const performanceId = document.getElementById('performanceIdEdit')?.value;
+            
+            const url = isEditMode && performanceId 
+                ? `${getPerformanceBaseUrl()}/editPerformanceStats`
+                : `${getPerformanceBaseUrl()}/addPerformanceStats`;
+            
+            // Submit form via AJAX
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closePerformanceModal();
+                    
+                    // Reload page after 1.5 seconds to show updated performance
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification(data.message || 'Failed to save performance statistics', 'error');
+                    
+                    // Show validation errors if any
+                    if (data.errors && data.errors.length > 0) {
+                        data.errors.forEach(error => {
+                            showNotification(error, 'error');
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting performance:', error);
+                showNotification('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        });
+    }
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const performanceModal = document.getElementById('performanceModal');
+    if (event.target === performanceModal) {
+        closePerformanceModal();
+    }
+    
+    const detailsModal = document.getElementById('detailsModal');
+    if (event.target === detailsModal) {
+        closeDetailsModal();
+    }
+});
+
+// Add notification function if not already present
+if (typeof showNotification === 'undefined') {
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 10002;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            min-width: 300px;
+        `;
+        
+        switch(type) {
+            case 'success':
+                notification.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                notification.innerHTML = '<i class="fas fa-check-circle"></i> ' + message;
+                break;
+            case 'error':
+                notification.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                notification.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + message;
+                break;
+            case 'warning':
+                notification.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                notification.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
+                break;
+            default:
+                notification.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+                notification.innerHTML = '<i class="fas fa-info-circle"></i> ' + message;
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+}
+
+// ==================== MATCH PERFORMANCE CRUD FUNCTIONS ====================
+
+// View Match Performance Details
+function viewMatchDetails(performanceId) {
+    fetch(`${getPerformanceBaseUrl()}/getPerformanceRecord?id=${performanceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.performance) {
+                const perf = data.performance;
+                
+                // Create details modal
+                const detailsHtml = `
+                    <div class="modal" id="detailsModal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+                        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 5% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                                <h2 style="margin: 0; font-size: 22px; font-weight: 600;">
+                                    <i class="fas fa-chart-line"></i> Match Performance Details
+                                </h2>
+                                <span onclick="closeDetailsModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; padding: 5px; border-radius: 50%; opacity: 0.8;">&times;</span>
+                            </div>
+                            <div class="modal-body" style="padding: 35px;">
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50;"><i class="fas fa-info-circle"></i> Match Information</h3>
+                                    <p><strong>📅 Date:</strong> ${perf.Date ? new Date(perf.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
+                                    <p><strong>🏆 Tournament:</strong> ${perf.TournamentName || 'N/A'}</p>
+                                    <p><strong>⚔️ Opponent:</strong> ${perf.OpponentTeam || 'N/A'}</p>
+                                    <p><strong>📍 Venue:</strong> ${perf.Venue || 'N/A'}</p>
+                                    <p><strong>🎯 Result:</strong> ${perf.Result || 'N/A'}</p>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #3498db;"><i class="fas fa-baseball-ball"></i> Batting</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.RunsScored || 0}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Runs (${perf.BallsFaced || 0} balls)</p>
+                                    </div>
+                                    
+                                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #e74c3c;"><i class="fas fa-fire"></i> Bowling</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.WicketsTaken || 0}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Wickets (${perf.OversBowled || 0} overs)</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 5px 0 0 0;">${perf.RunsConceded || 0} runs conceded</p>
+                                    </div>
+                                    
+                                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #27ae60;"><i class="fas fa-hand-paper"></i> Fielding</h4>
+                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${(perf.Catches || 0) + (perf.Stumpings || 0)}</p>
+                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">C: ${perf.Catches || 0} | S: ${perf.Stumpings || 0}</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                                    <p style="margin: 0; font-size: 14px; color: #856404;"><strong>⭐ Overall Rating:</strong> ${perf.Rating || 0}/10</p>
+                                </div>
+                                
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <p style="margin: 0; font-size: 13px; color: #7f8c8d;">
+                                        <strong>Status:</strong> 
+                                        ${perf.VerifiedStatus === 'verified' ? '✅ Verified' : perf.VerifiedStatus === 'pending' ? '⏳ Pending Review' : '❌ Rejected'}
+                                    </p>
+                                    ${perf.AddedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Added by:</strong> ${perf.AddedByName}</p>` : ''}
+                                    ${perf.VerifiedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Verified by:</strong> ${perf.VerifiedByName}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', detailsHtml);
+            } else {
+                showNotification('Failed to load performance details', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while loading details', 'error');
+        });
+}
+
+function closeDetailsModal() {
+    const modal = document.getElementById('detailsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Edit Match Performance
+function editMatchPerformance(performanceId) {
+    // Fetch performance data
+    fetch(`${getPerformanceBaseUrl()}/getPerformanceRecord?id=${performanceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.performance) {
+                const perf = data.performance;
+                
+                // Open the modal
+                openPerformanceModal(perf.MatchID || '');
+                
+                // Wait for modal to be fully loaded
+                setTimeout(() => {
+                    // Change modal title
+                    updatePerformanceModalHeader('edit');
+                    
+                    // Populate form fields
+                    document.getElementById('matchSelect').value = perf.MatchID || '';
+                    document.getElementById('runsScored').value = perf.RunsScored || 0;
+                    document.getElementById('ballsFaced').value = perf.BallsFaced || 0;
+                    document.getElementById('wicketsTaken').value = perf.WicketsTaken || 0;
+                    document.getElementById('oversBowled').value = perf.OversBowled || 0;
+                    document.getElementById('runsConceded').value = perf.RunsConceded || 0;
+                    document.getElementById('catches').value = perf.Catches || 0;
+                    document.getElementById('stumpings').value = perf.Stumpings || 0;
+                    document.getElementById('performanceRating').value = perf.Rating || 0;
+                    
+                    // Add hidden field for performance ID
+                    let perfIdInput = document.getElementById('performanceIdEdit');
+                    if (!perfIdInput) {
+                        perfIdInput = document.createElement('input');
+                        perfIdInput.type = 'hidden';
+                        perfIdInput.id = 'performanceIdEdit';
+                        perfIdInput.name = 'performance_id';
+                        document.getElementById('performanceStatsForm').appendChild(perfIdInput);
+                    }
+                    perfIdInput.value = performanceId;
+                    
+                    // Change submit button text
+                    const submitBtn = document.querySelector('#performanceStatsForm button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Performance Statistics';
+                    }
+                    
+                    // Update form action
+                    document.getElementById('performanceStatsForm').dataset.mode = 'edit';
+                }, 300);
+            } else {
+                showNotification('Failed to load performance data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while loading performance data', 'error');
+        });
+}
+
+// Delete Match Performance
+function deleteMatchPerformance(performanceId) {
+    if (!confirm('Are you sure you want to delete this performance record? This action cannot be undone.')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('performance_id', performanceId);
+    
+    fetch(`${getPerformanceBaseUrl()}/deletePerformanceStats`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Reload page after 1 second
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Failed to delete performance record', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    });
+}
+
+// ==================== ACHIEVEMENTS MODAL/ACTIONS (extracted from view) ====================
+
+(function performanceAchievementsModule() {
+    function getPerformanceUrlRoot() {
+        const page = document.getElementById('performancePage');
+        return (page && page.dataset && page.dataset.urlroot) ? page.dataset.urlroot : '';
+    }
+
+    function showAddAchievementModal() {
+        const modalTitle = document.getElementById('modalTitle');
+        const submitText = document.getElementById('submitText');
+        const verificationStatus = document.getElementById('verificationStatus');
+        const form = document.getElementById('achievementForm');
+        const achievementId = document.getElementById('achievementId');
+        const modal = document.getElementById('achievementModal');
+
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-trophy" style="color: #f1c40f;"></i> Add New Achievement';
+        }
+        if (submitText) submitText.textContent = 'Save Achievement';
+        if (verificationStatus) verificationStatus.style.display = 'none';
+        if (form) form.reset();
+        if (achievementId) achievementId.value = '';
+
+        if (modal) {
+            modal.classList.add('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+
+        const dateInput = document.getElementById('achievementDate');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            window.setTimeout(() => dateInput.focus(), 300);
+        }
+    }
+
+    function showEditAchievementModal(achievementData) {
+        const modalTitle = document.getElementById('modalTitle');
+        const submitText = document.getElementById('submitText');
+        const verificationStatus = document.getElementById('verificationStatus');
+
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> Edit Achievement';
+        }
+        if (submitText) submitText.textContent = 'Update Achievement';
+        if (verificationStatus) verificationStatus.style.display = 'block';
+
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value ?? '';
+        };
+
+        setValue('achievementId', achievementData?.AchievementID);
+        setValue('achievementDate', achievementData?.Date);
+        setValue('matchName', achievementData?.MatchName);
+        setValue('tournamentName', achievementData?.Tournament);
+        setValue('achievementText', achievementData?.Achievement);
+        setValue('verifiedStatus', achievementData?.VerifiedStatus);
+
+        const modal = document.getElementById('achievementModal');
+        if (modal) {
+            modal.classList.add('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeAchievementModal() {
+        const modal = document.getElementById('achievementModal');
+        const form = document.getElementById('achievementForm');
+
+        if (modal) {
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        document.body.classList.remove('modal-open');
+        if (form) form.reset();
+
+        if (modal) {
+            const inputs = modal.querySelectorAll('input, textarea, select');
+            inputs.forEach((input) => {
+                input.style.borderColor = '#ddd';
+                input.style.backgroundColor = '#fafafa';
+                input.style.boxShadow = 'none';
+            });
+        }
+    }
+
+    function validateAchievementForm() {
+        const form = document.getElementById('achievementForm');
+        if (!form) return false;
+
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        let firstInvalidField = null;
+
+        requiredFields.forEach((field) => {
+            if (!String(field.value || '').trim()) {
+                field.style.borderColor = '#e74c3c';
+                field.style.backgroundColor = '#fdf2f2';
+                field.style.boxShadow = '0 0 0 3px rgba(231,76,60,0.1)';
+                if (!firstInvalidField) firstInvalidField = field;
+                isValid = false;
+            } else {
+                field.style.borderColor = '#27ae60';
+                field.style.backgroundColor = '#f8fff8';
+                field.style.boxShadow = '0 0 0 3px rgba(39,174,96,0.1)';
+            }
+        });
+
+        if (!isValid && firstInvalidField) {
+            firstInvalidField.focus();
+            showNotification('Please fill in all required fields', 'error');
+        }
+
+        return isValid;
+    }
+
+    function viewAchievement(achievementId) {
+        showNotification('Loading achievement details...', 'info');
+
+        const url = getPerformanceUrlRoot() + '/player/getAchievement?id=' + encodeURIComponent(achievementId);
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.success) {
+                    showNotification('Error: ' + data.message, 'error');
+                    return;
+                }
+
+                const achievement = data.achievement;
+                const statusIcon = achievement.VerifiedStatus === 'verified' ? '✅' :
+                    achievement.VerifiedStatus === 'pending' ? '⏳' : '❌';
+                const statusText = achievement.VerifiedStatus === 'verified' ? 'Verified' :
+                    achievement.VerifiedStatus === 'pending' ? 'Pending Review' : 'Rejected';
+
+                const detailsHtml = `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                        <h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-trophy" style="color: #f1c40f;"></i> Achievement Details
+                        </h3>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                            <p><strong>📅 Date:</strong> ${new Date(achievement.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p><strong>🏆 Tournament:</strong> ${achievement.Tournament}</p>
+                            <p><strong>⚾ Match:</strong> ${achievement.MatchName}</p>
+                            <p><strong>🎯 Achievement:</strong> ${achievement.Achievement}</p>
+                            <p><strong>✅ Status:</strong> ${statusIcon} ${statusText}</p>
+                            <p><strong>📝 Submitted:</strong> ${new Date(achievement.CreatedAt).toLocaleDateString()}</p>
+                        </div>
+                        ${achievement.VerifiedStatus === 'verified' ?
+                            '<div style="background: #d5f4e6; color: #27ae60; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-medal"></i> <strong>Congratulations! This achievement has been officially verified.</strong></div>' :
+                            achievement.VerifiedStatus === 'pending' ?
+                                '<div style="background: #fef9e7; color: #f39c12; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-clock"></i> <strong>This achievement is under review by the coaching staff.</strong></div>' :
+                                '<div style="background: #fadbd8; color: #e74c3c; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-times-circle"></i> <strong>This achievement could not be verified. Please contact your coach for details.</strong></div>'
+                        }
+                    </div>
+                `;
+
+                const viewModal = document.createElement('div');
+                viewModal.style.cssText = 'position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;';
+                viewModal.innerHTML = `
+                    <div style="background: white; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <div style="padding: 30px;">
+                            ${detailsHtml}
+                            <div style="text-align: center; margin-top: 25px;">
+                                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()"
+                                        style="padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                viewModal.addEventListener('click', function (e) {
+                    if (e.target === viewModal) viewModal.remove();
+                });
+
+                document.body.appendChild(viewModal);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to load achievement details. Please try again.', 'error');
+            });
+    }
+
+    function editAchievement(achievementId) {
+        showNotification('Loading achievement for editing...', 'info');
+
+        const url = getPerformanceUrlRoot() + '/player/getAchievement?id=' + encodeURIComponent(achievementId);
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    showEditAchievementModal(data.achievement);
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to load achievement details. Please try again.', 'error');
+            });
+    }
+
+    function deleteAchievement(achievementId) {
+        const userConfirmed = confirm('Are you sure you want to delete this rejected achievement? This action cannot be undone.');
+        if (!userConfirmed) return;
+
+        showNotification('Deleting achievement...', 'info');
+
+        const formData = new FormData();
+        formData.append('achievement_id', achievementId);
+
+        fetch(getPerformanceUrlRoot() + '/player/deleteAchievement', {
+            method: 'POST',
+            body: formData
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    window.setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showNotification('Error: ' + data.message, 'error');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showNotification('Failed to delete achievement. Please try again.', 'error');
+            });
+    }
+
+    function addAchievement() {
+        showAddAchievementModal();
+    }
+
+    function initAchievementFormSubmit() {
+        const form = document.getElementById('achievementForm');
+        if (!form || form.dataset.jsBound === '1') return;
+        form.dataset.jsBound = '1';
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!validateAchievementForm()) return;
+
+            const formData = new FormData(form);
+            const achievementId = document.getElementById('achievementId')?.value;
+            const url = achievementId ?
+                (getPerformanceUrlRoot() + '/player/editAchievement') :
+                (getPerformanceUrlRoot() + '/player/addAchievement');
+
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const formFields = document.getElementById('formFields');
+            const formLoading = document.getElementById('formLoading');
+            const originalText = submitText ? submitText.textContent : '';
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (formFields) formFields.style.display = 'none';
+            if (formLoading) formLoading.style.display = 'block';
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        closeAchievementModal();
+                        window.setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        showNotification('Error: ' + data.message, 'error');
+                        if (data.errors) {
+                            showNotification('Validation errors: ' + data.errors.join(', '), 'error');
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showNotification('Failed to save achievement. Please try again.', 'error');
+                })
+                .finally(() => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (formFields) formFields.style.display = 'block';
+                    if (formLoading) formLoading.style.display = 'none';
+                    if (submitText) submitText.textContent = originalText;
+                });
+        });
+    }
+
+    window.showAddAchievementModal = showAddAchievementModal;
+    window.showEditAchievementModal = showEditAchievementModal;
+    window.closeAchievementModal = closeAchievementModal;
+    window.viewAchievement = viewAchievement;
+    window.editAchievement = editAchievement;
+    window.deleteAchievement = deleteAchievement;
+    window.addAchievement = addAchievement;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initAchievementFormSubmit();
+    });
+
+    window.addEventListener('click', function (event) {
+        const modal = document.getElementById('achievementModal');
+        if (modal && event.target === modal) {
+            closeAchievementModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        const modal = document.getElementById('achievementModal');
+        if (modal && modal.classList.contains('app-modal--visible') && e.key === 'Escape') {
+            closeAchievementModal();
+        }
+    });
+})();
+

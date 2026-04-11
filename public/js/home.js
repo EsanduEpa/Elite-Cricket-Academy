@@ -1,7 +1,5 @@
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, looking for buttons...');
-    
     // Mobile menu toggle functionality
     const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
     const navMenu = document.querySelector('.nav-menu');
@@ -63,16 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const enrollBtn = document.querySelector('.enroll-btn');
     const loginBtn = document.querySelector('.login-btn');
     const exploreBtn = document.querySelector('.explore-btn');
-    const learnMoreBtn = document.querySelector('.learn-more-btn');
-
-    console.log('=== BUTTON DEBUG ===');
-    console.log('Enroll button found:', enrollBtn);
-    console.log('Login button found:', loginBtn);
-    console.log('Explore button found:', exploreBtn);
-    console.log('Learn more button found:', learnMoreBtn);
-    console.log('All buttons with enroll-btn class:', document.querySelectorAll('.enroll-btn'));
-    console.log('All buttons with login-btn class:', document.querySelectorAll('.login-btn'));
-    console.log('=== END DEBUG ===');
 
     if (exploreBtn) {
         exploreBtn.addEventListener('click', function() {
@@ -83,25 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (enrollBtn) {
-        console.log('Enroll button found - using default link behavior');
-        // Remove preventDefault to allow natural link behavior
-        // The href attribute in HTML will handle navigation
-    } else {
-       console.error('Enroll button not found!');
+        // Use default link behavior.
     }
 
     if (loginBtn) {
-        console.log('Login button found - using default link behavior');
-        // Remove preventDefault to allow natural link behavior
-        // The href attribute in HTML will handle navigation
-    } else {
-        console.error('Login button not found!');
-    }
-
-    if (learnMoreBtn) {
-        learnMoreBtn.addEventListener('click', function() {
-            alert('More information about the Summer Cricket Camp would be displayed here.');
-        });
+        // Use default link behavior.
     }
     
     // Add animation on scroll

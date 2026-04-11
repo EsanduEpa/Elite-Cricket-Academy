@@ -8,12 +8,6 @@ function initializeEventPage() {
     // Initialize sidebar functionality (reuse from dashboard)
     initializeSidebar();
     
-    // Initialize calendar if element exists
-    const calendarEl = document.getElementById('eventCalendar');
-    if (calendarEl) {
-        initializeCalendar();
-    }
-    
     // Initialize event handlers
     initializeEventHandlers();
     
@@ -22,105 +16,6 @@ function initializeEventPage() {
     
     // Initialize search and filters
     initializeSearchFilters();
-}
-
-function initializeCalendar() {
-    const calendarEl = document.getElementById('eventCalendar');
-    
-    if (!window.FullCalendar) {
-        console.error('FullCalendar library not loaded');
-        return;
-    }
-    
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,listMonth'
-        },
-        height: 'auto',
-        events: function(info, successCallback, failureCallback) {
-            fetch(`${window.location.origin}/Elite/admin/get_calendar_events`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(events => {
-                    successCallback(events);
-                })
-                .catch(error => {
-                    console.error('Error fetching calendar events:', error);
-                    // Fallback to dummy data
-                    const dummyEvents = [
-                        {
-                            id: '1',
-                            title: 'Junior Cricket Championship',
-                            start: '2025-09-15',
-                            className: 'event-tournament',
-                            extendedProps: {
-                                description: 'Annual junior cricket championship',
-                                location: 'Main Ground',
-                                type: 'tournament'
-                            }
-                        },
-                        {
-                            id: '2',
-                            title: 'Batting Workshop',
-                            start: '2025-09-12',
-                            className: 'event-training',
-                            extendedProps: {
-                                description: 'Advanced batting techniques',
-                                location: 'Practice Nets',
-                                type: 'training'
-                            }
-                        },
-                        {
-                            id: '3',
-                            title: 'Inter-Academy Match',
-                            start: '2025-09-20',
-                            className: 'event-match',
-                            extendedProps: {
-                                description: 'Friendly match',
-                                location: 'Stadium',
-                                type: 'match'
-                            }
-                        }
-                    ];
-                    successCallback(dummyEvents);
-                });
-        },
-        eventClick: function(info) {
-            viewEventDetails(info.event);
-        },
-        dateClick: function(info) {
-            // Use new wizard system instead of old modal
-            if (typeof openCreateEventModal === 'function') {
-                openCreateEventModal();
-                // Pre-fill date if needed
-                setTimeout(() => {
-                    const startDateInput = document.getElementById('startDate');
-                    if (startDateInput && info.dateStr) {
-                        startDateInput.value = info.dateStr;
-                    }
-                }, 200);
-            } else {
-                console.warn('openCreateEventModal function not available');
-            }
-        },
-        eventDidMount: function(info) {
-            // Add custom styling based on event type
-            const eventType = info.event.extendedProps.type;
-            info.el.classList.add(`event-${eventType}`);
-        }
-    });
-    
-    calendar.render();
-    
-    // Store calendar instance for global access
-    window.eventCalendar = calendar;
 }
 
 function initializeEventHandlers() {
@@ -228,67 +123,20 @@ function openCreateModal(type = '', date = '') {
     }
 }
 
-function editEvent(eventId) {
-    // Show loading state
-    showLoading();
-    
-    // Fetch event details
-    fetch(`${window.location.origin}/Elite/admin/get_event/${eventId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch event details');
-            }
-            return response.json();
-        })
-        .then(event => {
-            populateEditForm(event);
-            hideLoading();
-        })
-        .catch(error => {
-            console.error('Error fetching event:', error);
-            hideLoading();
-            
-            // Fallback to dummy data for interface demo
-            const dummyEvent = {
-                id: eventId,
-                title: 'Junior Cricket Championship',
-                event_type: 'tournament',
-                event_date: '2025-09-15',
-                location: 'Main Cricket Ground',
-                description: 'Annual junior cricket championship for under-16 players'
-            };
-            populateEditForm(dummyEvent);
-        });
-}
 
-function populateEditForm(event) {
-    const modal = document.getElementById('eventModal');
-    const form = document.getElementById('eventForm');
-    const title = document.getElementById('modalTitle');
+// Make editEvent globally accessible - redirects to edit page
+window.editEvent = function(eventId) {
+    if (!eventId || eventId === 0) {
+        console.error("⚠️ Invalid event ID passed to editEvent()");
+        alert("Invalid event ID. Please refresh the page and try again.");
+        return;
+    }
     
-    if (!modal || !form || !title) return;
-    
-    title.textContent = 'Edit Event';
-    form.action = `${window.location.origin}/Elite/admin/edit_event/${event.id}`;
-    
-    // Populate form fields
-    const fields = {
-        'eventTitle': event.title,
-        'eventType': event.event_type,
-        'eventDate': event.event_date,
-        'eventLocation': event.location,
-        'eventDescription': event.description
-    };
-    
-    Object.entries(fields).forEach(([fieldId, value]) => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.value = value || '';
-        }
-    });
-    
-    modal.style.display = 'block';
-}
+    // Redirect to the edit page
+    window.location.href = `${window.location.origin}/Elite/admin/edit_event/${eventId}`;
+};
+
+// populateEditForm() removed - edit now uses dedicated page, not modal
 
 function deleteEvent(eventId) {
     // Create custom confirmation modal for better UX

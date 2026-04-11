@@ -27,25 +27,19 @@ function markCompleted(sessionId) {
 function viewNotes(sessionId) {
     openModal('notesModal');
     
-    // Populate modal with session notes
+    // Load session notes from server data
+    const sessionNotes = window.trainerBookingsData?.sessionNotes?.[sessionId] || {};
     const modal = document.getElementById('notesModal');
     const modalBody = modal.querySelector('.modal-body');
     
     modalBody.innerHTML = `
         <div class="form-group">
             <label>Session Notes:</label>
-            <textarea class="form-control" rows="4" placeholder="Add session notes...">
-Previous session: Great progress on strength training. 
-Client completed all sets with good form.
-Next focus: Increase weight by 5lbs for squats.
-            </textarea>
+            <textarea class="form-control" rows="4" placeholder="Add session notes...">${sessionNotes.notes || ''}</textarea>
         </div>
         <div class="form-group">
             <label>Client Feedback:</label>
-            <textarea class="form-control" rows="3" placeholder="Client feedback...">
-Client reported feeling stronger and more confident.
-No pain or discomfort during exercises.
-            </textarea>
+            <textarea class="form-control" rows="3" placeholder="Client feedback...">${sessionNotes.feedback || ''}</textarea>
         </div>
     `;
     
@@ -55,7 +49,8 @@ No pain or discomfort during exercises.
 function editBooking(bookingId) {
     openModal('editModal');
     
-    // Populate modal with booking details
+    // Load booking data from server
+    const booking = window.trainerBookingsData?.bookings?.find(b => b.id === bookingId) || {};
     const modal = document.getElementById('editModal');
     const modalBody = modal.querySelector('.modal-body');
     
@@ -63,41 +58,41 @@ function editBooking(bookingId) {
         <div class="form-row">
             <div class="form-group">
                 <label>Client Name:</label>
-                <input type="text" value="James Wilson" class="form-control">
+                <input type="text" value="${booking.clientName || ''}" class="form-control">
             </div>
             <div class="form-group">
                 <label>Session Type:</label>
                 <select class="form-control">
-                    <option selected>Strength & Conditioning</option>
-                    <option>Cardio Training</option>
-                    <option>Agility Training</option>
-                    <option>Recovery Session</option>
+                    <option ${booking.sessionType === 'Strength & Conditioning' ? 'selected' : ''}>Strength & Conditioning</option>
+                    <option ${booking.sessionType === 'Cardio Training' ? 'selected' : ''}>Cardio Training</option>
+                    <option ${booking.sessionType === 'Agility Training' ? 'selected' : ''}>Agility Training</option>
+                    <option ${booking.sessionType === 'Recovery Session' ? 'selected' : ''}>Recovery Session</option>
                 </select>
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
                 <label>Date:</label>
-                <input type="date" value="2025-09-10" class="form-control">
+                <input type="date" value="${booking.date || ''}" class="form-control">
             </div>
             <div class="form-group">
                 <label>Time:</label>
-                <input type="time" value="08:00" class="form-control">
+                <input type="time" value="${booking.time || ''}" class="form-control">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
                 <label>Duration (hours):</label>
-                <input type="number" value="1.5" step="0.5" class="form-control">
+                <input type="number" value="${booking.duration || 1}" step="0.5" class="form-control">
             </div>
             <div class="form-group">
                 <label>Location:</label>
                 <select class="form-control">
-                    <option selected>Gym B - Weight Room</option>
-                    <option>Gym A - General</option>
-                    <option>Cardio Zone</option>
-                    <option>Court 1</option>
-                    <option>Court 2</option>
+                    <option ${booking.location === 'Gym B - Weight Room' ? 'selected' : ''}>Gym B - Weight Room</option>
+                    <option ${booking.location === 'Gym A - General' ? 'selected' : ''}>Gym A - General</option>
+                    <option ${booking.location === 'Cardio Zone' ? 'selected' : ''}>Cardio Zone</option>
+                    <option ${booking.location === 'Court 1' ? 'selected' : ''}>Court 1</option>
+                    <option ${booking.location === 'Court 2' ? 'selected' : ''}>Court 2</option>
                 </select>
             </div>
         </div>
@@ -197,6 +192,10 @@ function saveChanges(modalId) {
 function addNewBooking() {
     openModal('addBookingModal');
     
+    // Load client list from server data
+    const clients = window.trainerBookingsData?.clients || [];
+    const clientOptions = clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    
     const modal = document.getElementById('addBookingModal');
     const modalBody = modal.querySelector('.modal-body');
     
@@ -206,11 +205,7 @@ function addNewBooking() {
                 <label>Client Name:</label>
                 <select class="form-control">
                     <option value="">Select Client...</option>
-                    <option>James Wilson</option>
-                    <option>Rachel Green</option>
-                    <option>David Chen</option>
-                    <option>Sophie Martinez</option>
-                    <option>Mike Johnson</option>
+                    ${clientOptions}
                 </select>
             </div>
             <div class="form-group">
@@ -275,31 +270,30 @@ function addNewBooking() {
 function checkAvailability() {
     openModal('availabilityModal');
     
+    // Load availability from server data
+    const availability = window.trainerBookingsData?.availability || [];
     const modal = document.getElementById('availabilityModal');
     const modalBody = modal.querySelector('.modal-body');
     
+    let slotsHtml = '';
+    if (availability.length > 0) {
+        slotsHtml = availability.map(day => `
+            <div class="day-slot">
+                <h5>${day.label}</h5>
+                <div class="slots">
+                    ${day.slots.map(slot => `<span class="slot ${slot.booked ? 'booked' : 'available'}">${slot.time}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    } else {
+        slotsHtml = '<p>No availability data loaded. Please refresh the page.</p>';
+    }
+    
     modalBody.innerHTML = `
         <div class="availability-calendar">
-            <h4>Available Time Slots - This Week</h4>
+            <h4>Available Time Slots</h4>
             <div class="time-slots">
-                <div class="day-slot">
-                    <h5>Today - ${new Date().toLocaleDateString()}</h5>
-                    <div class="slots">
-                        <span class="slot available">6:00 AM</span>
-                        <span class="slot booked">7:00 AM</span>
-                        <span class="slot available">3:00 PM</span>
-                        <span class="slot available">4:00 PM</span>
-                    </div>
-                </div>
-                <div class="day-slot">
-                    <h5>Tomorrow</h5>
-                    <div class="slots">
-                        <span class="slot available">6:00 AM</span>
-                        <span class="slot available">7:00 AM</span>
-                        <span class="slot available">8:00 AM</span>
-                        <span class="slot booked">2:00 PM</span>
-                    </div>
-                </div>
+                ${slotsHtml}
             </div>
         </div>
         <style>
@@ -314,19 +308,19 @@ function checkAvailability() {
 }
 
 function exportBookings() {
-    // Simulate export functionality
+    // Export actual bookings data
     showSuccessMessage('Exporting bookings report...');
     
     setTimeout(() => {
         const today = new Date().toISOString().split('T')[0];
         const filename = `trainer-bookings-${today}.csv`;
         
-        // Create CSV content
-        const csvContent = `Date,Client,Session Type,Duration,Location,Status
-2025-09-09,Sarah Mitchell,Strength Training,1 hour,Gym A,Completed
-2025-09-09,Mike Johnson,Cardio Training,1 hour,Cardio Zone,Completed
-2025-09-10,James Wilson,Strength & Conditioning,1.5 hours,Gym B,Confirmed
-2025-09-11,Rachel Green,Agility Training,1 hour,Court 2,Confirmed`;
+        // Build CSV from server data
+        const bookings = window.trainerBookingsData?.bookingsForExport || [];
+        let csvContent = 'Date,Client,Session Type,Duration,Location,Status\n';
+        bookings.forEach(b => {
+            csvContent += `${b.date},${b.client},${b.sessionType},${b.duration},${b.location},${b.status}\n`;
+        });
         
         // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv' });

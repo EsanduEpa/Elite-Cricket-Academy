@@ -1,6 +1,7 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
     
 <div class="player-layout">
     <!-- Sidebar -->
@@ -30,14 +31,14 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/performance" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/bookings" class="nav-link">
-                        <i class="fas fa-calendar"></i>
+                    <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
                         <span>Bookings</span>
                     </a>
                 </li>
@@ -82,9 +83,9 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content">
+    <div class="main-content" id="shoppingPage" data-urlroot="<?php echo URLROOT; ?>">
         <!-- Shopping Header -->
-        <div class="shopping-header">
+        <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
                     <h1>Elite Cricket Academy Shop</h1>
@@ -95,313 +96,178 @@
                         <i class="fas fa-tools"></i>
                         Equipment Rentals
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/facilities" class="btn btn-facilities">
-                        <i class="fas fa-building"></i>
-                        Facility Booking
-                    </a>
-                    <button class="btn btn-cart" id="cart-btn">
+                   
+                    <a href="<?php echo URLROOT; ?>/player/cart" class="btn btn-cart" id="cart-btn">
                         <i class="fas fa-shopping-cart"></i>
                         Cart
                         <span class="cart-count" id="cart-count">0</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Shopping Stats -->
-        <div class="shopping-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">150+</div>
-                    <div class="stat-label">Products Available</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">25+</div>
-                    <div class="stat-label">Rental Equipment</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Facilities</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shipping-fast"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">24h</div>
-                    <div class="stat-label">Fast Delivery</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Shopping Navigation -->
-        <div class="shop-navigation">
-            <button class="nav-btn active" data-section="products" onclick="switchToSection('products')">
-                <i class="fas fa-shopping-bag"></i>
-                Products
-            </button>
-            <button class="nav-btn" data-section="rentals" onclick="switchToSection('rentals')">
-                <i class="fas fa-tools"></i>
-                Equipment Rentals
-            </button>
-            <button class="nav-btn" data-section="facilities" onclick="switchToSection('facilities')">
-                <i class="fas fa-building"></i>
-                Facility Booking
-            </button>
-            <button class="nav-btn" data-section="orders" onclick="switchToSection('orders')">
-                <i class="fas fa-receipt"></i>
-                My Orders
-            </button>
-        </div>
+        
 
         <!-- Products Section -->
         <div id="products-section" class="shop-section active">
+            <?php
+                $products = $data['products'] ?? [];
+
+                $normKey = function ($value) {
+                    return strtolower(trim((string)$value));
+                };
+
+                $categoryOptions = [];
+                $brandOptions = [];
+                if (!empty($products)) {
+                    foreach ($products as $p) {
+                        if (!empty($p->Category)) {
+                            $categoryOptions[(string)$p->Category] = true;
+                        }
+                        if (!empty($p->Brand)) {
+                            $brandOptions[(string)$p->Brand] = true;
+                        }
+                    }
+                }
+                ksort($categoryOptions);
+                ksort($brandOptions);
+
+                $categoryIconClass = function ($categoryLabel) {
+                    $c = strtolower(trim((string)$categoryLabel));
+                    if ($c === 'batting') return 'fas fa-baseball-ball';
+                    if ($c === 'bowling') return 'fas fa-bullseye';
+                    if ($c === 'training') return 'fas fa-dumbbell';
+                    if ($c === 'protective') return 'fas fa-shield-alt';
+                    return 'fas fa-tag';
+                };
+            ?>
+
+            <!-- Category Navigation -->
+            <div class="page-navigation" id="product-category-navigation">
+                <button type="button" class="nav-btn active" data-category="all">
+                    <i class="fas fa-th-large"></i>
+                    All Categories
+                </button>
+                <?php foreach (array_keys($categoryOptions) as $category) : ?>
+                    <?php $categoryKey = $normKey($category); ?>
+                    <button type="button" class="nav-btn" data-category="<?php echo htmlspecialchars($categoryKey, ENT_QUOTES, 'UTF-8'); ?>">
+                        <i class="<?php echo htmlspecialchars($categoryIconClass($category), ENT_QUOTES, 'UTF-8'); ?>"></i>
+                        <?php echo htmlspecialchars((string)$category, ENT_QUOTES, 'UTF-8'); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+
             <div class="section-header">
                 <div>
                     <h2>Cricket Equipment & Gear</h2>
                     <p>Professional-grade cricket equipment for players of all levels</p>
                 </div>
-                <div class="shop-filters">
-                    <select class="filter-select" id="category-filter">
-                        <option value="all">All Categories</option>
-                        <option value="bats">Cricket Bats</option>
-                        <option value="protective">Protective Gear</option>
-                        <option value="footwear">Footwear</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="accessories">Accessories</option>
-                    </select>
+                <div class="section-filters">
+                   
                     <select class="filter-select" id="brand-filter">
                         <option value="all">All Brands</option>
-                        <option value="gray-nicolls">Gray-Nicolls</option>
-                        <option value="kookaburra">Kookaburra</option>
-                        <option value="new-balance">New Balance</option>
-                        <option value="gunn-moore">Gunn & Moore</option>
+                        <?php foreach (array_keys($brandOptions) as $brand): ?>
+                            <option value="<?php echo htmlspecialchars($normKey($brand), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?></option>
+                        <?php endforeach; ?>
                     </select>
                     <select class="filter-select" id="price-filter">
                         <option value="all">All Prices</option>
-                        <option value="0-50">Under $50</option>
-                        <option value="50-100">$50 - $100</option>
-                        <option value="100-250">$100 - $250</option>
-                        <option value="250-500">$250 - $500</option>
-                        <option value="500+">Over $500</option>
+                        <option value="0-1000">Under Rs. 1,000</option>
+                        <option value="1000-5000">Rs. 1,000 - 5,000</option>
+                        <option value="5000-10000">Rs. 5,000 - 10,000</option>
+                        <option value="10000-25000">Rs. 10,000 - 25,000</option>
+                        <option value="25000+">Over Rs. 25,000</option>
                     </select>
                 </div>
             </div>
             
-            <div class="products-grid" id="products-grid">
-                <!-- Cricket Bats -->
-                <div class="product-card" data-category="bats" data-brand="gray-nicolls" data-price="450">
-                    <div class="discount-badge">15% OFF</div>
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/bat-pro.jpg" alt="Professional Cricket Bat" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Bat'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Gray-Nicolls</div>
-                        <h3 class="product-title">Powerbow 6X Pro Cricket Bat</h3>
-                        <p class="product-description">Premium English willow bat with advanced edge profile and massive hitting zone</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <span class="rating-text">(24 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">English Willow</span>
-                            <span class="feature-tag">Professional Grade</span>
-                            <span class="feature-tag">Lightweight</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-original">$529.99</span>
-                            <span class="price-discounted">$450.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (3 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('bat-pro')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="bat-pro" data-name="Powerbow 6X Pro Cricket Bat" data-price="450" data-image="<?php echo URLROOT; ?>/img/products/bat-pro.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+            <div class="items-grid" id="products-grid">
+                <?php if (!empty($data['products'])): ?>
+                    <?php foreach ($data['products'] as $product): ?>
+                            <div class="card-item product-card"
+                                data-category="<?php echo htmlspecialchars($normKey($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                                data-brand="<?php echo htmlspecialchars($normKey($product->Brand ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                             data-price="<?php echo $product->Price ?? 0; ?>"
+                             data-product-id="<?php echo $product->ProductID; ?>">
 
-                <div class="product-card" data-category="bats" data-brand="kookaburra" data-price="320">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/bat-kahuna.jpg" alt="Kahuna Cricket Bat" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Bat'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Kookaburra</div>
-                        <h3 class="product-title">Kahuna 4.0 Cricket Bat</h3>
-                        <p class="product-description">Premium Kashmir willow bat with enhanced sweet spot and exceptional balance</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(18 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Kashmir Willow</span>
-                            <span class="feature-tag">Balanced</span>
-                            <span class="feature-tag">Youth Friendly</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">$320.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (5 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('bat-kahuna')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="bat-kahuna" data-name="Kahuna 4.0 Cricket Bat" data-price="320" data-image="<?php echo URLROOT; ?>/img/products/bat-kahuna.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                            <div class="card-image">
+                                <?php
+                                $imagePath = !empty($product->ProductImage)
+                                    ? URLROOT . '/' . $product->ProductImage
+                                    : 'https://via.placeholder.com/300x200?text=' . urlencode($product->Name ?? 'Product');
+                                ?>
+                                <img src="<?php echo $imagePath; ?>"
+                                     alt="<?php echo htmlspecialchars($product->Name ?? 'Product'); ?>" />
+                            </div>
 
-                <!-- Protective Gear -->
-                <div class="product-card" data-category="protective" data-brand="kookaburra" data-price="180">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/pads-pro.jpg" alt="Cricket Pads" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Pads'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Kookaburra</div>
-                        <h3 class="product-title">Pro 2.0 Batting Pads</h3>
-                        <p class="product-description">Lightweight batting pads with superior protection and comfort for long innings</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(15 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Lightweight</span>
-                            <span class="feature-tag">Adjustable</span>
-                            <span class="feature-tag">High Protection</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">$180.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (8 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('pads-pro')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="pads-pro" data-name="Pro 2.0 Batting Pads" data-price="180" data-image="<?php echo URLROOT; ?>/img/products/pads-pro.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                            <div class="card-body">
+                                <?php if (!empty($product->Brand)): ?>
+                                    <div class="product-brand"><?php echo htmlspecialchars($product->Brand); ?></div>
+                                <?php endif; ?>
 
-                <div class="product-card" data-category="protective" data-brand="gray-nicolls" data-price="85">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/helmet-atomic.jpg" alt="Cricket Helmet" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Helmet'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">Gray-Nicolls</div>
-                        <h3 class="product-title">Atomic Cricket Helmet</h3>
-                        <p class="product-description">Advanced protection helmet with titanium grille and superior ventilation system</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <span class="rating-text">(32 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Titanium Grille</span>
-                            <span class="feature-tag">Ventilated</span>
-                            <span class="feature-tag">Adjustable</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">$85.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (12 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('helmet-atomic')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="helmet-atomic" data-name="Atomic Cricket Helmet" data-price="85" data-image="<?php echo URLROOT; ?>/img/products/helmet-atomic.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                                <h3 class="card-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
 
-                <!-- Footwear -->
-                <div class="product-card" data-category="footwear" data-brand="new-balance" data-price="160">
-                    <div class="discount-badge">20% OFF</div>
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/spikes-tc.jpg" alt="Cricket Spikes" onerror="this.src='https://via.placeholder.com/300x200?text=Cricket+Spikes'" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-brand">New Balance</div>
-                        <h3 class="product-title">TC 4040v5 Cricket Spikes</h3>
-                        <p class="product-description">Professional cricket spikes with superior grip and all-day comfort</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(27 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Metal Spikes</span>
-                            <span class="feature-tag">Breathable</span>
-                            <span class="feature-tag">Lightweight</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-original">$200.00</span>
-                            <span class="price-discounted">$160.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (6 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('spikes-tc')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="spikes-tc" data-name="TC 4040v5 Cricket Spikes" data-price="160" data-image="<?php echo URLROOT; ?>/img/products/spikes-tc.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                                <p class="card-description">
+                                    <?php echo htmlspecialchars(mb_strimwidth((string)($product->Description ?? 'No description available.'), 0, 95, '...')); ?>
+                                </p>
 
-                <!-- Clothing -->
-                <div class="product-card" data-category="clothing" data-brand="new-balance" data-price="45">
-                    <div class="product-image">
-                        <img src="<?php echo URLROOT; ?>/img/products/jersey-team.jpg" alt="Team Jersey" onerror="this.src='https://via.placeholder.com/300x200?text=Team+Jersey'" />
+                              
+
+                                <?php if (!empty($product->Category)): ?>
+                                    <div class="card-tags">
+                                        <span class="card-tag"><?php echo htmlspecialchars($product->Category); ?></span>
+                                        <?php if (!empty($product->Brand)): ?>
+                                            <span class="card-tag"><?php echo htmlspecialchars($product->Brand); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($product->StockQuantity > 10): ?>
+                                            <span class="card-tag">In Stock</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="price-section">
+                                    <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
+                                </div>
+
+                                <div class="stock-summary <?php echo ($product->StockQuantity ?? 0) > 0 ? 'in-stock' : 'out-of-stock'; ?>">
+                                    <?php if (($product->StockQuantity ?? 0) > 0): ?>
+                                        <?php echo (int)$product->StockQuantity; ?> available
+                                    <?php else: ?>
+                                        Out of stock
+                                    <?php endif; ?>
+                                </div>
+
+                                
+
+                                <div class="product-actions">
+                                    <button class="btn btn-view js-view-product"
+                                            data-product-id="<?php echo $product->ProductID; ?>">
+                                        View Details
+                                    </button>
+                                    <?php if ($product->StockQuantity > 0): ?>
+                                        <button class="btn btn-cart add-to-cart"
+                                                data-product-id="<?php echo $product->ProductID; ?>"
+                                                data-name="<?php echo htmlspecialchars($product->Name); ?>"
+                                                data-price="<?php echo $product->Price; ?>"
+                                                data-image="<?php echo $imagePath; ?>">
+                                            Add to Cart
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-cart" disabled>Out of Stock</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-products">
+                        <i class="fas fa-shopping-bag" style="font-size: 48px; color: #ccc; margin-bottom: 1rem;"></i>
+                        <h3>No Products Available</h3>
+                        <p>Check back soon for new products!</p>
                     </div>
-                    <div class="product-info">
-                        <div class="product-brand">New Balance</div>
-                        <h3 class="product-title">Elite Academy Team Jersey</h3>
-                        <p class="product-description">Official team jersey with moisture-wicking fabric and professional fit</p>
-                        <div class="product-rating">
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star active"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-text">(41 reviews)</span>
-                        </div>
-                        <div class="product-features">
-                            <span class="feature-tag">Moisture-Wicking</span>
-                            <span class="feature-tag">Breathable</span>
-                            <span class="feature-tag">Official Design</span>
-                        </div>
-                        <div class="product-price">
-                            <span class="price-current">$45.00</span>
-                        </div>
-                        <div class="product-stock">✓ In Stock (20 available)</div>
-                        <div class="product-actions">
-                            <button class="btn btn-view" onclick="viewProduct('jersey-team')">View Details</button>
-                            <button class="btn btn-cart add-to-cart" data-product="jersey-team" data-name="Elite Academy Team Jersey" data-price="45" data-image="<?php echo URLROOT; ?>/img/products/jersey-team.jpg">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
+
             </div>
         </div>
 
@@ -413,30 +279,168 @@
     </div>
 </div>
 
-<!-- Shopping Cart Modal -->
-<div id="cartModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Shopping Cart</h3>
-            <button class="close-btn" onclick="closeCartModal()">&times;</button>
+<!-- Product Details Modal -->
+<div id="productDetailsModal" class="modal app-modal modal-overlay" aria-hidden="true">
+    <div class="modal-content modal-lg app-modal__dialog app-modal__dialog--xl">
+        <div class="modal-header app-modal__header">
+            <div class="header-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="header-text">
+                <h3>Product Details</h3>
+                <p>Complete product information and specifications</p>
+            </div>
+            <button type="button" class="modal-close-btn app-modal__close js-close-product-details" aria-label="Close product details">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="modal-body">
-            <div id="cart-items"></div>
-            <div class="cart-total">
-                <strong>Total: $<span id="cart-total">0.00</span></strong>
+
+        <div class="modal-body app-modal__body">
+            <div class="product-details-container">
+                <!-- Product Image and Basic Info -->
+                <div class="product-main-info">
+                    <div class="product-image-large">
+                        <img id="productDetailImage" src="" alt="Product Image" />
+                        <div class="image-badges">
+                            <span id="productDetailStatus" class="status-badge"></span>
+                        </div>
+                    </div>
+
+                    <div class="product-basic-info">
+                        <div class="product-header">
+                            <h2 id="productDetailName">Product Name</h2>
+                            <div class="product-meta">
+                                <span class="product-id">ID: #<span id="productDetailID">001</span></span>
+                                <span class="product-sku">SKU: <span id="productDetailSKU">SKU-001</span></span>
+                            </div>
+                        </div>
+
+                        <div class="product-category-brand">
+                            <span class="category-badge" id="productDetailCategory">Category</span>
+                            <span class="brand-badge" id="productDetailBrand">Brand</span>
+                        </div>
+
+                        <div class="product-pricing">
+                            <div class="price-info">
+                                <span class="current-price">Rs. <span id="productDetailPrice">0.00</span></span>
+                                <span class="price-label">Current Price</span>
+                            </div>
+                            <div class="stock-info">
+                                <span class="stock-quantity" id="productDetailStock">0</span>
+                                <span class="stock-label">Units Available</span>
+                            </div>
+                        </div>
+
+                        <div class="product-description">
+                            <h4>Product Description</h4>
+                            <p id="productDetailDescription">Product description will be displayed here...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Specifications -->
+                <div class="product-specifications">
+                    <h4><i class="fas fa-cog"></i> Product Specifications</h4>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">Weight:</span>
+                            <span class="spec-value" id="productDetailWeight">-</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Dimensions:</span>
+                            <span class="spec-value" id="productDetailDimensions">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-specifications">
+                    <h4><i class="fas fa-database"></i> Database Fields</h4>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">Status:</span>
+                            <span class="spec-value" id="productDetailStatusText">-</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Added Date:</span>
+                            <span class="spec-value" id="productDetailAddedDate">-</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Updated By:</span>
+                            <span class="spec-value" id="productDetailUpdatedBy">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-specifications product-record-section">
+                    <h4><i class="fas fa-table"></i> Full Product Record</h4>
+                    <div id="productRecordGrid" class="record-grid"></div>
+                </div>
+
+                <!-- Product Actions -->
+                <div class="product-actions-section">
+                    <div class="quantity-selector">
+                        <label for="productQuantity">Quantity:</label>
+                        <div class="quantity-controls">
+                            <button type="button" class="qty-btn js-qty-decrease">-</button>
+                            <input type="number" id="productQuantity" value="1" min="1" max="10">
+                            <button type="button" class="qty-btn js-qty-increase">+</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-modal primary js-add-to-cart-details">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <button type="button" class="btn-modal secondary js-buy-now-details">
+                            <i class="fas fa-bolt"></i> Buy Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Additional Product Information -->
+                <div class="product-additional-info">
+                    <div class="info-tabs">
+                        <button type="button" class="tab-btn active js-tab-toggle" data-tab="shipping">Shipping Info</button>
+                        <button type="button" class="tab-btn js-tab-toggle" data-tab="warranty">Warranty</button>
+                    </div>
+
+                    <div class="tab-content">
+
+
+                        <div id="shipping-tab" class="tab-pane">
+                            <h5>Shipping Information</h5>
+                            <p>Free shipping on orders over $100. Standard delivery takes 3-5 business days.</p>
+                            <ul>
+                                <li>Express shipping available</li>
+                                <li>Same-day delivery for local area</li>
+                                <li>Secure packaging guaranteed</li>
+                            </ul>
+                        </div>
+
+                        <div id="warranty-tab" class="tab-pane">
+                            <h5>Warranty & Returns</h5>
+                            <p>30-day return policy with full refund. Manufacturer warranty included.</p>
+                            <ul>
+                                <li>1-year manufacturer warranty</li>
+                                <li>Free returns within 30 days</li>
+                                <li>Expert support included</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeCartModal()">Continue Shopping</button>
-            <button class="btn btn-primary" onclick="checkout()">Checkout</button>
+
+        <div class="modal-actions app-modal__footer">
+            <button type="button" class="btn-modal secondary js-close-product-details">
+                <i class="fas fa-times"></i> Close
+            </button>
+            <button type="button" class="btn-modal primary js-add-to-cart-details">
+                <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
         </div>
     </div>
 </div>
-
-
-
-
-
 <script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

@@ -1,6 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-rentals.css">
 
 <div class="admin-layout">
     <!-- Shop Sidebar -->
@@ -37,13 +37,7 @@
                         <span>Product Management</span>
                     </a>
                 </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
-                        <i class="fas fa-warehouse"></i>
-                        <span>Inventory</span>
-                    </a>
-                </li>
+              
                 
                 <li class="nav-item active">
                     <a href="<?php echo URLROOT; ?>/shop/rentals" class="nav-link">
@@ -52,24 +46,10 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/reviews" class="nav-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews & Feedback</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/prescriptions" class="nav-link">
-                        <i class="fas fa-prescription-bottle"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Sales Analytics</span>
                     </a>
                 </li>
                 
@@ -79,8 +59,30 @@
                         <span>Facility Management</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/shop/counter" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Counter Booking</span>
+                    </a>
+                </li>
             </ul>
         </nav>
+
+        <!-- Simple Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
+            <div class="profile-role">Shop Employee</div>
+            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
+                <i class="fas fa-user-cog"></i> Profile
+            </a>
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -191,21 +193,21 @@
         </div>
 
         <!-- Rental Filters -->
-        <div class="filter-section">
-            <div class="filter-tabs">
-                <a href="#" class="filter-tab active" data-status="all">
+        <div class="filter-section" style="margin: 2rem 0;">
+            <div class="filter-tabs" style="display: flex; gap: 0.5rem; background: rgba(255, 255, 255, 0.25); padding: 0.5rem; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.18);">
+                <a href="#" class="filter-tab active" data-status="all" style="flex: 1; padding: 12px 20px; text-decoration: none; color: white; background: #4A90E2; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-th"></i> All Rentals
                 </a>
-                <a href="#" class="filter-tab" data-status="active">
+                <a href="#" class="filter-tab" data-status="active" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-play"></i> Active
                 </a>
-                <a href="#" class="filter-tab" data-status="overdue">
+                <a href="#" class="filter-tab" data-status="overdue" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-clock"></i> Overdue
                 </a>
-                <a href="#" class="filter-tab" data-status="returned">
+                <a href="#" class="filter-tab" data-status="returned" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-check"></i> Returned
                 </a>
-                <a href="#" class="filter-tab" data-status="cancelled">
+                <a href="#" class="filter-tab" data-status="cancelled" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fas fa-times"></i> Cancelled
                 </a>
             </div>
@@ -231,7 +233,7 @@
             </div>
             
             <div class="table-content">
-                <table id="rentalsTable">
+                <table id="rentalsTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Rental ID</th>
@@ -246,23 +248,26 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>#REN-2025-156</td>
                             <td>
-                                <div>
-                                    <strong>Professional Cricket Bat</strong><br>
-                                    <small>Category: Batting | Condition: Good</small>
-                                </div>
+                                <div class="table-cell-primary">#REN-2025-156</div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>Ashen Perera</strong><br>
-                                    <small>ashen@example.com</small>
-                                </div>
+                                <div class="table-cell-title">Professional Cricket Bat</div>
+                                <div class="table-cell-details">Category: Batting | Condition: Good</div>
                             </td>
-                            <td>Oct 18, 2025<br><small>2 days</small></td>
-                            <td>₨ 800/day</td>
                             <td>
-                                <span class="status-badge status-active">Active</span>
+                                <div class="table-cell-title">Ashen Perera</div>
+                                <div class="table-cell-details">ashen@example.com</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">Oct 18, 2025</div>
+                                <div class="table-cell-secondary">2 days</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-primary">₨ 800/day</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="table-badge status-active">Active</span>
                             </td>
                             <td>
                                 <span class="due-date today">Today 6:00 PM</span>
@@ -282,12 +287,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>#REN-2025-155</td>
                             <td>
-                                <div>
-                                    <strong>Bowling Machine</strong><br>
-                                    <small>Category: Training | Condition: Good</small>
-                                </div>
+                                <div class="table-cell-primary">#REN-2025-155</div>
+                            </td>
+                            <td>
+                                <div class="table-cell-title">Bowling Machine</div>
+                                <div class="table-cell-details">Category: Training | Condition: Good</div>
                             </td>
                             <td>
                                 <div>
@@ -375,7 +380,7 @@
             </div>
             
             <div class="table-content">
-                <table id="equipmentTable">
+                <table id="equipmentTable" class="dashboard-table">
                     <thead>
                         <tr>
                             <th>Equipment</th>
@@ -649,6 +654,44 @@ document.getElementById('equipmentSearch').addEventListener('input', function() 
     filterEquipment(this.value);
 });
 
+// Category filter for rentals table
+const categoryFilter = document.getElementById('categoryFilter');
+if (categoryFilter) {
+    categoryFilter.addEventListener('change', function() {
+        const category = this.value.toLowerCase();
+        const table = document.getElementById('rentalsTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (category === 'all') {
+                row.style.display = '';
+            } else {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(category) ? '' : 'none';
+            }
+        });
+    });
+}
+
+// Category filter for equipment table
+const equipmentCategoryFilter = document.getElementById('equipmentCategoryFilter');
+if (equipmentCategoryFilter) {
+    equipmentCategoryFilter.addEventListener('change', function() {
+        const category = this.value.toLowerCase();
+        const table = document.getElementById('equipmentTable');
+        if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            if (category === 'all') {
+                row.style.display = '';
+            } else {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(category) ? '' : 'none';
+            }
+        });
+    });
+}
+
 // Cost calculation for new rental
 document.getElementById('equipmentId').addEventListener('change', function() {
     const option = this.options[this.selectedIndex];
@@ -678,8 +721,25 @@ function calculateTotal() {
 }
 
 function filterRentalsByStatus(status) {
-    console.log('Filtering rentals by status:', status);
-    // Implementation would filter the table rows
+    const table = document.getElementById('rentalsTable');
+    if (!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+            return;
+        }
+        // Check for status badge with matching class
+        const badge = row.querySelector('.table-badge, .status-badge');
+        if (badge) {
+            const hasStatus = badge.classList.contains('status-' + status) || 
+                             badge.textContent.trim().toLowerCase() === status;
+            row.style.display = hasStatus ? '' : 'none';
+        } else {
+            row.style.display = 'none';
+        }
+    });
 }
 
 function filterRentals(searchTerm) {
@@ -869,6 +929,17 @@ function showNotification(message, type) {
 </script>
 
 <style>
+/* Filter tabs styling */
+.filter-tab:hover {
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+}
+
+.filter-tab.active {
+    background: #4A90E2 !important;
+    color: white !important;
+}
+
 /* Due date indicators */
 .due-date {
     padding: 4px 8px;

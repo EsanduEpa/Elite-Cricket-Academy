@@ -22,37 +22,64 @@
         <nav class="sidebar-nav">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link">
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
                         <i class="fas fa-calendar-alt"></i>
-                        <span>Events & Tournaments</span>
+                        <span>Sessions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>My Slot Sessions</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#schedules" class="nav-link">
-                        <i class="fas fa-clock"></i>
-                        <span>Training Schedules</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#players" class="nav-link">
+                    <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
                         <i class="fas fa-users"></i>
-                        <span>My Players</span>
+                        <span>Players</span>
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a href="#performance" class="nav-link">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Performance</span>
+                    <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
+                        <i class="fas fa-trophy"></i>
+                        <span>Tournaments</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
+                        <i class="fas fa-star"></i>
+                        <span>Recommendations</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Health & Injury</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item active">
+                    <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
+                        <i class="fas fa-calendar"></i>
+                        <span>Events</span>
                     </a>
                 </li>
             </ul>
@@ -96,7 +123,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Active Tournaments</h3>
-                    <div class="stat-number">3</div>
+                    <div class="stat-number"><?php echo count(array_filter($data['upcoming_events'], function($e) { return isset($e['Type']) && strtolower($e['Type']) == 'tournament'; })); ?></div>
                     <p class="stat-description">Currently running</p>
                 </div>
             </div>
@@ -107,8 +134,8 @@
                 </div>
                 <div class="stat-content">
                     <h3>Training Sessions</h3>
-                    <div class="stat-number">12</div>
-                    <p class="stat-description">This week</p>
+                    <div class="stat-number"><?php echo count(array_filter($data['upcoming_events'], function($e) { return isset($e['Type']) && strtolower($e['Type']) == 'training'; })); ?></div>
+                    <p class="stat-description">Scheduled</p>
                 </div>
             </div>
             
@@ -117,9 +144,9 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>Participants</h3>
-                    <div class="stat-number">48</div>
-                    <p class="stat-description">Registered</p>
+                    <h3>Total Events</h3>
+                    <div class="stat-number"><?php echo count($data['upcoming_events']) + count($data['past_events']); ?></div>
+                    <p class="stat-description">All events</p>
                 </div>
             </div>
             
@@ -129,7 +156,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>Upcoming Events</h3>
-                    <div class="stat-number">8</div>
+                    <div class="stat-number"><?php echo count($data['upcoming_events']); ?></div>
                     <p class="stat-description">Next 30 days</p>
                 </div>
             </div>
@@ -163,51 +190,37 @@
                 </div>
                 <div class="events-list">
                     <?php 
-                    // Sample data for coach view
-                    $upcomingEvents = [
-                        [
-                            'id' => 1,
-                            'title' => 'Junior Cricket Championship',
-                            'event_date' => '2025-09-15',
-                            'event_type' => 'tournament',
-                            'description' => 'Annual junior cricket championship for under-16 players',
-                            'location' => 'Main Cricket Ground'
-                        ],
-                        [
-                            'id' => 2,
-                            'title' => 'Advanced Batting Workshop',
-                            'event_date' => '2025-09-12',
-                            'event_type' => 'training',
-                            'description' => 'Specialized batting techniques workshop by senior coach',
-                            'location' => 'Practice Nets Area'
-                        ],
-                        [
-                            'id' => 3,
-                            'title' => 'Inter-Academy Friendly Match',
-                            'event_date' => '2025-09-18',
-                            'event_type' => 'match',
-                            'description' => 'Friendly match against City Sports Academy',
-                            'location' => 'Stadium Ground'
-                        ]
-                    ];
+                    // Use data from database
+                    $upcomingEvents = $data['upcoming_events'];
                     
-                    foreach ($upcomingEvents as $event): ?>
+                    if (empty($upcomingEvents)): ?>
+                        <div class="no-events">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No upcoming events scheduled</p>
+                        </div>
+                    <?php else:
+                        foreach ($upcomingEvents as $event): 
+                            // Get event type for icon
+                            $eventType = isset($event['Type']) ? strtolower($event['Type']) : 'event';
+                            $eventTypeClass = strtolower(str_replace(' ', '_', $eventType));
+                            $icon = $eventType == 'tournament' ? 'trophy' : ($eventType == 'training' ? 'dumbbell' : 'calendar');
+                    ?>
                     <div class="event-item" data-event-id="<?php echo $event['id']; ?>">
                         <div class="event-date">
                             <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
                             <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
                         </div>
                         <div class="event-details">
-                            <h4 class="event-title"><?php echo $event['title']; ?></h4>
-                            <p class="event-description"><?php echo $event['description']; ?></p>
+                            <h4 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h4>
+                            <p class="event-description"><?php echo htmlspecialchars($event['description'] ?? ''); ?></p>
                             <div class="event-meta">
-                                <span class="event-type <?php echo $event['event_type']; ?>">
-                                    <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
-                                    <?php echo ucfirst($event['event_type']); ?>
+                                <span class="event-type <?php echo $eventTypeClass; ?>">
+                                    <i class="fas fa-<?php echo $icon; ?>"></i>
+                                    <?php echo ucfirst($eventType); ?>
                                 </span>
                                 <span class="event-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <?php echo $event['location']; ?>
+                                    <?php echo htmlspecialchars($event['location'] ?? 'TBA'); ?>
                                 </span>
                             </div>
                         </div>
@@ -218,7 +231,8 @@
                             </button>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php endforeach; 
+                    endif; ?>
                 </div>
             </div>
 
@@ -230,42 +244,37 @@
                 </div>
                 <div class="events-list">
                     <?php 
-                    $pastEvents = [
-                        [
-                            'id' => 4,
-                            'title' => 'Summer Cricket Camp',
-                            'event_date' => '2025-08-15',
-                            'event_type' => 'training',
-                            'description' => 'Intensive 5-day cricket training camp',
-                            'location' => 'Academy Grounds'
-                        ],
-                        [
-                            'id' => 5,
-                            'title' => 'Regional Tournament Finals',
-                            'event_date' => '2025-08-22',
-                            'event_type' => 'tournament',
-                            'description' => 'Regional championship final match',
-                            'location' => 'City Stadium'
-                        ]
-                    ];
+                    // Use data from database
+                    $pastEvents = $data['past_events'];
                     
-                    foreach ($pastEvents as $event): ?>
+                    if (empty($pastEvents)): ?>
+                        <div class="no-events">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No past events</p>
+                        </div>
+                    <?php else:
+                        foreach ($pastEvents as $event): 
+                            // Get event type for icon
+                            $eventType = isset($event['Type']) ? strtolower($event['Type']) : 'event';
+                            $eventTypeClass = strtolower(str_replace(' ', '_', $eventType));
+                            $icon = $eventType == 'tournament' ? 'trophy' : ($eventType == 'training' ? 'dumbbell' : 'calendar');
+                    ?>
                     <div class="event-item past" data-event-id="<?php echo $event['id']; ?>">
                         <div class="event-date">
                             <div class="date-day"><?php echo date('d', strtotime($event['event_date'])); ?></div>
                             <div class="date-month"><?php echo date('M', strtotime($event['event_date'])); ?></div>
                         </div>
                         <div class="event-details">
-                            <h4 class="event-title"><?php echo $event['title']; ?></h4>
-                            <p class="event-description"><?php echo $event['description']; ?></p>
+                            <h4 class="event-title"><?php echo htmlspecialchars($event['title']); ?></h4>
+                            <p class="event-description"><?php echo htmlspecialchars($event['description'] ?? ''); ?></p>
                             <div class="event-meta">
-                                <span class="event-type <?php echo $event['event_type']; ?>">
-                                    <i class="fas fa-<?php echo $event['event_type'] == 'tournament' ? 'trophy' : ($event['event_type'] == 'training' ? 'dumbbell' : 'users'); ?>"></i>
-                                    <?php echo ucfirst($event['event_type']); ?>
+                                <span class="event-type <?php echo $eventTypeClass; ?>">
+                                    <i class="fas fa-<?php echo $icon; ?>"></i>
+                                    <?php echo ucfirst($eventType); ?>
                                 </span>
                                 <span class="event-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <?php echo $event['location']; ?>
+                                    <?php echo htmlspecialchars($event['location'] ?? 'TBA'); ?>
                                 </span>
                                 <span class="event-status completed">
                                     <i class="fas fa-check-circle"></i>
@@ -280,7 +289,8 @@
                             </button>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php endforeach; 
+                    endif; ?>
                 </div>
             </div>
         </div>

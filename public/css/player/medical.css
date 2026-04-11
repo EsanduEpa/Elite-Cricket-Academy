@@ -2,6 +2,18 @@
 /* Import base dashboard styles */
 @import url('dashboard.css');
 
+/* Two Tables Per Row Layout */
+.performance-tables-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 2rem;
+}
+
+.performance-tables-row .schedule-card {
+    margin-bottom: 0;
+}
+
 /* Medical-specific icons and colors only if needed */
 .stat-icon i.fa-heartbeat,
 .stat-icon i.fa-weight,
@@ -14,15 +26,1315 @@
     color: #27ae60;
 }
 
-/* Medical record status indicators */
-.schedule-details i.fa-check-circle {
-    color: #27ae60 !important;
+/* Enhanced Medical Records Table */
+.medical-records-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.schedule-details i.fa-shield-alt {
-    color: #3498db !important;
+.medical-records-table thead th {
+    background: #4A90E2;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 18px 20px;
+    border: none;
+    text-align: left;
 }
 
-.schedule-details i.fa-bandage {
-    color: #f39c12 !important;
+.medical-records-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.08);
+}
+
+.medical-records-table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.02) 0%, rgba(53, 122, 189, 0.02) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.medical-records-table tbody td {
+    padding: 20px;
+    vertical-align: top;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+}
+
+/* Injury Info Section */
+.injury-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.injury-date,
+.injury-location,
+.academy-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.injury-date i,
+.injury-location i,
+.academy-indicator i {
+    color: #4A90E2;
+    width: 16px;
+    text-align: center;
+}
+
+.injury-date span {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.injury-location span {
+    color: #34495e;
+}
+
+.reported-date {
+    margin-left: 24px;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+.academy-indicator {
+    color: #f39c12;
+}
+
+.academy-indicator i {
+    color: #f39c12;
+}
+
+/* Body Area Cell */
+.body-area-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+}
+
+.body-area-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+}
+
+/* Academy Cell */
+.academy-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+}
+
+.academy-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f39c12;
+    font-weight: 500;
+}
+
+.academy-indicator i {
+    color: #f39c12;
+}
+
+.no-academy {
+    color: #95a5a6;
+    font-size: 14px;
+}
+
+/* Status Indicators */
+.status-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.status-badge i {
+    font-size: 10px;
+}
+
+/* Status Badge Colors - Consolidated for both status-* and verify-* variants */
+.status-badge.status-success,
+.status-badge.verify-success {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border-color: rgba(39, 174, 96, 0.3);
+}
+
+.status-badge.status-warning,
+.status-badge.verify-warning {
+    background: rgba(241, 196, 15, 0.1);
+    color: #f1c40f;
+    border-color: rgba(241, 196, 15, 0.3);
+}
+
+.status-badge.status-danger,
+.status-badge.verify-danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
+.status-badge.status-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border-color: rgba(108, 117, 125, 0.3);
+}
+
+/* Recovery Info Section */
+.recovery-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.rest-days-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #e74c3c;
+    font-weight: 500;
+}
+
+.rest-days-info i {
+    color: #e74c3c;
+}
+
+/* Receipt Cell */
+.receipt-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+}
+
+.receipt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    transition: all 0.2s ease;
+}
+
+.receipt-btn:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.receipt-btn i {
+    font-size: 11px;
+}
+
+.no-receipt {
+    font-size: 13px;
+    color: #95a5a6;
+    font-style: italic;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-height: 32px;
+}
+
+.action-btn:focus {
+    outline: 2px solid #4A90E2;
+    outline-offset: 2px;
+}
+
+.action-btn.btn-update {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.action-btn.btn-update:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.action-btn.btn-delete {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.action-btn.btn-delete:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.action-btn i {
+    font-size: 11px;
+}
+
+.action-btn span {
+    font-size: 12px;
+}
+
+
+
+.table-badge.status-recovering {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.table-badge.status-recovered {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.table-badge.status-chronic {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+/* Verify Status Badges */
+.table-badge.verify-pending {
+    background: rgba(241, 196, 15, 0.1);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.table-badge.verify-verified {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.table-badge.verify-rejected {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Secondary button styling */
+.btn-sm.btn-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+.btn-sm.btn-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+}
+
+/* Danger button styling for delete */
+.btn-sm.btn-danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.btn-sm.btn-danger:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
+/* Action buttons container */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+/* Form help styling */
+.form-help {
+    background: rgba(52, 152, 219, 0.05);
+    border-left: 4px solid #3498db;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.form-help p {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-help ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.form-help li {
+    margin-bottom: 5px;
+    color: #34495e;
+}
+
+.form-help li strong {
+    color: #2c3e50;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state .empty-icon {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #495057;
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin-bottom: 30px;
+    font-size: 16px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* Form styling for modal */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: #ffffff;
+    color: #333;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-control::placeholder {
+    color: #999;
+}
+
+/* Medical-specific table badge styles */
+.table-badge.status-up-to-date {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.table-badge.status-up-to-date i {
+    font-size: 10px;
+}
+
+/* Medical table enhancements */
+.dashboard-table .table-cell-details i {
+    margin-right: 5px;
+    width: 12px;
+    text-align: center;
+}
+
+/* Medical icon colors in table cells */
+.table-cell-details i.fa-stethoscope,
+.table-cell-details i.fa-notes-medical {
+    color: #e74c3c;
+}
+
+.table-cell-details i.fa-chart-line,
+.table-cell-details i.fa-dumbbell {
+    color: #27ae60;
+}
+
+.table-cell-details i.fa-shield-alt,
+.table-cell-details i.fa-shield-virus {
+    color: #3498db;
+}
+
+.table-cell-details i.fa-bandage {
+    color: #f39c12;
+}
+
+.table-cell-details i.fa-play {
+    color: #9b59b6;
+}
+
+.table-cell-details i.fa-virus {
+    color: #e67e22;
+}
+
+.table-cell-details i.fa-syringe {
+    color: #34495e;
+}
+
+/* Vaccination status styling */
+.table-badge i.fa-check-circle {
+    color: inherit;
+}
+
+/* Enhanced medical table spacing */
+.schedule-card .dashboard-table td {
+    padding: 18px 15px;
+}
+
+.schedule-card .dashboard-table th {
+    padding: 16px 15px;
+}
+
+/* Medical record type styling */
+.table-cell-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 3px;
+}
+
+.table-cell-details {
+    font-size: 12px;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.table-cell-primary {
+    font-weight: 600;
+    color: #34495e;
+    font-size: 14px;
+}
+
+.table-cell-secondary {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 2px;
+}
+
+/* Medical section headers */
+.card-header .event-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Hover effects for medical tables */
+.dashboard-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.03);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+/* Medical data highlighting */
+.table-cell-primary.highlight {
+    color: #4A90E2;
+    font-weight: 700;
+}
+
+/* Status-specific row styling */
+.dashboard-table tbody tr.status-normal {
+    border-left: 3px solid #27ae60;
+}
+
+.dashboard-table tbody tr.status-warning {
+    border-left: 3px solid #f39c12;
+}
+
+.dashboard-table tbody tr.status-alert {
+    border-left: 3px solid #e74c3c;
+}
+
+/* Small button styles for table actions */
+.btn-sm {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-sm:hover {
+    background: #357abd;
+    transform: translateY(-1px);
+}
+
+.btn-sm i {
+    font-size: 11px;
+}
+
+.profile-logout-link {
+    margin-top: 15px;
+}
+
+/* Modal styles */
+.medical-modal-header {
+    padding: 24px;
+}
+
+.medical-modal-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.medical-modal-title-icon {
+    color: #ffffff;
+}
+
+.medical-modal-footer {
+    background: #f8f9fa;
+}
+
+.medical-field-icon {
+    margin-right: 0;
+    width: 14px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.medical-field-icon--primary {
+    color: #4A90E2;
+}
+
+.medical-field-icon--danger {
+    color: #e74c3c;
+}
+
+.medical-field-icon--success {
+    color: #27ae60;
+}
+
+.medical-field-icon--warning {
+    color: #f39c12;
+}
+
+.medical-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem 1.1rem;
+    min-height: 48px;
+    padding: 0.74rem 0.92rem;
+    border: 1px solid rgba(74, 144, 226, 0.18);
+    border-radius: 14px;
+    background: #f8fbff;
+}
+
+.medical-radio-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.medical-error-text.is-visible {
+    display: block;
+}
+
+.medical-file-input {
+    padding: 0.7rem 0.9rem;
+    background: #f8fbff;
+}
+
+.medical-modal-form {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.medical-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.medical-form-actions {
+    position: sticky;
+    bottom: -28px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin: 24px -28px -28px;
+    padding: 18px 28px 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(241, 246, 251, 0.98));
+    border-top: 1px solid rgba(23, 45, 68, 0.08);
+    backdrop-filter: blur(6px);
+    z-index: 2;
+}
+
+.medical-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px 28px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.medical-btn:hover {
+    transform: translateY(-2px);
+}
+
+.medical-btn--secondary {
+    background: #95a5a6;
+    color: #ffffff;
+}
+
+.medical-btn--secondary:hover {
+    background: #7f8c8d;
+}
+
+.medical-btn--primary {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.medical-btn--primary:hover {
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.medical-info-panel {
+    background: #f0f7ff;
+    border-left: 4px solid #4A90E2;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #2c3e50;
+}
+
+.medical-info-title {
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.medical-info-list {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.8;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Ensure modal visibility when active */
+body.modal-open {
+    overflow: hidden;
+    z-index: 1;
+    position: relative;
+}
+
+.plan-header {
+    background: rgba(74, 144, 226, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.plan-header h4 {
+    color: #4A90E2;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.plan-header p {
+    margin: 5px 0;
+    color: #666;
+}
+
+#workoutPlanContent,
+#nutritionPlanContent {
+    flex: 1 1 auto;
+    max-height: min(60vh, 560px);
+    overflow-y: auto;
+    padding-right: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(74, 144, 226, 0.7) rgba(74, 144, 226, 0.12);
+}
+
+#workoutPlanContent::-webkit-scrollbar,
+#nutritionPlanContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#workoutPlanContent::-webkit-scrollbar-track,
+#nutritionPlanContent::-webkit-scrollbar-track {
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 999px;
+}
+
+#workoutPlanContent::-webkit-scrollbar-thumb,
+#nutritionPlanContent::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(74, 144, 226, 0.9), rgba(53, 122, 189, 0.9));
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+#workoutPlanContent::-webkit-scrollbar-thumb:hover,
+#nutritionPlanContent::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(53, 122, 189, 1), rgba(31, 93, 152, 1));
+}
+
+.plan-details h4, .plan-details h5 {
+    color: #333;
+    margin: 20px 0 10px 0;
+}
+
+.plan-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.plan-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid rgba(74, 144, 226, 0.16);
+    border-radius: 12px;
+    background: #f8fbff;
+}
+
+.plan-meta-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6c7a89;
+}
+
+.plan-meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #22313f;
+}
+
+.plan-section {
+    margin-top: 18px;
+}
+
+.plan-section h5 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #4A90E2;
+}
+
+.plan-rich-text {
+    color: #425466;
+    line-height: 1.7;
+}
+
+.plan-rich-text p {
+    margin: 0 0 10px;
+}
+
+.plan-empty-text {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.plan-link {
+    color: #2f6fb7;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.plan-link:hover {
+    text-decoration: underline;
+}
+
+.plan-details h4 {
+    font-size: 16px;
+    border-bottom: 2px solid #4A90E2;
+    padding-bottom: 5px;
+}
+
+.plan-details h5 {
+    font-size: 14px;
+    color: #4A90E2;
+    margin: 15px 0 8px 0;
+}
+
+.plan-details ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.plan-details li {
+    margin: 5px 0;
+    color: #555;
+}
+
+.meal-plan {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+/* Status indicators */
+.status-indicator {
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.text-warning { color: #f39c12 !important; }
+.text-success { color: #27ae60 !important; }
+.text-danger { color: #e74c3c !important; }
+.text-muted { color: #95a5a6 !important; }
+
+/* Alert styles */
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-warning {
+    background: rgba(241, 196, 15, 0.1);
+    color: #856404;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
+@media (max-width: 1024px) {
+    /* Performance tables layout */
+    .performance-tables-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .performance-tables-row .schedule-card {
+        margin-bottom: 0;
+    }
+
+    /* Medical records table */
+    .medical-records-table thead th {
+        padding: 14px 16px;
+        font-size: 13px;
+    }
+
+    .medical-records-table tbody td {
+        padding: 16px;
+    }
+
+    .injury-info {
+        gap: 6px;
+    }
+
+    .injury-date,
+    .injury-location,
+    .academy-indicator {
+        font-size: 13px;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .medical-radio-group {
+        gap: 14px;
+    }
+
+    .medical-btn {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .reported-date {
+        margin-left: 20px;
+        font-size: 11px;
+    }
+
+    .diagnosis-text {
+        font-size: 14px;
+    }
+
+    .treatment-text,
+    .no-treatment {
+        font-size: 13px;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .action-buttons {
+        gap: 6px;
+    }
+
+    .action-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-height: 28px;
+    }
+
+    .action-btn span {
+        font-size: 11px;
+    }
+
+    /* Dashboard table */
+    .schedule-card .dashboard-table {
+        font-size: 12px;
+    }
+
+    .schedule-card .dashboard-table th,
+    .schedule-card .dashboard-table td {
+        padding: 12px 10px;
+    }
+
+    .table-cell-title {
+        font-size: 13px;
+    }
+
+    .table-cell-details {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Table responsive */
+    .table-responsive {
+        border-radius: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .medical-records-table {
+        min-width: 1100px;
+        font-size: 13px;
+    }
+
+    .medical-records-table thead th {
+        padding: 12px 15px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .medical-records-table tbody td {
+        padding: 14px;
+    }
+
+    .injury-info {
+        gap: 4px;
+    }
+
+    .injury-date,
+    .injury-location,
+    .academy-indicator {
+        font-size: 12px;
+    }
+
+    .reported-date {
+        margin-left: 18px;
+        font-size: 10px;
+    }
+
+    .diagnosis-text {
+        font-size: 13px;
+    }
+
+    .treatment-text,
+    .no-treatment {
+        font-size: 12px;
+    }
+
+    .recovery-info {
+        gap: 6px;
+    }
+
+    .rest-days-info {
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .receipt-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .no-receipt {
+        font-size: 12px;
+    }
+
+    .body-area-text {
+        font-size: 13px;
+    }
+
+    .academy-indicator {
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    .no-academy {
+        font-size: 12px;
+    }
+
+    .action-buttons {
+        gap: 4px;
+    }
+
+    .action-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+        min-height: 24px;
+    }
+
+    .action-btn span {
+        display: none; /* Hide text on smaller screens */
+    }
+
+    .action-btn {
+        justify-content: center;
+        width: 32px;
+        padding: 6px;
+    }
+
+    /* Dashboard table */
+    .schedule-card .dashboard-table th,
+    .schedule-card .dashboard-table td {
+        padding: 10px 8px;
+    }
+
+    .table-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    .medical-records-table {
+        min-width: 950px;
+    }
+
+    .medical-records-table thead th {
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+
+    .medical-records-table tbody td {
+        padding: 12px;
+    }
+
+    .injury-info {
+        gap: 3px;
+    }
+
+    .injury-date,
+    .injury-location,
+    .academy-indicator {
+        font-size: 11px;
+    }
+
+    .reported-date {
+        margin-left: 16px;
+        font-size: 9px;
+    }
+
+    .diagnosis-text {
+        font-size: 12px;
+    }
+
+    .treatment-text,
+    .no-treatment {
+        font-size: 11px;
+    }
+
+    .recovery-info {
+        gap: 4px;
+    }
+
+    .rest-days-info {
+        font-size: 11px;
+    }
+
+    .status-badge {
+        padding: 3px 6px;
+        font-size: 9px;
+    }
+
+    .receipt-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .no-receipt {
+        font-size: 11px;
+    }
+
+    .body-area-text {
+        font-size: 12px;
+    }
+
+    .academy-indicator {
+        font-size: 11px;
+        gap: 3px;
+    }
+
+    .no-academy {
+        font-size: 11px;
+    }
+
+    .action-btn {
+        width: 28px;
+        padding: 5px;
+    }
+}
 }

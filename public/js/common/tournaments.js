@@ -454,60 +454,51 @@ function closeTournamentModal() {
 }
 
 function loadTournamentData(tournamentId, container) {
-    // Simulate loading delay
+    // Tournament data - should be fetched from server; uses window.tournamentData as fallback
+    const tournaments = window.tournamentData?.events || {};
+    const data = tournaments[tournamentId] || {};
+    
     setTimeout(() => {
-        container.innerHTML = `
-            <div class="tournament-details">
-                <h3>Championship Tournament #${tournamentId}</h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <strong>Date:</strong> March 15-17, 2024
+        if (Object.keys(data).length > 0) {
+            container.innerHTML = `
+                <div class="tournament-details">
+                    <h3>${data.title || 'Tournament #' + tournamentId}</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <strong>Date:</strong> ${data.date || 'TBD'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Location:</strong> ${data.location || 'TBD'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Teams:</strong> ${data.teams || 'TBD'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Prize Pool:</strong> ${data.prize || 'TBD'}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Location:</strong> Elite Cricket Academy
-                    </div>
-                    <div class="detail-item">
-                        <strong>Teams:</strong> 16 participating teams
-                    </div>
-                    <div class="detail-item">
-                        <strong>Prize Pool:</strong> $50,000
+                    <div class="tournament-description">
+                        <h4>About This Tournament</h4>
+                        <p>${data.description || 'Details coming soon.'}</p>
                     </div>
                 </div>
-                <div class="tournament-description">
-                    <h4>About This Tournament</h4>
-                    <p>This is a premier cricket tournament featuring the best teams from across the region. Join us for three days of exciting cricket action with professional umpiring and live streaming.</p>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="tournament-details">
+                    <h3>Tournament #${tournamentId}</h3>
+                    <p>Tournament details are not available at this time.</p>
                 </div>
-            </div>
-        `;
+            `;
+        }
     }, 500);
 }
 
 // Calendar helper functions
 function fetchTournamentEvents(fetchInfo, successCallback, failureCallback) {
-    // This would typically fetch from your backend API
-    const sampleEvents = [
-        {
-            id: '1',
-            title: 'Championship Tournament',
-            start: '2024-03-15',
-            end: '2024-03-17',
-            color: '#4A90E2'
-        },
-        {
-            id: '2',
-            title: 'Training Session',
-            start: '2024-03-20T10:00:00',
-            color: '#66BB6A'
-        },
-        {
-            id: '3',
-            title: 'League Match',
-            start: '2024-03-22T14:00:00',
-            color: '#FFB74D'
-        }
-    ];
-    
-    successCallback(sampleEvents);
+    // Tournament events - injected from server via PHP
+    const events = window.tournamentData?.calendarEvents || [];
+    successCallback(events);
 }
 
 function showEventModal(event) {
@@ -525,17 +516,22 @@ function createFallbackCalendar() {
     const calendarContainer = document.getElementById('calendar');
     if (!calendarContainer) return;
     
+    // Upcoming events - injected from server via PHP
+    const upcomingEvents = window.tournamentData?.calendarEvents || [];
+    let eventsHTML = '';
+    if (upcomingEvents.length > 0) {
+        eventsHTML = '<ul>' + upcomingEvents.map(e => `<li>${e.title} - ${e.start || ''}</li>`).join('') + '</ul>';
+    } else {
+        eventsHTML = '<p>No upcoming events at this time.</p>';
+    }
+    
     calendarContainer.innerHTML = `
         <div class="fallback-calendar">
             <h3>Tournament Calendar</h3>
             <p>Calendar functionality is loading...</p>
             <div class="upcoming-events">
                 <h4>Upcoming Events</h4>
-                <ul>
-                    <li>Championship Tournament - March 15-17, 2024</li>
-                    <li>Training Session - March 20, 2024</li>
-                    <li>League Match - March 22, 2024</li>
-                </ul>
+                ${eventsHTML}
             </div>
         </div>
     `;

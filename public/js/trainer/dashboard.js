@@ -27,7 +27,7 @@ function initializeTrainerSidebar() {
             mainContent: !!mainContent
         });
         return;
-    }
+    }}
 
 // Nutrition Assignment Functions
 function initializeNutritionAssignments() {

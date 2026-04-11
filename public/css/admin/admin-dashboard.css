@@ -2,6 +2,73 @@
 /* Uses Universal Sidebar Design & Consistent Blue Theme */
 @import url('../common/sidebar.css');
 
+/* Action Button Style - Matching Player Dashboard */
+.action-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 15px 20px !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+    text-decoration: none !important;
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    border: 1px solid rgba(74, 144, 226, 0.3) !important;
+    backdrop-filter: blur(5px) !important;
+    gap: 10px !important;
+}
+
+.action-btn:hover {
+    background: #4A90E2 !important;
+    color: white !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4) !important;
+}
+
+.action-btn i {
+    font-size: 18px !important;
+}
+
+/* Profile Actions - Ensure visibility */
+.profile-actions {
+    display: flex !important;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* Profile and Logout Buttons - Force visibility */
+.profile-btn,
+.logout-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: #4A90E2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(74, 144, 226, 0.3) !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+.profile-btn:hover,
+.logout-btn:hover {
+    background: #4A90E2 !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4) !important;
+}
+
+.profile-btn i,
+.logout-btn i {
+    font-size: 14px !important;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -37,6 +104,9 @@ body {
     background: transparent;
     min-height: calc(100vh - 80px);
     transition: margin-left 0.3s ease;
+    /* Defensive: avoid width rules that override left margin when sidebar is fixed */
+    box-sizing: border-box;
+    max-width: calc(100% - 280px);
 }
 
 /* Dashboard Header - Consistent Blue Theme */
@@ -50,6 +120,8 @@ body {
     border: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    position: relative;
+    overflow: hidden;
 }
 
 .dashboard-header::before {
@@ -61,6 +133,7 @@ body {
     height: 200%;
     background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
     animation: pulse 15s ease-in-out infinite;
+    pointer-events: none;
 }
 
 @keyframes pulse {
@@ -541,6 +614,8 @@ body {
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    color: inherit;
 }
 
 .action-btn::before {
@@ -1993,4 +2068,97 @@ body {
     .activity-table td {
         padding: 10px 8px;
     }
+}
+
+/* Flash Messages Styling */
+#msg-flash {
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInDown 0.4s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1000;
+}
+
+#msg-flash::before {
+    content: '';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 20px;
+}
+
+/* Success Message */
+.alert-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-left: 5px solid #047857;
+}
+
+.alert-success::before {
+    content: '\f058'; /* fa-check-circle */
+}
+
+/* Error Message */
+.alert-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-left: 5px solid #b91c1c;
+}
+
+.alert-danger::before {
+    content: '\f06a'; /* fa-exclamation-circle */
+}
+
+/* Warning Message */
+.alert-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-left: 5px solid #b45309;
+}
+
+.alert-warning::before {
+    content: '\f071'; /* fa-exclamation-triangle */
+}
+
+/* Info Message */
+.alert-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-left: 5px solid #1d4ed8;
+}
+
+.alert-info::before {
+    content: '\f05a'; /* fa-info-circle */
+}
+
+/* Slide in animation */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Auto fade out */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.alert-fade-out {
+    animation: fadeOut 0.5s ease-out forwards;
 }

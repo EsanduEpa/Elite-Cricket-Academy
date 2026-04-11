@@ -1,0 +1,715 @@
+/* =============================================================================
+   COACH SESSIONS PAGE STYLES
+   ============================================================================= */
+
+/* Import base dashboard styles */
+@import url('dashboard.css');
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.breadcrumb a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb a:hover {
+    color: white;
+}
+
+.breadcrumb i {
+    margin: 0 8px;
+    font-size: 12px;
+}
+
+/* Coach Sessions Header - Blue Theme to Match Dashboard */
+.coach-sessions-header {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+}
+
+.coach-sessions-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coach-sessions-header .header-text h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.coach-sessions-header .header-text p {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.coach-sessions-header .header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.coach-sessions-header .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+}
+
+.coach-sessions-header .btn-training {
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    border: none;
+}
+
+.coach-sessions-header .btn-training:hover {
+    background: rgba(39, 174, 96, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+}
+
+.coach-sessions-header .btn-performance {
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    border: none;
+}
+
+.coach-sessions-header .btn-performance:hover {
+    background: rgba(192, 57, 43, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+
+
+/* Coach Filters */
+.coach-filters {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.coach-filters .filter-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+.coach-filters .filter-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.coach-filters .filter-item select,
+.coach-filters .filter-item input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.coach-filters .filter-item select:focus,
+.coach-filters .filter-item input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Coaches Overview */
+.coaches-overview {
+    margin-bottom: 40px;
+}
+
+.coaches-overview h2 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.coaches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.coach-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    border-left: 4px solid #667eea;
+}
+
+.coach-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.coach-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.coach-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    margin-right: 15px;
+}
+
+.coach-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.coach-specialization {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.coach-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stars {
+    color: #ffc107;
+}
+
+.rating-text {
+    font-size: 14px;
+    color: #666;
+}
+
+.coach-details {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.coach-price {
+    font-weight: 600;
+    color: #28a745;
+    margin-top: 10px;
+}
+
+/* Available Coach Sessions */
+.available-coach-sessions {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.available-coach-sessions .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.available-coach-sessions .section-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.available-coach-sessions .session-stats {
+    display: flex;
+    gap: 30px;
+}
+
+.available-coach-sessions .stat-item {
+    text-align: center;
+}
+
+.available-coach-sessions .stat-number {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.available-coach-sessions .stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.coach-session-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    background: white;
+    border-left: 4px solid #667eea;
+}
+
+.coach-session-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+}
+
+.coach-session-card.fully-booked {
+    opacity: 0.6;
+    background: #f8f9fa;
+}
+
+.coach-session-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.coach-session-time {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    margin-right: 20px;
+    min-width: 120px;
+}
+
+.coach-session-date {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.coach-session-duration {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.coach-session-details {
+    flex: 1;
+}
+
+.coach-session-coach {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.coach-session-type {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.coach-session-location {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.coach-session-description {
+    color: #666;
+    font-size: 14px;
+}
+
+.coach-session-right {
+    text-align: right;
+}
+
+.coach-session-price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+    margin-bottom: 5px;
+}
+
+.coach-session-availability {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.coach-session-availability.low {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.coach-book-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.coach-book-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+
+.coach-book-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* No Sessions Available */
+.no-sessions {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.no-sessions-content i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.no-sessions-content h3 {
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.no-sessions-content p {
+    color: #adb5bd;
+}
+
+/* Coach Booking Modal */
+.coach-booking-details {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.coach-booking-form .form-group {
+    margin-bottom: 20px;
+}
+
+.coach-booking-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.coach-booking-form textarea,
+.coach-booking-form select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-family: inherit;
+}
+
+.coach-booking-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.payment-section {
+    margin-top: 25px;
+}
+
+.payment-section h4 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+}
+
+.payment-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.payment-option:hover {
+    border-color: #667eea;
+    background: #f8f9fa;
+}
+
+.payment-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.payment-option i {
+    margin-right: 8px;
+    font-size: 18px;
+    color: #667eea;
+}
+
+.coach-booking-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.summary-row.total {
+    border-top: 2px solid #dee2e6;
+    padding-top: 10px;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .coach-sessions-header .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .coach-sessions-header .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .coach-sessions-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .coach-filters .filter-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .coaches-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .coach-session-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .coach-session-left {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .coach-session-time {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .available-coach-sessions .session-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .payment-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =============================================================================
+   SESSION SLOT CARDS (DB-driven available sessions)
+   ============================================================================= */
+.coach-sessions-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+    padding: 25px;
+}
+
+.session-slot-card {
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.session-slot-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
+}
+
+.session-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #eef1ff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.session-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-type-badge.badge-group {
+    background: rgba(46, 204, 113, 0.12);
+    color: #27ae60;
+}
+
+.session-type-badge.badge-private {
+    background: rgba(102, 126, 234, 0.12);
+    color: #667eea;
+}
+
+.session-price {
+    font-weight: 700;
+    font-size: 15px;
+    color: #2c3e50;
+}
+
+.session-slot-body {
+    padding: 18px;
+}
+
+.session-slot-body .session-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 14px;
+}
+
+.session-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.session-details .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+.session-details .detail-item i {
+    color: #667eea;
+    width: 16px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.session-slot-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafbfc;
+}
+
+.spots-left {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e67e22;
+}
+
+.session-slot-footer .btn {
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+/* Subscription notice */
+.subscription-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.subscription-notice i {
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .coach-sessions-container {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+
+    .session-details {
+        grid-template-columns: 1fr;
+    }
+}

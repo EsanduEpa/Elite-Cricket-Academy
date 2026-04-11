@@ -1,316 +1,37 @@
 // Staff Management JavaScript - Elite Cricket Academy
 console.log('✅ staff-management.js loaded successfully!');
 
-// Sample staff data (no database connection)
-let staffMembers = [
-    {
-        id: 1,
-        firstName: 'Michael',
-        lastName: 'Johnson',
-        email: 'michael.johnson@elite.com',
-        phone: '+1-555-0101',
-        role: 'head_coach',
-        specialization: 'Batting Coach',
-        joinDate: '2023-01-15',
-        status: 'active',
-        address: '123 Cricket Lane, Sports City'
-    },
-    {
-        id: 2,
-        firstName: 'Sarah',
-        lastName: 'Williams',
-        email: 'sarah.williams@elite.com',
-        phone: '+1-555-0102',
-        role: 'coach',
-        specialization: 'Bowling Coach',
-        joinDate: '2023-03-20',
-        status: 'active',
-        address: '456 Bowl Street, Sports City'
-    },
-    {
-        id: 3,
-        firstName: 'David',
-        lastName: 'Brown',
-        email: 'david.brown@elite.com',
-        phone: '+1-555-0103',
-        role: 'trainer',
-        specialization: 'Fitness Trainer',
-        joinDate: '2023-02-10',
-        status: 'active',
-        address: '789 Fitness Ave, Sports City'
-    },
-    {
-        id: 4,
-        firstName: 'Emma',
-        lastName: 'Davis',
-        email: 'emma.davis@elite.com',
-        phone: '+1-555-0104',
-        role: 'coach',
-        specialization: 'Fielding Coach',
-        joinDate: '2023-04-05',
-        status: 'active',
-        address: '321 Field Road, Sports City'
-    },
-    {
-        id: 5,
-        firstName: 'James',
-        lastName: 'Miller',
-        email: 'james.miller@elite.com',
-        phone: '+1-555-0105',
-        role: 'admin',
-        specialization: 'Operations Manager',
-        joinDate: '2022-11-01',
-        status: 'active',
-        address: '654 Admin Plaza, Sports City'
-    },
-    {
-        id: 6,
-        firstName: 'Lisa',
-        lastName: 'Anderson',
-        email: 'lisa.anderson@elite.com',
-        phone: '+1-555-0106',
-        role: 'trainer',
-        specialization: 'Strength & Conditioning',
-        joinDate: '2023-05-12',
-        status: 'active',
-        address: '987 Gym Street, Sports City'
-    },
-    {
-        id: 7,
-        firstName: 'Robert',
-        lastName: 'Taylor',
-        email: 'robert.taylor@elite.com',
-        phone: '+1-555-0107',
-        role: 'shopkeeper',
-        specialization: 'Equipment Manager',
-        joinDate: '2023-01-30',
-        status: 'active',
-        address: '147 Shop Lane, Sports City'
-    },
-    {
-        id: 8,
-        firstName: 'Jennifer',
-        lastName: 'Thomas',
-        email: 'jennifer.thomas@elite.com',
-        phone: '+1-555-0108',
-        role: 'coach',
-        specialization: 'Wicket-keeping Coach',
-        joinDate: '2023-06-01',
-        status: 'active',
-        address: '258 Keeper Road, Sports City'
-    },
-    {
-        id: 9,
-        firstName: 'Christopher',
-        lastName: 'Jackson',
-        email: 'christopher.jackson@elite.com',
-        phone: '+1-555-0109',
-        role: 'coach',
-        specialization: 'Spin Bowling',
-        joinDate: '2023-02-28',
-        status: 'inactive',
-        address: '369 Spin Avenue, Sports City'
-    },
-    {
-        id: 10,
-        firstName: 'Amanda',
-        lastName: 'White',
-        email: 'amanda.white@elite.com',
-        phone: '+1-555-0110',
-        role: 'trainer',
-        specialization: 'Mental Coach',
-        joinDate: '2023-07-15',
-        status: 'active',
-        address: '741 Mind Street, Sports City'
-    },
-    {
-        id: 11,
-        firstName: 'Daniel',
-        lastName: 'Harris',
-        email: 'daniel.harris@elite.com',
-        phone: '+1-555-0111',
-        role: 'coach',
-        specialization: 'Fast Bowling',
-        joinDate: '2023-03-10',
-        status: 'active',
-        address: '852 Speed Lane, Sports City'
-    },
-    {
-        id: 12,
-        firstName: 'Michelle',
-        lastName: 'Martin',
-        email: 'michelle.martin@elite.com',
-        phone: '+1-555-0112',
-        role: 'admin',
-        specialization: 'HR Manager',
-        joinDate: '2023-01-05',
-        status: 'active',
-        address: '963 HR Plaza, Sports City'
-    },
-    {
-        id: 13,
-        firstName: 'Kevin',
-        lastName: 'Garcia',
-        email: 'kevin.garcia@elite.com',
-        phone: '+1-555-0113',
-        role: 'trainer',
-        specialization: 'Physiotherapist',
-        joinDate: '2023-04-20',
-        status: 'active',
-        address: '159 Health Road, Sports City'
-    },
-    {
-        id: 14,
-        firstName: 'Rebecca',
-        lastName: 'Martinez',
-        email: 'rebecca.martinez@elite.com',
-        phone: '+1-555-0114',
-        role: 'coach',
-        specialization: 'Junior Development',
-        joinDate: '2023-05-05',
-        status: 'active',
-        address: '357 Junior Street, Sports City'
-    },
-    {
-        id: 15,
-        firstName: 'Brian',
-        lastName: 'Robinson',
-        email: 'brian.robinson@elite.com',
-        phone: '+1-555-0115',
-        role: 'shopkeeper',
-        specialization: 'Inventory Manager',
-        joinDate: '2023-02-15',
-        status: 'active',
-        address: '486 Stock Avenue, Sports City'
-    },
-    {
-        id: 16,
-        firstName: 'Nicole',
-        lastName: 'Clark',
-        email: 'nicole.clark@elite.com',
-        phone: '+1-555-0116',
-        role: 'coach',
-        specialization: 'Power Hitting',
-        joinDate: '2023-06-10',
-        status: 'active',
-        address: '753 Power Road, Sports City'
-    },
-    {
-        id: 17,
-        firstName: 'Andrew',
-        lastName: 'Rodriguez',
-        email: 'andrew.rodriguez@elite.com',
-        phone: '+1-555-0117',
-        role: 'coach',
-        specialization: 'All-rounder Coach',
-        joinDate: '2023-03-25',
-        status: 'active',
-        address: '951 Allround Lane, Sports City'
-    },
-    {
-        id: 18,
-        firstName: 'Stephanie',
-        lastName: 'Lewis',
-        email: 'stephanie.lewis@elite.com',
-        phone: '+1-555-0118',
-        role: 'trainer',
-        specialization: 'Nutrition Coach',
-        joinDate: '2023-07-01',
-        status: 'active',
-        address: '357 Health Plaza, Sports City'
-    },
-    {
-        id: 19,
-        firstName: 'Matthew',
-        lastName: 'Lee',
-        email: 'matthew.lee@elite.com',
-        phone: '+1-555-0119',
-        role: 'coach',
-        specialization: 'Strategy Coach',
-        joinDate: '2023-04-15',
-        status: 'active',
-        address: '159 Strategy Avenue, Sports City'
-    },
-    {
-        id: 20,
-        firstName: 'Jessica',
-        lastName: 'Walker',
-        email: 'jessica.walker@elite.com',
-        phone: '+1-555-0120',
-        role: 'admin',
-        specialization: 'Finance Manager',
-        joinDate: '2023-01-20',
-        status: 'active',
-        address: '753 Finance Street, Sports City'
-    },
-    {
-        id: 21,
-        firstName: 'Ryan',
-        lastName: 'Hall',
-        email: 'ryan.hall@elite.com',
-        phone: '+1-555-0121',
-        role: 'coach',
-        specialization: 'Technical Coach',
-        joinDate: '2023-05-20',
-        status: 'active',
-        address: '951 Tech Road, Sports City'
-    },
-    {
-        id: 22,
-        firstName: 'Angela',
-        lastName: 'Young',
-        email: 'angela.young@elite.com',
-        phone: '+1-555-0122',
-        role: 'coach',
-        specialization: 'Youth Coach',
-        joinDate: '2023-06-25',
-        status: 'inactive',
-        address: '147 Youth Lane, Sports City'
+// Date of Birth Validation Function
+function validateDateOfBirth(dateOfBirth) {
+    if (!dateOfBirth) {
+        return 'Please enter date of birth';
     }
-];
+    
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
+        ? age - 1 : age;
+    
+    if (birthDate > today) {
+        return 'Date of birth cannot be in the future';
+    } else if (adjustedAge < 16) {
+        return 'Staff member must be at least 16 years old';
+    } else if (adjustedAge > 100) {
+        return 'Please enter a valid date of birth';
+    }
+    
+    return null; // Valid
+}
 
-// Role Requests Data (from user registrations)
-let roleRequests = [
-    {
-        id: 1,
-        firstName: 'Rajesh',
-        lastName: 'Kumar',
-        email: 'rajesh.kumar@email.com',
-        phone: '+94 77 123 4567',
-        requestedRole: 'coach',
-        specialization: 'Spin Bowling Coach',
-        experience: '8 years',
-        qualifications: 'Level 3 Cricket Coaching Certificate, Former Provincial Player',
-        requestDate: new Date('2025-10-15T10:30:00'),
-        status: 'pending'
-    },
-    {
-        id: 2,
-        firstName: 'Samantha',
-        lastName: 'Silva',
-        email: 'samantha.silva@email.com',
-        phone: '+94 71 987 6543',
-        requestedRole: 'trainer',
-        specialization: 'Sports Physiotherapist',
-        experience: '5 years',
-        qualifications: 'MSc in Sports Medicine, Certified Physiotherapist',
-        requestDate: new Date('2025-10-17T14:20:00'),
-        status: 'pending'
-    },
-    {
-        id: 3,
-        firstName: 'Kasun',
-        lastName: 'Perera',
-        email: 'kasun.perera@email.com',
-        phone: '+94 76 456 7890',
-        requestedRole: 'coach',
-        specialization: 'Batting Technique Coach',
-        experience: '10 years',
-        qualifications: 'Level 4 Coaching, Ex-First Class Cricketer',
-        requestDate: new Date('2025-10-18T09:15:00'),
-        status: 'pending'
-    }
-];
+// Sample staff data (no database connection) - COMMENTED OUT - Using PHP/Database instead
+let staffMembers = [];
+
+// Role Requests Data - loaded from window.roleRequestsData if available
+let roleRequests = window.roleRequestsData || [];
 
 let filteredStaff = [...staffMembers];
 let currentPage = 1;
@@ -462,8 +183,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize search and filters
     initializeSearchAndFilters();
     
-    // Render initial staff table
-    renderStaffTable();
+    // Render initial staff table - COMMENTED OUT - Using PHP/Database to populate table
+    // renderStaffTable();
     
     // Initialize pagination
     initializePagination();
@@ -625,6 +346,36 @@ function initializeModals() {
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', handleDeleteStaff);
     }
+    
+    // Add real-time date of birth validation
+    const dobField = document.getElementById('dateOfBirth');
+    if (dobField) {
+        dobField.addEventListener('change', function() {
+            const validationError = validateDateOfBirth(this.value);
+            const errorDisplay = this.parentElement.querySelector('.validation-error') || createErrorElement(this.parentElement);
+            
+            if (validationError) {
+                this.style.borderColor = '#ef4444';
+                errorDisplay.textContent = validationError;
+                errorDisplay.style.display = 'block';
+            } else {
+                this.style.borderColor = '';
+                errorDisplay.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Helper function to create error display element
+function createErrorElement(parent) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'validation-error';
+    errorDiv.style.color = '#ef4444';
+    errorDiv.style.fontSize = '0.85rem';
+    errorDiv.style.marginTop = '0.25rem';
+    errorDiv.style.display = 'none';
+    parent.appendChild(errorDiv);
+    return errorDiv;
 }
 
 // Wizard Functions
@@ -714,73 +465,184 @@ function validateWizardStep(step) {
 
 function updateReviewSection() {
     // Personal Information
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
+    const fullName = document.getElementById('fullName').value;
     const dob = document.getElementById('dateOfBirth').value;
-    const nationality = document.getElementById('nationality').value;
+    const school = document.getElementById('school').value;
     
-    document.getElementById('reviewFullName').textContent = `${firstName} ${lastName}` || '-';
+    document.getElementById('reviewFullName').textContent = fullName || '-';
     document.getElementById('reviewDOB').textContent = dob ? new Date(dob).toLocaleDateString() : '-';
-    document.getElementById('reviewNationality').textContent = nationality || '-';
+    document.getElementById('reviewSchool').textContent = school || '-';
     
     // Contact Information
     document.getElementById('reviewEmail').textContent = document.getElementById('email').value || '-';
     document.getElementById('reviewPhone').textContent = document.getElementById('phone').value || '-';
-    document.getElementById('reviewEmergency').textContent = document.getElementById('emergencyContact').value || '-';
     document.getElementById('reviewAddress').textContent = document.getElementById('address').value || '-';
     
-    // Role & Position
+    // Login Information
+    document.getElementById('reviewUsername').textContent = document.getElementById('username').value || '-';
+    
+    // Role & Notes
     const roleSelect = document.getElementById('role');
     const roleText = roleSelect.options[roleSelect.selectedIndex]?.text || '-';
-    const joinDate = document.getElementById('joinDate').value;
-    const experience = document.getElementById('experience').value;
     
     document.getElementById('reviewRole').textContent = roleText;
-    document.getElementById('reviewJoinDate').textContent = joinDate ? new Date(joinDate).toLocaleDateString() : '-';
-    document.getElementById('reviewSpecialization').textContent = document.getElementById('specialization').value || '-';
-    document.getElementById('reviewExperience').textContent = experience ? `${experience} years` : '-';
-    document.getElementById('reviewQualifications').textContent = document.getElementById('qualifications').value || '-';
+    document.getElementById('reviewNotes').textContent = document.getElementById('notes').value || '-';
 }
 
 // Handle Add Staff
 function handleAddStaff(e) {
     e.preventDefault();
     
+    // Validate date of birth before submission
+    const dobField = document.getElementById('dateOfBirth');
+    if (dobField && dobField.value) {
+        const validationError = validateDateOfBirth(dobField.value);
+        if (validationError) {
+            showNotification(validationError, 'error');
+            dobField.style.borderColor = '#ef4444';
+            dobField.focus();
+            setTimeout(() => {
+                dobField.style.borderColor = '';
+            }, 3000);
+            return;
+        }
+    }
+    
     const formData = new FormData(e.target);
-    const newStaff = {
-        id: staffMembers.length + 1,
-        firstName: formData.get('firstName'),
-        lastName: formData.get('lastName'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        role: formData.get('role'),
-        specialization: formData.get('specialization') || 'General',
-        joinDate: formData.get('joinDate'),
-        status: 'active',
-        address: formData.get('address') || 'Not provided',
-        dateOfBirth: formData.get('dateOfBirth') || null,
-        nationality: formData.get('nationality') || 'Not specified',
-        emergencyContact: formData.get('emergencyContact') || null,
-        qualifications: formData.get('qualifications') || null,
-        experience: formData.get('experience') || null
-    };
     
-    staffMembers.push(newStaff);
-    filteredStaff = [...staffMembers];
+    // Debug: Log form data
+    console.log('=== Submitting Staff Data ===');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
     
-    // Show success message
-    showNotification('Staff member added successfully!', 'success', formData.get('sendEmail'));
+    // Construct URL - using URLROOT from config
+    const url = '/Elite/admin/add_staff';
+    console.log('Request URL:', url);
     
-    // Close modal and refresh table
-    document.getElementById('addStaffModal').classList.remove('active');
-    goToWizardStep(1); // Reset wizard
-    renderStaffTable();
-    updateStats();
+    // Show loading state
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.textContent : '';
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adding Staff...';
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('=== Response Received ===');
+        console.log('  Status:', response.status, response.statusText);
+        console.log('  Content-Type:', response.headers.get("content-type"));
+        
+        // Check response status
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Check content type
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            // Response is not JSON - log it and show error
+            return response.text().then(text => {
+                console.error('=== Non-JSON Response ===');
+                console.error('Raw response (first 1000 chars):', text.substring(0, 1000));
+                console.error('Full response logged above ^');
+                throw new Error('Server returned HTML instead of JSON. Check PHP errors.');
+            });
+        }
+        
+        // Parse JSON
+        return response.json();
+    })
+    .then(data => {
+        console.log('=== Parsed JSON Response ===');
+        console.log(data);
+        
+        // Re-enable button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+        
+        // Check for success
+        if (data.success || data.status === 'success') {
+            console.log('✅ Staff member added successfully!');
+            
+            // Add to local array for immediate display
+            const newStaff = {
+                id: data.userId || data.data?.id,
+                fullName: formData.get('fullName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                role: formData.get('role'),
+                username: formData.get('username'),
+                password: 'staff123456', // Default password
+                status: 'active',
+                address: formData.get('address') || 'Not provided',
+                dateOfBirth: formData.get('dateOfBirth') || null,
+                school: formData.get('school') || 'Not specified',
+                notes: formData.get('notes') || null
+            };
+            
+            staffMembers.push(newStaff);
+            filteredStaff = [...staffMembers];
+            
+            // Show success message
+            showNotification(data.message || 'Staff member added successfully!', 'success');
+            
+            // Close modal and refresh table
+            document.getElementById('addStaffModal').classList.remove('active');
+            goToWizardStep(1); // Reset wizard
+            e.target.reset(); // Clear form
+            renderStaffTable();
+            updateStats();
+        } else {
+            // Show error message from server
+            console.warn('⚠️ Server returned error:', data.message);
+            showNotification(data.message || 'Failed to add staff member', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('=== Error Adding Staff ===');
+        console.error('Error type:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Full error:', error);
+        
+        // Re-enable button
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+        
+        // Show user-friendly error
+        const errorMessage = error.message.includes('JSON') 
+            ? 'Server error: Please check the console for details.'
+            : error.message;
+        showNotification(`Error: ${errorMessage}`, 'error');
+    });
 }
 
 // Handle Edit Staff
 function handleEditStaff(e) {
     e.preventDefault();
+    
+    // Validate date of birth if present in edit form
+    const dobField = e.target.querySelector('#editDateOfBirth');
+    if (dobField && dobField.value) {
+        const validationError = validateDateOfBirth(dobField.value);
+        if (validationError) {
+            showNotification(validationError, 'error');
+            dobField.style.borderColor = '#ef4444';
+            dobField.focus();
+            setTimeout(() => {
+                dobField.style.borderColor = '';
+            }, 3000);
+            return;
+        }
+    }
     
     const formData = new FormData(e.target);
     const staffId = parseInt(formData.get('staffId'));

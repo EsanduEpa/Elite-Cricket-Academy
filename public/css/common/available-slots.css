@@ -1,0 +1,216 @@
+/* ================================================
+   AVAILABLE SLOTS — COACH & TRAINER
+   Consistent with coach/sessions.css design language
+   ================================================ */
+
+/* Page padding */
+.available-slots-page {
+    padding: 24px;
+}
+
+/* ================================================
+   FILTERS BAR  (matches .filters-section in sessions.css)
+   ================================================ */
+.available-slots-page .filters-bar {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 20px 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.available-slots-page .filter-control {
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.5);
+    color: #333;
+    transition: all 150ms ease;
+    width: 170px;
+}
+
+.available-slots-page .filters-bar select.filter-control {
+    width: 150px;
+}
+
+.available-slots-page .filter-control:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.available-slots-page .slot-count {
+    margin-left: auto;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+/* ================================================
+   BUTTONS
+   ================================================ */
+.available-slots-page .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 8px rgba(31, 38, 135, 0.15);
+}
+
+.available-slots-page .btn.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+}
+
+.available-slots-page .btn-primary {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.available-slots-page .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
+}
+
+.available-slots-page .btn-secondary {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+    border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.available-slots-page .btn-secondary:hover {
+    background: rgba(74, 144, 226, 0.18);
+    transform: translateY(-2px);
+}
+
+/* ================================================
+   TABLE CONTAINER  (matches .table-container in sessions.css)
+   ================================================ */
+.available-slots-page .section-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    overflow: hidden;
+}
+
+.available-slots-page .table-responsive {
+    overflow-x: auto;
+}
+
+/* ================================================
+   TABLE  (matches .sessions-table in sessions.css)
+   ================================================ */
+.available-slots-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.available-slots-page .data-table thead {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(53, 122, 189, 0.1));
+}
+
+.available-slots-page .data-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+    white-space: nowrap;
+}
+
+.available-slots-page .data-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+}
+
+.available-slots-page .data-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.available-slots-page .data-table tbody tr:hover {
+    background: rgba(74, 144, 226, 0.05);
+    transform: translateX(4px);
+}
+
+/* ================================================
+   BADGES  (matches .table-badge in sessions.css)
+   ================================================ */
+.available-slots-page .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.available-slots-page .badge-blue {
+    background: rgba(74, 144, 226, 0.15);
+    color: #4A90E2;
+}
+
+.available-slots-page .badge-purple {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+}
+
+/* ================================================
+   EMPTY STATE  (matches sessions.css)
+   ================================================ */
+.available-slots-page .empty-state {
+    text-align: center;
+    color: #666;
+    padding: 60px 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 1024px) {
+    .available-slots-page .data-table {
+        min-width: 700px;
+    }
+}
+
+@media (max-width: 768px) {
+    .available-slots-page {
+        padding: 16px;
+    }
+
+    .available-slots-page .data-table th,
+    .available-slots-page .data-table td {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+}

@@ -12,10 +12,20 @@
 
 <header class="header">
     <nav class="nav-container">
-        <div class="logo">Elite Cricket Accessories</div>
+        <a href="<?php echo URLROOT; ?>" class="logo-link" aria-label="Elite Cricket Academy home">
+            <img src="<?php echo URLROOT . '/img/' . rawurlencode('ELITE (1).png'); ?>" alt="Elite Cricket Academy logo" class="logo-mark">
+            <span class="logo">Elite Cricket Academy</span>
+        </a>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+        
         <ul class="nav-menu">
             <li><a href="<?php echo URLROOT; ?>">Home</a></li>
-            <li><a href="<?php echo URLROOT; ?>/shop">Shop</a></li>
             <li><a href="<?php echo URLROOT; ?>/#programs">Programs</a></li>
             <li><a href="<?php echo URLROOT; ?>/#coaches">Coaches</a></li>
             <li><a href="<?php echo URLROOT; ?>/#facilities">Facilities</a></li>

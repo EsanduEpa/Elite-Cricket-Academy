@@ -1,24 +1,52 @@
 <?php
 
+/**
+ * REGISTRATION CONTROLLER
+ * 
+ * Purpose: Handles new user registration for the cricket academy
+ * Responsibilities:
+ *   1. Display registration form (GET request)
+ *   2. Validate user input (POST request)
+ *   3. Check for duplicate email/username
+ *   4. Create new user account in database
+ *   5. Redirect to login after successful registration
+ */
 class Register extends Controller {
+    // Store reference to User model for database operations
     private $userModel;
 
+    /**
+     * CONSTRUCTOR - Runs when Register controller is instantiated
+     * Loads the M_Users model which handles all database operations for users
+     */
     public function __construct() {
         $this->userModel = $this->model('M_Users');
     }
 
+    /**
+     * INDEX METHOD - Main registration handler
+     * This method handles both:
+     *   - GET requests: Display the registration form
+     *   - POST requests: Process form submission
+     */
     public function index() {
-        // Check if user is already logged in
+        // SECURITY CHECK: Prevent already logged-in users from accessing registration
+        // If user_id exists in session, they're already logged in
         if(isset($_SESSION['user_id'])) {
             redirect('dashboard');
         }
 
-        // Check for POST request
+        // DETERMINE REQUEST TYPE: GET (show form) or POST (process form)
+        // Load membership plans for both GET and POST
+        $membershipPlans = $this->userModel->getActiveMembershipPlans();
+
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // === FORM SUBMISSION - PROCESS REGISTRATION ===
             // Process form - sanitize input data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
             $data = [
+                // USER INPUT VALUES - trim() removes leading/trailing whitespace
                 'fullName' => trim($_POST['fullName']),
                 'dateOfBirth' => trim($_POST['dateOfBirth']),
                 'address' => trim($_POST['address']),
@@ -28,6 +56,10 @@ class Register extends Controller {
                 'username' => trim($_POST['username']),
                 'password' => trim($_POST['password']),
                 'confirmPassword' => trim($_POST['confirmPassword']),
+                'membershipPlan' => trim($_POST['membershipPlan'] ?? ''),
+                'form_err' => '',
+                
+                // ERROR MESSAGE PLACEHOLDERS - Start empty, filled if validation fails
                 'fullName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',
@@ -36,102 +68,225 @@ class Register extends Controller {
                 'school_err' => '',
                 'username_err' => '',
                 'password_err' => '',
-                'confirmPassword_err' => ''
+                'confirmPassword_err' => '',
+                'membershipPlan_err' => '',
+                'membershipPlans' => $membershipPlans
             ];
 
-            // Validation
+            // === STEP 3: VALIDATION - Check all input fields ===
             if(empty($data['fullName'])) {
                 $data['fullName_err'] = 'Please enter your full name';
+            } elseif(strlen($data['fullName']) < 2) {
+                $data['fullName_err'] = 'Please enter your full name (at least 2 characters)';
             }
 
             if(empty($data['dateOfBirth'])) {
                 $data['dateOfBirth_err'] = 'Please enter your date of birth';
+            } else {
+                // AGE VALIDATION - Cricket academy has age restrictions
+                // Convert date strings to DateTime objects for comparison
+                $dob = new DateTime($data['dateOfBirth']);
+                $today = new DateTime();
+                // Calculate age in years using date difference
+                $age = $today->diff($dob)->y;
+                
+                // Minimum age: 5 years (academy policy)
+                if($age < 5) {
+                    $data['dateOfBirth_err'] = 'You must be at least 5 years old to register';
+                // Maximum age: 100 years (sanity check for invalid dates)
+                } elseif($age > 100) {
+                    $data['dateOfBirth_err'] = 'Please enter a valid date of birth';
+                // Future date check: Birth date cannot be in the future
+                } elseif($dob > $today) {
+                    $data['dateOfBirth_err'] = 'Date of birth cannot be in the future';
+                }
             }
 
+            // VALIDATE ADDRESS - Required field
             if(empty($data['address'])) {
                 $data['address_err'] = 'Please enter your address';
+            } elseif(strlen($data['address']) < 10) {
+                $data['address_err'] = 'Please enter a complete address';
             }
 
+            // VALIDATE EMAIL - Required and must be unique
             if(empty($data['email'])) {
                 $data['email_err'] = 'Please enter your email';
+            } elseif(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $data['email_err'] = 'Please enter a valid email address';
             } elseif($this->userModel->findUserByEmail($data['email'])) {
+                // DATABASE CHECK: Query database to ensure email is not already registered
+                // This prevents duplicate accounts with the same email
                 $data['email_err'] = 'Email is already taken';
             }
 
+            // VALIDATE CONTACT NUMBER - Required with format checking
             if(empty($data['contactNumber'])) {
                 $data['contactNumber_err'] = 'Please enter your contact number';
+            } else {
+                // PHONE FORMAT VALIDATION (Sri Lankan format: 10 digits starting with 0)
+                // Remove all non-numeric characters to count actual digits
+                $phone = preg_replace('/[^0-9]/', '', $data['contactNumber']);
+                if(strlen($phone) < 10) {
+                    $data['contactNumber_err'] = 'Contact number must be at least 10 digits';
+                // Allow only numbers, +, -, spaces, and parentheses for formatting
+                } elseif(!preg_match('/^[0-9+\-\s()]+$/', $data['contactNumber'])) {
+                    $data['contactNumber_err'] = 'Please enter a valid phone number';
+                } elseif(strlen($phone) > 15) {
+                    $data['contactNumber_err'] = 'Contact number cannot exceed 15 digits';
+                }
             }
 
+            // VALIDATE SCHOOL - Required field (player's educational institution)
             if(empty($data['school'])) {
+                $data['school_err'] = 'Please enter your school/institution';
+            } elseif(strlen($data['school']) < 2) {
                 $data['school_err'] = 'Please enter your school/institution';
             }
 
+            // VALIDATE USERNAME - Required and must be unique
             if(empty($data['username'])) {
                 $data['username_err'] = 'Please choose a username';
+            } elseif(strlen($data['username']) < 4) {
+                $data['username_err'] = 'Username must be at least 4 characters long';
             } elseif($this->userModel->findUserByUsername($data['username'])) {
+                // DATABASE CHECK: Ensure username is unique in the system
                 $data['username_err'] = 'Username is already taken';
             }
 
+            // VALIDATE PASSWORD - Security requirements for strong passwords
             if(empty($data['password'])) {
                 $data['password_err'] = 'Please enter a password';
             } elseif(strlen($data['password']) < 8) {
+                // Minimum length requirement
                 $data['password_err'] = 'Password must be at least 8 characters long';
+            } else {
+                // ENHANCED PASSWORD VALIDATION
+                // Calls custom method that checks for:
+                // - Uppercase letters
+                // - Lowercase letters  
+                // - Numbers
+                // - Special characters
+                $passwordValidation = $this->validatePassword($data['password']);
+                if($passwordValidation !== true) {
+                    $data['password_err'] = $passwordValidation;
+                }
             }
 
+            // VALIDATE CONFIRM PASSWORD - Must match original password
             if(empty($data['confirmPassword'])) {
                 $data['confirmPassword_err'] = 'Please confirm your password';
             } elseif($data['password'] !== $data['confirmPassword']) {
+                // Prevent typos by requiring password to be entered twice
                 $data['confirmPassword_err'] = 'Passwords do not match';
             }
 
-            // Check for errors
+            // VALIDATE MEMBERSHIP PLAN
+            if(empty($data['membershipPlan'])) {
+                $data['membershipPlan_err'] = 'Please select a membership plan';
+            } else {
+                $selectedPlan = $this->userModel->getMembershipPlanById((int)$data['membershipPlan']);
+                if(!$selectedPlan) {
+                    $data['membershipPlan_err'] = 'Please select a valid membership plan';
+                }
+            }
+
+            // === STEP 4: CHECK IF VALIDATION PASSED ===
+            // If all _err fields are empty, validation passed
             if(empty($data['fullName_err']) && empty($data['dateOfBirth_err']) && 
                empty($data['address_err']) && empty($data['email_err']) && 
                empty($data['contactNumber_err']) && empty($data['school_err']) && 
                empty($data['username_err']) && empty($data['password_err']) && 
-               empty($data['confirmPassword_err'])) {
+               empty($data['confirmPassword_err']) && empty($data['membershipPlan_err'])) {
                 
                 // Hash password
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
                 
-                // Register user
+                // STEP 6: INSERT USER INTO DATABASE
+                // Call model's register() method which executes INSERT query
+                // Returns the new UserID if successful, false if failed
                 if($userId = $this->userModel->register($data)) {
-                    // Try to create player profile with additional information
+                    // === REGISTRATION SUCCESSFUL ===
+                    
+                    // STEP 7: CREATE PLAYER PROFILE (Optional - enhances user experience)
+                    // Note: Database trigger may auto-create this, but we try manually too
                     try {
                         $this->userModel->createPlayerProfile($userId, [
                             'school' => $data['school']
                         ]);
                     } catch (Exception $e) {
-                        // Log error but continue - profile can be created later
                         error_log("Player profile creation failed: " . $e->getMessage());
                     }
+
+                    // STEP 7b: CREATE PLAYER SUBSCRIPTION
+                    try {
+                        $subscriptionCreated = $this->userModel->createPlayerSubscription(
+                            $userId,
+                            (int)$data['membershipPlan'],
+                            $selectedPlan->MonthlyFee
+                        );
+
+                        if ($subscriptionCreated) {
+                            $assigned = $this->userModel->autoAssignSkillCoachesAndPrograms(
+                                $userId,
+                                (int)$data['membershipPlan']
+                            );
+
+                            if (!$assigned) {
+                                error_log('Auto assignment skipped or failed for player #' . $userId);
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Non-critical: Profile can be completed later by user
+                        // Log error for debugging but don't stop registration flow
+                        error_log("Subscription creation failed: " . $e->getMessage());
+                    }
                     
-                    // Try to log the registration activity
+                    // STEP 8: LOG ACTIVITY (Optional - for admin monitoring)
+                    // Track when new accounts are created for security and analytics
                     try {
                         $this->userModel->logActivity(
-                            $userId, 
-                            'account_created', 
-                            'New player account registered',
-                            $_SERVER['REMOTE_ADDR'] ?? null,
-                            $_SERVER['HTTP_USER_AGENT'] ?? null
+                            $userId,                              // Who
+                            'account_created',                    // What
+                            'New player account registered',      // Details
+                            $_SERVER['REMOTE_ADDR'] ?? null,      // IP Address
+                            $_SERVER['HTTP_USER_AGENT'] ?? null   // Browser info
                         );
                     } catch (Exception $e) {
-                        // Log error but continue - activity logging is not critical
+                        // Non-critical: Activity logging failure shouldn't stop registration
                         error_log("Activity logging failed: " . $e->getMessage());
                     }
                     
-                    // Always redirect after successful user registration
+                    // STEP 9: REDIRECT TO LOGIN PAGE
+                    // flash() stores a one-time message in session to display after redirect
+                    // This implements the Post-Redirect-Get (PRG) pattern
                     flash('register_success', 'Registration successful! Welcome to Elite Cricket Academy.');
                     redirect('login');
                 } else {
-                    die('Something went wrong during registration');
+                    $registrationError = (string)$this->userModel->getLastErrorMessage();
+
+                    if (stripos($registrationError, 'Duplicate entry') !== false && stripos($registrationError, 'Email') !== false) {
+                        $data['email_err'] = 'Email is already taken';
+                    } elseif (stripos($registrationError, 'Duplicate entry') !== false && stripos($registrationError, 'Username') !== false) {
+                        $data['username_err'] = 'Username is already taken';
+                    } else {
+                        $data['form_err'] = 'Registration could not be completed. Please check your details and try again.';
+                    }
+
+                    $this->view('v_register', $data);
+                    return;
                 }
             } else {
-                            // Load view with errors
-            $this->view('v_register', $data);
+                // === VALIDATION FAILED ===
+                // Reload the registration form with error messages
+                // The $data array contains both user input and error messages
+                // This allows user to see what went wrong without re-typing everything
+                $this->view('v_register', $data);
             }
         } else {
-            // Init data
+            // === GET REQUEST - DISPLAY REGISTRATION FORM ===
+            // User is visiting the page for the first time
+            // Initialize empty data array to avoid undefined variable errors in view
             $data = [
                 'fullName' => '',
                 'dateOfBirth' => '',
@@ -142,6 +297,8 @@ class Register extends Controller {
                 'username' => '',
                 'password' => '',
                 'confirmPassword' => '',
+                'membershipPlan' => '',
+                'form_err' => '',
                 'fullName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',
@@ -150,12 +307,67 @@ class Register extends Controller {
                 'school_err' => '',
                 'username_err' => '',
                 'password_err' => '',
-                'confirmPassword_err' => ''
+                'confirmPassword_err' => '',
+                'membershipPlan_err' => '',
+                'membershipPlans' => $membershipPlans
             ];
 
             // Load view
             $this->view('v_register', $data);
         }
+    }
+
+    /**
+     * ENHANCED PASSWORD VALIDATION METHOD
+     * 
+     * Purpose: Enforce strong password requirements for security
+     * 
+     * Password Requirements:
+     *   - Minimum 8 characters
+     *   - At least 1 uppercase letter (A-Z)
+     *   - At least 1 lowercase letter (a-z)
+     *   - At least 1 number (0-9)
+     *   - At least 1 special character (!@#$%^&*)
+     * 
+     * Why: Strong passwords prevent:
+     *   - Brute force attacks
+     *   - Dictionary attacks
+     *   - Password guessing
+     * 
+     * Returns: true if valid, error message string if invalid
+     */
+    private function validatePassword($password) {
+        // Check minimum length (8 characters)
+        if(strlen($password) < 8) {
+            return 'Password must be at least 8 characters long';
+        }
+        
+        // Check for at least one uppercase letter using regex
+        // [A-Z] matches any character from A to Z
+        if(!preg_match('/[A-Z]/', $password)) {
+            return 'Password must contain at least one uppercase letter';
+        }
+        
+        // Check for at least one lowercase letter
+        // [a-z] matches any character from a to z
+        if(!preg_match('/[a-z]/', $password)) {
+            return 'Password must contain at least one lowercase letter';
+        }
+        
+        // Check for at least one digit
+        // [0-9] matches any number from 0 to 9
+        if(!preg_match('/[0-9]/', $password)) {
+            return 'Password must contain at least one number';
+        }
+        
+        // Check for at least one special character
+        // Matches common special characters used in passwords
+        if(!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+            return 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)';
+        }
+        
+        // All validation checks passed - password is strong
+        return true;
     }
 }
 ?> 

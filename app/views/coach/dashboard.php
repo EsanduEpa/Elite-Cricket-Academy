@@ -1,7 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<!-- FullCalendar CSS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<!-- FullCalendar removed for coach dashboard -->
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
@@ -25,18 +24,19 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    
+                  
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/schedules" class="nav-link" data-tooltip="Schedules">
+                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
                             <i class="fas fa-calendar-check"></i>
-                            <span>Schedules</span>
+                            <span>My Slot Sessions</span>
                         </a>
                     </li>
-                    
+
+
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/bookings" class="nav-link" data-tooltip="Bookings">
-                            <i class="fas fa-bookmark"></i>
-                            <span>Bookings</span>
+                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
+                            <i class="fas fa-users"></i>
+                            <span>Players</span>
                         </a>
                     </li>
                     
@@ -46,35 +46,49 @@
                             <span>Tournaments</span>
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
-                            <i class="fas fa-users"></i>
-                            <span>Players</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/recommendations" class="nav-link" data-tooltip="Recommendations">
-                            <i class="fas fa-lightbulb"></i>
+                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
+                            <i class="fas fa-star"></i>
                             <span>Recommendations</span>
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/medical" class="nav-link" data-tooltip="Medical Records">
+                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                             <i class="fas fa-heartbeat"></i>
-                            <span>Medical Records</span>
+                            <span>Health & Injury</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
+                            <i class="fas fa-calendar"></i>
+                            <span>Events</span>
                         </a>
                     </li>
                 </ul>
             </nav>
             
-            <!-- Logout Button -->
-            <div class="logout-section">
-                <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
+            <!-- Profile Section -->
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?></div>
+                <div class="profile-role">Cricket Coach</div>
+                <a href="<?php echo URLROOT; ?>/coach/profile" class="action-btn" style="margin-top: 10px;">
+                    <i class="fas fa-user-cog"></i> Profile
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
         </div>
@@ -84,7 +98,7 @@
             <!-- Dashboard Header -->
             <div class="dashboard-header">
                 <div class="header-content">
-                    <h1><i class="fas fa-chalkboard-teacher"></i> Coach Dashboard</h1>
+                    <h1><i class="fas fa-chalkboard-teacher"></i> Welcome back, <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?>!</h1>
                     <p>Manage your training sessions, players, and schedules</p>
                 </div>
                 <div class="header-actions">
@@ -136,8 +150,10 @@
                 </div>
             </div>
 
-            <!-- Today's Sessions Overview - Moved to Top -->
-            <div class="todays-sessions">
+            <!-- Top Row: Today's Sessions + Upcoming Bookings -->
+            <div class="top-row">
+                <!-- Today's Sessions Overview -->
+                <div class="todays-sessions">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-day"></i> Today's Training Sessions</h2>
                     <div class="session-summary">
@@ -158,16 +174,19 @@
                                 <div class="session-card">
                                     <div class="session-time"><?php echo $session['time']; ?></div>
                                     <div class="session-content">
-                                        <h4><?php echo htmlspecialchars($session['player_name']); ?></h4>
+                                        <h4><?php echo htmlspecialchars($session['session_name']); ?></h4>
+                                        <p class="participants"><i class="fas fa-users"></i> <?php echo htmlspecialchars($session['player_name']); ?></p>
                                         <div class="session-meta">
                                             <span class="type-badge <?php echo $session['session_type']; ?>">
                                                 <?php echo ucfirst($session['session_type']); ?>
                                             </span>
-                                            <span class="facility"><?php echo htmlspecialchars($session['facility']); ?></span>
+                                            <span class="facility"><?php echo htmlspecialchars($session['facility'] ?? 'TBA'); ?></span>
                                         </div>
+                                        <?php if (!empty($session['equipment'])): ?>
                                         <div class="equipment-list">
                                             <i class="fas fa-tools"></i> <?php echo htmlspecialchars($session['equipment']); ?>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -180,16 +199,6 @@
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- Secondary Content Grid for Calendar and Bookings -->
-            <div class="secondary-content-grid">
-                <!-- Calendar Section -->
-                <?php 
-                $calendarTitle = 'Training Calendar';
-                $calendarIcon = 'fas fa-calendar-alt';
-                $calendarId = 'trainingCalendar';
-                include APPROOT . '/views/inc/components/calendar.php'; 
-                ?>
 
                 <!-- Upcoming Bookings Section -->
                 <div class="bookings-section">
@@ -212,7 +221,8 @@
                                         <div class="date"><?php echo date('M d', strtotime($booking['date'])); ?></div>
                                     </div>
                                     <div class="booking-details">
-                                        <h3><?php echo htmlspecialchars($booking['player_name']); ?></h3>
+                                        <h3><?php echo htmlspecialchars($booking['session_name']); ?></h3>
+                                        <p class="participants-list"><i class="fas fa-users"></i> <?php echo htmlspecialchars($booking['player_name']); ?></p>
                                         <div class="session-info">
                                             <span class="session-type <?php echo $booking['session_type']; ?>">
                                                 <i class="fas <?php echo $booking['session_type'] === 'private' ? 'fa-user' : 'fa-users'; ?>"></i>
@@ -224,11 +234,13 @@
                                         </div>
                                         <div class="facility-info">
                                             <span class="facility">
-                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility']); ?>
+                                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['facility'] ?? 'TBA'); ?>
                                             </span>
+                                            <?php if (!empty($booking['equipment'])): ?>
                                             <span class="equipment">
                                                 <i class="fas fa-tools"></i> <?php echo htmlspecialchars($booking['equipment']); ?>
                                             </span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="booking-actions">
@@ -248,6 +260,56 @@
                                 <p>Schedule new sessions to see them here</p>
                             </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div> <!-- end top-row -->
+
+            <!-- Charts & Analytics Section -->
+            <div class="analytics-section">
+                <div class="section-header full-width">
+                    <h2><i class="fas fa-chart-area"></i> Analytics & Player Insights</h2>
+                    <p class="muted">Interactive, data-driven charts help you monitor player progress, attendance trends, and health status. Use the filters to focus on specific players, date ranges, or teams.</p>
+                </div>
+
+                <div class="analytics-grid">
+                    <!-- Player Performance card removed per request -->
+
+                    <!-- Attendance Chart -->
+                    <div class="analytics-card" id="sessions">
+                        <div class="card-header">
+                            <h3>Attendance & Session Participation</h3>
+                            <div class="controls">
+                                <select id="attendanceTeamSelect"></select>
+                                <select id="attendanceRangeSelect">
+                                    <option value="30">Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last 12 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="attendanceChart" aria-label="Attendance per session"></canvas>
+                        </div>
+                        <div class="card-footer muted">Monthly totals shown as bars. Use filters to compare squads or individuals.</div>
+                    </div>
+
+                    <!-- Health Status Pie Chart -->
+                    <div class="analytics-card" id="health">
+                        <div class="card-header">
+                            <h3>Health & Injury Overview</h3>
+                            <div class="controls">
+                                <select id="healthFilterSelect">
+                                    <option value="all">All Players</option>
+                                    <option value="fit">Fit</option>
+                                    <option value="under_observation">Under Observation</option>
+                                    <option value="injured">Injured</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body chart-container">
+                            <canvas id="healthChart" aria-label="Health status distribution"></canvas>
+                        </div>
+                        <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
                     </div>
                 </div>
             </div>
@@ -280,26 +342,31 @@
 
                 <div class="player-summary-card">
                     <div class="section-header">
-                        <h3><i class="fas fa-chart-bar"></i> Player Performance Overview</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Weekly Schedule</h3>
                     </div>
                     <div class="player-stats">
-                        <?php if (!empty($data['playerProfiles'])): ?>
-                            <?php foreach (array_slice($data['playerProfiles'], 0, 3) as $player): ?>
+                        <?php if (!empty($data['weeklySchedule'])): ?>
+                            <?php foreach (array_slice($data['weeklySchedule'], 0, 5) as $day): ?>
                                 <div class="player-stat-item">
-                                    <div class="player-avatar">
-                                        <i class="fas fa-user"></i>
+                                    <div class="player-avatar" style="background: linear-gradient(135deg, #4A90E2, #357ABD);">
+                                        <i class="fas fa-calendar-day"></i>
                                     </div>
                                     <div class="player-info">
-                                        <h4><?php echo htmlspecialchars($player['name']); ?></h4>
-                                        <span class="position"><?php echo htmlspecialchars($player['position']); ?></span>
+                                        <h4><?php echo htmlspecialchars($day['day']); ?></h4>
+                                        <span class="position"><?php echo count($day['sessions']); ?> session(s)</span>
                                     </div>
                                     <div class="performance-rating">
                                         <div class="rating-circle">
-                                            <span><?php echo $player['performance_rating']; ?></span>
+                                            <span style="font-size: 12px;"><?php echo $day['sessions'][0]['time'] ?? ''; ?></span>
                                         </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
+                        <?php else: ?>
+                            <div style="text-align: center; padding: 20px; color: #999;">
+                                <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 10px; opacity: 0.5;"></i>
+                                <p>No sessions scheduled this week</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -310,8 +377,30 @@
     <!-- Include Footer -->
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
-    <!-- FullCalendar JS -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        // Expose server-side dashboard data to client-side scripts
+        window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
+
+        // Session filter for upcoming bookings
+        function filterSessions() {
+            const filter = document.getElementById('sessionFilter').value;
+            const bookingItems = document.querySelectorAll('.booking-item');
+            
+            bookingItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = '';
+                } else if (filter === 'private' && item.classList.contains('private-session')) {
+                    item.style.display = '';
+                } else if (filter === 'normal' && item.classList.contains('normal-session')) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Coach Dashboard JavaScript -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
