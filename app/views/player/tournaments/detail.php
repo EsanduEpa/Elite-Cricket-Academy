@@ -27,6 +27,10 @@ table.data-table tr:last-child td { border-bottom:none; }
 .btn-danger    { background:#dc3545; color:#fff; }
 .empty-note { color:#888; font-size:.9rem; font-style:italic; }
 .team-member-badge { display:inline-block; padding:5px 12px; background:#e8f4fd; border-radius:20px; font-size:.85rem; color:#1a3c5e; margin:4px; font-weight:600; }
+.eligibility-box { padding:16px 18px; border-radius:10px; margin-bottom:18px; border:1px solid; }
+.eligibility-box.eligible { background:#f0fff4; border-color:#86efac; color:#166534; }
+.eligibility-box.ineligible { background:#fff7ed; border-color:#fdba74; color:#9a3412; }
+.eligibility-meta { margin-top:8px; font-size:.88rem; color:inherit; }
 </style>
 
 <div class="player-layout">
@@ -44,8 +48,7 @@ table.data-table tr:last-child td { border-bottom:none; }
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training" class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical" class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/payments" class="nav-link"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
@@ -64,7 +67,7 @@ table.data-table tr:last-child td { border-bottom:none; }
 
     <!-- Main -->
     <div class="main-content">
-        <?php $t = $data['tournament']; $myReq = $data['my_request']; ?>
+        <?php $t = $data['tournament']; $myReq = $data['my_request']; $eligibility = $data['eligibility']; ?>
 
         <div class="dashboard-header" style="padding:20px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -113,6 +116,15 @@ table.data-table tr:last-child td { border-bottom:none; }
             <div class="section-card">
                 <h3><i class="fas fa-paper-plane"></i> Apply for This Tournament</h3>
 
+                <div class="eligibility-box <?php echo $eligibility['eligible'] ? 'eligible' : 'ineligible'; ?>">
+                    <strong><?php echo $eligibility['eligible'] ? 'Eligible to apply' : 'Not eligible to apply'; ?></strong>
+                    <div style="margin-top:6px;"><?php echo htmlspecialchars($eligibility['message']); ?></div>
+                    <div class="eligibility-meta">
+                        <div><strong>Your age group:</strong> <?php echo htmlspecialchars($eligibility['player_age_group'] ?? 'Open'); ?><?php if ($eligibility['player_age'] !== null): ?> (Age <?php echo (int)$eligibility['player_age']; ?>)<?php endif; ?></div>
+                        <div><strong>Tournament age group:</strong> <?php echo htmlspecialchars($eligibility['tournament_age_group'] ?? 'Open'); ?></div>
+                    </div>
+                </div>
+
                 <?php if ($myReq): ?>
                     <!-- Already applied -->
                     <div class="request-box" style="border-color:#2e6da4;background:#f0f5ff;">
@@ -132,7 +144,7 @@ table.data-table tr:last-child td { border-bottom:none; }
                         <?php endif; ?>
                     </div>
 
-                <?php elseif ($t->Status === 'registration_open'): ?>
+                <?php elseif ($t->Status === 'registration_open' && $eligibility['eligible']): ?>
                     <!-- Apply form -->
                     <form method="POST" action="<?php echo URLROOT; ?>/player/join_tournament/<?php echo $t->TournamentID; ?>">
                         <div class="form-group">
@@ -144,6 +156,8 @@ table.data-table tr:last-child td { border-bottom:none; }
                         </button>
                     </form>
 
+                <?php elseif ($t->Status === 'registration_open'): ?>
+                    <p class="empty-note">You cannot apply because you do not meet this tournament's age-group requirement.</p>
                 <?php else: ?>
                     <p class="empty-note">Registration is not currently open for this tournament.</p>
                 <?php endif; ?>

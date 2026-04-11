@@ -37,15 +37,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>Book Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link">
-                        <i class="fas fa-list-alt"></i>
-                        <span>My Sessions</span>
+                    <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Bookings</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -102,10 +96,7 @@
                         <i class="fas fa-tools"></i>
                         Equipment Rentals
                     </a>
-                    <a href="<?php echo URLROOT; ?>/player/facilities" class="btn btn-facilities">
-                        <i class="fas fa-building"></i>
-                        Facility Booking
-                    </a>
+                   
                     <a href="<?php echo URLROOT; ?>/player/cart" class="btn btn-cart" id="cart-btn">
                         <i class="fas fa-shopping-cart"></i>
                         Cart
@@ -194,7 +185,7 @@
             <div class="items-grid" id="products-grid">
                 <?php if (!empty($data['products'])): ?>
                     <?php foreach ($data['products'] as $product): ?>
-                            <div class="card-item"
+                            <div class="card-item product-card"
                                 data-category="<?php echo htmlspecialchars($normKey($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                                 data-brand="<?php echo htmlspecialchars($normKey($product->Brand ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                              data-price="<?php echo $product->Price ?? 0; ?>"
@@ -217,6 +208,10 @@
 
                                 <h3 class="card-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
 
+                                <p class="card-description">
+                                    <?php echo htmlspecialchars(mb_strimwidth((string)($product->Description ?? 'No description available.'), 0, 95, '...')); ?>
+                                </p>
+
                               
 
                                 <?php if (!empty($product->Category)): ?>
@@ -233,6 +228,14 @@
 
                                 <div class="price-section">
                                     <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
+                                </div>
+
+                                <div class="stock-summary <?php echo ($product->StockQuantity ?? 0) > 0 ? 'in-stock' : 'out-of-stock'; ?>">
+                                    <?php if (($product->StockQuantity ?? 0) > 0): ?>
+                                        <?php echo (int)$product->StockQuantity; ?> available
+                                    <?php else: ?>
+                                        Out of stock
+                                    <?php endif; ?>
                                 </div>
 
                                 
@@ -368,6 +371,11 @@
                     </div>
                 </div>
 
+                <div class="product-specifications product-record-section">
+                    <h4><i class="fas fa-table"></i> Full Product Record</h4>
+                    <div id="productRecordGrid" class="record-grid"></div>
+                </div>
+
                 <!-- Product Actions -->
                 <div class="product-actions-section">
                     <div class="quantity-selector">
@@ -392,8 +400,8 @@
                 <!-- Additional Product Information -->
                 <div class="product-additional-info">
                     <div class="info-tabs">
-                        <button class="tab-btn" onclick="showTab('shipping')">Shipping Info</button>
-                        <button class="tab-btn" onclick="showTab('warranty')">Warranty</button>
+                        <button class="tab-btn active" onclick="showTab('shipping', this)">Shipping Info</button>
+                        <button class="tab-btn" onclick="showTab('warranty', this)">Warranty</button>
                     </div>
 
                     <div class="tab-content">

@@ -15,6 +15,7 @@
 .btn-secondary { background:#6c757d; color:#fff; }
 .status-pill { padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:700; }
 .pill-applied  { background:#dbeafe; color:#1e40af; }
+.pill-ineligible { background:#fff7ed; color:#9a3412; }
 .empty-state { text-align:center; padding:60px 20px; color:#888; }
 .empty-state i { font-size:3rem; margin-bottom:16px; display:block; color:#ccc; }
 </style>
@@ -34,8 +35,7 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training" class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical" class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/payments" class="nav-link"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
@@ -72,6 +72,7 @@
                 <div class="tournament-cards">
                     <?php foreach ($data['tournaments'] as $t): ?>
                         <?php $myReq = $data['my_requests'][$t->TournamentID] ?? null; ?>
+                        <?php $eligibility = $data['eligibility'][$t->TournamentID] ?? ['eligible' => true, 'message' => '']; ?>
                         <div class="tournament-card">
                             <div class="card-header-strip">
                                 <h3><?php echo htmlspecialchars($t->Name); ?></h3>
@@ -80,6 +81,7 @@
                             <div class="card-body">
                                 <p><strong>Date:</strong> <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : 'TBD'; ?></p>
                                 <p><strong>Age Group:</strong> <?php echo htmlspecialchars($t->AgeGroup ?? 'Open'); ?></p>
+                                <p><strong>Your eligibility:</strong> <?php echo $eligibility['eligible'] ? 'Eligible' : 'Not eligible'; ?></p>
                                 <p><strong>Location:</strong> <?php echo htmlspecialchars($t->Location ?? 'TBD'); ?></p>
                                 <p><strong>Deadline:</strong> <?php echo $t->RegistrationDeadline ? date('d M Y', strtotime($t->RegistrationDeadline)) : 'N/A'; ?></p>
                                 <p><strong>Status:</strong> <?php echo ucfirst(htmlspecialchars($t->Status)); ?></p>
@@ -91,6 +93,10 @@
                                 <?php if ($myReq): ?>
                                     <span class="status-pill pill-applied">
                                         <i class="fas fa-check-circle"></i> Applied
+                                    </span>
+                                <?php elseif ($t->Status === 'registration_open' && !$eligibility['eligible']): ?>
+                                    <span class="status-pill pill-ineligible">
+                                        <i class="fas fa-ban"></i> Not Eligible
                                     </span>
                                 <?php elseif ($t->Status === 'registration_open'): ?>
                                     <a href="<?php echo URLROOT; ?>/player/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-sm btn-primary">

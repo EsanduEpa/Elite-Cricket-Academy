@@ -35,9 +35,7 @@
                             <span>Performance</span>
                         </a>
                     </li>
-                      <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/facilities"   class="nav-link"><i class="fas fa-building"></i><span>Book Facility</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings"    class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
+                        <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
@@ -87,10 +85,230 @@
                 <p>Track your cricket performance and see your improvement over time.</p>
             </div>
 
-            <!-- Performance Stats - Two Tables Per Row -->
+            <?php
+                $performanceSummary = $data['performanceSummary'] ?? [
+                    'batting_avg' => 0,
+                    'strike_rate' => 0,
+                    'total_runs' => 0,
+                    'total_wickets' => 0,
+                ];
+            ?>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-baseball-ball"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title">Batting Average</div>
+                        <div class="stat-value" data-target="<?php echo $performanceSummary['batting_avg']; ?>">0</div>
+                       
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title">Strike Rate</div>
+                        <div class="stat-value" data-target="<?php echo $performanceSummary['strike_rate']; ?>">0</div>
+                       
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title">Total Runs</div>
+                        <div class="stat-value" data-target="<?php echo $performanceSummary['total_runs']; ?>">0</div>
+                        
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bowling-ball"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title">Wickets Taken</div>
+                        <div class="stat-value" data-target="<?php echo $performanceSummary['total_wickets']; ?>">0</div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Batting and Bowling Statistics -->
+            <div class="schedule-row">
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-baseball-ball"></i> Recent Batting Statistics</h2>
+                            <span class="badge-info">Last 10 Matches</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Opponent</th>
+                                    <th>Runs</th>
+                                    <th>Balls</th>
+                                    <th>Strike Rate</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['battingStats'])): ?>
+                                    <?php foreach ($data['battingStats'] as $stat): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-primary">
+                                                    <?php echo date('M d, Y', strtotime($stat['match_date'])); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <?php echo htmlspecialchars(substr($stat['tournament'], 0, 20)); ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title">
+                                                    <?php echo htmlspecialchars($stat['opponent']); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars(substr($stat['venue'], 0, 25)); ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <strong><?php echo $stat['runs']; ?></strong>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo $stat['balls']; ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo number_format($stat['strike_rate'], 2); ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <?php 
+                                                $badgeClass = 'table-badge ';
+                                                if ($stat['result'] == 'win') {
+                                                    $badgeClass .= 'status-active';
+                                                } elseif ($stat['result'] == 'loss') {
+                                                    $badgeClass .= 'status-cancelled';
+                                                } else {
+                                                    $badgeClass .= 'status-upcoming';
+                                                }
+                                                ?>
+                                                <span class="<?php echo $badgeClass; ?>"><?php echo ucfirst($stat['result']); ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: #888; padding: 20px;">
+                                            <i class="fas fa-info-circle"></i> No batting statistics available yet
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="schedule-card">
+                    <div class="card-header">
+                        <div class="header-content">
+                            <h2><i class="fas fa-bowling-ball"></i> Recent Bowling Statistics</h2>
+                            <span class="badge-info">Last 10 Matches</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Opponent</th>
+                                    <th>Wickets</th>
+                                    <th>Overs</th>
+                                    <th>Runs</th>
+                                    <th>Economy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($data['bowlingStats'])): ?>
+                                    <?php foreach ($data['bowlingStats'] as $stat): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-primary">
+                                                    <?php echo date('M d, Y', strtotime($stat['match_date'])); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <?php echo htmlspecialchars(substr($stat['tournament'], 0, 20)); ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title">
+                                                    <?php echo htmlspecialchars($stat['opponent']); ?>
+                                                </div>
+                                                <div class="table-cell-secondary">
+                                                    <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars(substr($stat['venue'], 0, 25)); ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <strong><?php echo $stat['wickets']; ?></strong>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo number_format($stat['overs'], 1); ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php echo $stat['runs_conceded']; ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="table-cell-primary">
+                                                    <?php 
+                                                    $economy = $stat['economy'];
+                                                    $economyColor = '#4A90E2';
+                                                    if ($economy <= 6) {
+                                                        $economyColor = '#27ae60'; // Good economy
+                                                    } elseif ($economy > 9) {
+                                                        $economyColor = '#e74c3c'; // Poor economy
+                                                    }
+                                                    ?>
+                                                    <span style="color: <?php echo $economyColor; ?>; font-weight: bold;">
+                                                        <?php echo number_format($economy, 2); ?>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: #888; padding: 20px;">
+                                            <i class="fas fa-info-circle"></i> No bowling statistics available yet
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Batting and Bowling Performance -->
             <div class="performance-tables-row">
-                
-                <!-- Batting Performance -->
                 <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
                         <div class="header-content">
@@ -213,7 +431,6 @@
                     </div>
                 </div>
 
-                <!-- Bowling Performance -->
                 <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
                         <div class="header-content">

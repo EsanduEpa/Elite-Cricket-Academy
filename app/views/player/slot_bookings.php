@@ -74,9 +74,7 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player"                  class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training"         class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance"             class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available"   class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/facilities"   class="nav-link"><i class="fas fa-building"></i><span>Book Facility</span></a></li>
-                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
+                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments"      class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical"          class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/payments"         class="nav-link"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
@@ -104,8 +102,8 @@
                     <p>View your upcoming and past slot session bookings.</p>
                 </div>
                 <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="btn btn-training">
-                        <i class="fas fa-plus"></i> Book a Session
+                    <a href="<?php echo URLROOT; ?>/playerslots" class="btn btn-training">
+                        <i class="fas fa-th-large"></i> Booking Types
                     </a>
                 </div>
             </div>
@@ -139,7 +137,7 @@
                     <div class="empty-state">
                         <i class="fas fa-calendar-plus" style="font-size:40px;display:block;margin-bottom:12px;"></i>
                         <p>No upcoming session bookings.</p>
-                        <a href="<?php echo URLROOT; ?>/playerslots/available" style="color:#2563eb;font-size:14px;margin-top:10px;display:inline-block;">
+                        <a href="<?php echo URLROOT; ?>/playerslots" style="color:#2563eb;font-size:14px;margin-top:10px;display:inline-block;">
                             Browse available sessions &rarr;
                         </a>
                     </div>

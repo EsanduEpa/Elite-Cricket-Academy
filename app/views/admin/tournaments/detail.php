@@ -119,31 +119,21 @@
                 <?php if ($t->Status !== 'cancelled' && $t->Status !== 'completed'): ?>
                 <div class="panel-card" style="padding:20px;">
                     <div style="font-weight:700;margin-bottom:12px;color:#374151;">Advance Status</div>
-                    <?php
-                    $next = [
-                        'created'              => 'registration_open',
-                        'registration_open'    => 'registration_closed',
-                        'registration_closed'  => 'ongoing',
-                        'team_announced'       => 'ongoing',
-                        'ongoing'              => 'completed',
-                    ];
-                    $nextStatus = $next[$t->Status] ?? null;
-                    ?>
-                    <?php if ($nextStatus): ?>
+                    <?php if (!empty($data['status_options'])): ?>
                         <form method="POST" action="<?php echo URLROOT; ?>/admin/update_tournament_status/<?php echo $t->TournamentID; ?>">
-                            <input type="hidden" name="status" value="<?php echo $nextStatus; ?>">
+                            <select name="status" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;background:#fff;color:#374151;margin-bottom:8px;">
+                                <option value="">Select status</option>
+                                <?php foreach ($data['status_options'] as $statusOption): ?>
+                                    <option value="<?php echo $statusOption; ?>"><?php echo ucwords(str_replace('_', ' ', $statusOption)); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div style="font-size:12px;color:#64748b;margin-bottom:8px;">The list includes every valid forward status from the current state.</div>
                             <button type="submit" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
-                                Mark as: <?php echo strtoupper(str_replace('_',' ',$nextStatus)); ?>
+                                Apply Status
                             </button>
                         </form>
-                    <?php endif; ?>
-
-                    <?php if ($t->Status === 'registration_closed' && !$t->IsTeamAnnounced): ?>
-                        <form method="POST" action="<?php echo URLROOT; ?>/admin/publish_team/<?php echo $t->TournamentID; ?>" style="margin-top:8px;">
-                            <button type="submit" style="width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
-                                <i class="fas fa-bullhorn"></i> Publish Team
-                            </button>
-                        </form>
+                    <?php else: ?>
+                        <div style="font-size:13px;color:#64748b;">No further status changes are available right now.</div>
                     <?php endif; ?>
 
                     <form method="POST" action="<?php echo URLROOT; ?>/admin/cancel_tournament/<?php echo $t->TournamentID; ?>" style="margin-top:8px;" onsubmit="return confirm('Cancel this tournament? All pending join requests will be rejected.');">

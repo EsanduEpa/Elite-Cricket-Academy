@@ -23,7 +23,10 @@ class Performance extends Controller {
             'player' => $this->getPlayerData(),
             'practiceMatches' => $this->getPracticeMatches(),
             'tournaments' => $this->getTournaments(),
+            'performanceSummary' => $this->getPerformanceStats(),
             'performanceStats' => $this->getDetailedPerformanceStats(),
+            'battingStats' => $this->getBattingStats(),
+            'bowlingStats' => $this->getBowlingStats(),
             'achievements' => $this->getPlayerAchievements(),
             'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
             'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId)

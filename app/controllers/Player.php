@@ -50,9 +50,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6),
             'coachSessions' => $coachSessions
         ];
 
@@ -73,9 +70,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6)
         ];
 
         $this->view('player/dashboard', $data);
@@ -499,21 +493,26 @@ class Player extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
 
         $tournaments = $M_Tournament->getPublicTournaments();
         $myRequests  = [];
+        $eligibility = [];
         foreach ($tournaments as $t) {
             $req = $M_JoinRequest->getRequestByPlayer($t->TournamentID, $playerId);
             if ($req) {
                 $myRequests[$t->TournamentID] = $req;
             }
+
+            $eligibility[$t->TournamentID] = $this->getTournamentEligibility($playerData, $t);
         }
 
         $data = [
             'title'       => 'Tournaments',
-            'player'      => $this->getPlayerData(),
+            'player'      => $playerData,
             'tournaments' => $tournaments,
             'my_requests' => $myRequests,
+            'eligibility' => $eligibility,
         ];
         $this->view('player/tournaments/index', $data);
     }
@@ -524,6 +523,7 @@ class Player extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
 
         $tournament = $M_Tournament->getTournamentById($id);
         if (!$tournament) {
@@ -533,10 +533,11 @@ class Player extends Controller {
 
         $data = [
             'title'      => $tournament->Name,
-            'player'     => $this->getPlayerData(),
+            'player'     => $playerData,
             'tournament' => $tournament,
             'team'       => $tournament->IsTeamAnnounced ? $M_Tournament->getTeam($id) : [],
             'my_request' => $M_JoinRequest->getRequestByPlayer($id, $playerId),
+            'eligibility'=> $this->getTournamentEligibility($playerData, $tournament),
         ];
         $this->view('player/tournaments/detail', $data);
     }
@@ -547,8 +548,27 @@ class Player extends Controller {
             redirect('player/tournaments');
         }
         $id            = (int)$id;
+        $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            flash('tournament_message', 'Tournament not found.', 'alert alert-danger');
+            redirect('player/tournaments');
+        }
+
+        if ($tournament->Status !== 'registration_open') {
+            flash('tournament_message', 'Registration is not currently open for this tournament.', 'alert alert-warning');
+            redirect('player/tournament_detail/' . $id);
+        }
+
+        $eligibility = $this->getTournamentEligibility($playerData, $tournament);
+        if (!$eligibility['eligible']) {
+            flash('tournament_message', $eligibility['message'], 'alert alert-danger');
+            redirect('player/tournament_detail/' . $id);
+        }
 
         if ($M_JoinRequest->hasExistingRequest($id, $playerId)) {
             flash('tournament_message', 'You have already submitted a join request for this tournament.', 'alert alert-warning');
@@ -571,6 +591,73 @@ class Player extends Controller {
         $M_JoinRequest->cancelByPlayer($requestId, $_SESSION['user_id']);
         flash('tournament_message', 'Your join request has been cancelled.', 'alert alert-info');
         redirect('player/tournaments');
+    }
+
+    private function getTournamentEligibility(array $playerData, $tournament): array {
+        $playerAge = $this->getPlayerAge($playerData['date_of_birth'] ?? '');
+        $tournamentAgeGroup = trim((string)($tournament->AgeGroup ?? 'Open'));
+
+        if (empty($playerData['date_of_birth']) || $playerAge === null) {
+            return [
+                'eligible' => false,
+                'message' => 'Your date of birth is missing or invalid. Update your profile before applying for age-group tournaments.',
+                'player_age' => null,
+                'player_age_group' => 'Unknown',
+                'tournament_age_group' => $tournamentAgeGroup,
+            ];
+        }
+
+        $playerAgeGroup = $this->userModel->getAgeGroupForDateOfBirth((string)$playerData['date_of_birth']);
+
+        if ($tournamentAgeGroup === '' || strcasecmp($tournamentAgeGroup, 'Open') === 0) {
+            return [
+                'eligible' => true,
+                'message' => 'You are eligible for this open tournament.',
+                'player_age' => $playerAge,
+                'player_age_group' => $playerAgeGroup,
+                'tournament_age_group' => 'Open',
+            ];
+        }
+
+        if (preg_match('/under\s*(\d+)/i', $tournamentAgeGroup, $matches)) {
+            $ageLimit = (int)$matches[1];
+            $eligible = $playerAge !== null && $playerAge < $ageLimit;
+
+            return [
+                'eligible' => $eligible,
+                'message' => $eligible
+                    ? 'Eligible: your age matches the ' . $tournamentAgeGroup . ' requirement.'
+                    : 'Not eligible: this tournament is for ' . $tournamentAgeGroup . ' players, and you do not meet that age requirement.',
+                'player_age' => $playerAge,
+                'player_age_group' => $playerAgeGroup,
+                'tournament_age_group' => $tournamentAgeGroup,
+            ];
+        }
+
+        $eligible = strcasecmp($playerAgeGroup, $tournamentAgeGroup) === 0;
+
+        return [
+            'eligible' => $eligible,
+            'message' => $eligible
+                ? 'Eligible: your age group matches this tournament.'
+                : 'Not eligible: your age group does not match this tournament.',
+            'player_age' => $playerAge,
+            'player_age_group' => $playerAgeGroup,
+            'tournament_age_group' => $tournamentAgeGroup,
+        ];
+    }
+
+    private function getPlayerAge(string $dateOfBirth): ?int {
+        if ($dateOfBirth === '') {
+            return null;
+        }
+
+        try {
+            $birthDate = new DateTime($dateOfBirth);
+            return (new DateTime())->diff($birthDate)->y;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     // Equipment Rentals
