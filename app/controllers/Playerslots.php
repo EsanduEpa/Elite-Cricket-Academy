@@ -67,10 +67,7 @@ class Playerslots extends Controller {
 
     /** GET /playerslots */
     public function index() {
-        $this->view('player/bookings_hub', [
-            'title' => 'Bookings',
-            'player' => $this->playerData(),
-        ]);
+        $this->bookings();
     }
 
     /** GET /playerslots/available */

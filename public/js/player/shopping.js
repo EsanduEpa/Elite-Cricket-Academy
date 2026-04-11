@@ -7,6 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let currentProduct = null;
 
+function openShoppingModal(modal) {
+    if (!modal) return;
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+function closeShoppingModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+}
+
 function getUrlRoot() {
     const page = document.getElementById('shoppingPage');
     return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
@@ -51,6 +65,9 @@ function initPlayerShoppingProducts() {
     });
     document.querySelectorAll('.js-buy-now-details').forEach(btn => {
         btn.addEventListener('click', buyNowFromDetails);
+    });
+    document.querySelectorAll('.js-tab-toggle').forEach(btn => {
+        btn.addEventListener('click', () => showTab(btn.dataset.tab, btn));
     });
 
     // Close modal when clicking backdrop
@@ -423,8 +440,7 @@ function viewProductFromDB(productId) {
 
             const modal = document.getElementById('productDetailsModal');
             if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                openShoppingModal(modal);
             }
         })
         .catch(error => {
@@ -435,10 +451,7 @@ function viewProductFromDB(productId) {
 
 function closeProductDetails() {
     const modal = document.getElementById('productDetailsModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    document.body.style.overflow = '';
+    closeShoppingModal(modal);
     currentProduct = null;
 }
 

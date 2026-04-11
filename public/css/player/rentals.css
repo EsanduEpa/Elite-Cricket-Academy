@@ -53,6 +53,14 @@
     margin-top: 1rem;
 }
 
+.profile-logout-spacing {
+    margin-top: 15px;
+}
+
+.payment-card-fullspan {
+    grid-column: 1 / -1;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .page-header h1 {
