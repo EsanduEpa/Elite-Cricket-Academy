@@ -143,7 +143,6 @@
                                 <th>Duration (min)</th>
                                 <th>Video Link</th>
                                 <th>Assigned Players</th>
-                                <th>Created Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -239,12 +238,6 @@
                                                 <i class="fas fa-users"></i>
                                                 <?php echo $assignedCount; ?> player<?php echo $assignedCount !== 1 ? 's' : ''; ?>
                                             </button>
-                                        </td>
-                                        <td>
-                                            <div class="table-cell-secondary">
-                                                <i class="fas fa-calendar-plus"></i>
-                                                <?php echo date('M d, Y', strtotime($plan->CreatedDate)); ?>
-                                            </div>
                                         </td>
                                         <td>
                                             <div class="profile-actions">
