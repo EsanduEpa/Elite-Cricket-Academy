@@ -11,30 +11,46 @@ class Nutrition extends Controller {
         }
     }
 
-    private function _predefinedPlans(): array {
-        return [
-            'High Protein Plan',
-            'High Carb (Match Preparation) Plan',
-            'Balanced Diet Plan',
-            'Weight Loss / Lean Plan',
-            'Recovery Plan',
-            'Hydration & Light Nutrition Plan',
-        ];
+    private function _normalizeDecimal($value): ?string {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return null;
+        }
+
+        $value = str_replace(',', '.', $value);
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        return number_format((float)$value, 2, '.', '');
     }
 
-    private function _planTemplate(string $planName): string {
-        $planName = trim($planName);
+    private function _normalizeInteger($value): ?int {
+        if ($value === null || $value === '') {
+            return null;
+        }
 
-        $templates = [
-            'High Protein Plan' => "Goal: Support muscle building and strength.\n\nGuidelines:\n- Protein with every meal (lean meats, eggs, dairy, legumes).\n- Balanced carbs around training; choose whole grains.\n- Include healthy fats (nuts, olive oil, avocado).\n\nTiming:\n- Pre-training: carb + protein snack 60–90 min before.\n- Post-training: protein + carbs within 60 min.",
-            'High Carb (Match Preparation) Plan' => "Goal: Maximise energy availability for match days.\n\nGuidelines:\n- Increase carbs 24–48h pre-match (rice, pasta, potatoes, fruit).\n- Keep protein moderate; keep fats lower close to match time.\n- Hydrate consistently; include electrolytes if sweating heavily.\n\nTiming:\n- Pre-match meal (3–4h): high carb + moderate protein.\n- Top-up snack (60–90 min): easily digested carbs.",
-            'Balanced Diet Plan' => "Goal: Everyday performance for training days.\n\nGuidelines:\n- Plate method: 1/2 vegetables, 1/4 protein, 1/4 carbs.\n- 2–3 fruit servings daily.\n- Hydrate and limit sugary drinks.\n\nTiming:\n- Spread meals evenly across the day.\n- Include a recovery snack after intense sessions.",
-            'Weight Loss / Lean Plan' => "Goal: Reduce body fat while maintaining performance.\n\nGuidelines:\n- Prioritise protein and high-fibre foods.\n- Choose lower-calorie carbs and control portions.\n- Avoid late-night high-sugar snacks.\n\nTiming:\n- Protein-forward breakfast.\n- Smart snacks (yogurt, fruit, nuts in small portions).",
-            'Recovery Plan' => "Goal: Support recovery after matches or during injury rehab.\n\nGuidelines:\n- Higher protein + micronutrients (iron, calcium, vitamin D).\n- Anti-inflammatory foods (omega-3 sources, colourful vegetables).\n- Prioritise sleep-supportive routine and hydration.\n\nTiming:\n- Recovery meal within 60–90 min post-match/training.",
-            'Hydration & Light Nutrition Plan' => "Goal: Maintain hydration and light, easy digestion (hot weather / light training).\n\nGuidelines:\n- Water consistently through the day.\n- Electrolytes on hot days or long sessions.\n- Light meals: fruit, yogurt, soups, simple carbs.\n\nTiming:\n- Small frequent meals and fluids.",
+        if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+            return null;
+        }
+
+        return (int)$value;
+    }
+
+    private function _composeDietDetails(array $fields): string {
+        $lines = [
+            'Plan: ' . ($fields['plan_name'] ?? ''),
+            'Protein: ' . ($fields['protein_percentage'] ?? '') . '%',
+            'Carbohydrates: ' . ($fields['carbohydrate_percentage'] ?? '') . '%',
+            'Fat: ' . ($fields['fat_percentage'] ?? '') . '%',
+            'Recommended calories: ' . ($fields['recommended_calories'] ?? ''),
         ];
 
-        return $templates[$planName] ?? "Nutrition Plan: {$planName}";
+        if (!empty($fields['description'])) {
+            $lines[] = 'Description: ' . $fields['description'];
+        }
+
+        return implode("\n", array_filter($lines, static fn($line) => trim((string)$line) !== ''));
     }
 
     // ── GET  nutrition  (index) ──────────────────────────────────────
@@ -55,6 +71,7 @@ class Nutrition extends Controller {
         $model   = $this->model('M_NutritionPlan');
         $players = $model->getAllPlayers();
         $groups  = $model->getPlayerGroups();
+        $templates = $model->getNutritionTemplates();
 
         $errors = $_SESSION['nutrition_create_errors'] ?? [];
         $old    = $_SESSION['nutrition_create_old']    ?? [];
@@ -64,7 +81,7 @@ class Nutrition extends Controller {
             'title'   => 'Create Nutrition Plan',
             'players' => $players,
             'groups'  => $groups,
-            'plan_options' => $this->_predefinedPlans(),
+            'nutrition_templates' => $templates,
             'errors'  => $errors,
             'old'     => $old,
         ];
@@ -79,7 +96,8 @@ class Nutrition extends Controller {
             return;
         }
 
-        [$errors, $fields] = $this->_validate($_POST);
+        $model = $this->model('M_NutritionPlan');
+        [$errors, $fields] = $this->_validate($_POST, $model);
 
         if (!empty($errors)) {
             $_SESSION['nutrition_create_errors'] = $errors;
@@ -87,8 +105,6 @@ class Nutrition extends Controller {
             redirect('nutrition/create');
             return;
         }
-
-        $model = $this->model('M_NutritionPlan');
 
         if (($fields['assignment_mode'] ?? 'individual') === 'group') {
             $fields['player_ids'] = $model->getPlayerIdsByGroup($fields['player_group'] ?? '');
@@ -125,6 +141,7 @@ class Nutrition extends Controller {
 
         $players = $model->getAllPlayers();
         $groups  = $model->getPlayerGroups();
+        $templates = $model->getNutritionTemplates();
         $assignedPlayerIds = $model->getAssignedPlayerIds($id);
         $errors  = $_SESSION['nutrition_edit_errors'] ?? [];
         $old     = $_SESSION['nutrition_edit_old']    ?? [];
@@ -135,8 +152,8 @@ class Nutrition extends Controller {
             'plan'    => $plan,
             'players' => $players,
             'groups'  => $groups,
+            'nutrition_templates' => $templates,
             'assigned_player_ids' => $assignedPlayerIds,
-            'plan_options' => $this->_predefinedPlans(),
             'errors'  => $errors,
             'old'     => $old,
         ];
@@ -153,21 +170,20 @@ class Nutrition extends Controller {
             return;
         }
 
-        [$errors, $fields] = $this->_validate($_POST);
+        $model = $this->model('M_NutritionPlan');
+        $existingPlan = $model->getPlanById($id, $_SESSION['user_id']);
+        if (!$existingPlan) {
+            flash('nutrition_message', 'Plan not found or access denied.', 'alert alert-danger');
+            redirect('nutrition');
+            return;
+        }
+
+        [$errors, $fields] = $this->_validate($_POST, $model, $existingPlan);
 
         if (!empty($errors)) {
             $_SESSION['nutrition_edit_errors'] = $errors;
             $_SESSION['nutrition_edit_old']    = $fields;
             redirect('nutrition/edit/' . $id);
-            return;
-        }
-
-        $model = $this->model('M_NutritionPlan');
-
-        // Ownership check before writing
-        if (!$model->getPlanById($id, $_SESSION['user_id'])) {
-            flash('nutrition_message', 'Plan not found or access denied.', 'alert alert-danger');
-            redirect('nutrition');
             return;
         }
 
@@ -192,6 +208,39 @@ class Nutrition extends Controller {
         }
     }
 
+    public function template($templateId = 0) {
+        header('Content-Type: application/json');
+
+        $templateId = (int)$templateId;
+        if ($templateId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid template selected.']);
+            return;
+        }
+
+        $model = $this->model('M_NutritionPlan');
+        $template = $model->getNutritionTemplateById($templateId);
+
+        if (!$template) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Nutrition template not found.']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'template' => [
+                'template_id' => (int)($template->TemplateID ?? 0),
+                'plan_name' => (string)($template->PlanName ?? ''),
+                'protein_percentage' => (string)($template->ProteinPercentage ?? ''),
+                'carbohydrate_percentage' => (string)($template->CarbohydratePercentage ?? ''),
+                'fat_percentage' => (string)($template->FatPercentage ?? ''),
+                'recommended_calories' => (string)($template->RecommendedCalories ?? ''),
+                'description' => (string)($template->Description ?? ''),
+            ],
+        ]);
+    }
+
     // ── POST  nutrition/delete/$id ───────────────────────────────────
     public function delete($id) {
         $id = (int)$id;
@@ -214,8 +263,57 @@ class Nutrition extends Controller {
 
     // ── Private: shared validation for create + update ───────────────
     // Returns [$errors, $sanitisedFields]
-    private function _validate(array $post): array {
-        $planName    = trim(htmlspecialchars($post['plan_name']    ?? '', ENT_QUOTES, 'UTF-8'));
+    private function _validate(array $post, $model = null, $existingPlan = null): array {
+        $templateId = (int)($post['template_id'] ?? 0);
+        $template = null;
+        if ($model && $templateId > 0) {
+            $template = $model->getNutritionTemplateById($templateId);
+        }
+
+        if (!$template && $existingPlan && !empty($existingPlan->TemplateID)) {
+            $template = $model ? $model->getNutritionTemplateById((int)$existingPlan->TemplateID) : null;
+        }
+
+        $planName = trim(htmlspecialchars($post['plan_name'] ?? '', ENT_QUOTES, 'UTF-8'));
+        if ($planName === '' && $template) {
+            $planName = htmlspecialchars((string)($template->PlanName ?? ''), ENT_QUOTES, 'UTF-8');
+        } elseif ($planName === '' && $existingPlan) {
+            $planName = trim((string)($existingPlan->PlanName ?? $existingPlan->nutritionPlanName ?? ''));
+        }
+
+        $proteinPercentage = $this->_normalizeDecimal($post['protein_percentage'] ?? null);
+        if ($proteinPercentage === null && $template) {
+            $proteinPercentage = $this->_normalizeDecimal($template->ProteinPercentage ?? null);
+        } elseif ($proteinPercentage === null && $existingPlan) {
+            $proteinPercentage = $this->_normalizeDecimal($existingPlan->ProteinPercentage ?? null);
+        }
+
+        $carbohydratePercentage = $this->_normalizeDecimal($post['carbohydrate_percentage'] ?? null);
+        if ($carbohydratePercentage === null && $template) {
+            $carbohydratePercentage = $this->_normalizeDecimal($template->CarbohydratePercentage ?? null);
+        } elseif ($carbohydratePercentage === null && $existingPlan) {
+            $carbohydratePercentage = $this->_normalizeDecimal($existingPlan->CarbohydratePercentage ?? null);
+        }
+
+        $fatPercentage = $this->_normalizeDecimal($post['fat_percentage'] ?? null);
+        if ($fatPercentage === null && $template) {
+            $fatPercentage = $this->_normalizeDecimal($template->FatPercentage ?? null);
+        } elseif ($fatPercentage === null && $existingPlan) {
+            $fatPercentage = $this->_normalizeDecimal($existingPlan->FatPercentage ?? null);
+        }
+
+        $recommendedCalories = $this->_normalizeInteger($post['recommended_calories'] ?? null);
+        if ($recommendedCalories === null && $template) {
+            $recommendedCalories = $this->_normalizeInteger($template->RecommendedCalories ?? null);
+        } elseif ($recommendedCalories === null && $existingPlan) {
+            $recommendedCalories = $this->_normalizeInteger($existingPlan->RecommendedCalories ?? null);
+        }
+
+        $description = trim(htmlspecialchars($post['description'] ?? '', ENT_QUOTES, 'UTF-8'));
+        if ($description === '' && $existingPlan) {
+            $description = trim(htmlspecialchars((string)($existingPlan->Description ?? ''), ENT_QUOTES, 'UTF-8'));
+        }
+
         $assignmentMode = trim(strtolower($post['assignment_mode'] ?? 'individual'));
         if (!in_array($assignmentMode, ['individual', 'group'], true)) {
             $assignmentMode = 'individual';
@@ -237,18 +335,51 @@ class Nutrition extends Controller {
         $playerGroup = trim($post['player_group'] ?? '');
 
         $notes      = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
-        $dietDetails = trim(htmlspecialchars($post['diet_details'] ?? '', ENT_QUOTES, 'UTF-8'));
         $duration    = trim($post['duration']    ?? '');
         $status      = trim($post['status']      ?? 'active');
         $createdDate = trim($post['created_date'] ?? '');
 
         $errors = [];
 
-        $allowedPlans = $this->_predefinedPlans();
+        if ($templateId <= 0 && !$existingPlan) {
+            $errors['template_id'] = 'Please select a nutrition template.';
+        } elseif ($templateId > 0 && !$template) {
+            $errors['template_id'] = 'Selected nutrition template is not available.';
+        }
+
         if ($planName === '') {
-            $errors['plan_name'] = 'Please select a plan.';
-        } elseif (!in_array($planName, $allowedPlans, true)) {
-            $errors['plan_name'] = 'Invalid plan selected.';
+            $errors['plan_name'] = 'Plan name is required.';
+        } elseif (mb_strlen($planName) > 150) {
+            $errors['plan_name'] = 'Plan name must be 150 characters or fewer.';
+        }
+
+        foreach ([
+            'protein_percentage' => $proteinPercentage,
+            'carbohydrate_percentage' => $carbohydratePercentage,
+            'fat_percentage' => $fatPercentage,
+        ] as $field => $value) {
+            if ($value === null) {
+                $errors[$field] = 'Please enter a valid percentage.';
+            } elseif ((float)$value < 0 || (float)$value > 100) {
+                $errors[$field] = 'Percentage values must be between 0 and 100.';
+            }
+        }
+
+        if ($proteinPercentage !== null && $carbohydratePercentage !== null && $fatPercentage !== null) {
+            $total = (float)$proteinPercentage + (float)$carbohydratePercentage + (float)$fatPercentage;
+            if (abs($total - 100.0) > 0.01) {
+                $errors['fat_percentage'] = 'Protein, carbohydrate, and fat percentages must total 100%.';
+            }
+        }
+
+        if ($recommendedCalories === null) {
+            $errors['recommended_calories'] = 'Please enter a valid calorie target.';
+        } elseif ($recommendedCalories < 500 || $recommendedCalories > 10000) {
+            $errors['recommended_calories'] = 'Calories must be between 500 and 10000.';
+        }
+
+        if ($description !== '' && mb_strlen($description) > 2000) {
+            $errors['description'] = 'Description must be 2000 characters or fewer.';
         }
 
         if ($assignmentMode === 'group') {
@@ -259,12 +390,8 @@ class Nutrition extends Controller {
             $errors['player_ids'] = 'Please select at least one player.';
         }
 
-        if ($notes !== '' && strlen($notes) > 1000) {
+        if ($notes !== '' && mb_strlen($notes) > 1000) {
             $errors['notes'] = 'Notes must be 1000 characters or fewer.';
-        }
-
-        if ($dietDetails === '') {
-            $dietDetails = $this->_planTemplate($planName);
         }
 
         if ($duration === '') {
@@ -284,11 +411,24 @@ class Nutrition extends Controller {
         }
 
         $fields = [
+            'template_id' => $template ? (int)($template->TemplateID ?? $templateId) : ($existingPlan ? (int)($existingPlan->TemplateID ?? 0) : $templateId),
             'plan_name'    => $planName,
             'assignment_mode' => $assignmentMode,
             'player_ids'   => $playerIds,
             'player_group' => $playerGroup,
-            'diet_details' => $dietDetails,
+            'protein_percentage' => $proteinPercentage,
+            'carbohydrate_percentage' => $carbohydratePercentage,
+            'fat_percentage' => $fatPercentage,
+            'recommended_calories' => $recommendedCalories,
+            'description' => $description,
+            'diet_details' => $this->_composeDietDetails([
+                'plan_name' => $planName,
+                'protein_percentage' => $proteinPercentage,
+                'carbohydrate_percentage' => $carbohydratePercentage,
+                'fat_percentage' => $fatPercentage,
+                'recommended_calories' => $recommendedCalories,
+                'description' => $description,
+            ]),
             'notes'        => $notes,
             'duration'     => $duration,
             'status'       => $status,

@@ -174,6 +174,16 @@ foreach ($nutritionPlans as $plan) {
                                                     <strong class="nc-plan-name">
                                                         <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? ('Plan #' . (int)$plan->PlanID)); ?>
                                                     </strong>
+                                                    <?php
+                                                        $macroSummary = [];
+                                                        if (isset($plan->ProteinPercentage)) $macroSummary[] = 'P ' . (float)$plan->ProteinPercentage . '%';
+                                                        if (isset($plan->CarbohydratePercentage)) $macroSummary[] = 'C ' . (float)$plan->CarbohydratePercentage . '%';
+                                                        if (isset($plan->FatPercentage)) $macroSummary[] = 'F ' . (float)$plan->FatPercentage . '%';
+                                                        if (isset($plan->RecommendedCalories)) $macroSummary[] = (int)$plan->RecommendedCalories . ' cal';
+                                                    ?>
+                                                    <?php if (!empty($macroSummary)): ?>
+                                                        <span class="plan-description"><?php echo htmlspecialchars(implode(' · ', $macroSummary)); ?></span>
+                                                    <?php endif; ?>
                                                     <span class="plan-description">#<?php echo (int)$plan->PlanID; ?></span>
                                                 </div>
                                             </div>
