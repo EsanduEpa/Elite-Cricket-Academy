@@ -232,15 +232,15 @@
 </div>
 
 <!-- Payment Success Modal -->
-<div id="paymentSuccessModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header success-header">
+<div id="paymentSuccessModal" class="modal app-modal" aria-hidden="true">
+    <div class="modal-content app-modal__dialog app-modal__dialog--compact">
+        <div class="modal-header success-header app-modal__header app-modal__header--success">
             <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
             <h3>Payment Successful!</h3>
         </div>
-        <div class="modal-body">
+        <div class="modal-body app-modal__body">
             <div class="success-message">
                 <h4>Thank you for your purchase!</h4>
                 <p>Your order has been confirmed and will be processed shortly.</p>
@@ -264,12 +264,12 @@
                 </p>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" onclick="goToOrders()">
+        <div class="modal-footer app-modal__footer">
+            <button type="button" class="btn btn-primary" data-checkout-action="go-to-orders">
                 <i class="fas fa-list"></i>
                 View Orders
             </button>
-            <button class="btn btn-secondary" onclick="continueShopping()">
+            <button type="button" class="btn btn-secondary" data-checkout-action="continue-shopping">
                 <i class="fas fa-shopping-bag"></i>
                 Continue Shopping
             </button>

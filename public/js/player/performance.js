@@ -25,6 +25,85 @@ function initializePerformancePage() {
     
     // Initialize export functionality
     initializeExportReport();
+
+    initializePerformanceViewActions();
+}
+
+function initializePerformanceViewActions() {
+    document.addEventListener('click', function (event) {
+        const actionTrigger = event.target.closest('[data-performance-action]');
+        if (actionTrigger) {
+            const action = actionTrigger.dataset.performanceAction;
+            const achievementId = actionTrigger.dataset.achievementId;
+
+            if (action === 'add-achievement') {
+                event.preventDefault();
+                showAddAchievementModal();
+                return;
+            }
+
+            if (action === 'close-achievement-modal') {
+                event.preventDefault();
+                closeAchievementModal();
+                return;
+            }
+
+            if (action === 'close-performance-modal') {
+                event.preventDefault();
+                closePerformanceModal();
+                return;
+            }
+
+            if (action === 'open-performance-modal') {
+                event.preventDefault();
+                openPerformanceModal();
+                return;
+            }
+
+            if (action === 'view-achievement' && achievementId) {
+                event.preventDefault();
+                viewAchievement(achievementId);
+                return;
+            }
+
+            if (action === 'edit-achievement' && achievementId) {
+                event.preventDefault();
+                editAchievement(achievementId);
+                return;
+            }
+
+            if (action === 'delete-achievement' && achievementId) {
+                event.preventDefault();
+                deleteAchievement(achievementId);
+                return;
+            }
+
+            const performanceId = actionTrigger.dataset.performanceId;
+
+            if (action === 'view-match-performance' && performanceId) {
+                event.preventDefault();
+                viewMatchDetails(performanceId);
+                return;
+            }
+
+            if (action === 'edit-match-performance' && performanceId) {
+                event.preventDefault();
+                editMatchPerformance(performanceId);
+                return;
+            }
+
+            if (action === 'delete-match-performance' && performanceId) {
+                event.preventDefault();
+                deleteMatchPerformance(performanceId);
+            }
+        }
+
+        const placeholderTrigger = event.target.closest('[data-placeholder-message]');
+        if (placeholderTrigger) {
+            event.preventDefault();
+            alert(placeholderTrigger.dataset.placeholderMessage);
+        }
+    });
 }
 
 // Tab functionality
@@ -193,7 +272,7 @@ function initializeModals() {
         }
     });
     
-    const performanceForm = document.getElementById('performanceStatsForm') || performanceModal.querySelector('.performance-form');
+    const performanceForm = document.getElementById('performanceStatsForm');
     
     // Auto-calculate strike rate
     const runsInput = document.getElementById('runsScored');
@@ -226,18 +305,30 @@ function initializeModals() {
 
 function openPerformanceModal() {
     const modal = document.getElementById('performanceModal');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
 }
 
 function closePerformanceModal() {
     const modal = document.getElementById('performanceModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
     
     // Reset form
-    const form = modal.querySelector('.performance-form');
-    form.reset();
+    const form = document.getElementById('performanceStatsForm');
+    if (form) {
+        form.reset();
+    }
 }
 
 function handlePerformanceSubmission(e) {
@@ -313,20 +404,20 @@ function handleEditPerformance(e) {
     openPerformanceModal();
     
     // In a real app, would populate form with existing performance data
-    const form = document.querySelector('.performance-form');
+    const form = document.getElementById('performanceStatsForm');
     // Example: form.querySelector('input[type="number"]').value = existingRuns;
 }
 
 function showDetailsModal(title, card) {
     const modal = document.createElement('div');
-    modal.className = 'modal details-modal';
+    modal.className = 'modal app-modal details-modal';
     modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-info-circle"></i> ${title}</h3>
-                <button class="modal-close">&times;</button>
+        <div class="modal-content app-modal__dialog app-modal__dialog--standard">
+            <div class="modal-header app-modal__header">
+                <h3 class="app-modal__title"><i class="fas fa-info-circle"></i> ${title}</h3>
+                <button class="modal-close app-modal__close" type="button">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body app-modal__body">
                 <p>Detailed information about this match/tournament would be displayed here.</p>
                 <p>This could include:</p>
                 <ul>
@@ -337,30 +428,38 @@ function showDetailsModal(title, card) {
                     <li>Performance analysis</li>
                 </ul>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer app-modal__footer">
                 <button class="btn btn-outline close-details">Close</button>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
-    modal.classList.add('active');
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
     
     // Event listeners
     modal.querySelector('.modal-close').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => document.body.removeChild(modal), 300);
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        document.body.removeChild(modal);
     });
     
     modal.querySelector('.close-details').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => document.body.removeChild(modal), 300);
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        document.body.removeChild(modal);
     });
     
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-            modal.classList.remove('active');
-            setTimeout(() => document.body.removeChild(modal), 300);
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            document.body.removeChild(modal);
         }
     });
 }
@@ -436,18 +535,17 @@ function showSuccessMessage(message) {
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const activeModal = document.querySelector('.modal.active');
+        const activeModal = document.querySelector('.app-modal.app-modal--visible');
         if (activeModal) {
-            activeModal.classList.remove('active');
-            document.body.style.overflow = '';
+            activeModal.classList.remove('app-modal--visible');
+            activeModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
             
             // Remove dynamically created modals
             if (activeModal.classList.contains('details-modal')) {
-                setTimeout(() => {
-                    if (document.body.contains(activeModal)) {
-                        document.body.removeChild(activeModal);
-                    }
-                }, 300);
+                if (document.body.contains(activeModal)) {
+                    document.body.removeChild(activeModal);
+                }
             }
         }
     }
@@ -491,12 +589,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== PERFORMANCE STATISTICS FUNCTIONS ====================
 
+function updatePerformanceModalHeader(mode = 'add') {
+    const modal = document.getElementById('performanceModal');
+    if (!modal) {
+        return;
+    }
+
+    const title = modal.querySelector('.app-modal__title');
+    const subtitle = modal.querySelector('.app-modal__subtitle');
+    const icon = modal.querySelector('.app-modal__icon i');
+    const header = modal.querySelector('.app-modal__header');
+
+    if (header) {
+        header.classList.remove('app-modal__header--success', 'app-modal__header--danger', 'app-modal__header--neutral');
+        header.style.background = '';
+    }
+
+    if (mode === 'edit') {
+        if (title) {
+            title.textContent = 'Edit Performance Statistics';
+        }
+        if (subtitle) {
+            subtitle.textContent = 'Update an existing performance entry using the same shared modal and register-style form layout.';
+        }
+        if (icon) {
+            icon.className = 'fas fa-pen-to-square';
+        }
+        return;
+    }
+
+    if (title) {
+        title.textContent = 'Add Performance Statistics';
+    }
+    if (subtitle) {
+        subtitle.textContent = 'Submit your latest batting, bowling, and fielding figures in the same register-style layout used across player forms.';
+    }
+    if (icon) {
+        icon.className = 'fas fa-chart-bar';
+    }
+}
+
 // Open Performance Statistics Modal
 function openPerformanceModal(selectedMatchId = '') {
     const modal = document.getElementById('performanceModal');
     if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        modal.classList.add('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
         
         // Load available matches
         loadAvailableMatches(selectedMatchId);
@@ -513,16 +652,7 @@ function openPerformanceModal(selectedMatchId = '') {
                 perfIdInput.remove();
             }
             
-            // Reset modal title and styling
-            const modalTitle = modal.querySelector('h2');
-            if (modalTitle) {
-                modalTitle.innerHTML = '<i class="fas fa-chart-bar" style="color: #fff;"></i> Add Performance Statistics';
-            }
-            
-            const modalHeader = modal.querySelector('.modal-header');
-            if (modalHeader) {
-                modalHeader.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
-            }
+            updatePerformanceModalHeader('add');
             
             // Reset submit button
             const submitBtn = form.querySelector('button[type="submit"]');
@@ -551,8 +681,9 @@ function closePerformanceModal() {
         }
         
         setTimeout(() => {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
         }, 300);
     }
 }
@@ -847,16 +978,7 @@ function editMatchPerformance(performanceId) {
                 // Wait for modal to be fully loaded
                 setTimeout(() => {
                     // Change modal title
-                    const modalTitle = document.querySelector('#performanceModal h2');
-                    if (modalTitle) {
-                        modalTitle.innerHTML = '<i class="fas fa-edit" style="color: #fff;"></i> Edit Performance Statistics';
-                    }
-                    
-                    // Change modal header color
-                    const modalHeader = document.querySelector('#performanceModal .modal-header');
-                    if (modalHeader) {
-                        modalHeader.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
-                    }
+                    updatePerformanceModalHeader('edit');
                     
                     // Populate form fields
                     document.getElementById('matchSelect').value = perf.MatchID || '';
@@ -955,7 +1077,11 @@ function deleteMatchPerformance(performanceId) {
         if (form) form.reset();
         if (achievementId) achievementId.value = '';
 
-        if (modal) modal.style.display = 'block';
+        if (modal) {
+            modal.classList.add('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
 
         const dateInput = document.getElementById('achievementDate');
         if (dateInput) {
@@ -989,14 +1115,22 @@ function deleteMatchPerformance(performanceId) {
         setValue('verifiedStatus', achievementData?.VerifiedStatus);
 
         const modal = document.getElementById('achievementModal');
-        if (modal) modal.style.display = 'block';
+        if (modal) {
+            modal.classList.add('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
     }
 
     function closeAchievementModal() {
         const modal = document.getElementById('achievementModal');
         const form = document.getElementById('achievementForm');
 
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('app-modal--visible');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        document.body.classList.remove('modal-open');
         if (form) form.reset();
 
         if (modal) {
@@ -1235,7 +1369,7 @@ function deleteMatchPerformance(performanceId) {
 
     document.addEventListener('keydown', function (e) {
         const modal = document.getElementById('achievementModal');
-        if (modal && modal.style.display === 'block' && e.key === 'Escape') {
+        if (modal && modal.classList.contains('app-modal--visible') && e.key === 'Escape') {
             closeAchievementModal();
         }
     });

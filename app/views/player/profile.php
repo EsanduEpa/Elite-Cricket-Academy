@@ -1,5 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/profile.css?v=<?php echo time(); ?>">
 
 <?php 
@@ -508,7 +509,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                                 <i class="fas fa-arrow-left"></i> Back to Dashboard
                             </a>
                             <?php if ($data['formMode'] === 'update'): ?>
-                            <button type="button" class="btn btn-danger" onclick="confirmDeactivation()">
+                            <button type="button" class="btn btn-danger" data-profile-action="open-deactivation-modal">
                                 <i class="fas fa-user-slash"></i> Deactivate Account
                             </button>
                             <?php else: ?>
@@ -526,29 +527,32 @@ if (!isset($data['user']) || !is_object($data['user'])) {
 
     <?php if ($data['formMode'] === 'update'): ?>
     <!-- Deactivation Confirmation Modal -->
-    <div id="deactivationModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Account Deactivation</h3>
-                <span class="close" onclick="closeDeactivationModal()">&times;</span>
+    <div id="deactivationModal" class="modal app-modal" aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--compact">
+            <div class="modal-header app-modal__header app-modal__header--danger">
+                <div class="app-modal__title-wrap">
+                    <span class="app-modal__icon"><i class="fas fa-exclamation-triangle"></i></span>
+                    <h3 class="app-modal__title">Confirm Account Deactivation</h3>
+                </div>
+                <button type="button" class="close app-modal__close" data-profile-close="deactivationModal" aria-label="Close deactivation modal">&times;</button>
             </div>
-            <div class="modal-body">
-                <p><strong>Warning:</strong> This action will deactivate your account permanently.</p>
-                <p>You will:</p>
-                <ul>
+            <div class="modal-body app-modal__body">
+                <p class="app-modal__text"><strong>Warning:</strong> This action will deactivate your account permanently.</p>
+                <p class="app-modal__text">You will:</p>
+                <ul class="app-modal__list">
                     <li>Lose access to all academy services</li>
                     <li>Be logged out immediately</li>
                     <li>Need to contact administrators to reactivate</li>
                 </ul>
-                <p>Are you sure you want to proceed?</p>
+                <p class="app-modal__text">Are you sure you want to proceed?</p>
             </div>
-            <div class="modal-footer">
-                <form method="POST" action="<?php echo URLROOT; ?>/player/deactivateAccount" style="display: inline;">
+            <div class="modal-footer app-modal__footer app-modal__footer--inline-form">
+                <form method="POST" action="<?php echo URLROOT; ?>/player/deactivateAccount" class="app-modal__inline-form">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-user-slash"></i> Yes, Deactivate My Account
                     </button>
                 </form>
-                <button type="button" class="btn btn-secondary" onclick="closeDeactivationModal()">
+                <button type="button" class="btn btn-secondary" data-profile-close="deactivationModal">
                     <i class="fas fa-times"></i> Cancel
                 </button>
             </div>

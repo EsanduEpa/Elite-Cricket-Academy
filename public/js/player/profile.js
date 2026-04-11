@@ -1,5 +1,19 @@
 // Profile Image Upload Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    function openProfileModal(modal) {
+        if (!modal) return;
+        modal.classList.add('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeProfileModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+    }
+
     const profileImageInput = document.getElementById('profileImageInput');
     const profileImagePreview = document.getElementById('profileImagePreview');
     const profileImageWrapper = document.querySelector('.profile-image-wrapper');
@@ -161,16 +175,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Account deactivation modal controls (called by onclick attributes in the view)
     function confirmDeactivation() {
         const modal = document.getElementById('deactivationModal');
-        if (modal) modal.style.display = 'block';
+        openProfileModal(modal);
     }
 
     function closeDeactivationModal() {
         const modal = document.getElementById('deactivationModal');
-        if (modal) modal.style.display = 'none';
+        closeProfileModal(modal);
     }
 
     window.confirmDeactivation = confirmDeactivation;
     window.closeDeactivationModal = closeDeactivationModal;
+
+    document.addEventListener('click', function(event) {
+        const actionTrigger = event.target.closest('[data-profile-action]');
+        if (actionTrigger && actionTrigger.dataset.profileAction === 'open-deactivation-modal') {
+            confirmDeactivation();
+            return;
+        }
+
+        const closeTrigger = event.target.closest('[data-profile-close]');
+        if (closeTrigger && closeTrigger.dataset.profileClose === 'deactivationModal') {
+            closeDeactivationModal();
+        }
+    });
 
     // Close modal when clicking outside
     window.addEventListener('click', function(event) {

@@ -1,91 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
-<style>
-    .booking-shortcuts {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    .booking-shortcut-btn {
-        padding: 12px 20px;
-        border-radius: 12px;
-        border: 2px solid rgba(255, 255, 255, 0.28);
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        font-size: 14px;
-        color: white;
-        background: rgba(255, 255, 255, 0.18);
-    }
-    .booking-shortcut-btn:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.28);
-    }
-    .booking-shortcut-btn.primary {
-        background: rgba(46, 204, 113, 0.9);
-        border-color: rgba(46, 204, 113, 0.95);
-    }
-    .booking-shortcut-btn.primary:hover {
-        background: rgba(46, 204, 113, 1);
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .status-confirmed  { background:#d1fae5;color:#065f46; }
-    .status-cancelled  { background:#fee2e2;color:#991b1b; }
-    .status-attended   { background:#dbeafe;color:#1e40af; }
-    .status-missed     { background:#fef3c7;color:#92400e; }
-    .status-pending    { background:#f3f4f6;color:#374151; }
-    .booking-table { width:100%; border-collapse:collapse; font-size:14px; }
-    .booking-table th { text-align:left; padding:10px 14px; background:#f8fafc; color:#475569;
-                        font-size:12px; text-transform:uppercase; letter-spacing:.5px;
-                        border-bottom:1px solid #e2e8f0; }
-    .booking-table td { padding:12px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-    .booking-table tr:last-child td { border-bottom:none; }
-    .booking-table tr:hover td { background:#f8fafc; }
-    .btn-cancel {
-        padding:6px 14px;
-        background:#ef4444;
-        color:#fff;
-        border:none;
-        border-radius:6px;
-        font-size:12px;
-        font-weight:600;
-        cursor:pointer;
-        transition:opacity .15s;
-    }
-    .btn-cancel:hover { opacity:.85; }
-    .section-title {
-        font-size:18px;
-        font-weight:700;
-        color:#1e293b;
-        margin-bottom:16px;
-        display:flex;
-        align-items:center;
-        gap:8px;
-    }
-    .schedule-card { margin-bottom:28px; }
-    .empty-state { padding:40px; text-align:center; color:#94a3b8; }
-    .flash-msg {
-        padding:12px 18px;
-        border-radius:8px;
-        margin-bottom:18px;
-        font-size:14px;
-        display:flex;
-        align-items:center;
-        gap:8px;
-    }
-    .flash-success { background:#dcfce7;color:#166534;border:1px solid #bbf7d0; }
-    .flash-error   { background:#fee2e2;color:#991b1b;border:1px solid #fecaca; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/player_slot_bookings.css?v=<?php echo time(); ?>">
 
 <div class="player-layout">
     <!-- Sidebar -->
@@ -115,7 +30,7 @@
             <div class="profile-avatar"><i class="fas fa-user"></i></div>
             <div class="profile-name"><?php echo htmlspecialchars($data['player']['name'] ?? 'Player'); ?></div>
             <div class="profile-role"><?php echo htmlspecialchars($data['player']['membership_level'] ?? 'Standard'); ?> Member</div>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:15px;">
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn profile-logout-spacing">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>
@@ -170,16 +85,16 @@
             <div class="card-header">
                 <div class="header-content">
                     <div class="section-title">
-                        <i class="fas fa-calendar-alt" style="color:#2563eb;"></i> Upcoming Sessions
+                        <i class="fas fa-calendar-alt section-title-icon-upcoming"></i> Upcoming Sessions
                     </div>
                 </div>
             </div>
             <div class="card-content">
                 <?php if (empty($data['upcoming'])): ?>
                     <div class="empty-state">
-                        <i class="fas fa-calendar-plus" style="font-size:40px;display:block;margin-bottom:12px;"></i>
+                        <i class="fas fa-calendar-plus empty-state-icon"></i>
                         <p>No upcoming session bookings.</p>
-                        <a href="<?php echo URLROOT; ?>/playerslots/coach" style="color:#2563eb;font-size:14px;margin-top:10px;display:inline-block;">
+                        <a href="<?php echo URLROOT; ?>/playerslots/coach" class="empty-state-link">
                             Browse available sessions &rarr;
                         </a>
                     </div>
@@ -202,7 +117,7 @@
                             <td><strong><?php echo date('D, d M Y', strtotime($b->OccurrenceDate)); ?></strong></td>
                             <td>
                                 <?php echo htmlspecialchars($b->SlotLabel); ?><br>
-                                <small style="color:#94a3b8;">
+                                <small class="booking-time-meta">
                                     <?php echo date('g:i A', strtotime($b->StartTime)); ?> &ndash;
                                     <?php echo date('g:i A', strtotime($b->EndTime)); ?>
                                 </small>
@@ -210,22 +125,21 @@
                             <td>
                                 <?php echo htmlspecialchars($b->TemplateName ?? '—'); ?>
                                 <?php if (($b->BookingSource ?? '') === 'system'): ?>
-                                    <br><small style="color:#7c3aed;font-weight:600;">Assigned Program</small>
+                                    <br><small class="assigned-program-label">Assigned Program</small>
                                 <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars($b->FacilityName ?? '—'); ?></td>
                             <td><span class="status-badge status-<?php echo $b->Status; ?>"><?php echo ucfirst($b->Status); ?></span></td>
                             <td>
                                 <?php if ($b->Status === 'confirmed' && $hoursLeft >= 24): ?>
-                                <form method="POST" action="<?php echo URLROOT; ?>/playerslots/cancel"
-                                      onsubmit="return confirm('Cancel this session booking?');">
+                                <form method="POST" action="<?php echo URLROOT; ?>/playerslots/cancel" class="js-cancel-booking-form">
                                     <input type="hidden" name="booking_id" value="<?php echo (int)$b->BookingID; ?>">
                                     <button type="submit" class="btn-cancel">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
                                 <?php elseif ($b->Status === 'confirmed'): ?>
-                                <span style="font-size:12px;color:#94a3b8;">
+                                <span class="booking-window-closed">
                                     <i class="fas fa-lock"></i> Window closed
                                 </span>
                                 <?php endif; ?>
@@ -243,7 +157,7 @@
             <div class="card-header">
                 <div class="header-content">
                     <div class="section-title">
-                        <i class="fas fa-history" style="color:#64748b;"></i> Past Sessions
+                        <i class="fas fa-history section-title-icon-past"></i> Past Sessions
                     </div>
                 </div>
             </div>
@@ -270,7 +184,7 @@
                             <td><?php echo date('D, d M Y', strtotime($b->OccurrenceDate)); ?></td>
                             <td>
                                 <?php echo htmlspecialchars($b->SlotLabel); ?><br>
-                                <small style="color:#94a3b8;">
+                                <small class="booking-time-meta">
                                     <?php echo date('g:i A', strtotime($b->StartTime)); ?> &ndash;
                                     <?php echo date('g:i A', strtotime($b->EndTime)); ?>
                                 </small>
@@ -278,12 +192,12 @@
                             <td>
                                 <?php echo htmlspecialchars($b->TemplateName ?? '—'); ?>
                                 <?php if (($b->BookingSource ?? '') === 'system'): ?>
-                                    <br><small style="color:#7c3aed;font-weight:600;">Assigned Program</small>
+                                    <br><small class="assigned-program-label">Assigned Program</small>
                                 <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars($b->FacilityName ?? '—'); ?></td>
                             <td><span class="status-badge status-<?php echo $b->Status; ?>"><?php echo ucfirst($b->Status); ?></span></td>
-                            <td style="font-size:12px;color:#64748b;"><?php echo ucfirst(str_replace('_', ' ', $b->BookingSource)); ?></td>
+                            <td class="booking-source-cell"><?php echo ucfirst(str_replace('_', ' ', $b->BookingSource)); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -295,4 +209,5 @@
     </div><!-- /.main-content -->
 </div><!-- /.player-layout -->
 
+<script src="<?php echo URLROOT; ?>/js/player/player_slot_bookings.js?v=<?php echo time(); ?>"></script>
 <?php require_once APPROOT . '/views/inc/footer.php'; ?>
