@@ -33,21 +33,59 @@ class Playerslots extends Controller {
 
     // ── Routes ─────────────────────────────────────────────────
 
-    /** /playerslots  →  redirect to available */
+    private function renderSessionCatalog(?string $staffType = null): void {
+        $playerId    = $this->playerId();
+        $occurrences = $this->slotModel->getAvailableOccurrences($playerId);
+
+        if ($staffType !== null) {
+            $occurrences = array_values(array_filter($occurrences, function ($occ) use ($staffType) {
+                return ($occ->SlotType ?? '') !== 'facility_only'
+                    && strcasecmp((string)($occ->StaffType ?? ''), $staffType) === 0;
+            }));
+        }
+
+        $titles = [
+            'coach' => 'Coach Bookings',
+            'trainer' => 'Trainer Bookings',
+            null => 'Book a Session',
+        ];
+
+        $descriptions = [
+            'coach' => 'Browse available coach-led sessions and book your next appointment.',
+            'trainer' => 'Browse available trainer-led sessions and book your next appointment.',
+            null => 'Browse available training slots and book your next session.',
+        ];
+
+        $this->view('player/slots', [
+            'title' => $titles[$staffType] ?? $titles[null],
+            'player' => $this->playerData(),
+            'occurrences' => $occurrences,
+            'booking_type' => $staffType,
+            'page_description' => $descriptions[$staffType] ?? $descriptions[null],
+        ]);
+    }
+
+    /** GET /playerslots */
     public function index() {
-        redirect('playerslots/available');
+        $this->view('player/bookings_hub', [
+            'title' => 'Bookings',
+            'player' => $this->playerData(),
+        ]);
     }
 
     /** GET /playerslots/available */
     public function available() {
-        $playerId    = $this->playerId();
-        $occurrences = $this->slotModel->getAvailableOccurrences($playerId);
+        $this->renderSessionCatalog();
+    }
 
-        $this->view('player/slots', [
-            'title'       => 'Book a Session',
-            'player'      => $this->playerData(),
-            'occurrences' => $occurrences,
-        ]);
+    /** GET /playerslots/coach */
+    public function coach() {
+        $this->renderSessionCatalog('coach');
+    }
+
+    /** GET /playerslots/trainer */
+    public function trainer() {
+        $this->renderSessionCatalog('trainer');
     }
 
     /** POST /playerslots/book */

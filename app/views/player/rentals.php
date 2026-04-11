@@ -37,15 +37,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>Book Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link">
-                        <i class="fas fa-list-alt"></i>
-                        <span>My Sessions</span>
+                    <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Bookings</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -98,10 +92,7 @@
                     <p>High-quality cricket equipment available for daily or weekly rentals</p>
                 </div>
                 <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/player/facilities" class="btn btn-facilities">
-                        <i class="fas fa-building"></i>
-                        Facility Booking
-                    </a>
+                   
                     <a href="<?php echo URLROOT; ?>/player/shopping" class="btn btn-facilities">
                         <i class="fas fa-shopping-bag"></i>
                         Back to Shop

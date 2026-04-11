@@ -50,9 +50,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6),
             'coachSessions' => $coachSessions
         ];
 
@@ -73,9 +70,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6)
         ];
 
         $this->view('player/dashboard', $data);
