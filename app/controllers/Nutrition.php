@@ -37,6 +37,31 @@ class Nutrition extends Controller {
         return (int)$value;
     }
 
+    private function _validateMacroPercentages($protein, $carbs, $fat): array {
+        $errors = [];
+
+        foreach ([
+            'protein_percentage' => $protein,
+            'carbohydrate_percentage' => $carbs,
+            'fat_percentage' => $fat,
+        ] as $field => $value) {
+            if ($value === null) {
+                $errors[$field] = 'Please enter a valid percentage.';
+            } elseif ((float)$value < 0 || (float)$value > 100) {
+                $errors[$field] = 'Percentage values must be between 0 and 100.';
+            }
+        }
+
+        if ($protein !== null && $carbs !== null && $fat !== null) {
+            $total = (float)$protein + (float)$carbs + (float)$fat;
+            if (abs($total - 100.0) > 0.01) {
+                $errors['fat_percentage'] = 'Protein (' . $protein . '%) + Carbohydrate (' . $carbs . '%) + Fat (' . $fat . '%) = ' . number_format($total, 2) . '%. They must total exactly 100%.';
+            }
+        }
+
+        return $errors;
+    }
+
     private function _composeDietDetails(array $fields): string {
         $lines = [
             'Plan: ' . ($fields['plan_name'] ?? ''),
@@ -368,9 +393,10 @@ class Nutrition extends Controller {
         if ($proteinPercentage !== null && $carbohydratePercentage !== null && $fatPercentage !== null) {
             $total = (float)$proteinPercentage + (float)$carbohydratePercentage + (float)$fatPercentage;
             if (abs($total - 100.0) > 0.01) {
-                $errors['fat_percentage'] = 'Protein, carbohydrate, and fat percentages must total 100%.';
+                $errors['fat_percentage'] = 'Protein (' . $proteinPercentage . '%) + Carbohydrate (' . $carbohydratePercentage . '%) + Fat (' . $fatPercentage . '%) = ' . number_format($total, 2) . '%. They must total exactly 100%.';
             }
         }
+
 
         if ($recommendedCalories === null) {
             $errors['recommended_calories'] = 'Please enter a valid calorie target.';

@@ -714,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (protein && carbs && fat && !isNaN(protein) && !isNaN(carbs) && !isNaN(fat)) {
             const total = (+protein) + (+carbs) + (+fat);
             if (Math.abs(total - 100) > 0.01) {
-                addError('fat_percentage', 'Protein, carbohydrate, and fat percentages must total 100%.');
+                addError('fat_percentage', 'Protein (' + protein + '%) + Carbohydrate (' + carbs + '%) + Fat (' + fat + '%) = ' + total.toFixed(2) + '%. They must total exactly 100%.');
             }
         }
         if (!calories || isNaN(calories) || +calories < 500 || +calories > 10000) addError('recommended_calories', 'Calories must be between 500 and 10000.');
