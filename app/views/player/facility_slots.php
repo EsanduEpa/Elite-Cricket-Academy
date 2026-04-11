@@ -1,6 +1,37 @@
 <?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
 <style>
+/* ── Header shortcuts ── */
+.booking-shortcuts {
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+}
+.booking-shortcut-btn {
+    padding:12px 20px;
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,0.28);
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:all .3s ease;
+    font-size:14px;
+    color:#fff;
+    background:rgba(255,255,255,0.18);
+}
+.booking-shortcut-btn:hover {
+    transform:translateY(-2px);
+    background:rgba(255,255,255,0.28);
+}
+.booking-shortcut-btn.primary {
+    background:rgba(46,204,113,0.9);
+    border-color:rgba(46,204,113,0.95);
+}
+.booking-shortcut-btn.primary:hover {
+    background:rgba(46,204,113,1);
+}
 /* ── Layout ── */
 .fac-page { display:flex; flex-direction:column; gap:24px; }
 
@@ -392,12 +423,21 @@
                     <h1><i class="fas fa-building"></i> Facility Booking</h1>
                     <p>Browse all facilities and book an available slot for your preferred date and time.</p>
                 </div>
-                <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/playerslots" class="btn btn-training">
-                        <i class="fas fa-th-large"></i> Booking Types
+                <div class="header-actions booking-shortcuts">
+                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="booking-shortcut-btn">
+                        <i class="fas fa-list-alt"></i> My Sessions
                     </a>
-                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="btn btn-training">
-                        <i class="fas fa-list-alt"></i> My Bookings
+                    <a href="<?php echo URLROOT; ?>/playerslots/coach" class="booking-shortcut-btn">
+                        <i class="fas fa-user-tie"></i> Coach
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/playerslots/trainer" class="booking-shortcut-btn">
+                        <i class="fas fa-dumbbell"></i> Trainer
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/playerslots/facilities" class="booking-shortcut-btn primary">
+                        <i class="fas fa-building"></i> Facilities
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/player/calendar" class="booking-shortcut-btn">
+                        <i class="fas fa-calendar-alt"></i> Calendar
                     </a>
                 </div>
             </div>

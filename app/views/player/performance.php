@@ -81,8 +81,17 @@
         <div class="main-content" id="performancePage" data-urlroot="<?php echo URLROOT; ?>">
             <!-- Simple Page Header -->
             <div class="dashboard-header">
-                <h1><i class="fas fa-chart-line"></i> Performance Overview</h1>
-                <p>Track your cricket performance and see your improvement over time.</p>
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1><i class="fas fa-chart-line"></i> Performance Overview</h1>
+                        <p>Track your cricket performance and see your improvement over time.</p>
+                    </div>
+                    <div class="header-actions">
+                        <a href="<?php echo URLROOT; ?>/performance/match_history" class="action-btn">
+                            <i class="fas fa-history"></i> Match History
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <?php
@@ -561,123 +570,8 @@
                 </div>
             </div>
 
-            <!-- Recent Matches and Achievements - Two Tables Per Row -->
-            <div class="performance-tables-row">
-                <!-- Recent Matches -->
-                <div class="schedule-card upcoming-schedule">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-chart-line"></i> Recent Matches</h2>
-                            <button class="action-btn" onclick="openPerformanceModal()" style="font-size: 14px; padding: 8px 12px;">
-                                <i class="fas fa-plus"></i> Add
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Match</th>
-                                    <th>Runs</th>
-                                    <th>Wickets</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (isset($data['playerPerformanceRecords']) && !empty($data['playerPerformanceRecords'])): ?>
-                                    <?php
-                                    $recentMatches = array_slice($data['playerPerformanceRecords'], 0, 5); // Show only 5 most recent
-                                    foreach ($recentMatches as $match):
-                                    ?>
-                                        <tr style="background-color: <?php 
-                                            $result = strtolower($match->Result ?? '');
-                                            if (in_array($result, ['won', 'win', 'w'])) echo 'rgba(39, 174, 96, 0.1)';
-                                            elseif (in_array($result, ['lost', 'loss', 'lose', 'l'])) echo 'rgba(231, 76, 60, 0.1)';
-                                            elseif (in_array($result, ['draw', 'd', 'tie', 'tied'])) echo 'rgba(52, 152, 219, 0.1)';
-                                            else echo 'rgba(241, 196, 15, 0.1)'; // pending/default
-                                        ?>;">
-                                            <td style="text-align: center;">
-                                                <div class="table-cell-primary"><?php echo $match->Date ? date('M d', strtotime($match->Date)) : 'N/A'; ?></div>
-                                                <div class="table-cell-secondary"><?php echo $match->Date ? date('l', strtotime($match->Date)) : ''; ?></div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-title">
-                                                    <?php echo htmlspecialchars($match->OpponentTeam ?? 'Match'); ?>
-                                                </div>
-                                                <div class="table-cell-details">
-                                                    <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($match->Venue ?? 'Venue'); ?>
-                                                </div>
-                                                <div class="table-cell-details">
-                                                    <i class="fas fa-trophy"></i> <?php echo htmlspecialchars($match->TournamentName ?? 'Match'); ?>
-                                                </div>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                <div class="table-cell-primary"><?php echo $match->RunsScored ?? 0; ?></div>
-                                                <div class="table-cell-secondary"><?php echo $match->BallsFaced ?? 0; ?> balls</div>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                <div class="table-cell-primary"><?php echo $match->WicketsTaken ?? 0; ?></div>
-                                                <div class="table-cell-secondary"><?php echo $match->RunsConceded ?? 0; ?> runs</div>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                <?php 
-                                                $statusClass = 'status-pending';
-                                                $statusText = 'Pending';
-                                                $statusIcon = 'fa-clock';
-                                                if (isset($match->VerifiedStatus)) {
-                                                    if ($match->VerifiedStatus === 'verified') {
-                                                        $statusClass = 'status-confirmed';
-                                                        $statusText = 'Verified';
-                                                        $statusIcon = 'fa-check-circle';
-                                                    } elseif ($match->VerifiedStatus === 'rejected') {
-                                                        $statusClass = 'status-cancelled';
-                                                        $statusText = 'Rejected';
-                                                        $statusIcon = 'fa-times-circle';
-                                                    }
-                                                }
-                                                ?>
-                                                <span class="table-badge <?php echo $statusClass; ?>" style="font-size: 11px;">
-                                                    <i class="fas <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?>
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                <button class="action-btn" onclick="viewMatchDetails(<?php echo $match->PerformanceID; ?>)" 
-                                                        style="font-size: 12px; padding: 6px 10px; margin-right: 5px;" title="View Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <?php if (!isset($match->VerifiedStatus) || $match->VerifiedStatus === 'pending'): ?>
-                                                    <button class="action-btn" onclick="editMatchPerformance(<?php echo $match->PerformanceID; ?>)" 
-                                                            style="font-size: 12px; padding: 6px 10px; margin-right: 5px;" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="action-btn" onclick="deleteMatchPerformance(<?php echo $match->PerformanceID; ?>)" 
-                                                            style="font-size: 12px; padding: 6px 10px; background: #e74c3c; border-color: #e74c3c;" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="6" style="text-align: center; padding: 40px;">
-                                            <div style="color: #7f8c8d;">
-                                                <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
-                                                <h3 style="margin: 10px 0; color: #7f8c8d;">No Recent Matches</h3>
-                                                <p>Add your match performance by clicking "Add" above.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Achievements -->
-                <div class="schedule-card upcoming-schedule">
+            <!-- Achievements -->
+            <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
                         <div class="header-content">
                             <h2><i class="fas fa-trophy"></i> My Achievements</h2>
@@ -785,7 +679,6 @@
                             <?php endif; ?>
                         </tbody>
                     </table>
-                </div>
                 </div>
             </div>
 

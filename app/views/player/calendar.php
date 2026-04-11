@@ -19,8 +19,7 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/training" class="nav-link"><i class="fas fa-dumbbell"></i><span>Training</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/performance" class="nav-link"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
-                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/player/calendar" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link"><i class="fas fa-medal"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/medical" class="nav-link"><i class="fas fa-heartbeat"></i><span>Medical</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/payments" class="nav-link"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
@@ -47,10 +46,19 @@
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="btn btn-training">
-                        <i class="fas fa-list"></i> List View
+                        <i class="fas fa-list"></i> My Sessions
                     </a>
-                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="btn btn-performance">
-                        <i class="fas fa-plus"></i> Book Session
+                    <a href="<?php echo URLROOT; ?>/playerslots/coach" class="btn btn-training">
+                        <i class="fas fa-user-tie"></i> Coach
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/playerslots/trainer" class="btn btn-training">
+                        <i class="fas fa-dumbbell"></i> Trainer
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/playerslots/facilities" class="btn btn-training">
+                        <i class="fas fa-building"></i> Facilities
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/player/calendar" class="btn btn-performance">
+                        <i class="fas fa-calendar-alt"></i> Calendar
                     </a>
                 </div>
             </div>
