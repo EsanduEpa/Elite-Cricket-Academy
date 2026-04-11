@@ -280,9 +280,9 @@
 </div>
 
 <!-- Product Details Modal -->
-<div id="productDetailsModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content modal-lg">
-        <div class="modal-header">
+<div id="productDetailsModal" class="modal app-modal modal-overlay" aria-hidden="true">
+    <div class="modal-content modal-lg app-modal__dialog app-modal__dialog--xl">
+        <div class="modal-header app-modal__header">
             <div class="header-icon">
                 <i class="fas fa-info-circle"></i>
             </div>
@@ -290,12 +290,12 @@
                 <h3>Product Details</h3>
                 <p>Complete product information and specifications</p>
             </div>
-            <button class="modal-close-btn" onclick="closeProductDetails()">
+            <button type="button" class="modal-close-btn app-modal__close js-close-product-details" aria-label="Close product details">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <div class="modal-body">
+        <div class="modal-body app-modal__body">
             <div class="product-details-container">
                 <!-- Product Image and Basic Info -->
                 <div class="product-main-info">
@@ -391,7 +391,7 @@
                         <button class="btn-modal primary js-add-to-cart-details">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <button class="btn-modal secondary" onclick="buyNowFromDetails()">
+                        <button type="button" class="btn-modal secondary js-buy-now-details">
                             <i class="fas fa-bolt"></i> Buy Now
                         </button>
                     </div>
@@ -400,8 +400,8 @@
                 <!-- Additional Product Information -->
                 <div class="product-additional-info">
                     <div class="info-tabs">
-                        <button class="tab-btn active" onclick="showTab('shipping', this)">Shipping Info</button>
-                        <button class="tab-btn" onclick="showTab('warranty', this)">Warranty</button>
+                        <button type="button" class="tab-btn active js-tab-toggle" data-tab="shipping">Shipping Info</button>
+                        <button type="button" class="tab-btn js-tab-toggle" data-tab="warranty">Warranty</button>
                     </div>
 
                     <div class="tab-content">
@@ -431,7 +431,7 @@
             </div>
         </div>
 
-        <div class="modal-actions">
+        <div class="modal-actions app-modal__footer">
             <button type="button" class="btn-modal secondary js-close-product-details">
                 <i class="fas fa-times"></i> Close
             </button>

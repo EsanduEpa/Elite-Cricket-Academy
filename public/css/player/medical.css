@@ -344,7 +344,7 @@
     background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
     border: 1px solid rgba(220, 53, 69, 0.3);
-
+}
 /* Verify Status Badges */
 .table-badge.verify-pending {
     background: rgba(241, 196, 15, 0.1);
@@ -647,107 +647,176 @@
     font-size: 11px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(-40px) scale(0.95); }
-    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+.profile-logout-link {
+    margin-top: 15px;
 }
 
 /* Modal styles */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99999;
-    background-color: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    overflow-y: auto;
-    pointer-events: auto;
-    will-change: z-index;
+.medical-modal-header {
+    padding: 24px;
 }
 
-/* Ensure modal is visible when display is flex */
-.modal[style*="display:flex"] {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Ensure modal is visible when display is block */
-.modal[style*="display: block"] {
-    display: block !important;
-}
-
-/* Ensure modal is visible when inline styles show it */
-.modal[style*="display: flex"] {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    position: relative;
-    background: #ffffff;
-    border-radius: 14px;
-    width: 95%;
-    max-width: 760px;
-    margin: 20px auto;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    max-height: 88vh;
-    display: flex;
-    flex-direction: column;
-    animation: slideIn 0.3s ease-out;
-    z-index: 100000;
-    pointer-events: auto;
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 14px 14px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
-}
-
-.modal-header h3 {
+.medical-modal-title {
     margin: 0;
-    font-size: 18px;
     display: flex;
     align-items: center;
     gap: 10px;
+    font-size: 22px;
+    font-weight: 600;
 }
 
-.close {
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: white;
-    padding: 0;
-    width: 30px;
-    height: 30px;
+.medical-modal-title-icon {
+    color: #ffffff;
+}
+
+.medical-modal-footer {
+    background: #f8f9fa;
+}
+
+.medical-field-icon {
+    margin-right: 0;
+    width: 14px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.medical-field-icon--primary {
+    color: #4A90E2;
+}
+
+.medical-field-icon--danger {
+    color: #e74c3c;
+}
+
+.medical-field-icon--success {
+    color: #27ae60;
+}
+
+.medical-field-icon--warning {
+    color: #f39c12;
+}
+
+.medical-radio-group {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background 0.3s;
+    flex-wrap: wrap;
+    gap: 0.8rem 1.1rem;
+    min-height: 48px;
+    padding: 0.74rem 0.92rem;
+    border: 1px solid rgba(74, 144, 226, 0.18);
+    border-radius: 14px;
+    background: #f8fbff;
 }
 
-.close:hover {
-    background: rgba(255, 255, 255, 0.2);
+.medical-radio-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.medical-error-text.is-visible {
+    display: block;
+}
+
+.medical-file-input {
+    padding: 0.7rem 0.9rem;
+    background: #f8fbff;
+}
+
+.medical-modal-form {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.medical-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.medical-form-actions {
+    position: sticky;
+    bottom: -28px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin: 24px -28px -28px;
+    padding: 18px 28px 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(241, 246, 251, 0.98));
+    border-top: 1px solid rgba(23, 45, 68, 0.08);
+    backdrop-filter: blur(6px);
+    z-index: 2;
+}
+
+.medical-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px 28px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.medical-btn:hover {
+    transform: translateY(-2px);
+}
+
+.medical-btn--secondary {
+    background: #95a5a6;
+    color: #ffffff;
+}
+
+.medical-btn--secondary:hover {
+    background: #7f8c8d;
+}
+
+.medical-btn--primary {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.medical-btn--primary:hover {
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.medical-info-panel {
+    background: #f0f7ff;
+    border-left: 4px solid #4A90E2;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #2c3e50;
+}
+
+.medical-info-title {
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.medical-info-list {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.8;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
 }
 
 /* Ensure modal visibility when active */
@@ -755,13 +824,6 @@ body.modal-open {
     overflow: hidden;
     z-index: 1;
     position: relative;
-}
-
-.modal-body {
-    padding: 25px;
-    background: #ffffff;
-    flex: 1;
-    overflow-y: auto;
 }
 
 .plan-header {
@@ -782,9 +844,107 @@ body.modal-open {
     color: #666;
 }
 
+#workoutPlanContent,
+#nutritionPlanContent {
+    flex: 1 1 auto;
+    max-height: min(60vh, 560px);
+    overflow-y: auto;
+    padding-right: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(74, 144, 226, 0.7) rgba(74, 144, 226, 0.12);
+}
+
+#workoutPlanContent::-webkit-scrollbar,
+#nutritionPlanContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#workoutPlanContent::-webkit-scrollbar-track,
+#nutritionPlanContent::-webkit-scrollbar-track {
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 999px;
+}
+
+#workoutPlanContent::-webkit-scrollbar-thumb,
+#nutritionPlanContent::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(74, 144, 226, 0.9), rgba(53, 122, 189, 0.9));
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+#workoutPlanContent::-webkit-scrollbar-thumb:hover,
+#nutritionPlanContent::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(53, 122, 189, 1), rgba(31, 93, 152, 1));
+}
+
 .plan-details h4, .plan-details h5 {
     color: #333;
     margin: 20px 0 10px 0;
+}
+
+.plan-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.plan-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid rgba(74, 144, 226, 0.16);
+    border-radius: 12px;
+    background: #f8fbff;
+}
+
+.plan-meta-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6c7a89;
+}
+
+.plan-meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #22313f;
+}
+
+.plan-section {
+    margin-top: 18px;
+}
+
+.plan-section h5 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #4A90E2;
+}
+
+.plan-rich-text {
+    color: #425466;
+    line-height: 1.7;
+}
+
+.plan-rich-text p {
+    margin: 0 0 10px;
+}
+
+.plan-empty-text {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.plan-link {
+    color: #2f6fb7;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.plan-link:hover {
+    text-decoration: underline;
 }
 
 .plan-details h4 {
@@ -843,16 +1003,6 @@ body.modal-open {
     border: 1px solid rgba(241, 196, 15, 0.3);
 }
 
-/* Delete modal specific styles */
-.modal-footer {
-    padding: 20px 25px;
-    border-top: 1px solid #e9ecef;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    background: #f8f9fa;
-}
-
 .btn-secondary {
     background: #6c757d;
     color: white;
@@ -889,6 +1039,7 @@ body.modal-open {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
 }
+
 @media (max-width: 1024px) {
     /* Performance tables layout */
     .performance-tables-row {
@@ -918,6 +1069,18 @@ body.modal-open {
     .injury-location,
     .academy-indicator {
         font-size: 13px;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .medical-radio-group {
+        gap: 14px;
+    }
+
+    .medical-btn {
+        justify-content: center;
+        width: 100%;
     }
 
     .reported-date {
@@ -1083,17 +1246,6 @@ body.modal-open {
     .table-badge {
         font-size: 10px;
         padding: 4px 8px;
-    }
-
-    /* Modal responsive */
-    .modal-content {
-        width: 95%;
-        margin: 10% auto;
-        max-height: 85vh;
-    }
-
-    .modal-body {
-        padding: 20px;
     }
 
     .btn-sm {

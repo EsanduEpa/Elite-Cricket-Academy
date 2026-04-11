@@ -39,8 +39,6 @@
                         </a>
                     </li>
 
-                                    <li class="nav-item"><a href="<?php echo URLROOT; ?>/player/calendar" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a></li>
-
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>

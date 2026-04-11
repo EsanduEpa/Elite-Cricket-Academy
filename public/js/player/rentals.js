@@ -9,6 +9,7 @@ function initializeRentalsPage() {
     
     initRentalFiltering();
     initRentalModals();
+    initRentalImageFallbacks();
     initRentalCart();
     setMinimumDates();
     
@@ -53,9 +54,8 @@ function updateRentalNavButtons(activeCategory) {
     const navBtns = document.querySelectorAll('.rental-nav-btn');
     navBtns.forEach(btn => {
         btn.classList.remove('active');
-        
-        // Check if this button corresponds to the active category
-        const btnCategory = btn.getAttribute('onclick')?.match(/filterRentalsByCategory\('([^']+)'\)/)?.[1];
+
+        const btnCategory = btn.dataset.category;
         if (btnCategory === activeCategory) {
             btn.classList.add('active');
         }
@@ -91,6 +91,12 @@ function updateRentalResultsCount(category) {
 function initRentalModals() {
     // Add event listeners for rental buttons
     document.addEventListener('click', function(e) {
+        const navButton = e.target.closest('.rental-nav-btn');
+        if (navButton) {
+            filterRentalsByCategory(navButton.dataset.category || 'all');
+            return;
+        }
+
         if (e.target.classList.contains('rent-equipment')) {
             const rentalData = e.target.dataset;
             openRentalModal(rentalData);
@@ -200,13 +206,23 @@ function createRentalModal() {
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn-modal secondary" onclick="closeRentalModal()">Cancel</button>
-                <button class="btn-modal primary" onclick="confirmRental()">Confirm Rental</button>
+                <button class="btn-modal secondary js-rental-cancel" type="button">Cancel</button>
+                <button class="btn-modal primary js-rental-confirm" type="button">Confirm Rental</button>
             </div>
         </div>
     `;
 
     document.body.appendChild(modal);
+
+    const cancelButton = modal.querySelector('.js-rental-cancel');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', closeRentalModal);
+    }
+
+    const confirmButton = modal.querySelector('.js-rental-confirm');
+    if (confirmButton) {
+        confirmButton.addEventListener('click', confirmRental);
+    }
 }
 
 function populateRentalDetails(rentalData) {
@@ -399,6 +415,17 @@ function initRentalFiltering() {
     setTimeout(() => {
         filterRentalsByCategory('all');
     }, 100);
+}
+
+function initRentalImageFallbacks() {
+    document.querySelectorAll('#rentals-grid img[data-fallback-src]').forEach(function (image) {
+        image.addEventListener('error', function handleImageError() {
+            if (image.src !== image.dataset.fallbackSrc) {
+                image.src = image.dataset.fallbackSrc;
+            }
+            image.removeEventListener('error', handleImageError);
+        });
+    });
 }
 
 // Search functionality

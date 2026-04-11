@@ -76,7 +76,7 @@
             </div>
             <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
             <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
+            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn profile-logout-spacing">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>
@@ -109,27 +109,27 @@
 
         <!-- Rental Navigation -->
         <div class="page-navigation">
-            <button class="nav-btn active" onclick="filterRentalsByCategory('all')">
+            <button class="nav-btn rental-nav-btn active" data-category="all" type="button">
                 <i class="fas fa-th-large"></i>
                 All Equipment
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('batting')">
+            <button class="nav-btn rental-nav-btn" data-category="batting" type="button">
                 <i class="fas fa-baseball-ball"></i>
                 Batting
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('bowling')">
+            <button class="nav-btn rental-nav-btn" data-category="bowling" type="button">
                 <i class="fas fa-bullseye"></i>
                 Bowling
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('training')">
+            <button class="nav-btn rental-nav-btn" data-category="training" type="button">
                 <i class="fas fa-dumbbell"></i>
                 Training
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('protective')">
+            <button class="nav-btn rental-nav-btn" data-category="protective" type="button">
                 <i class="fas fa-shield-alt"></i>
                 Protective
             </button>
-            <button class="nav-btn" onclick="filterRentalsByCategory('other')">
+            <button class="nav-btn rental-nav-btn" data-category="other" type="button">
                 <i class="fas fa-ellipsis-h"></i>
                 Other
             </button>
@@ -188,10 +188,10 @@
                         $imageFallback = $placeholderUrl($name);
                     ?>
 
-                    <div class="card-item" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
+                    <div class="card-item product-card" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
                         <!--<div class="condition-badge condition-<?php echo $escape($conditionClass); ?>"><?php echo $escape($conditionLabel); ?></div> -->
                         <div class="card-image">
-                            <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" onerror="this.src='<?php echo $escape($imageFallback); ?>'" />
+                            <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" data-fallback-src="<?php echo $escape($imageFallback); ?>" />
                         </div>
                         <div class="card-body">
                             <div class="equipment-category"><?php echo $escape($category); ?></div>
@@ -218,7 +218,7 @@
                     </div>
                 <?php endforeach; ?>
             <?php else : ?>
-                <div class="payment-card" style="grid-column: 1 / -1;">
+                <div class="payment-card payment-card-fullspan">
                     <p>No equipment found in the database.</p>
                 </div>
             <?php endif; ?>
@@ -261,24 +261,6 @@
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
-
-<style>
-.equipment-category {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.product-stock {
-    color: #27ae60;
-    font-weight: 500;
-    margin-bottom: 1rem;
-}
-
-.product-actions {
-    margin-top: 1rem;
-}
-</style>
 
 <script src="<?php echo URLROOT; ?>/js/player/rentals.js"></script>
 
