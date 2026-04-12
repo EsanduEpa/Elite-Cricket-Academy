@@ -33,15 +33,24 @@ class Adminslots extends Controller {
     // =========================================================
     public function templates() {
         $model = $this->model('M_SlotAdmin');
+        $templateNotice = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_template'])) {
             $model->toggleTemplate((int)$_POST['toggle_template']);
             redirect('adminslots/templates');
         }
 
+        if (isset($_GET['created'])) {
+            $templateNotice = 'Template created successfully.';
+        } elseif (isset($_GET['saved'])) {
+            $templateNotice = 'Template updated successfully.';
+        }
+
         $data = [
             'title'     => 'Session Templates',
             'templates' => $model->getTemplates(),
+            'timeBands' => $model->getTimeBands(),
+            'templateNotice' => $templateNotice,
         ];
         $this->view('admin/slots/templates', $data);
     }
@@ -55,8 +64,8 @@ class Adminslots extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $post              = $_POST;
             $post['CreatedBy'] = $_SESSION['user_id'];
-            $id                = $model->createTemplate($post);
-            redirect('adminslots/staff/' . $id);
+            $id = $model->createTemplate($post);
+            redirect('adminslots/generate?created=1&template_id=' . $id);
         }
 
         $data = [
@@ -64,6 +73,7 @@ class Adminslots extends Controller {
             'template'  => null,
             'timeBands' => $model->getActiveTimeBands(),
             'facilities'=> $model->getFacilities(),
+            'membershipPlans' => $model->getActiveMembershipPlans(),
         ];
         $this->view('admin/slots/template_form', $data);
     }
@@ -79,7 +89,7 @@ class Adminslots extends Controller {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $model->updateTemplate((int)$id, $_POST);
-            redirect('adminslots/staff/' . $id);
+            redirect('adminslots/generate?saved=1&template_id=' . (int)$id);
         }
 
         $data = [
@@ -87,6 +97,7 @@ class Adminslots extends Controller {
             'template'  => $template,
             'timeBands' => $model->getActiveTimeBands(),
             'facilities'=> $model->getFacilities(),
+            'membershipPlans' => $model->getActiveMembershipPlans(),
         ];
         $this->view('admin/slots/template_form', $data);
     }
@@ -149,11 +160,20 @@ class Adminslots extends Controller {
         $model  = $this->model('M_SlotAdmin');
         $result = null;
         $error  = null;
+        $notice = null;
+        $selectedTemplateId = (int) ($_GET['template_id'] ?? 0);
+
+        if (isset($_GET['created'])) {
+            $notice = 'Template created successfully. You can now generate occurrences for it.';
+        } elseif (isset($_GET['saved'])) {
+            $notice = 'Template updated successfully. You can now generate occurrences for it.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $templateId = (int) ($_POST['template_id'] ?? 0);
             $from       = $_POST['from_date'] ?? '';
             $to         = $_POST['to_date']   ?? '';
+            $selectedTemplateId = $templateId;
 
             if (!$templateId || !$from || !$to) {
                 $error = 'Please select a template and fill in both dates.';
@@ -169,8 +189,46 @@ class Adminslots extends Controller {
             'templates' => $model->getActiveTemplates(),
             'result'    => $result,
             'error'     => $error,
+            'notice'    => $notice,
+            'selectedTemplateId' => $selectedTemplateId,
         ];
         $this->view('admin/slots/generate', $data);
+    }
+
+    private function handleOccurrenceGeneration($model, ?int $defaultTemplateId = null): array {
+        $templateId = (int) ($_POST['template_id'] ?? $defaultTemplateId ?? 0);
+        $from = $_POST['from_date'] ?? '';
+        $to = $_POST['to_date'] ?? '';
+
+        $values = [
+            'template_id' => $templateId > 0 ? (string)$templateId : '',
+            'from_date' => $from,
+            'to_date' => $to,
+        ];
+
+        if (!$templateId || !$from || !$to) {
+            return [
+                'result' => null,
+                'error' => 'Please select a template and fill in both dates.',
+                'values' => $values,
+            ];
+        }
+
+        if ($from > $to) {
+            return [
+                'result' => null,
+                'error' => 'Start date must be on or before end date.',
+                'values' => $values,
+            ];
+        }
+
+        $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
+
+        return [
+            'result' => $result,
+            'error' => $result['error'] ?? null,
+            'values' => $values,
+        ];
     }
 
     // =========================================================

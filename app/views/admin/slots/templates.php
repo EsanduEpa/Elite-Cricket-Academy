@@ -68,6 +68,12 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
         </div>
 
         <div style="padding:0 25px 40px;">
+            <?php if (!empty($data['templateNotice'])): ?>
+                <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:14px 16px;border-radius:10px;margin-bottom:20px;">
+                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($data['templateNotice']) ?>
+                </div>
+            <?php endif; ?>
+
             <?php if (empty($data['templates'])): ?>
                 <div style="text-align:center;padding:60px;color:#888;">
                     <i class="fas fa-layer-group" style="font-size:48px;color:#dee2e6;display:block;margin-bottom:16px;"></i>

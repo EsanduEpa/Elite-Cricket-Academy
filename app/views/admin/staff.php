@@ -337,12 +337,21 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-group">
-                                <label for="fullName">
-                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                                </label>
-                                <input type="text" id="fullName" name="fullName" required 
-                                       placeholder="Enter full name">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">
+                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="firstName" name="firstName" required 
+                                           placeholder="Enter first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">
+                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="lastName" name="lastName" required 
+                                           placeholder="Enter last name">
+                                </div>
                             </div>
 
                             <div class="form-row">

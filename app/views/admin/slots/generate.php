@@ -48,6 +48,12 @@
 
         <div style="padding:0 25px 40px; max-width:680px;">
 
+            <?php if (!empty($data['notice'])): ?>
+                <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($data['notice']) ?>
+                </div>
+            <?php endif; ?>
+
             <?php if ($data['error']): ?>
                 <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
                     <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($data['error']) ?>
@@ -87,7 +93,7 @@
                                 <option value="">— Select a template —</option>
                                 <?php foreach ($data['templates'] as $t): ?>
                                     <option value="<?= $t->TemplateID ?>"
-                                        <?= (isset($_POST['template_id']) && $_POST['template_id'] == $t->TemplateID) ? 'selected' : '' ?>>
+                                        <?= ((int)($data['selectedTemplateId'] ?? 0) === (int)$t->TemplateID) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($t->TemplateName) ?>
                                         <?php if ($t->DayOfWeek): ?>
                                             <?php $days = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun']; ?>

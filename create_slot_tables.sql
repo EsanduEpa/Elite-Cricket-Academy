@@ -84,12 +84,9 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   `PricePerSession`     DECIMAL(10,2) NOT NULL DEFAULT 0.00
     COMMENT '0.00 = subscription-covered; >0 = direct charge',
 
-  `RequiredPlanFeature` ENUM('none','sessions','private_sessions','facility_access')
-                        NOT NULL DEFAULT 'none'
-    COMMENT 'Checked against membershipplan at booking time',
+  `RequiredPlanFeature` VARCHAR(50) DEFAULT NULL
+    COMMENT 'NULL = open to all; supports legacy feature rules and plan:ID values checked at booking time',
 
-  `RecurrenceStart`     DATE          NOT NULL,
-  `RecurrenceEnd`       DATE          DEFAULT NULL        COMMENT 'NULL = open-ended season',
   `IsActive`            TINYINT(1)    NOT NULL DEFAULT 1,
 
   `CreatedBy`           INT(11)       NOT NULL            COMMENT 'FK → user (Admin)',

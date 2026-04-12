@@ -1,4 +1,62 @@
 const registrationForm = document.getElementById('registrationForm');
+const registerDraftStorageKey = 'elite-register-draft';
+
+function getDraftFieldNames() {
+    return ['firstName', 'lastName', 'dateOfBirth', 'address', 'email', 'contactNumber', 'school', 'username', 'membershipPlan'];
+}
+
+function saveRegistrationDraft() {
+    if (!registrationForm) {
+        return;
+    }
+
+    const draft = {};
+    getDraftFieldNames().forEach((fieldName) => {
+        const field = getField(fieldName);
+        if (field) {
+            draft[fieldName] = field.value;
+        }
+    });
+
+    sessionStorage.setItem(registerDraftStorageKey, JSON.stringify(draft));
+}
+
+function restoreRegistrationDraft() {
+    if (!registrationForm) {
+        return;
+    }
+
+    const rawDraft = sessionStorage.getItem(registerDraftStorageKey);
+    if (!rawDraft) {
+        return;
+    }
+
+    let draft;
+    try {
+        draft = JSON.parse(rawDraft);
+    } catch (error) {
+        sessionStorage.removeItem(registerDraftStorageKey);
+        return;
+    }
+
+    getDraftFieldNames().forEach((fieldName) => {
+        const field = getField(fieldName);
+        if (!field) {
+            return;
+        }
+
+        const currentValue = field.value || '';
+        const draftValue = draft[fieldName] || '';
+
+        if (!currentValue && draftValue) {
+            field.value = draftValue;
+        }
+    });
+}
+
+function clearRegistrationDraft() {
+    sessionStorage.removeItem(registerDraftStorageKey);
+}
 
 function getField(fieldName) {
     return document.getElementById(fieldName);
@@ -27,7 +85,35 @@ function clearFieldError(fieldName) {
 
 // Form validation and submission
 if (registrationForm) {
+restoreRegistrationDraft();
+
+registrationForm.addEventListener('input', function(e) {
+    if (e.target && e.target.name && getDraftFieldNames().includes(e.target.name)) {
+        saveRegistrationDraft();
+    }
+});
+
+registrationForm.addEventListener('change', function(e) {
+    if (e.target && e.target.name && getDraftFieldNames().includes(e.target.name)) {
+        saveRegistrationDraft();
+    }
+});
+
 registrationForm.addEventListener('submit', function(e) {
+    const submitter = e.submitter;
+
+    if (submitter && submitter.id === 'paymentPortalBtn') {
+        clearErrors();
+        saveRegistrationDraft();
+
+        const membershipPlan = getField('membershipPlan') ? getField('membershipPlan').value.trim() : '';
+        if (!membershipPlan) {
+            e.preventDefault();
+            showError('membershipPlan', 'Please select a membership plan before opening the payment portal');
+        }
+        return;
+    }
+
     e.preventDefault();
 
     // Clear previous errors
@@ -35,7 +121,8 @@ registrationForm.addEventListener('submit', function(e) {
 
     // Get form data
     const formData = {
-        fullName: getField('fullName').value.trim(),
+        firstName: getField('firstName').value.trim(),
+        lastName: getField('lastName').value.trim(),
         dateOfBirth: getField('dateOfBirth').value,
         address: getField('address').value.trim(),
         email: getField('email').value.trim(),
@@ -50,8 +137,13 @@ registrationForm.addEventListener('submit', function(e) {
     let isValid = true;
     
     // Validation
-    if (formData.fullName.length < 2) {
-        showError('fullName', 'Please enter your full name (at least 2 characters)');
+    if (formData.firstName.length < 2) {
+        showError('firstName', 'Please enter your first name (at least 2 characters)');
+        isValid = false;
+    }
+
+    if (formData.lastName.length < 2) {
+        showError('lastName', 'Please enter your last name (at least 2 characters)');
         isValid = false;
     }
     
@@ -61,7 +153,7 @@ registrationForm.addEventListener('submit', function(e) {
     } else {
         const birthDate = new Date(formData.dateOfBirth);
         const today = new Date();
-        const howage = today.getFullYear() - birthDate.getFullYear();
+        const age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
         
         // Adjust age if birthday hasn't occurred this year
@@ -91,17 +183,13 @@ registrationForm.addEventListener('submit', function(e) {
         isValid = false;
     }
     
-    // Enhanced phone number validation
+    // Phone number validation: exactly 10 digits and must start with 0
     const phoneDigitsOnly = formData.contactNumber.replace(/[^0-9]/g, '');
-    if (phoneDigitsOnly.length < 10) {
-        showError('contactNumber', 'Contact number must be at least 10 digits');
+    if (!/^0[0-9]{9}$/.test(phoneDigitsOnly)) {
+        showError('contactNumber', 'Contact number must be exactly 10 digits and start with 0');
         isValid = false;
-    } else if (!(/^[0-9+\-\s()]+$/.test(formData.contactNumber))) {
-        showError('contactNumber', 'Please enter a valid phone number (digits, +, -, spaces, or parentheses only)');
-        isValid = false;
-    } else if (phoneDigitsOnly.length > 15) {
-        showError('contactNumber', 'Contact number cannot exceed 15 digits');
-        isValid = false;
+    } else {
+        getField('contactNumber').value = phoneDigitsOnly;
     }
     
     if (formData.school.length < 2) {
@@ -153,6 +241,7 @@ registrationForm.addEventListener('submit', function(e) {
     if (isValid) {
         // Show loading
         showLoading(true);
+        clearRegistrationDraft();
         
         // Submit the form
         this.submit();
@@ -188,8 +277,8 @@ function clearErrors() {
 }
 
 function showLoading(show) {
-    const spinner = document.getElementById('loadingSpinner');
-    const buttonText = document.getElementById('buttonText');
+    const spinner = document.getElementById('registerSubmitSpinner');
+    const buttonText = document.getElementById('registerSubmitText');
     const button = document.querySelector('.register-submit-btn');
 
     if (!spinner || !buttonText || !button) {
@@ -205,6 +294,59 @@ function showLoading(show) {
         buttonText.textContent = 'Create Account';
         button.disabled = false;
     }
+}
+
+const membershipPlanField = getField('membershipPlan');
+const paymentPortalButton = document.getElementById('paymentPortalBtn');
+const paymentPortalButtonText = document.getElementById('paymentPortalBtnText');
+const selectedPlanFeeHint = document.getElementById('selectedPlanFeeHint');
+
+function updatePaymentPortalCopy() {
+    if (!membershipPlanField || !paymentPortalButtonText || !selectedPlanFeeHint || !paymentPortalButton) {
+        return;
+    }
+
+    const selectedOption = membershipPlanField.options[membershipPlanField.selectedIndex];
+    const fee = selectedOption ? selectedOption.getAttribute('data-fee') : '';
+    const planName = selectedOption ? selectedOption.getAttribute('data-plan-name') : '';
+    const usesRecurringBilling = selectedOption ? selectedOption.getAttribute('data-recurring-billing') === '1' : false;
+
+    if (membershipPlanField.value && usesRecurringBilling && fee) {
+        paymentPortalButton.disabled = false;
+        paymentPortalButtonText.textContent = `PayNow Rs. ${fee}`;
+        selectedPlanFeeHint.textContent = `${planName} plan selected. You will be redirected with a payment amount of Rs. ${fee}.`;
+    } else if (membershipPlanField.value && !usesRecurringBilling) {
+        paymentPortalButton.disabled = true;
+        paymentPortalButtonText.textContent = 'PayNow Unavailable';
+        selectedPlanFeeHint.textContent = `${planName} does not use monthly billing. Pay per facility booking after account creation.`;
+    } else {
+        paymentPortalButton.disabled = true;
+        paymentPortalButtonText.textContent = 'PayNow';
+        selectedPlanFeeHint.textContent = 'Choose a membership plan, then continue to the payment portal with that monthly fee.';
+    }
+}
+
+if (membershipPlanField) {
+    membershipPlanField.addEventListener('change', function() {
+        clearFieldError('membershipPlan');
+        updatePaymentPortalCopy();
+    });
+
+    updatePaymentPortalCopy();
+}
+
+if (paymentPortalButton) {
+    paymentPortalButton.addEventListener('click', function(e) {
+        if (paymentPortalButton.disabled) {
+            e.preventDefault();
+            return;
+        }
+
+        if (!membershipPlanField || !membershipPlanField.value) {
+            e.preventDefault();
+            showError('membershipPlan', 'Please select a membership plan before opening the payment portal');
+        }
+    });
 }
 
 // Real-time validation
@@ -258,20 +400,45 @@ passwordField.addEventListener('input', function() {
 // Real-time phone number validation
 const contactNumberField = getField('contactNumber');
 if (contactNumberField) {
+contactNumberField.addEventListener('keydown', function(e) {
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+    if (allowedKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) {
+        return;
+    }
+
+    if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+    }
+});
+
 contactNumberField.addEventListener('input', function() {
-    const phone = this.value;
-    const phoneDigitsOnly = phone.replace(/[^0-9]/g, '');
+    const phoneDigitsOnly = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+    this.value = phoneDigitsOnly;
     
-    if (phone.length > 0) {
-        if (phoneDigitsOnly.length < 10) {
-            showError('contactNumber', 'Contact number must be at least 10 digits');
-        } else if (!(/^[0-9+\-\s()]+$/.test(phone))) {
-            showError('contactNumber', 'Only digits, +, -, spaces, or parentheses allowed');
-        } else if (phoneDigitsOnly.length > 15) {
-            showError('contactNumber', 'Contact number cannot exceed 15 digits');
+    if (phoneDigitsOnly.length > 0) {
+        if (!/^0/.test(phoneDigitsOnly)) {
+            showError('contactNumber', 'Contact number must start with 0');
+        } else if (phoneDigitsOnly.length !== 10) {
+            showError('contactNumber', 'Contact number must be exactly 10 digits');
         } else {
             clearFieldError('contactNumber');
         }
+    }
+});
+
+contactNumberField.addEventListener('blur', function() {
+    const phoneDigitsOnly = this.value.replace(/[^0-9]/g, '');
+
+    if (phoneDigitsOnly.length === 0) {
+        return;
+    }
+
+    if (!/^0/.test(phoneDigitsOnly)) {
+        showError('contactNumber', 'Contact number must start with 0');
+    } else if (phoneDigitsOnly.length !== 10) {
+        showError('contactNumber', 'Contact number must be exactly 10 digits');
+    } else {
+        clearFieldError('contactNumber');
     }
 });
 }

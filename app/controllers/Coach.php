@@ -367,9 +367,10 @@ class Coach extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
-                'phone_number' => trim($_POST['phone_number']),
+                'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address']),
                 'school' => trim($_POST['school']),
                 'role' => $_SESSION['user_role'] ?? 'Coach',
@@ -387,8 +388,11 @@ class Coach extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -418,7 +422,7 @@ class Coach extends Controller {
             if (empty($errors)) {
                 if ($userModel->updateUser($userData) && $userModel->updateCoachProfile($coachData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     flash('profile_message', 'Profile updated successfully');

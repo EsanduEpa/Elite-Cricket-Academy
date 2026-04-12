@@ -511,11 +511,19 @@
                     
                     <div class="form-section">
                         <h4><i class="fas fa-id-card"></i> Personal Information</h4>
-                        <div class="form-group">
-                            <label for="editPlayerName">
-                                <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                            </label>
-                            <input type="text" id="editPlayerName" name="fullName" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPlayerFirstName">
+                                    <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="editPlayerFirstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editPlayerLastName">
+                                    <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="editPlayerLastName" name="lastName" required>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -645,12 +653,21 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-group">
-                                <label for="playerFullName">
-                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                                </label>
-                                <input type="text" id="playerFullName" name="fullName" required 
-                                       placeholder="Enter full name">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="playerFirstName">
+                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="playerFirstName" name="firstName" required 
+                                           placeholder="Enter first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="playerLastName">
+                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="playerLastName" name="lastName" required 
+                                           placeholder="Enter last name">
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -954,8 +971,12 @@
             
             function updatePlayerReview() {
                 // Personal Information
+                const playerFullName = [
+                    document.getElementById('playerFirstName').value,
+                    document.getElementById('playerLastName').value
+                ].filter(Boolean).join(' ');
                 document.getElementById('reviewPlayerFullName').textContent = 
-                    document.getElementById('playerFullName').value || '-';
+                    playerFullName || '-';
                 document.getElementById('reviewPlayerDOB').textContent = 
                     document.getElementById('playerDOB').value || '-';
                 document.getElementById('reviewPlayerJersey').textContent = 
@@ -1108,8 +1129,12 @@
             // Edit Player Modal Functions
             function openEditPlayerModal(data) {
                 const modal = document.getElementById('editPlayerModal');
+                const nameParts = String(data.name || '').trim().split(/\s+/);
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ');
                 document.getElementById('editPlayerId').value = data.id;
-                document.getElementById('editPlayerName').value = data.name;
+                document.getElementById('editPlayerFirstName').value = firstName;
+                document.getElementById('editPlayerLastName').value = lastName;
                 document.getElementById('editPlayerEmail').value = data.email;
                 document.getElementById('editPlayerPhone').value = data.phone || '';
                 document.getElementById('editPlayerAddress').value = data.address || '';
