@@ -1,5 +1,100 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<?php
+$todaySchedule = $data['todaySchedule'] ?? [];
+$upcomingBookings = $data['upcomingBookings'] ?? [];
+$todayDate = date('Y-m-d');
+
+$dashboardFormatDuration = static function ($startTime, $endTime) {
+    if (empty($startTime) || empty($endTime)) {
+        return 'Time not set';
+    }
+
+    $startTimestamp = strtotime($startTime);
+    $endTimestamp = strtotime($endTime);
+
+    if ($startTimestamp === false || $endTimestamp === false || $endTimestamp <= $startTimestamp) {
+        return date('g:i A', $startTimestamp ?: time()) . ' - ' . date('g:i A', $endTimestamp ?: time());
+    }
+
+    $minutes = (int) round(($endTimestamp - $startTimestamp) / 60);
+    if ($minutes < 60) {
+        return $minutes . ' min';
+    }
+
+    $hours = floor($minutes / 60);
+    $remainingMinutes = $minutes % 60;
+
+    if ($remainingMinutes === 0) {
+        return $hours . ' hour' . ($hours === 1 ? '' : 's');
+    }
+
+    return $hours . 'h ' . $remainingMinutes . 'm';
+};
+
+$dashboardBadgeClass = static function ($status, $date = null, $startTime = null, $endTime = null) use ($todayDate) {
+    $normalizedStatus = strtolower(trim((string) $status));
+
+    if (in_array($normalizedStatus, ['confirmed', 'booked', 'scheduled'], true)) {
+        $normalizedStatus = 'upcoming';
+    }
+
+    if ($date === $todayDate && !empty($startTime) && !empty($endTime)) {
+        $now = time();
+        $startTimestamp = strtotime($date . ' ' . $startTime);
+        $endTimestamp = strtotime($date . ' ' . $endTime);
+
+        if ($startTimestamp !== false && $endTimestamp !== false) {
+            if ($now >= $startTimestamp && $now <= $endTimestamp) {
+                $normalizedStatus = 'active';
+            } elseif ($now < $startTimestamp && $normalizedStatus === '') {
+                $normalizedStatus = 'upcoming';
+            } elseif ($now > $endTimestamp) {
+                $normalizedStatus = 'completed';
+            }
+        }
+    }
+
+    return match ($normalizedStatus) {
+        'active' => 'status-active',
+        'upcoming', 'pending', 'confirmed', 'booked', 'scheduled' => 'status-upcoming',
+        default => '',
+    };
+};
+
+$dashboardStatusLabel = static function ($status, $date = null, $startTime = null, $endTime = null) use ($todayDate) {
+    $normalizedStatus = strtolower(trim((string) $status));
+
+    if ($date === $todayDate && !empty($startTime) && !empty($endTime)) {
+        $now = time();
+        $startTimestamp = strtotime($date . ' ' . $startTime);
+        $endTimestamp = strtotime($date . ' ' . $endTime);
+
+        if ($startTimestamp !== false && $endTimestamp !== false) {
+            if ($now >= $startTimestamp && $now <= $endTimestamp) {
+                return 'Active';
+            }
+            if ($now > $endTimestamp) {
+                return 'Completed';
+            }
+        }
+    }
+
+    if (in_array($normalizedStatus, ['confirmed', 'booked', 'scheduled'], true)) {
+        return 'Upcoming';
+    }
+
+    if ($normalizedStatus === '') {
+        return 'Planned';
+    }
+
+    return ucwords(str_replace('_', ' ', $normalizedStatus));
+};
+
+$futureBookings = array_values(array_filter($upcomingBookings, static function ($booking) use ($todayDate) {
+    return !empty($booking->date) && $booking->date > $todayDate;
+}));
+?>
 
     <!-- Player Dashboard Layout -->
     <div class="player-layout">
@@ -102,7 +197,6 @@
                 </div>
             </div>
 
-            <!-- Performance Statistics -->
             
 
             <!-- Row 1: Today's Schedule and Upcoming Events Side by Side -->
@@ -124,51 +218,43 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary">10:00 AM</div>
-                                        <div class="table-cell-secondary">2 hours</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Morning Training Session</div>
-                                        <div class="table-cell-details">
-                                             Indoor Nets - Coach Johnson
-                                        </div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge status-active">Active</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary">2:30 PM</div>
-                                        <div class="table-cell-secondary">1.5 hours</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Fitness Training</div>
-                                        <div class="table-cell-details">
-                                             Gym Facility - Cardio & Strength
-                                        </div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge status-upcoming">Upcoming</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="table-cell-primary">5:00 PM</div>
-                                        <div class="table-cell-secondary">45 min</div>
-                                    </td>
-                                    <td>
-                                        <div class="table-cell-title">Recovery Session</div>
-                                        <div class="table-cell-details">
-                                            Recovery Room - Stretching
-                                        </div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="table-badge">Planned</span>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($todaySchedule)): ?>
+                                    <?php foreach ($todaySchedule as $scheduleItem): ?>
+                                        <?php
+                                        $badgeClass = $dashboardBadgeClass(
+                                            $scheduleItem->Status ?? '',
+                                            $scheduleItem->Date ?? $todayDate,
+                                            $scheduleItem->StartTime ?? null,
+                                            $scheduleItem->EndTime ?? null
+                                        );
+                                        $statusLabel = $dashboardStatusLabel(
+                                            $scheduleItem->Status ?? '',
+                                            $scheduleItem->Date ?? $todayDate,
+                                            $scheduleItem->StartTime ?? null,
+                                            $scheduleItem->EndTime ?? null
+                                        );
+                                        $details = trim((string)($scheduleItem->location ?? ''));
+                                        if (!empty($scheduleItem->coach)) {
+                                            $details .= ($details !== '' ? ' - ' : '') . $scheduleItem->coach;
+                                        }
+                                        ?>
+                                        <tr>
+                                            <td>
+                                                <div class="table-cell-primary"><?php echo !empty($scheduleItem->StartTime) ? date('g:i A', strtotime($scheduleItem->StartTime)) : 'TBD'; ?></div>
+                                            </td>
+                                            <td>
+                                                <div class="table-cell-title"><?php echo htmlspecialchars($scheduleItem->activity ?? 'Scheduled session'); ?></div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <span class="table-badge <?php echo $badgeClass; ?>"><?php echo htmlspecialchars($statusLabel); ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" style="text-align:center; color:#888;">No sessions scheduled for today.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -190,39 +276,48 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (!empty($data['coachSessions'])): ?>
-                                    <?php foreach ($data['coachSessions'] as $session): ?>
+                                <?php if (!empty($futureBookings)): ?>
+                                    <?php foreach ($futureBookings as $booking): ?>
                                         <tr>
                                             <td style="text-align: center;">
                                                 <div class="table-cell-primary">
-                                                    <?php echo date('M d', strtotime($session->Date)); ?>
+                                                    <?php echo date('M d', strtotime($booking->date)); ?>
                                                 </div>
                                                 <div class="table-cell-secondary">
-                                                    <?php echo date('l', strtotime($session->Date)); ?>
+                                                    <?php echo date('l', strtotime($booking->date)); ?>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="table-cell-title">
-                                                    <?php echo htmlspecialchars($session->Name); ?>
+                                                    <?php echo htmlspecialchars($booking->reason ?: ucfirst($booking->booking_type ?? 'session')); ?>
                                                 </div>
                                                 <div class="table-cell-details">
-                                                    Coach: <?php echo htmlspecialchars($session->CoachName); ?> | <?php echo htmlspecialchars($session->Location); ?>
+                                                    <?php
+                                                    $bookingDetails = [];
+                                                    if (!empty($booking->practitioner_name)) {
+                                                        $bookingDetails[] = $booking->practitioner_name;
+                                                    }
+                                                    if (!empty($booking->location)) {
+                                                        $bookingDetails[] = $booking->location;
+                                                    }
+                                                    echo htmlspecialchars(!empty($bookingDetails) ? implode(' | ', $bookingDetails) : 'Academy');
+                                                    ?>
                                                 </div>
-                                                <span class="table-badge status-upcoming">Coach Session</span>
+                                                <span class="table-badge status-upcoming"><?php echo htmlspecialchars(ucfirst($booking->booking_type ?? 'session')); ?></span>
                                             </td>
                                             <td style="text-align: center;">
                                                 <div class="table-cell-primary">
-                                                    <?php echo date('g:i A', strtotime($session->StartTime)); ?>
+                                                    <?php echo !empty($booking->StartTime) ? date('g:i A', strtotime($booking->StartTime)) : 'TBD'; ?>
                                                 </div>
                                                 <div class="table-cell-secondary">
-                                                    <?php echo date('g:i A', strtotime($session->EndTime)); ?>
+                                                    <?php echo !empty($booking->EndTime) ? date('g:i A', strtotime($booking->EndTime)) : ''; ?>
                                                 </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="3" style="text-align:center; color:#888;">No upcoming coach sessions found.</td>
+                                        <td colspan="3" style="text-align:center; color:#888;">No upcoming schedule items found.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>

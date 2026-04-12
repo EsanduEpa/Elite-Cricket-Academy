@@ -1,4 +1,11 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php
+$counterBookingStatusOptions = [
+    'confirmed' => 'Confirmed',
+    'completed' => 'Completed',
+    'not_attended' => 'Not Attended',
+];
+?>
 
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-dashboard.css">
@@ -109,6 +116,17 @@
     .spots-ok   { color: #16a34a; }
     .spots-low  { color: #ea580c; }
     .spots-full { color: #dc2626; }
+    .status-form { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .status-select {
+        min-width:150px; padding:7px 10px; border:1px solid #d1d5db; border-radius:8px;
+        font-size:12px; background:#fff; color:#111827;
+    }
+    .status-save-btn {
+        padding:7px 12px; border:none; border-radius:8px; background:#2563eb; color:#fff;
+        font-size:12px; font-weight:700; cursor:pointer;
+    }
+    .status-save-btn:hover { opacity:.9; }
+    .status-locked { font-size:12px; color:#6b7280; font-weight:600; }
 </style>
 
 <div class="admin-layout">
@@ -326,6 +344,85 @@
                 <?php endforeach; ?>
                 </tbody>
             </table>
+            <?php endif; ?>
+        </div>
+
+        <div class="counter-form-card">
+            <div class="section-title">
+                <i class="fas fa-clipboard-check" style="color:#7c3aed;"></i> Facility Booking Status Updates
+                <span style="font-size:12px;font-weight:400;color:#94a3b8;margin-left:8px;">
+                    Shop employees can update facility-only slot bookings only
+                </span>
+            </div>
+
+            <?php if (empty($data['facilityBookings'])): ?>
+                <div style="padding:20px 0;color:#94a3b8;">
+                    No recent facility-only slot bookings were found.
+                </div>
+            <?php else: ?>
+                <table class="slot-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> Booking</th>
+                            <th><i class="fas fa-user"></i> Player</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Facility</th>
+                            <th><i class="fas fa-clock"></i> Session Time</th>
+                            <th><i class="fas fa-edit"></i> Update Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($data['facilityBookings'] as $booking): ?>
+                            <?php
+                            $rawStatus = strtolower((string) ($booking->Status ?? 'confirmed'));
+                            $selectedStatus = $rawStatus;
+                            if ($rawStatus === 'attended') {
+                                $selectedStatus = 'completed';
+                            } elseif ($rawStatus === 'missed') {
+                                $selectedStatus = 'not_attended';
+                            }
+                            ?>
+                            <tr>
+                                <td>
+                                    <strong>#<?php echo (int) $booking->BookingID; ?></strong><br>
+                                    <small style="color:#94a3b8;">
+                                        <?php echo date('d M Y', strtotime($booking->CreatedAt)); ?>
+                                    </small>
+                                </td>
+                                <td>
+                                    <?php echo htmlspecialchars($booking->PlayerName); ?><br>
+                                    <small style="color:#94a3b8;"><?php echo htmlspecialchars($booking->PlayerEmail ?? '—'); ?></small>
+                                </td>
+                                <td>
+                                    <?php echo htmlspecialchars($booking->FacilityName ?? $booking->TemplateName ?? 'Facility Booking'); ?>
+                                </td>
+                                <td>
+                                    <strong><?php echo date('D, d M Y', strtotime($booking->OccurrenceDate)); ?></strong><br>
+                                    <small style="color:#94a3b8;">
+                                        <?php echo htmlspecialchars($booking->SlotLabel); ?>
+                                        · <?php echo date('g:i A', strtotime($booking->StartTime)); ?> - <?php echo date('g:i A', strtotime($booking->EndTime)); ?>
+                                    </small>
+                                </td>
+                                <td>
+                                    <?php if ($rawStatus === 'cancelled'): ?>
+                                        <span class="status-locked">Cancelled booking</span>
+                                    <?php else: ?>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/shop/updateFacilityBookingStatus" class="status-form">
+                                            <input type="hidden" name="booking_id" value="<?php echo (int) $booking->BookingID; ?>">
+                                            <select name="booking_status" class="status-select">
+                                                <?php foreach ($counterBookingStatusOptions as $optionValue => $optionLabel): ?>
+                                                    <option value="<?php echo htmlspecialchars($optionValue); ?>" <?php echo $selectedStatus === $optionValue ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars($optionLabel); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button type="submit" class="status-save-btn">Save</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             <?php endif; ?>
         </div>
 

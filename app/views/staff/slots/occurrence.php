@@ -16,6 +16,20 @@ $emptyPlayerText = $isProgramSession
     ? 'No eligible players are currently assigned to this program.'
     : 'No players have booked this session yet.';
 $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players';
+$bookingStatusMeta = [
+    'confirmed' => ['label' => 'Confirmed', 'class' => 'confirmed'],
+    'pending' => ['label' => 'Pending', 'class' => 'pending'],
+    'attended' => ['label' => 'Completed', 'class' => 'completed'],
+    'completed' => ['label' => 'Completed', 'class' => 'completed'],
+    'not_attended' => ['label' => 'Not Attended', 'class' => 'not-attended'],
+    'missed' => ['label' => 'Not Attended', 'class' => 'not-attended'],
+    'cancelled' => ['label' => 'Cancelled', 'class' => 'cancelled'],
+];
+$manualStatusOptions = [
+    'confirmed' => 'Confirmed',
+    'completed' => 'Completed',
+    'not_attended' => 'Not Attended',
+];
 ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/<?= $cssFile ?>.css">
 <style>
@@ -26,7 +40,9 @@ $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players
 .booking-status-confirmed { background:#d4edda;color:#155724;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
 .booking-status-pending   { background:#fff3cd;color:#856404;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
 .booking-status-attended  { background:#cce5ff;color:#004085;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
+.booking-status-completed { background:#cce5ff;color:#004085;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
 .booking-status-missed    { background:#f8d7da;color:#721c24;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
+.booking-status-not-attended { background:#f8d7da;color:#721c24;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
 .booking-status-cancelled { background:#e9ecef;color:#6c757d;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;text-decoration:line-through; }
 .detail-card  { background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:24px; }
 .detail-grid  { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
@@ -36,6 +52,24 @@ $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players
 .alert-success { background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:20px; }
 .form-group label     { display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px; }
 .form-group textarea  { width:100%;padding:10px 13px;border:1px solid #ced4da;border-radius:7px;font-size:14px;color:#333;box-sizing:border-box;height:90px;resize:vertical; }
+.booking-process { display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 0; }
+.booking-process-step { display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700; }
+.booking-process-step--confirmed { background:#d4edda;color:#155724; }
+.booking-process-step--completed { background:#cce5ff;color:#004085; }
+.booking-process-step--not-attended { background:#f8d7da;color:#721c24; }
+.booking-process-step--cancelled { background:#e9ecef;color:#6c757d; }
+.booking-process-arrow { color:#97a6b5;font-size:12px;font-weight:700; }
+.booking-status-form { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+.booking-status-select {
+    min-width:150px;padding:7px 10px;border:1px solid #ced4da;border-radius:8px;
+    font-size:12px;color:#2c3e50;background:#fff;
+}
+.booking-status-save {
+    padding:7px 12px;border:none;border-radius:8px;background:#1f6feb;color:#fff;
+    font-size:12px;font-weight:700;cursor:pointer;
+}
+.booking-status-save:hover { background:#1558b0; }
+.booking-status-locked { font-size:12px;color:#6c757d;font-weight:600; }
 </style>
 
 <div class="<?= $layout ?>">
@@ -195,6 +229,18 @@ $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players
                     <i class="fas fa-users"></i> <?= htmlspecialchars($playerListHeading) ?>
                     <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;"><?= htmlspecialchars($playerListSummary) ?></span>
                 </h3>
+                <div style="margin:0 0 18px;font-size:13px;color:#5f6f7f;line-height:1.6;">
+                    Booking status process:
+                    <div class="booking-process">
+                        <span class="booking-process-step booking-process-step--confirmed"><i class="fas fa-calendar-check"></i> Confirmed</span>
+                        <span class="booking-process-arrow"><i class="fas fa-arrow-right"></i></span>
+                        <span class="booking-process-step booking-process-step--completed"><i class="fas fa-check-circle"></i> Completed</span>
+                        <span class="booking-process-arrow">or</span>
+                        <span class="booking-process-step booking-process-step--not-attended"><i class="fas fa-user-times"></i> Not Attended</span>
+                        <span class="booking-process-arrow">or</span>
+                        <span class="booking-process-step booking-process-step--cancelled"><i class="fas fa-ban"></i> Cancelled</span>
+                    </div>
+                </div>
                 <?php if (empty($data['bookings'])): ?>
                     <p style="color:#888;font-size:13px;margin:0;"><?= htmlspecialchars($emptyPlayerText) ?></p>
                 <?php else: ?>
@@ -205,17 +251,46 @@ $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players
                                 <th style="padding:9px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Player</th>
                                 <th style="padding:9px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Email</th>
                                 <th style="padding:9px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Status</th>
+                                <th style="padding:9px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Update Status</th>
                                 <th style="padding:9px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Booked At</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($data['bookings'] as $i => $b): ?>
+                            <?php
+                            $rawBookingStatus = strtolower((string)($b->Status ?? 'confirmed'));
+                            $statusInfo = $bookingStatusMeta[$rawBookingStatus] ?? ['label' => ucwords(str_replace('_', ' ', $rawBookingStatus)), 'class' => $rawBookingStatus];
+                            $selectedManualStatus = $rawBookingStatus;
+                            if ($rawBookingStatus === 'attended') {
+                                $selectedManualStatus = 'completed';
+                            } elseif ($rawBookingStatus === 'missed') {
+                                $selectedManualStatus = 'not_attended';
+                            }
+                            ?>
                             <tr style="border-bottom:1px solid #f0f0f0;">
                                 <td style="padding:9px 14px;color:#888;font-size:13px;"><?= $i + 1 ?></td>
                                 <td style="padding:9px 14px;font-weight:600;"><?= htmlspecialchars($b->PlayerName) ?></td>
                                 <td style="padding:9px 14px;font-size:13px;color:#666;"><?= htmlspecialchars($b->PlayerEmail ?? '—') ?></td>
                                 <td style="padding:9px 14px;">
-                                    <span class="booking-status-<?= $b->Status ?>"><?= ucfirst($b->Status) ?></span>
+                                    <span class="booking-status-<?= htmlspecialchars($statusInfo['class']) ?>"><?= htmlspecialchars($statusInfo['label']) ?></span>
+                                </td>
+                                <td style="padding:9px 14px;">
+                                    <?php if ($rawBookingStatus === 'cancelled'): ?>
+                                        <span class="booking-status-locked">Cancelled booking</span>
+                                    <?php else: ?>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/staffslots/occurrence/<?= $occ->OccurrenceID ?>" class="booking-status-form">
+                                            <input type="hidden" name="action_update_booking" value="1">
+                                            <input type="hidden" name="booking_id" value="<?= (int) $b->BookingID ?>">
+                                            <select name="booking_status" class="booking-status-select">
+                                                <?php foreach ($manualStatusOptions as $optionValue => $optionLabel): ?>
+                                                    <option value="<?= htmlspecialchars($optionValue) ?>" <?= $selectedManualStatus === $optionValue ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($optionLabel) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button type="submit" class="booking-status-save">Save</button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="padding:9px 14px;font-size:12px;color:#888;">
                                     <?= date('j M Y, H:i', strtotime($b->CreatedAt)) ?>

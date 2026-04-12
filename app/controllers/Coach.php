@@ -12,58 +12,53 @@ class Coach extends Controller {
     
     public function dashboard() {
         $coachId = $_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
-        
-        // Get coach's sessions
-        $allSessions = $sessionModel->getSessionsByCoach($coachId);
-        
-        // Filter today's sessions
+        $slotStaffModel = $this->model('M_SlotStaff');
+
         $today = date('Y-m-d');
-        $todaySessions = array_filter($allSessions, function($session) use ($today) {
-            return $session->Date == $today && $session->Status == 'active';
-        });
-        
-        // Filter upcoming sessions (next 7 days)
         $nextWeek = date('Y-m-d', strtotime('+7 days'));
-        $upcomingSessions = array_filter($allSessions, function($session) use ($today, $nextWeek) {
-            return $session->Date >= $today && $session->Date <= $nextWeek && $session->Status == 'active';
-        });
-        
-        // Sort upcoming sessions by date and time
-        usort($upcomingSessions, function($a, $b) {
-            $dateCompare = strcmp($a->Date, $b->Date);
-            if ($dateCompare !== 0) return $dateCompare;
-            return strcmp($a->StartTime, $b->StartTime);
-        });
-        
-        // Format upcoming bookings for the view
-        $upcomingBookings = array_map(function($session) use ($sessionModel) {
-            $participants = $sessionModel->getSessionParticipants($session->SessionID);
-            $participantNames = array_map(function($p) { return $p->PlayerName; }, $participants);
-            
-            return [
-                'id' => $session->SessionID,
+        $dashboardOccurrences = $slotStaffModel->getMyOccurrences($coachId, 'coach', $today, $nextWeek);
+        $dashboardOccurrences = array_values(array_filter($dashboardOccurrences, function($occurrence) {
+            return strtolower((string)($occurrence->Status ?? '')) !== 'cancelled';
+        }));
+
+        $upcomingBookings = [];
+        foreach ($dashboardOccurrences as $occurrence) {
+            $bookings = $slotStaffModel->getBookingsForOccurrence((int)$occurrence->OccurrenceID);
+            $participantNames = array_map(function($booking) {
+                return $booking->PlayerName;
+            }, $bookings);
+
+            $slotType = strtolower((string)($occurrence->SlotType ?? 'program'));
+            $sessionType = $slotType === 'private' ? 'private' : 'normal';
+
+            $upcomingBookings[] = [
+                'id' => (int)$occurrence->OccurrenceID,
                 'player_name' => !empty($participantNames) ? implode(', ', $participantNames) : 'No participants yet',
-                'session_name' => $session->Name,
-                'session_type' => strtolower($session->SessionMode),
-                'date' => $session->Date,
-                'time' => date('H:i', strtotime($session->StartTime)),
-                'start_time' => $session->StartTime,
-                'end_time' => $session->EndTime,
-                'duration' => $this->calculateDuration($session->StartTime, $session->EndTime),
-                'facility' => $session->Location ?? 'TBA',
-                'equipment' => '', // No equipment field in current schema
-                'max_participants' => $session->MaxParticipants,
-                'current_participants' => count($participants),
-                'price' => $session->PricePerSession
+                'session_name' => $occurrence->SessionName ?? 'Slot Session',
+                'session_type' => $sessionType,
+                'date' => $occurrence->OccurrenceDate,
+                'time' => !empty($occurrence->StartTime) ? date('H:i', strtotime($occurrence->StartTime)) : 'TBD',
+                'start_time' => $occurrence->StartTime ?? '',
+                'end_time' => $occurrence->EndTime ?? '',
+                'duration' => $this->calculateDuration($occurrence->StartTime ?? '', $occurrence->EndTime ?? ''),
+                'facility' => $occurrence->FacilityName ?? 'TBA',
+                'equipment' => '',
+                'max_participants' => (int)($occurrence->MaxSlots ?? $occurrence->OccMax ?? 0),
+                'current_participants' => count($bookings),
+                'price' => 0,
             ];
-        }, array_slice($upcomingSessions, 0, 5));
-        
-        // Calculate statistics
-        $totalSessions = count($allSessions);
-        $todaySessionsCount = count($todaySessions);
-        $privateSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Private'; }));
-        $groupSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Group'; }));
+        }
+
+        $todaySessionsCount = count(array_filter($upcomingBookings, function($booking) use ($today) {
+            return ($booking['date'] ?? '') === $today;
+        }));
+        $privateSessions = count(array_filter($upcomingBookings, function($booking) {
+            return ($booking['session_type'] ?? '') === 'private';
+        }));
+        $groupSessions = count(array_filter($upcomingBookings, function($booking) {
+            return ($booking['session_type'] ?? '') === 'normal';
+        }));
+        $totalSessions = count($upcomingBookings);
         
         $data = [
             'title' => 'Coach Dashboard - Elite Cricket Academy',
@@ -74,9 +69,9 @@ class Coach extends Controller {
             'todaySessions' => $todaySessionsCount,
             'privateSessions' => $privateSessions,
             'normalSessions' => $groupSessions,
-            'upcomingBookings' => $upcomingBookings,
-            'allSessions' => $allSessions,
-            'weeklySchedule' => $this->generateWeeklySchedule($upcomingSessions),
+            'upcomingBookings' => array_slice($upcomingBookings, 0, 5),
+            'allSessions' => [],
+            'weeklySchedule' => $this->generateWeeklySchedule($upcomingBookings),
         ];
         
         $this->view('coach/dashboard', $data);
@@ -282,22 +277,25 @@ class Coach extends Controller {
     public function reports() {
         $coachId = $_SESSION['user_id'];
         $userModel = $this->model('M_Users');
-        $sessionModel = $this->model('M_Session');
         $medicalModel = $this->model('M_Medical');
         
         // Get real stats
         $players = $userModel->getPlayersAssignedToCoach($coachId);
-        $allSessions = $sessionModel->getSessionsByCoach($coachId);
+        $allSessions = $this->getCoachSlotSessions(
+            $coachId,
+            date('Y-m-d', strtotime('-365 days')),
+            date('Y-m-d', strtotime('+365 days'))
+        );
         $medicalRecords = $medicalModel->getAllMedicalRecordsWithPlayerInfo();
         
         $totalPlayers = count($players);
         $totalSessions = count($allSessions);
-        $completedSessions = count(array_filter($allSessions, function($s) { return $s->Status == 'completed'; }));
-        $activeSessions = count(array_filter($allSessions, function($s) { return $s->Status == 'active'; }));
+        $completedSessions = count(array_filter($allSessions, function($s) { return ($s->Status ?? '') === 'completed'; }));
+        $activeSessions = count(array_filter($allSessions, function($s) { return ($s->Status ?? '') === 'active'; }));
         
         // Session type breakdown
-        $privateSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Private'; }));
-        $groupSessions = count(array_filter($allSessions, function($s) { return $s->SessionMode == 'Group'; }));
+        $privateSessions = count(array_filter($allSessions, function($s) { return ($s->SessionMode ?? '') === 'Private'; }));
+        $groupSessions = count(array_filter($allSessions, function($s) { return ($s->SessionMode ?? '') === 'Group'; }));
         
         // Medical stats
         $totalMedical = count($medicalRecords);
@@ -459,142 +457,38 @@ class Coach extends Controller {
     
     // Display Sessions & Schedule Management Page
     public function sessions() {
-        $coachId      = $_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
-        $sessions     = $sessionModel->getSessionsByCoach($coachId);
-
-        foreach ($sessions as $session) {
-            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
-        }
-
-        $data = [
-            'title'     => 'My Sessions',
-            'coachName' => $_SESSION['user_name'] ?? 'Coach',
-            'coachId'   => $coachId,
-            'sessions'  => $sessions,
-        ];
-        $this->view('coach/sessions', $data);
+        redirect('staffslots/calendar');
     }
 
     // Create New Session (POST from wizard)
     public function create_session() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Get JSON input from wizard
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            // If JSON input exists (from wizard), use it; otherwise fallback to POST
-            if ($input) {
-                // Map wizard fields to model expected format
-                $data = [
-                    'coach_id' => $_SESSION['user_id'] ?? 1,
-                    'session_type' => trim($input['SessionType'] ?? ''),
-                    'session_mode' => trim($input['SessionMode'] ?? 'Group'),
-                    'title' => trim($input['Name'] ?? ''),
-                    'session_date' => trim($input['Date'] ?? ''),
-                    'start_time' => trim($input['StartTime'] ?? ''),
-                    'end_time' => trim($input['EndTime'] ?? ''),
-                    'location' => trim($input['Location'] ?? ''),
-                    'max_participants' => intval($input['MaxParticipants'] ?? 10),
-                    'price' => floatval($input['PricePerSession'] ?? 0.00),
-                    'is_recurring' => filter_var($input['IsRecurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                    'facility_type' => '',
-                    'facility_number' => 0,
-                    'recurrence_pattern' => 'None',
-                    'recurrence_end' => null,
-                    'selected_players' => []
-                ];
-            } else {
-                // Legacy POST format
-                $data = [
-                    'coach_id' => $_SESSION['user_id'] ?? 1,
-                    'session_type' => trim($_POST['session_type'] ?? ''),
-                    'session_mode' => trim($_POST['session_mode'] ?? 'Group'),
-                    'title' => trim($_POST['title'] ?? ''),
-                    'description' => trim($_POST['description'] ?? ''),
-                    'facility_type' => trim($_POST['facility_type'] ?? ''),
-                    'facility_number' => intval($_POST['facility_number'] ?? 0),
-                    'session_date' => trim($_POST['session_date'] ?? ''),
-                    'start_time' => trim($_POST['start_time'] ?? ''),
-                    'end_time' => trim($_POST['end_time'] ?? ''),
-                    'max_participants' => intval($_POST['max_participants'] ?? 0),
-                    'price' => floatval($_POST['price'] ?? 0.00),
-                    'is_recurring' => filter_var($_POST['is_recurring'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                    'recurrence_pattern' => trim($_POST['recurrence_pattern'] ?? 'None'),
-                    'recurrence_end' => trim($_POST['recurrence_end'] ?? ''),
-                    'selected_players' => $_POST['selected_players'] ?? []
-                ];
-            }
-            
-            // Validate required fields
-            if (empty($data['session_type']) || empty($data['title']) || 
-                empty($data['session_date']) || empty($data['start_time']) || empty($data['end_time'])) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Please fill in all required fields'
-                ]);
-                return;
-            }
-            
-            // Load model
-            $sessionModel = $this->model('M_Session');
-            
-            // Create session
-            try {
-                $sessionId = $sessionModel->createSession($data);
-                
-                if ($sessionId) {
-                    // Add players to session if any selected
-                    if (!empty($data['selected_players'])) {
-                        foreach ($data['selected_players'] as $playerId) {
-                            $sessionModel->addPlayerToSession($sessionId, $playerId);
-                        }
-                    }
-                    
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Session created successfully',
-                        'sessionId' => $sessionId
-                    ]);
-                } else {
-                    // Get database error if available
-                    error_log('Session creation failed. Data: ' . print_r($data, true));
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to create session in database'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log('Session creation exception: ' . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Error: ' . $e->getMessage()
-                ]);
-            }
-        } else {
-            redirect('coach/sessions');
-        }
+        $this->respondLegacySessionRedirect(
+            'Legacy coach session creation has been retired. Use My Slot Sessions to create slot-based sessions.',
+            'staffslots/private_session'
+        );
     }
 
     // Get Session by ID (JSON)
     public function get_session($id) {
-        $sessionModel = $this->model('M_Session');
-        $session = $sessionModel->getSessionById($id);
-        
-        if ($session) {
-            // Get participants
-            $participants = $sessionModel->getSessionParticipants($id);
-            $session->participants = $participants;
-            
-            echo json_encode([
-                'success' => true,
-                'session' => $session
-            ]);
-        } else {
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, (int) ($_SESSION['user_id'] ?? 0));
+
+        if (!$occurrence) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Session not found'
             ]);
+            return;
         }
+
+        $bookings = $slotStaffModel->getBookingsForOccurrence((int) $id);
+        $session = $this->mapCoachOccurrenceToSession($occurrence, $bookings);
+        $session->participants = $session->players;
+
+        echo json_encode([
+            'success' => true,
+            'session' => $session
+        ]);
     }
 
     // Get Calendar Sessions (JSON for FullCalendar)
@@ -602,46 +496,24 @@ class Coach extends Controller {
         $coachId = $_SESSION['user_id'] ?? 1;
         $start = $_GET['start'] ?? null;
         $end = $_GET['end'] ?? null;
-        
-        $sessionModel = $this->model('M_Session');
-        $sessions = $sessionModel->getCalendarSessions($coachId, $start, $end);
-        
-        // Format for FullCalendar
-        $events = [];
-        foreach ($sessions as $session) {
-            $color = $this->getSessionColor($session->SessionType ?? '');
-            
-            $events[] = [
-                'id' => $session->SessionID,
-                'title' => $session->Name,
-                'start' => $session->Date . 'T' . $session->StartTime,
-                'end' => $session->Date . 'T' . $session->EndTime,
-                'backgroundColor' => $color,
-                'borderColor' => $color,
-                'extendedProps' => [
-                    'type' => $session->SessionType,
-                    'location' => $session->Location ?? '',
-                    'status' => $session->Status,
-                    'participants' => $session->ParticipantCount ?? 0,
-                    'maxParticipants' => $session->MaxParticipants
-                ]
-            ];
-        }
-        
+
+        $from = $start ?: date('Y-m-d', strtotime('-30 days'));
+        $to = $end ?: date('Y-m-d', strtotime('+90 days'));
+        $sessions = $this->getCoachSlotSessions($coachId, $from, $to);
+        $events = $this->buildCoachCalendarEvents($sessions);
+
         echo json_encode($events);
     }
 
     // Get Session Statistics (JSON)
     public function get_session_stats() {
         $coachId = $_SESSION['user_id'] ?? 1;
-        $sessionModel = $this->model('M_Session');
-        
-        $stats = [
-            'today' => $sessionModel->getTodaySessions($coachId),
-            'thisWeek' => $sessionModel->getThisWeekSessions($coachId),
-            'total' => $sessionModel->getTotalSessions($coachId),
-            'attendance' => $sessionModel->getAverageAttendance($coachId)
-        ];
+        $sessions = $this->getCoachSlotSessions(
+            $coachId,
+            date('Y-m-d', strtotime('-30 days')),
+            date('Y-m-d', strtotime('+90 days'))
+        );
+        $stats = $this->buildCoachSessionStats($sessions);
         
         echo json_encode([
             'success' => true,
@@ -679,16 +551,11 @@ class Coach extends Controller {
         
         error_log('Filters: ' . print_r($filters, true));
         
-        $sessionModel = $this->model('M_Session');
-
-        // If scope=all is requested and user is authorized (coach), return all sessions
         $scope = $_GET['scope'] ?? '';
-        if ($scope === 'all') {
-            error_log('get_sessions_list: returning ALL sessions (scope=all)');
-            $sessions = $sessionModel->getAllSessions($filters);
-        } else {
-            $sessions = $sessionModel->getSessionsByCoach($coachId, $filters);
-        }
+        $from = $filters['dateFrom'] ?: date('Y-m-d', strtotime('-30 days'));
+        $to = $filters['dateTo'] ?: date('Y-m-d', strtotime('+180 days'));
+        $sessions = $this->getCoachSlotSessions($coachId, $from, $to, $scope === 'all');
+        $sessions = $this->applyCoachSessionFilters($sessions, $filters);
         
         error_log('Found ' . count($sessions) . ' session(s) for coach ID: ' . $coachId);
         error_log('=== GET SESSIONS LIST END ===');
@@ -703,104 +570,24 @@ class Coach extends Controller {
 
     // Update Session
     public function edit_session($id = null) {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            header('Content-Type: application/json');
-            
-            // Get JSON input
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            if (!$id) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Session ID is required'
-                ]);
-                return;
-            }
-            
-            error_log('=== EDIT SESSION DEBUG START ===');
-            error_log('Session ID: ' . $id);
-            error_log('Input data: ' . print_r($input, true));
-            
-            // Map input data to model format
-            $data = [
-                'session_type' => trim($input['SessionType'] ?? ''),
-                'session_mode' => trim($input['SessionMode'] ?? 'Group'),
-                'title' => trim($input['Name'] ?? ''),
-                'session_date' => trim($input['Date'] ?? ''),
-                'start_time' => trim($input['StartTime'] ?? ''),
-                'end_time' => trim($input['EndTime'] ?? ''),
-                'location' => trim($input['Location'] ?? ''),
-                'max_participants' => intval($input['MaxParticipants'] ?? 10),
-                'price' => floatval($input['PricePerSession'] ?? 0.00),
-                'is_recurring' => filter_var($input['IsRecurring'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'status' => 'active'
-            ];
-            
-            // Validate required fields
-            if (empty($data['session_type']) || empty($data['title']) || 
-                empty($data['session_date']) || empty($data['start_time']) || empty($data['end_time'])) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Please fill in all required fields'
-                ]);
-                error_log('=== EDIT SESSION DEBUG END (validation failed) ===');
-                return;
-            }
-            
-            $sessionModel = $this->model('M_Session');
-            
-            // Verify session exists and belongs to this coach
-            $session = $sessionModel->getSessionById($id);
-            if (!$session) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Session not found'
-                ]);
-                error_log('=== EDIT SESSION DEBUG END (not found) ===');
-                return;
-            }
-            
-            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Unauthorized: You can only edit your own sessions'
-                ]);
-                error_log('=== EDIT SESSION DEBUG END (unauthorized) ===');
-                return;
-            }
-            
-            if ($sessionModel->updateSession($id, $data)) {
-                error_log('✅ Session updated successfully');
-                error_log('=== EDIT SESSION DEBUG END ===');
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Session updated successfully',
-                    'sessionId' => $id
-                ]);
-            } else {
-                error_log('❌ Failed to update session');
-                error_log('=== EDIT SESSION DEBUG END ===');
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to update session'
-                ]);
-            }
-        } else {
-            redirect('coach/sessions');
-        }
+        $this->respondLegacySessionRedirect(
+            'Legacy coach session editing has been retired. Manage slot sessions from the slot calendar.',
+            $id ? 'staffslots/occurrence/' . (int) $id : 'staffslots/calendar'
+        );
     }
 
     // Cancel Session
     public function cancel_session($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $reason = trim($_POST['reason'] ?? 'No reason provided');
-            
-            $sessionModel = $this->model('M_Session');
-            
-            if ($sessionModel->cancelSession($id, $reason)) {
+
+            $slotStaffModel = $this->model('M_SlotStaff');
+            $result = $slotStaffModel->cancelOccurrence((int) $id, $reason, (int) ($_SESSION['user_id'] ?? 0));
+
+            if ($result === true) {
                 // Send cancellation notifications
                 $this->sendSessionNotifications($id, 'cancelled', $reason);
-                
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Session cancelled successfully'
@@ -818,46 +605,10 @@ class Coach extends Controller {
 
     // Reschedule Session
     public function reschedule_session($id) {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Support both JSON and form POST
-            $input = json_decode(file_get_contents('php://input'), true);
-            $newDate = trim($input['new_date'] ?? $input['date'] ?? $_POST['new_date'] ?? '');
-            $newStartTime = trim($input['new_start_time'] ?? $input['startTime'] ?? $_POST['new_start_time'] ?? '');
-            $newEndTime = trim($input['new_end_time'] ?? $input['endTime'] ?? $_POST['new_end_time'] ?? '');
-            
-            if (empty($newDate) || empty($newStartTime) || empty($newEndTime)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Please provide new date and time'
-                ]);
-                return;
-            }
-            
-            $sessionModel = $this->model('M_Session');
-            
-            $data = [
-                'session_date' => $newDate,
-                'start_time' => $newStartTime,
-                'end_time' => $newEndTime
-            ];
-            
-            if ($sessionModel->rescheduleSession($id, $data)) {
-                // Send reschedule notifications
-                $this->sendSessionNotifications($id, 'rescheduled');
-                
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Session rescheduled successfully'
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to reschedule session'
-                ]);
-            }
-        } else {
-            redirect('coach/sessions');
-        }
+        $this->respondLegacySessionRedirect(
+            'Legacy coach rescheduling has been retired. Reschedule slot sessions from the slot calendar workflow.',
+            $id ? 'staffslots/occurrence/' . (int) $id : 'staffslots/calendar'
+        );
     }
 
     // Mark Attendance
@@ -874,19 +625,28 @@ class Coach extends Controller {
                 return;
             }
             
-            $sessionModel = $this->model('M_Session');
+            $slotStaffModel = $this->model('M_SlotStaff');
+            $bookings = $slotStaffModel->getBookingsForOccurrence($sessionId);
+            $bookingsByPlayerId = [];
+            foreach ($bookings as $booking) {
+                $bookingsByPlayerId[(int) ($booking->PlayerID ?? 0)] = $booking;
+            }
             $success = true;
             
             foreach ($attendanceData as $playerId => $data) {
-                $result = $sessionModel->markAttendance([
-                    'session_id' => $sessionId,
-                    'player_id' => $playerId,
-                    'status' => $data['status'],
-                    'notes' => $data['notes'] ?? '',
-                    'marked_by' => $_SESSION['user_id'] ?? 1
-                ]);
-                
-                if (!$result) {
+                $booking = $bookingsByPlayerId[(int) $playerId] ?? null;
+                if (!$booking) {
+                    $success = false;
+                    continue;
+                }
+
+                $result = $slotStaffModel->markAttendance(
+                    (int) $booking->BookingID,
+                    (string) ($data['status'] ?? ''),
+                    (int) ($_SESSION['user_id'] ?? 1)
+                );
+
+                if ($result !== true) {
                     $success = false;
                 }
             }
@@ -909,8 +669,16 @@ class Coach extends Controller {
 
     // Get Session Attendance (JSON)
     public function get_session_attendance($sessionId) {
-        $sessionModel = $this->model('M_Session');
-        $attendance = $sessionModel->getSessionAttendance($sessionId);
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $attendance = array_map(function($booking) {
+            return (object) [
+                'BookingID' => (int) ($booking->BookingID ?? 0),
+                'PlayerID' => (int) ($booking->PlayerID ?? 0),
+                'Name' => (string) ($booking->PlayerName ?? ''),
+                'AttendanceStatus' => (string) ($booking->Status ?? 'confirmed'),
+                'CreatedAt' => $booking->CreatedAt ?? null,
+            ];
+        }, $slotStaffModel->getBookingsForOccurrence((int) $sessionId));
         
         echo json_encode([
             'success' => true,
@@ -920,99 +688,24 @@ class Coach extends Controller {
 
     // Delete Session
     public function delete_session($id = null) {
-        // Handle both POST with ID in URL and JSON with ID in body
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            header('Content-Type: application/json');
-            
-            error_log('=== DELETE SESSION DEBUG START ===');
-            error_log('Session ID to delete: ' . $id);
-            error_log('User ID from session: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
-            
-            // Get ID from URL parameter or JSON body
-            if (!$id) {
-                $input = json_decode(file_get_contents('php://input'), true);
-                $id = $input['sessionId'] ?? null;
-                error_log('ID from JSON body: ' . $id);
-            }
-            
-            if (!$id) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Session ID is required'
-                ]);
-                return;
-            }
-            
-            $sessionModel = $this->model('M_Session');
-            
-            // Verify session exists and belongs to this coach
-            $session = $sessionModel->getSessionById($id);
-            if (!$session) {
-                error_log('Session not found: ' . $id);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Session not found'
-                ]);
-                return;
-            }
-            
-            error_log('Session owner: ' . $session->CoachOrTrainerID);
-            
-            // Check if coach owns this session - use object notation
-            if ($session->CoachOrTrainerID != $_SESSION['user_id']) {
-                error_log('Unauthorized delete attempt');
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Unauthorized: You can only delete your own sessions'
-                ]);
-                return;
-            }
-            
-            // Validate if session can be deleted (must be in the past)
-            $sessionDateTime = new DateTime($session->Date . ' ' . $session->EndTime);
-            $now = new DateTime();
-            
-            if ($sessionDateTime > $now) {
-                error_log('Cannot delete future session');
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Cannot delete upcoming sessions. Only past sessions can be deleted.'
-                ]);
-                return;
-            }
-            
-            if ($sessionModel->deleteSession($id)) {
-                error_log('✅ Session deleted successfully: ' . $id);
-                error_log('=== DELETE SESSION DEBUG END ===');
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Session deleted successfully'
-                ]);
-            } else {
-                error_log('❌ Failed to delete session: ' . $id);
-                error_log('=== DELETE SESSION DEBUG END ===');
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to delete session'
-                ]);
-            }
-        } else {
-            redirect('coach/sessions');
-        }
+        $this->respondLegacySessionRedirect(
+            'Legacy coach deletion has been retired. Cancel slot sessions from the slot calendar instead.',
+            $id ? 'staffslots/occurrence/' . (int) $id : 'staffslots/calendar'
+        );
     }
 
     // Helper: Send Session Notifications
     private function sendSessionNotifications($sessionId, $action, $reason = '') {
-        $sessionModel = $this->model('M_Session');
-        $session = $sessionModel->getSessionById($sessionId);
-        $participants = $sessionModel->getSessionParticipants($sessionId);
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $session = $slotStaffModel->getOccurrenceDetail((int) $sessionId, (int) ($_SESSION['user_id'] ?? 0));
+        $participants = $slotStaffModel->getBookingsForOccurrence((int) $sessionId);
         
         if (!$session || empty($participants)) {
             return false;
         }
         
-        $title = $session->Name ?? 'Session';
-        $date = $session->Date ?? '';
+        $title = $session->SessionName ?? 'Session';
+        $date = $session->OccurrenceDate ?? '';
         $time = $session->StartTime ?? '';
         
         // Prepare notification message
@@ -1035,6 +728,177 @@ class Coach extends Controller {
         return true;
     }
 
+    private function getCoachSlotSessions(int $coachId, string $from, string $to, bool $includeAll = false): array {
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $role = $includeAll ? 'Coach' : 'coach';
+        $occurrences = $slotStaffModel->getMyOccurrences($coachId, $role, $from, $to);
+        $sessions = [];
+
+        foreach ($occurrences as $occurrence) {
+            $bookings = $slotStaffModel->getBookingsForOccurrence((int) $occurrence->OccurrenceID);
+            $sessions[] = $this->mapCoachOccurrenceToSession($occurrence, $bookings);
+        }
+
+        return $sessions;
+    }
+
+    private function mapCoachOccurrenceToSession(object $occurrence, array $bookings): object {
+        $session = new stdClass();
+        $session->SessionID = (int) ($occurrence->OccurrenceID ?? 0);
+        $session->Name = (string) ($occurrence->SessionName ?? 'Session');
+        $session->Title = $session->Name;
+        $session->SessionType = $this->formatCoachSlotType((string) ($occurrence->SlotType ?? 'program'));
+        $session->SessionMode = in_array(($occurrence->SlotType ?? ''), ['private', 'facility_only'], true) ? 'Private' : 'Group';
+        $session->Date = (string) ($occurrence->OccurrenceDate ?? '');
+        $session->StartTime = (string) ($occurrence->StartTime ?? '00:00:00');
+        $session->EndTime = (string) ($occurrence->EndTime ?? '00:00:00');
+        $session->Location = (string) ($occurrence->FacilityName ?? $occurrence->SlotLabel ?? 'Academy');
+        $session->Facility = $session->Location;
+        $session->MaxParticipants = (int) ($occurrence->MaxSlots ?? 0);
+        $session->ParticipantCount = count(array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled'));
+        $session->Status = $this->normalizeCoachOccurrenceStatus($occurrence, $bookings);
+        $session->Description = (string) ($occurrence->Notes ?? '');
+        $session->players = array_values(array_map(function($booking) {
+            return (object) [
+                'PlayerID' => (int) ($booking->PlayerID ?? 0),
+                'Name' => (string) ($booking->PlayerName ?? ''),
+                'AttendanceStatus' => (string) ($booking->Status ?? 'confirmed'),
+            ];
+        }, array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled')));
+
+        return $session;
+    }
+
+    private function normalizeCoachOccurrenceStatus(object $occurrence, array $bookings): string {
+        $occurrenceStatus = strtolower((string) ($occurrence->Status ?? 'scheduled'));
+        if ($occurrenceStatus === 'cancelled') {
+            return 'cancelled';
+        }
+        if ($occurrenceStatus === 'completed') {
+            return 'completed';
+        }
+
+        $today = date('Y-m-d');
+        $nonCancelled = array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled');
+        $finalized = array_filter($nonCancelled, fn($booking) => in_array(strtolower((string) ($booking->Status ?? '')), ['attended', 'missed'], true));
+
+        if (($occurrence->OccurrenceDate ?? '') < $today && !empty($nonCancelled) && count($finalized) === count($nonCancelled)) {
+            return 'completed';
+        }
+
+        if (($occurrence->OccurrenceDate ?? '') > $today) {
+            return 'scheduled';
+        }
+
+        return 'active';
+    }
+
+    private function formatCoachSlotType(string $slotType): string {
+        return match (strtolower($slotType)) {
+            'private' => 'Private Session',
+            'facility_only' => 'Facility Booking',
+            default => 'Program Session',
+        };
+    }
+
+    private function buildCoachCalendarEvents(array $sessions): array {
+        $events = [];
+        foreach ($sessions as $session) {
+            $color = $this->getSessionColor($session->SessionType ?? '');
+            $events[] = [
+                'id' => $session->SessionID,
+                'title' => $session->Name,
+                'start' => ($session->Date ?? '') . 'T' . ($session->StartTime ?? '00:00:00'),
+                'end' => ($session->Date ?? '') . 'T' . ($session->EndTime ?? '00:00:00'),
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'extendedProps' => [
+                    'type' => $session->SessionType,
+                    'location' => $session->Location ?? '',
+                    'status' => $session->Status ?? 'scheduled',
+                    'participants' => $session->ParticipantCount ?? 0,
+                    'maxParticipants' => $session->MaxParticipants ?? 0,
+                ],
+            ];
+        }
+
+        return $events;
+    }
+
+    private function buildCoachSessionStats(array $sessions): array {
+        $today = date('Y-m-d');
+        $weekEnd = date('Y-m-d', strtotime('+6 days'));
+        $attendanceStatuses = 0;
+        $attendedStatuses = 0;
+
+        foreach ($sessions as $session) {
+            foreach ($session->players ?? [] as $player) {
+                $attendanceStatus = strtolower((string) ($player->AttendanceStatus ?? ''));
+                if (in_array($attendanceStatus, ['attended', 'missed'], true)) {
+                    $attendanceStatuses++;
+                    if ($attendanceStatus === 'attended') {
+                        $attendedStatuses++;
+                    }
+                }
+            }
+        }
+
+        return [
+            'today' => count(array_filter($sessions, fn($session) => ($session->Date ?? '') === $today && ($session->Status ?? '') !== 'cancelled')),
+            'thisWeek' => count(array_filter($sessions, fn($session) => ($session->Date ?? '') >= $today && ($session->Date ?? '') <= $weekEnd && ($session->Status ?? '') !== 'cancelled')),
+            'total' => count(array_filter($sessions, fn($session) => ($session->Status ?? '') !== 'cancelled')),
+            'attendance' => $attendanceStatuses > 0 ? (int) round(($attendedStatuses / $attendanceStatuses) * 100) : 0,
+        ];
+    }
+
+    private function applyCoachSessionFilters(array $sessions, array $filters): array {
+        return array_values(array_filter($sessions, function($session) use ($filters) {
+            if (!empty($filters['type']) && stripos((string) ($session->SessionType ?? ''), (string) $filters['type']) === false) {
+                return false;
+            }
+            if (!empty($filters['status']) && strtolower((string) ($session->Status ?? '')) !== strtolower((string) $filters['status'])) {
+                return false;
+            }
+            if (!empty($filters['dateFrom']) && (string) ($session->Date ?? '') < (string) $filters['dateFrom']) {
+                return false;
+            }
+            if (!empty($filters['dateTo']) && (string) ($session->Date ?? '') > (string) $filters['dateTo']) {
+                return false;
+            }
+            if (!empty($filters['search'])) {
+                $needle = strtolower((string) $filters['search']);
+                $haystack = strtolower(
+                    (string) ($session->Name ?? '') . ' ' .
+                    (string) ($session->Location ?? '') . ' ' .
+                    (string) ($session->SessionType ?? '')
+                );
+                if (strpos($haystack, $needle) === false) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+    }
+
+    private function respondLegacySessionRedirect(string $message, string $redirectPath): void {
+        $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+        $isJsonRequest = strpos($accept, 'application/json') !== false
+            || strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
+
+        if ($isJsonRequest || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => $message,
+                'redirect' => URLROOT . '/' . ltrim($redirectPath, '/'),
+            ]);
+            return;
+        }
+
+        flash('session_message', $message, 'alert alert-info');
+        redirect($redirectPath);
+    }
+
     // Helper: Get Session Color by Type
     private function getSessionColor($type) {
         $colors = [
@@ -1050,8 +914,15 @@ class Coach extends Controller {
     
     // Helper: Calculate duration between two times
     private function calculateDuration($startTime, $endTime) {
+        if (empty($startTime) || empty($endTime)) {
+            return 'Time not set';
+        }
+
         $start = strtotime($startTime);
         $end = strtotime($endTime);
+        if ($start === false || $end === false || $end <= $start) {
+            return 'Time not set';
+        }
         $diff = $end - $start;
         
         $hours = floor($diff / 3600);
@@ -1078,16 +949,27 @@ class Coach extends Controller {
             ];
             
             foreach ($sessions as $session) {
-                $sessionDayOfWeek = date('l', strtotime($session->Date));
+                $sessionDate = is_array($session) ? ($session['date'] ?? '') : ($session->Date ?? '');
+                $sessionStart = is_array($session) ? ($session['start_time'] ?? '') : ($session->StartTime ?? '');
+                $sessionEnd = is_array($session) ? ($session['end_time'] ?? '') : ($session->EndTime ?? '');
+                $sessionType = is_array($session) ? ($session['session_type'] ?? '') : ($session->SessionMode ?? '');
+                $sessionName = is_array($session) ? ($session['session_name'] ?? '') : ($session->Name ?? '');
+                $sessionFacility = is_array($session) ? ($session['facility'] ?? '') : ($session->Location ?? '');
+
+                if ($sessionDate === '') {
+                    continue;
+                }
+
+                $sessionDayOfWeek = date('l', strtotime($sessionDate));
                 
                 if ($sessionDayOfWeek === $day) {
-                    $startTime = date('H:i', strtotime($session->StartTime));
-                    $endTime = date('H:i', strtotime($session->EndTime));
+                    $startTime = $sessionStart !== '' ? date('H:i', strtotime($sessionStart)) : 'TBD';
+                    $endTime = $sessionEnd !== '' ? date('H:i', strtotime($sessionEnd)) : 'TBD';
                     
                     $daySchedule['sessions'][] = [
                         'time' => "$startTime-$endTime",
-                        'type' => $session->SessionMode . ' - ' . $session->Name,
-                        'facility' => $session->Location
+                        'type' => ucfirst((string)$sessionType) . ' - ' . $sessionName,
+                        'facility' => $sessionFacility
                     ];
                 }
             }
