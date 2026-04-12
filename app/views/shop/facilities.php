@@ -335,7 +335,22 @@
                                 <div class="table-cell-primary">₨ <?php echo number_format($totalCost, 0); ?></div>
                             </td>
                             <td style="text-align: center;">
-                                <span class="table-badge status-active">Active</span>
+                                <?php
+                                $rawStatus = strtolower((string)($booking->Status ?? 'confirmed'));
+                                $statusClass = match ($rawStatus) {
+                                    'confirmed' => 'status-confirmed',
+                                    'attended', 'completed' => 'status-completed',
+                                    'missed', 'not_attended' => 'status-cancelled',
+                                    'cancelled' => 'status-cancelled',
+                                    default => 'status-active',
+                                };
+                                $statusLabel = match ($rawStatus) {
+                                    'attended', 'completed' => 'Completed',
+                                    'missed', 'not_attended' => 'Not Attended',
+                                    default => ucwords(str_replace('_', ' ', $rawStatus)),
+                                };
+                                ?>
+                                <span class="table-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($statusLabel); ?></span>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -949,5 +964,5 @@ function showNotification(message, type) {
 }
 </style>
 
-<script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
