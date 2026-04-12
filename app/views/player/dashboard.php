@@ -427,6 +427,9 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                                         <h4><?php echo $payment['type']; ?></h4>
                                         <div class="payment-amount"><?php echo $payment['amount']; ?></div>
                                         <div class="payment-due">Due: <?php echo date('M j, Y', strtotime($payment['due_date'])); ?></div>
+                                        <?php if (!empty($payment['message'])): ?>
+                                            <div class="payment-copy"><?php echo htmlspecialchars($payment['message']); ?></div>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="payment-status status-due">
                                         <i class="fas fa-exclamation-circle"></i>

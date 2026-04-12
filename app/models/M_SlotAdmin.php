@@ -49,18 +49,31 @@ class M_SlotAdmin {
         return $row ?: null;
     }
 
+    public function getActiveMembershipPlans(): array {
+        $this->db->query(
+            'SELECT PlanID, PlanName, MonthlyFee
+             FROM membershipplan
+             WHERE Status = :status
+             ORDER BY MonthlyFee ASC, PlanName ASC'
+        );
+        $this->db->bind(':status', 'active');
+        return $this->db->resultSet();
+    }
+
     public function createTemplate(array $d): int {
         $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+        $pricePerSession = $this->normalizeTemplatePricePerSession($d);
+        $requiredPlanFeature = $this->normalizeRequiredPlanFeature($d['RequiredPlanFeature'] ?? null);
 
         $this->db->query(
             'INSERT INTO slot_template
              (TemplateName, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
               AgeGroup, Category, Description, MaxParticipants, PricePerSession,
-              RequiredPlanFeature, RecurrenceStart, RecurrenceEnd, IsActive, CreatedBy)
+              RequiredPlanFeature, IsActive, CreatedBy)
              VALUES
              (:name, :stype, :stafftype, :slotid, :dow, :fid,
               :age, :cat, :desc, :max, :price,
-              :rpf, :rstart, :rend, 1, :createdby)'
+              :rpf, 1, :createdby)'
         );
         $this->db->bind(':name',      $d['TemplateName']);
         $this->db->bind(':stype',     $d['SlotType']);
@@ -72,10 +85,8 @@ class M_SlotAdmin {
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
         $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
-        $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
-        $this->db->bind(':rstart',    $d['RecurrenceStart']);
-        $this->db->bind(':rend',      isset($d['RecurrenceEnd']) && $d['RecurrenceEnd'] !== '' ? $d['RecurrenceEnd'] : null);
+        $this->db->bind(':price',     $pricePerSession);
+        $this->db->bind(':rpf',       $requiredPlanFeature, $requiredPlanFeature === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $this->db->bind(':createdby', (int)$d['CreatedBy'], PDO::PARAM_INT);
         $this->db->execute();
         return (int)$this->db->lastInsertId();
@@ -83,13 +94,14 @@ class M_SlotAdmin {
 
     public function updateTemplate(int $id, array $d): bool {
         $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+        $pricePerSession = $this->normalizeTemplatePricePerSession($d);
+        $requiredPlanFeature = $this->normalizeRequiredPlanFeature($d['RequiredPlanFeature'] ?? null);
 
         $this->db->query(
             'UPDATE slot_template SET
              TemplateName=:name, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
              DayOfWeek=:dow, FacilityID=:fid, AgeGroup=:age, Category=:cat, Description=:desc,
-             MaxParticipants=:max, PricePerSession=:price, RequiredPlanFeature=:rpf,
-             RecurrenceStart=:rstart, RecurrenceEnd=:rend
+               MaxParticipants=:max, PricePerSession=:price, RequiredPlanFeature=:rpf
              WHERE TemplateID=:id'
         );
         $this->db->bind(':name',      $d['TemplateName']);
@@ -102,10 +114,8 @@ class M_SlotAdmin {
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
         $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
-        $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
-        $this->db->bind(':rstart',    $d['RecurrenceStart']);
-        $this->db->bind(':rend',      isset($d['RecurrenceEnd']) && $d['RecurrenceEnd'] !== '' ? $d['RecurrenceEnd'] : null);
+        $this->db->bind(':price',     $pricePerSession);
+        $this->db->bind(':rpf',       $requiredPlanFeature, $requiredPlanFeature === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $this->db->bind(':id',        $id, PDO::PARAM_INT);
         return $this->db->execute();
     }
@@ -114,16 +124,52 @@ class M_SlotAdmin {
         $slotType = strtolower(trim((string)($data['SlotType'] ?? '')));
         $rawValue = trim((string)($data['MaxParticipants'] ?? ''));
 
+        if ($slotType !== 'facility_only') {
+            return null;
+        }
+
         if ($rawValue === '') {
-            return $slotType === 'program' ? null : 10;
+            return 10;
         }
 
         $maxParticipants = (int) $rawValue;
         if ($maxParticipants <= 0) {
-            return $slotType === 'program' ? null : 10;
+            return 10;
         }
 
         return $maxParticipants;
+    }
+
+    private function normalizeTemplatePricePerSession(array $data): float {
+        $slotType = strtolower(trim((string)($data['SlotType'] ?? '')));
+        if ($slotType !== 'facility_only') {
+            return 0.0;
+        }
+
+        $facilityId = isset($data['FacilityID']) && $data['FacilityID'] !== '' ? (int) $data['FacilityID'] : null;
+        if ($facilityId === null) {
+            return 0.0;
+        }
+
+        $this->db->query('SELECT HourlyRate FROM facility WHERE FacilityID = :facility_id LIMIT 1');
+        $this->db->bind(':facility_id', $facilityId, PDO::PARAM_INT);
+        $facility = $this->db->single();
+
+        return isset($facility->HourlyRate) ? max(0.0, (float) $facility->HourlyRate) : 0.0;
+    }
+
+    private function normalizeRequiredPlanFeature($value): ?string {
+        $value = trim((string)$value);
+
+        if ($value === '' || $value === 'none') {
+            return null;
+        }
+
+        if ($value === 'group_sessions') {
+            return 'sessions';
+        }
+
+        return in_array($value, ['sessions', 'facility_access'], true) ? $value : null;
     }
 
     public function toggleTemplate(int $id): bool {
@@ -217,7 +263,7 @@ class M_SlotAdmin {
     }
 
     public function getFacilities(): array {
-        $this->db->query('SELECT FacilityID, Name FROM facility ORDER BY Name');
+        $this->db->query('SELECT FacilityID, Name, HourlyRate FROM facility ORDER BY Name');
         return $this->db->resultSet();
     }
 
@@ -236,6 +282,25 @@ class M_SlotAdmin {
              LEFT JOIN slot_time_band tb ON tb.SlotID = t.SlotID
              WHERE t.IsActive = 1 ORDER BY t.TemplateName'
         );
+        return $this->db->resultSet();
+    }
+
+    public function getOccurrencesForTemplate(int $templateId): array {
+        $this->db->query(
+            'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status, so.CancelReason,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    f.Name AS FacilityName,
+                    (SELECT COUNT(*)
+                     FROM slot_booking sb
+                     WHERE sb.OccurrenceID = so.OccurrenceID
+                       AND sb.Status != \'cancelled\') AS BookingCount
+             FROM slot_occurrence so
+             LEFT JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             WHERE so.TemplateID = :template_id
+             ORDER BY so.OccurrenceDate DESC, tb.StartTime DESC'
+        );
+        $this->db->bind(':template_id', $templateId, PDO::PARAM_INT);
         return $this->db->resultSet();
     }
 

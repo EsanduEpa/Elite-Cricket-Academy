@@ -477,12 +477,18 @@ class Player extends Controller {
     
     // Payment History
     public function payments() {
+        $recentPayments = $this->formatRecentSubscriptionPayments($this->getMonthlyFees());
+        $upcomingPayments = $this->formatUpcomingSubscriptionPayments($this->getUpcomingPayments());
+
         $data = [
             'title' => 'Payment History',
             'player' => $this->getPlayerData(),
             'monthlyFees' => $this->getMonthlyFees(),
             'eventFees' => $this->getEventFees(),
-            'upcomingPayments' => $this->getUpcomingPayments()
+            'upcomingPayments' => $this->getUpcomingPayments(),
+            'recent_payments' => $recentPayments,
+            'upcoming_payments' => $upcomingPayments,
+            'payment_methods' => $this->getPaymentMethodsList(),
         ];
         $this->view('player/payments', $data);
     }
@@ -1085,11 +1091,30 @@ class Player extends Controller {
         $paymentModel = $this->model('M_Payment');
         return $paymentModel->getRentalPaymentsDue($playerId);
     }
+
+    private function getPaymentModelWithInitializedMembershipPayments() {
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $paymentModel = $this->model('M_Payment');
+        $paymentModel->ensureInitialPendingMembershipPayment($playerId);
+
+        return $paymentModel;
+    }
     
     private function getPaymentsDue() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
-        return $paymentModel->getUpcomingPayments($playerId);
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
+        $payments = $paymentModel->getUpcomingPayments($playerId);
+
+        return array_map(function ($payment) {
+            return [
+                'type' => 'Membership Pending',
+                'amount' => 'Rs. ' . number_format((float)($payment->Amount ?? 0), 2),
+                'due_date' => $payment->DueDate ?? date('Y-m-d'),
+                'message' => !empty($payment->Notes)
+                    ? $payment->Notes
+                    : 'Pay to experience the whole academy services.',
+            ];
+        }, $payments);
     }
     
     private function getTrainingSessions() {
@@ -1127,7 +1152,7 @@ class Player extends Controller {
     
     private function getMonthlyFees() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
         return $paymentModel->getPaymentHistory($playerId);
     }
     
@@ -1140,8 +1165,81 @@ class Player extends Controller {
     
     private function getUpcomingPayments() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
         return $paymentModel->getUpcomingPayments($playerId);
+    }
+
+    private function formatRecentSubscriptionPayments(array $payments): array {
+        $recentPayments = [];
+
+        foreach ($payments as $payment) {
+            if (($payment->Status ?? '') === 'pending' || empty($payment->PaymentDate)) {
+                continue;
+            }
+
+            $recentPayments[] = [
+                'date' => $payment->PaymentDate,
+                'description' => ucfirst((string)($payment->PlanName ?? 'Membership')) . ' Membership Fee',
+                'details' => !empty($payment->PaymentReference)
+                    ? 'Reference: ' . $payment->PaymentReference
+                    : 'Subscription payment recorded successfully.',
+                'amount' => (float)($payment->Amount ?? 0),
+                'method_type' => ($payment->PaymentMethod ?? '') === 'bank_transfer' ? 'bank' : 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($payment->PaymentMethod ?? 'online')),
+                'status' => ucfirst((string)($payment->Status ?? 'completed')),
+                'status_class' => ($payment->Status ?? 'completed') === 'completed' ? 'paid' : strtolower((string)$payment->Status),
+            ];
+        }
+
+        return $recentPayments;
+    }
+
+    private function formatUpcomingSubscriptionPayments(array $payments): array {
+        $upcomingPayments = [];
+
+        foreach ($payments as $payment) {
+            $upcomingPayments[] = [
+                'due_date' => $payment->DueDate ?? date('Y-m-d'),
+                'description' => 'Membership Pending',
+                'details' => !empty($payment->Notes)
+                    ? $payment->Notes
+                    : 'Pay to experience the whole academy services.',
+                'amount' => (float)($payment->Amount ?? 0),
+                'method_type' => ($payment->PaymentMethod ?? '') === 'bank_transfer' ? 'bank' : 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($payment->PaymentMethod ?? 'online')),
+                'status' => 'Pending',
+                'status_class' => 'pending',
+            ];
+        }
+
+        return $upcomingPayments;
+    }
+
+    private function formatPaymentMethodLabel(string $paymentMethod): string {
+        return match ($paymentMethod) {
+            'bank_transfer' => 'Bank Transfer',
+            'cash' => 'Cash',
+            'card' => 'Card',
+            'online' => 'Online Payment',
+            default => ucfirst(str_replace('_', ' ', $paymentMethod ?: 'online')),
+        };
+    }
+
+    private function getPaymentMethodsList(): array {
+        return [
+            [
+                'icon' => 'credit-card',
+                'color' => '#4A90E2',
+                'name' => 'PayHere Online Payment',
+                'details' => 'Use online payments to settle your pending membership fee and unlock full academy services.',
+            ],
+            [
+                'icon' => 'money-bill-wave',
+                'color' => '#16A34A',
+                'name' => 'Counter Payment',
+                'details' => 'You can also complete membership payments at the academy counter through the shop staff.',
+            ],
+        ];
     }
     
     // Tournament helper methods
@@ -1270,6 +1368,8 @@ class Player extends Controller {
         if (!$userProfile) {
             $userProfile = (object) [
                 'UserID' => $userId,
+                'FirstName' => '',
+                'LastName' => '',
                 'Name' => $_SESSION['user_name'] ?? 'Unknown User',
                 'Email' => $_SESSION['user_email'] ?? '',
                 'PhoneNumber' => '',
@@ -1298,7 +1398,7 @@ class Player extends Controller {
     private function isProfileComplete($userProfile) {
         // Check if essential player profile fields are filled
         $essentialFields = [
-            'Name', 'Email', 'PhoneNumber', 'Address'
+            'FirstName', 'LastName', 'Email', 'PhoneNumber', 'Address'
         ];
         
         foreach ($essentialFields as $field) {
@@ -1331,7 +1431,8 @@ class Player extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number']),
                 'address' => trim($_POST['address']),
@@ -1342,8 +1443,11 @@ class Player extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -1364,7 +1468,7 @@ class Player extends Controller {
                 // Update basic user info
                 if ($userModel->updateUser($userData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     // Add role-specific profile data
@@ -1419,7 +1523,8 @@ class Player extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number']),
                 'address' => trim($_POST['address']),
@@ -1430,8 +1535,11 @@ class Player extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -1446,7 +1554,7 @@ class Player extends Controller {
                 // Update basic user info
                 if ($userModel->updateUser($userData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     // Update role-specific profile data

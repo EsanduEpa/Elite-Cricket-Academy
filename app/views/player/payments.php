@@ -127,7 +127,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td style="text-align: center;">
-                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                            <div class="table-cell-primary payment-amount">Rs. <?= number_format($payment['amount'] ?? 0, 2) ?></div>
                                         </td>
                                         <td>
                                             <div class="payment-method">
@@ -194,7 +194,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td style="text-align: center;">
-                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                            <div class="table-cell-primary payment-amount">Rs. <?= number_format($payment['amount'] ?? 0, 2) ?></div>
                                         </td>
                                         <td>
                                             <div class="payment-method">

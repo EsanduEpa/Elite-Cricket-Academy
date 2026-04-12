@@ -782,7 +782,7 @@ class Admin extends Controller {
             }
             
             // Validate required fields
-            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'address', 'username', 'role'];
+            $requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'email', 'address', 'username', 'role'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -875,7 +875,8 @@ class Admin extends Controller {
             
             // Prepare staff data
             $staffData = [
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'dateOfBirth' => $postData['dateOfBirth'],
                 'phone' => trim($postData['phone']),
                 'email' => trim($postData['email']),
@@ -897,7 +898,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Staff Created',
-                    'Added new staff member: ' . $staffData['fullName'] . ' (' . $staffData['role'] . ')',
+                    'Added new staff member: ' . trim($staffData['firstName'] . ' ' . $staffData['lastName']) . ' (' . $staffData['role'] . ')',
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -912,7 +913,7 @@ class Admin extends Controller {
                     'data' => [
                         'id' => $userId,
                         'username' => $postData['username'],
-                        'name' => $postData['fullName'],
+                        'name' => trim($postData['firstName'] . ' ' . $postData['lastName']),
                         'role' => $postData['role']
                     ]
                 ]);
@@ -974,7 +975,7 @@ class Admin extends Controller {
             }
             
             // Validate required fields
-            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'username', 'subscriptionType'];
+            $requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'email', 'username', 'subscriptionType'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -1066,7 +1067,8 @@ class Admin extends Controller {
             
             // Prepare player data
             $playerData = [
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'dateOfBirth' => $postData['dateOfBirth'],
                 'phone' => trim($postData['phone']),
                 'email' => trim($postData['email']),
@@ -1089,7 +1091,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Player Created',
-                    'Added new player: ' . $playerData['fullName'],
+                    'Added new player: ' . trim($playerData['firstName'] . ' ' . $playerData['lastName']),
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -1104,7 +1106,7 @@ class Admin extends Controller {
                     'data' => [
                         'id' => $userId,
                         'username' => $postData['username'],
-                        'name' => $postData['fullName']
+                        'name' => trim($postData['firstName'] . ' ' . $postData['lastName'])
                     ]
                 ]);
             } else {
@@ -1191,7 +1193,7 @@ class Admin extends Controller {
             error_log("Update player request data: " . print_r($postData, true));
             
             // Validate required fields
-            $required = ['playerId', 'fullName', 'email', 'phone', 'subscriptionType', 'status'];
+            $required = ['playerId', 'firstName', 'lastName', 'email', 'phone', 'subscriptionType', 'status'];
             foreach ($required as $field) {
                 if (empty($postData[$field])) {
                     throw new Exception("Missing required field: $field");
@@ -1217,7 +1219,8 @@ class Admin extends Controller {
             // Prepare update data
             $playerData = [
                 'playerId' => $postData['playerId'],
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'email' => trim($postData['email']),
                 'phone' => trim($postData['phone']),
                 'address' => trim($postData['address'] ?? ''),
@@ -1240,7 +1243,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Player Updated',
-                    'Updated player: ' . $playerData['fullName'],
+                    'Updated player: ' . trim($playerData['firstName'] . ' ' . $playerData['lastName']),
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -1259,7 +1262,7 @@ class Admin extends Controller {
                     'message' => 'Player updated successfully!',
                     'data' => [
                         'id' => $playerData['playerId'],
-                        'name' => $playerData['fullName']
+                        'name' => trim($playerData['firstName'] . ' ' . $playerData['lastName'])
                     ]
                 ]);
             } else {
@@ -1648,7 +1651,8 @@ class Admin extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address'] ?? ''),
@@ -1659,7 +1663,7 @@ class Admin extends Controller {
             
             if ($userModel->updateUser($userData)) {
                 // Update session name if changed
-                $_SESSION['user_name'] = $userData['name'];
+                $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                 
                 flash('profile_message', 'Profile updated successfully!', 'alert alert-success');
             } else {

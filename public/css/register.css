@@ -303,16 +303,16 @@ body {
 }
 
 .see-plan-btn {
-    padding: 0 0.9rem;
+    padding: 0 0.72rem;
     background: linear-gradient(135deg, var(--blue), var(--blue-light));
     color: #fff;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.04em;
     transition: filter 0.2s, transform 0.2s;
     box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
@@ -320,6 +320,75 @@ body {
 .see-plan-btn:hover {
     filter: brightness(1.1);
     transform: translateY(-1px);
+}
+
+.payment-portal-card {
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(74,144,226,0.16);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(74,144,226,0.08), rgba(255,255,255,0.96));
+}
+
+.payment-portal-copy h5 {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+}
+
+.payment-portal-copy p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.payment-portal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 210px;
+    padding: 0.82rem 1rem;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(15,118,110,0.24);
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+
+.payment-portal-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+    box-shadow: 0 14px 28px rgba(15,118,110,0.28);
+}
+
+.payment-portal-btn:active {
+    transform: translateY(0);
+}
+
+.payment-portal-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(20,184,166,0.22), 0 14px 28px rgba(15,118,110,0.24);
+}
+
+.payment-portal-btn:disabled {
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #9ca3af, #cbd5e1);
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    color: rgba(255,255,255,0.92);
 }
 
 /* ── Submit button ──────────────────────────────────────── */
@@ -361,9 +430,24 @@ body {
     margin-top: 0.55rem;
 }
 
+.form-footer-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+.pay-later-copy {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 /* ── Login link ─────────────────────────────────────────── */
 .login-link {
-    text-align: right;
+    text-align: center;
     color: var(--text-muted);
     font-size: 0.8rem;
 }
@@ -469,7 +553,7 @@ body {
 /* plan cards */
 .plan-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.4rem;
 }
 
@@ -534,11 +618,12 @@ body {
 }
 
 .plan-card-desc {
-    font-size: 0.84rem;
+    font-size: 0.96rem;
     color: var(--text-muted);
     text-align: center;
     font-style: italic;
     padding: 0 0.4rem;
+    line-height: 1.55;
 }
 
 .plan-features {
@@ -549,7 +634,7 @@ body {
 }
 
 .plan-features li {
-    font-size: 0.88rem;
+    font-size: 1rem;
     color: #374151;
     display: flex;
     align-items: center;
@@ -559,7 +644,7 @@ body {
     background: rgba(0,0,0,0.025);
 }
 
-.feat-icon { flex-shrink: 0; font-size: 1rem; }
+.feat-icon { flex-shrink: 0; font-size: 1.08rem; }
 .feat-yes  { color: var(--green); }
 .feat-no   { color: var(--red); }
 
@@ -594,6 +679,10 @@ body {
     .form-section { padding: 0; }
 
     .form-container { max-width: 920px; }
+
+    .plan-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 680px) {
@@ -603,11 +692,17 @@ body {
     .form-container { padding: 1.4rem 1.2rem; }
     .form-title { font-size: 1.4rem; }
 
+    .payment-portal-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .register-actions-row {
         flex-direction: column;
         align-items: stretch;
     }
 
+    .payment-portal-btn,
     .register-submit-btn {
         width: 100%;
         min-width: 0;

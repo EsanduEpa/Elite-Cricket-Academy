@@ -62,7 +62,7 @@
             <div class="content-card" style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
                 <p style="color:#666;font-size:13px;margin-bottom:20px;">
                     <i class="fas fa-info-circle" style="color:#3498db;"></i>
-                    These 7 bands are fixed by design. You can deactivate a band to hide it from future template creation. Existing templates using a deactivated band are unaffected.
+                    These bands are fixed by design. You can deactivate a band to hide it from future template creation. Existing templates using a deactivated band are unaffected.
                 </p>
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>

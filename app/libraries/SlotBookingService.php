@@ -30,8 +30,10 @@ class SlotBookingService {
             return ['ok' => false, 'code' => 'template_not_found', 'message' => 'Session template not found.'];
         }
 
-        // 2. No restriction — anyone can book
-        if ($template->RequiredPlanFeature === 'none') {
+        $requiredPlan = trim((string)($template->RequiredPlanFeature ?? ''));
+
+        // 2. Legacy open access templates remain bookable until they are updated.
+        if ($requiredPlan === '' || $requiredPlan === 'none') {
             return ['ok' => true, 'subscription_id' => null];
         }
 
@@ -57,8 +59,27 @@ class SlotBookingService {
             ];
         }
 
-        // 4. Check the plan covers the required feature
-        $feature = $template->RequiredPlanFeature;
+        // 4. New templates require an exact membership plan. Older templates may
+        // still carry feature-based legacy values until they are edited.
+        if (preg_match('/^plan:(\d+)$/', $requiredPlan, $matches) === 1) {
+            $requiredPlanId = (int)$matches[1];
+
+            if ((int)$sub->PlanID !== $requiredPlanId) {
+                $db->query('SELECT PlanName FROM membershipplan WHERE PlanID = :plan_id LIMIT 1');
+                $db->bind(':plan_id', $requiredPlanId, PDO::PARAM_INT);
+                $plan = $db->single();
+
+                return [
+                    'ok'      => false,
+                    'code'    => 'plan_mismatch',
+                    'message' => 'This session requires the ' . ($plan->PlanName ?? 'selected membership plan') . ' plan. Please switch or upgrade your subscription.',
+                ];
+            }
+
+            return ['ok' => true, 'subscription_id' => (int) $sub->SubscriptionID];
+        }
+
+        $feature = $requiredPlan;
         $covered = false;
 
         if ($feature === 'sessions'          && $sub->SessionsPerWeek         > 0) $covered = true;

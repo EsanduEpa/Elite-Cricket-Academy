@@ -21,6 +21,35 @@ class M_Users {
     private $db;
     private $lastErrorMessage = '';
 
+    private function buildFullName(?string $firstName, ?string $lastName): string {
+        return trim(implode(' ', array_filter([
+            trim((string)$firstName),
+            trim((string)$lastName)
+        ], static fn($part) => $part !== '')));
+    }
+
+    private function splitFullName(?string $fullName): array {
+        $fullName = trim((string)$fullName);
+
+        if ($fullName === '') {
+            return ['', ''];
+        }
+
+        $parts = preg_split('/\s+/', $fullName, 2);
+        return [$parts[0] ?? '', $parts[1] ?? ''];
+    }
+
+    private function extractNameParts(array $data): array {
+        $firstName = trim((string)($data['firstName'] ?? $data['first_name'] ?? ''));
+        $lastName = trim((string)($data['lastName'] ?? $data['last_name'] ?? ''));
+
+        if ($firstName === '' && $lastName === '') {
+            [$firstName, $lastName] = $this->splitFullName($data['fullName'] ?? $data['name'] ?? '');
+        }
+
+        return [$firstName, $lastName, $this->buildFullName($firstName, $lastName)];
+    }
+
     /**
      * CONSTRUCTOR - Initialize database connection
      * Runs automatically when model is instantiated
@@ -54,12 +83,14 @@ class M_Users {
      */
     public function register($data) {
         $this->lastErrorMessage = '';
+        [$firstName, $lastName] = $this->extractNameParts($data);
 
         // STEP 1: PREPARE SQL INSERT QUERY
         // Uses placeholders (:name) to prevent SQL injection
         // INSERT INTO table (columns) VALUES (placeholders)
         $this->db->query('INSERT INTO User (
-            Name,
+            FirstName,
+            LastName,
             DateOfBirth,
             Address,
             School,
@@ -70,7 +101,8 @@ class M_Users {
             PasswordHash,
             DateJoined
         ) VALUES (
-            :name, 
+            :first_name,
+            :last_name,
             :date_of_birth, 
             :address, 
             :school, 
@@ -85,7 +117,8 @@ class M_Users {
         // STEP 2: BIND VALUES TO PLACEHOLDERS
         // This prevents SQL injection by separating data from SQL structure
         // PDO handles proper escaping and type conversion
-        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':first_name', $firstName);
+        $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
         $this->db->bind(':date_of_birth', $data['dateOfBirth']);
         $this->db->bind(':address', $data['address']);
         $this->db->bind(':school', $data['school']);
@@ -142,7 +175,7 @@ class M_Users {
         // STEP 1: PREPARE SELECT QUERY
         // Search for user by email OR username (flexible login)
         // SELECT * gets all user columns (UserID, Name, Email, Role, etc.)
-        $this->db->query('SELECT * FROM User WHERE Email = :email OR Username = :email');
+        $this->db->query("SELECT User.*, TRIM(CONCAT_WS(CHAR(32), FirstName, LastName)) AS Name FROM User WHERE Email = :email OR Username = :email");
         
         // STEP 2: BIND THE EMAIL/USERNAME
         // Same placeholder used twice (email OR username)
@@ -204,6 +237,12 @@ class M_Users {
         }
     }
 
+    public function getUserByEmail($email) {
+        $this->db->query("SELECT User.*, TRIM(CONCAT_WS(CHAR(32), FirstName, LastName)) AS Name FROM User WHERE Email = :email LIMIT 1");
+        $this->db->bind(':email', $email);
+        return $this->db->single();
+    }
+
     /**
      * FIND USER BY USERNAME - Check if username exists in database
      * 
@@ -245,7 +284,7 @@ class M_Users {
      */
     public function getUserById($id) {
         // STEP 1: QUERY FOR USER BY ID
-        $this->db->query('SELECT * FROM User WHERE UserID = :id');
+        $this->db->query("SELECT User.*, TRIM(CONCAT_WS(CHAR(32), FirstName, LastName)) AS Name FROM User WHERE UserID = :id");
         $this->db->bind(':id', $id);
 
         // STEP 2: RETURN USER OBJECT
@@ -327,7 +366,7 @@ class M_Users {
             al.Description as details,
             al.Timestamp as timestamp,
             al.Action as type,
-            u.Name as user_name 
+            TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as user_name 
         FROM activitylog al 
         LEFT JOIN User u ON al.UserID = u.UserID 
         ORDER BY al.Timestamp DESC 
@@ -379,7 +418,7 @@ class M_Users {
 
     // Get all users with pagination
     public function getAllUsers($offset = 0, $limit = 20) {
-        $this->db->query('SELECT * FROM User ORDER BY DateJoined DESC LIMIT :limit OFFSET :offset');
+        $this->db->query("SELECT User.*, TRIM(CONCAT_WS(CHAR(32), FirstName, LastName)) AS Name FROM User ORDER BY DateJoined DESC LIMIT :limit OFFSET :offset");
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         
@@ -388,8 +427,10 @@ class M_Users {
 
     // Update user profile
     public function updateUser($data) {
+        [$firstName, $lastName] = $this->extractNameParts($data);
         $this->db->query('UPDATE User SET 
-                         Name = :name,
+                         FirstName = :first_name,
+                         LastName = :last_name,
                          Email = :email,
                          PhoneNumber = :phone_number,
                          Address = :address,
@@ -400,7 +441,8 @@ class M_Users {
 
         // Bind values
         $this->db->bind(':user_id', $data['user_id']);
-        $this->db->bind(':name', $data['name']);
+        $this->db->bind(':first_name', $firstName);
+        $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
         $this->db->bind(':email', $data['email']);
         $this->db->bind(':phone_number', $data['phone_number']);
         $this->db->bind(':address', $data['address']);
@@ -541,6 +583,19 @@ class M_Users {
         return $this->db->single();
     }
 
+    public function planUsesRecurringBilling($plan): bool {
+        if (!$plan) {
+            return false;
+        }
+
+        $planName = strtolower(trim((string)($plan->PlanName ?? '')));
+        if ($planName === 'facility_only') {
+            return false;
+        }
+
+        return (float)($plan->MonthlyFee ?? 0) > 0;
+    }
+
     // Create a player subscription on registration
     public function createPlayerSubscription($playerId, $planId, $monthlyFee) {
         $this->db->query('INSERT INTO playersubscription 
@@ -552,6 +607,23 @@ class M_Users {
         $this->db->bind(':monthly_fee', $monthlyFee);
         $this->db->bind(':payment_day', 1);
         $this->db->bind(':auto_renewal', 1);
+        if ($this->db->execute()) {
+            return (int)$this->db->lastInsertId();
+        }
+
+        return false;
+    }
+
+    public function createPendingSubscriptionPayment(int $subscriptionId, $amount, ?string $notes = null): bool {
+        $this->db->query('INSERT INTO subscriptionpayment
+            (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, DueDate, Notes)
+            VALUES (:subscription_id, NULL, :amount, :payment_method, :status, CURDATE(), :notes)');
+        $this->db->bind(':subscription_id', $subscriptionId, PDO::PARAM_INT);
+        $this->db->bind(':amount', number_format((float)$amount, 2, '.', ''), PDO::PARAM_STR);
+        $this->db->bind(':payment_method', 'online', PDO::PARAM_STR);
+        $this->db->bind(':status', 'pending', PDO::PARAM_STR);
+        $this->db->bind(':notes', $notes, PDO::PARAM_STR);
+
         return $this->db->execute();
     }
 
@@ -605,7 +677,7 @@ class M_Users {
     public function getBestCoachForSkill(string $ageGroup, string $coachingType): ?object {
         $this->db->query(
             'SELECT csg.CoachID,
-                    u.Name,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
                     cp.Specialization,
                     cp.Experience,
                     csg.CoachingType,
@@ -622,13 +694,14 @@ class M_Users {
                AND u.Status = :status
                AND csg.CoachingType = :ctype
                AND csg.AgeGroup IN (:age_exact, :age_open)
-             GROUP BY csg.CoachID, u.Name, cp.Specialization, cp.Experience,
+               GROUP BY csg.CoachID, u.FirstName, u.LastName, cp.Specialization, cp.Experience,
                       csg.CoachingType, csg.AgeGroup, csg.PriorityRank
              ORDER BY CASE WHEN csg.AgeGroup = :age_rank THEN 0 ELSE 1 END,
                       CurrentLoad ASC,
                       csg.PriorityRank ASC,
                       cp.Experience DESC,
-                      u.Name ASC
+                      u.FirstName ASC,
+                      u.LastName ASC
              LIMIT 1'
         );
         $this->db->bind(':status', 'active');
@@ -763,11 +836,11 @@ class M_Users {
             'SELECT psca.CoachingType,
                     psca.AgeGroup,
                     psca.CoachID,
-                    u.Name AS CoachName
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS CoachName
              FROM player_skill_coach_assignment psca
              JOIN user u ON u.UserID = psca.CoachID
              WHERE psca.PlayerID = :player_id
-             ORDER BY FIELD(psca.CoachingType, "batting", "bowling", "fielding"), u.Name ASC'
+             ORDER BY FIELD(psca.CoachingType, "batting", "bowling", "fielding"), u.FirstName ASC, u.LastName ASC'
         );
         $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
         return $this->db->resultSet();
@@ -927,7 +1000,11 @@ class M_Users {
 
     // Get user with profile information
     public function getUserWithProfile($userId) {
-        $this->db->query('SELECT u.UserID, u.Name, u.DateOfBirth, u.PhoneNumber, u.Email, 
+        $this->db->query("SELECT u.UserID,
+                                u.FirstName,
+                                u.LastName,
+                                TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
+                                u.DateOfBirth, u.PhoneNumber, u.Email,
                                 u.Address, u.School, u.Role, u.Username, u.DateJoined, u.Status,
                                 u.RequiresPasswordChange, u.PasswordChangeDeadline, u.LastLoginAt,
                                 u.LoginAttempts, u.AccountLockedUntil, u.CreatedBy, u.Notes,
@@ -954,7 +1031,7 @@ class M_Users {
                          LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID
                          LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID
                          LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID
-                         WHERE u.UserID = :user_id');
+                         WHERE u.UserID = :user_id");
         
         $this->db->bind(':user_id', $userId);
         return $this->db->single();
@@ -1076,7 +1153,7 @@ class M_Users {
 
     // Get user by username and email (for password reset)
     public function getUserByUsernameAndEmail($username, $email) {
-        $this->db->query('SELECT * FROM User WHERE Username = :username AND Email = :email');
+        $this->db->query("SELECT User.*, TRIM(CONCAT_WS(CHAR(32), FirstName, LastName)) AS Name FROM User WHERE Username = :username AND Email = :email");
         $this->db->bind(':username', $username);
         $this->db->bind(':email', $email);
 
@@ -1104,8 +1181,10 @@ class M_Users {
 
     // Create staff member (Admin, Coach, Trainer, ShopEmployee)
     public function createStaff($data) {
+        [$firstName, $lastName] = $this->extractNameParts($data);
         $this->db->query('INSERT INTO User (
-            Name, 
+            FirstName,
+            LastName,
             DateOfBirth, 
             PhoneNumber, 
             Email, 
@@ -1119,7 +1198,8 @@ class M_Users {
             CreatedBy,
             Notes
         ) VALUES (
-            :name, 
+            :first_name,
+            :last_name,
             :date_of_birth, 
             :phone_number, 
             :email, 
@@ -1135,7 +1215,8 @@ class M_Users {
         )');
         
         // Bind values
-        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':first_name', $firstName);
+        $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
         $this->db->bind(':date_of_birth', $data['dateOfBirth']);
         $this->db->bind(':phone_number', $data['phone']);
         $this->db->bind(':email', $data['email']);
@@ -1163,9 +1244,11 @@ class M_Users {
     }
 
     public function createPlayer($data) {
+        [$firstName, $lastName] = $this->extractNameParts($data);
         // First, insert into User table
         $this->db->query('INSERT INTO User (
-            Name, 
+            FirstName,
+            LastName,
             DateOfBirth, 
             PhoneNumber, 
             Email, 
@@ -1177,7 +1260,8 @@ class M_Users {
             Status,
             CreatedBy
         ) VALUES (
-            :name, 
+            :first_name,
+            :last_name,
             :date_of_birth, 
             :phone_number, 
             :email, 
@@ -1191,7 +1275,8 @@ class M_Users {
         )');
         
         // Bind values
-        $this->db->bind(':name', $data['fullName']);
+        $this->db->bind(':first_name', $firstName);
+        $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
         $this->db->bind(':date_of_birth', $data['dateOfBirth']);
         $this->db->bind(':phone_number', $data['phone']);
         $this->db->bind(':email', $data['email']);
@@ -1263,16 +1348,19 @@ class M_Users {
 
     public function updatePlayer($data) {
         try {
+            [$firstName, $lastName] = $this->extractNameParts($data);
             // Update User table
             $this->db->query('UPDATE User SET 
-                Name = :name,
+                FirstName = :first_name,
+                LastName = :last_name,
                 Email = :email,
                 PhoneNumber = :phone,
                 Address = :address,
                 Status = :status
                 WHERE UserID = :user_id');
             
-            $this->db->bind(':name', $data['fullName']);
+            $this->db->bind(':first_name', $firstName);
+            $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':phone', $data['phone']);
             $this->db->bind(':address', $data['address']);
@@ -1363,9 +1451,11 @@ class M_Users {
 
     // Get all staff members (Coach, Trainer, ShopEmployee)
     public function getStaffMembers() {
-        $this->db->query('SELECT 
+        $this->db->query("SELECT 
             u.UserID,
-            u.Name,
+            u.FirstName,
+            u.LastName,
+            TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
             u.Email,
             u.PhoneNumber,
             u.Role,
@@ -1373,22 +1463,22 @@ class M_Users {
             u.Status,
             u.ProfileImage,
             CASE 
-                WHEN u.Role = "Coach" THEN cp.Specialization
-                WHEN u.Role = "Trainer" THEN "Fitness Training"
-                WHEN u.Role = "ShopEmployee" THEN sep.Department
+                WHEN u.Role = 'Coach' THEN cp.Specialization
+                WHEN u.Role = 'Trainer' THEN 'Fitness Training'
+                WHEN u.Role = 'ShopEmployee' THEN sep.Department
                 ELSE NULL
             END as Department,
             CASE 
-                WHEN u.Role = "Coach" THEN cp.Experience
-                WHEN u.Role = "Trainer" THEN tp.Experience
+                WHEN u.Role = 'Coach' THEN cp.Experience
+                WHEN u.Role = 'Trainer' THEN tp.Experience
                 ELSE NULL
             END as Experience
         FROM User u
-        LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID AND u.Role = "Coach"
-        LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID AND u.Role = "Trainer"
-        LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID AND u.Role = "ShopEmployee"
-        WHERE u.Role IN ("Coach", "Trainer", "ShopEmployee")
-        ORDER BY u.DateJoined DESC');
+        LEFT JOIN CoachProfile cp ON u.UserID = cp.CoachID AND u.Role = 'Coach'
+        LEFT JOIN TrainerProfile tp ON u.UserID = tp.TrainerID AND u.Role = 'Trainer'
+        LEFT JOIN ShopEmployeeProfile sep ON u.UserID = sep.ShopEmployeeID AND u.Role = 'ShopEmployee'
+        WHERE u.Role IN ('Coach', 'Trainer', 'ShopEmployee')
+        ORDER BY u.DateJoined DESC");
         
         $results = $this->db->resultSet();
         return $results;
@@ -1411,9 +1501,11 @@ class M_Users {
 
     // Get all players with their profile information
     public function getAllPlayersWithProfile() {
-        $this->db->query('SELECT 
+        $this->db->query("SELECT 
             u.UserID,
-            u.Name,
+            u.FirstName,
+            u.LastName,
+            TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
             u.DateOfBirth,
             u.PhoneNumber,
             u.Email,
@@ -1437,17 +1529,19 @@ class M_Users {
             TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) as Age
         FROM user u
         LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
-        WHERE u.Role = "Player"
-        ORDER BY u.DateJoined DESC');
+        WHERE u.Role = 'Player'
+        ORDER BY u.DateJoined DESC");
         
         return $this->db->resultSet();
     }
 
     // Get players for report with filters
     public function getPlayersForReport($filters = []) {
-        $sql = 'SELECT 
+        $sql = "SELECT 
             u.UserID,
-            u.Name,
+            u.FirstName,
+            u.LastName,
+            TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
             u.Email,
             u.PhoneNumber,
             u.DateOfBirth,
@@ -1460,7 +1554,7 @@ class M_Users {
             TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) as Age
         FROM user u
         LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
-        WHERE u.Role = "Player"';
+        WHERE u.Role = 'Player'";
         
         $conditions = [];
         $params = [];
@@ -1491,7 +1585,7 @@ class M_Users {
         
         // Search filter (name or email)
         if (!empty($filters['search'])) {
-            $conditions[] = '(u.Name LIKE :search OR u.Email LIKE :search)';
+            $conditions[] = '(CONCAT_WS(" ", u.FirstName, u.LastName) LIKE :search OR u.Email LIKE :search)';
             $params[':search'] = '%' . $filters['search'] . '%';
         }
         
@@ -1500,7 +1594,7 @@ class M_Users {
             $sql .= ' AND ' . implode(' AND ', $conditions);
         }
         
-        $sql .= ' ORDER BY u.Name ASC';
+        $sql .= ' ORDER BY u.FirstName ASC, u.LastName ASC';
         
         $this->db->query($sql);
         
@@ -1531,8 +1625,7 @@ class M_Users {
     // Update staff member information
     public function updateStaff($data) {
         try {
-            // Build the full name
-            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            [$firstName, $lastName] = $this->extractNameParts($data);
             
             // Map role values from form to database values
             $roleMap = [
@@ -1548,7 +1641,8 @@ class M_Users {
             
             // Update User table
             $this->db->query('UPDATE User SET 
-                Name = :name,
+                FirstName = :first_name,
+                LastName = :last_name,
                 Email = :email,
                 PhoneNumber = :phone,
                 Address = :address,
@@ -1556,7 +1650,8 @@ class M_Users {
                 Role = :role
                 WHERE UserID = :user_id');
             
-            $this->db->bind(':name', $fullName);
+            $this->db->bind(':first_name', $firstName);
+            $this->db->bind(':last_name', $lastName !== '' ? $lastName : null);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':phone', $data['phone']);
             $this->db->bind(':address', $data['address']);
@@ -1652,7 +1747,9 @@ class M_Users {
 
             if ((int)($newAssignments->cnt ?? 0) > 0) {
                 $this->db->query('SELECT 
-                    u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
+                    u.UserID as coach_id,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as name,
+                    u.Email, u.ProfileImage as image,
                     cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications,
                     psca.CoachingType as AssignmentType,
                     "active" as AssignmentStatus,
@@ -1662,7 +1759,7 @@ class M_Users {
                 JOIN User u ON psca.CoachID = u.UserID
                 JOIN coachprofile cp ON u.UserID = cp.CoachID
                 WHERE psca.PlayerID = :userId AND u.Status = "active"
-                ORDER BY u.Name ASC, psca.CoachingType ASC');
+                ORDER BY u.FirstName ASC, u.LastName ASC, psca.CoachingType ASC');
                 $this->db->bind(':userId', $userId, PDO::PARAM_INT);
                 return $this->db->resultSet();
             }
@@ -1673,7 +1770,11 @@ class M_Users {
 
             if ((int)($newAssignments->cnt ?? 0) > 0) {
                 $this->db->query('SELECT 
-                    u.UserID, u.Name, u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
+                    u.UserID,
+                    u.FirstName,
+                    u.LastName,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
+                    u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
                     u.ProfileImage, u.Address, u.School,
                     pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, pp.SubscriptionType,
                     psca.CoachingType as AssignmentType,
@@ -1684,7 +1785,7 @@ class M_Users {
                 JOIN User u ON psca.PlayerID = u.UserID
                 LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
                 WHERE psca.CoachID = :userId AND u.Status = "active"
-                ORDER BY u.Name ASC, psca.CoachingType ASC');
+                ORDER BY u.FirstName ASC, u.LastName ASC, psca.CoachingType ASC');
                 $this->db->bind(':userId', $userId, PDO::PARAM_INT);
                 return $this->db->resultSet();
             }
@@ -1693,18 +1794,24 @@ class M_Users {
         if ($lookupBy === 'player') {
             // Get coaches assigned to this player
             $this->db->query('SELECT 
-                u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
+                u.UserID as coach_id,
+                TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as name,
+                u.Email, u.ProfileImage as image,
                 cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications,
                 pca.AssignmentType, pca.Status as AssignmentStatus
             FROM playercoachassignment pca
             JOIN User u ON pca.CoachID = u.UserID
             JOIN coachprofile cp ON u.UserID = cp.CoachID
             WHERE pca.PlayerID = :userId AND pca.Status = "active" AND u.Status = "active"
-            ORDER BY u.Name ASC');
+            ORDER BY u.FirstName ASC, u.LastName ASC');
         } else {
             // Default: Get players assigned to this coach
             $this->db->query('SELECT 
-                u.UserID, u.Name, u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
+                u.UserID,
+                u.FirstName,
+                u.LastName,
+                TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS Name,
+                u.Email, u.PhoneNumber, u.DateOfBirth, u.Status,
                 u.ProfileImage, u.Address, u.School,
                 pp.BattingStyle, pp.BowlingStyle, pp.JerseyNumber, pp.SubscriptionType,
                 pca.AssignmentType, pca.AssignedDate, pca.Status as AssignmentStatus, pca.Notes as AssignmentNotes
@@ -1712,7 +1819,7 @@ class M_Users {
             JOIN User u ON pca.PlayerID = u.UserID
             LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
             WHERE pca.CoachID = :userId AND pca.Status = "active"
-            ORDER BY u.Name ASC');
+            ORDER BY u.FirstName ASC, u.LastName ASC');
         }
         $this->db->bind(':userId', $userId);
         return $this->db->resultSet();
@@ -1728,7 +1835,7 @@ class M_Users {
                 $this->db->query(
                     "SELECT 
                         p.PlayerID,
-                        u.Name as PlayerName,
+                        TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as PlayerName,
                         u.UserID,
                         p.BattingStyle,
                         p.BowlingStyle,
@@ -1740,7 +1847,7 @@ class M_Users {
                                         JOIN user u ON p.PlayerID = u.UserID
                     WHERE psca.CoachID = :coachId
                       AND u.Status = 'active'
-                    ORDER BY u.Name ASC, psca.CoachingType ASC"
+                                        ORDER BY u.FirstName ASC, u.LastName ASC, psca.CoachingType ASC"
                 );
                 $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);
                 return $this->db->resultSet();
@@ -1749,7 +1856,7 @@ class M_Users {
             $this->db->query(
                 "SELECT 
                     p.PlayerID,
-                    u.Name as PlayerName,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as PlayerName,
                     u.UserID,
                     p.BattingStyle,
                     p.BowlingStyle,
@@ -1762,7 +1869,7 @@ class M_Users {
                 WHERE pca.CoachID = :coachId
                   AND pca.Status = 'active'
                   AND u.Status = 'active'
-                ORDER BY u.Name ASC"
+                                ORDER BY u.FirstName ASC, u.LastName ASC"
             );
             $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);
             return $this->db->resultSet();
@@ -1842,7 +1949,7 @@ class M_Users {
     public function getFeedbackForUser($userId) {
         $this->db->query('SELECT 
             f.FeedbackID, f.Content, f.Rating, f.Category, f.Status, f.CreatedDate,
-            u.Name as FromUserName, u.Email as FromUserEmail
+            TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as FromUserName, u.Email as FromUserEmail
         FROM feedback f
         JOIN User u ON f.FromUserID = u.UserID
         WHERE f.ToUserID = :userId
@@ -1853,19 +1960,19 @@ class M_Users {
 
     // Get all coach profiles with user info
     public function getAllCoachProfiles() {
-        $this->db->query('SELECT u.UserID as coach_id, u.Name as name, u.Email, u.ProfileImage as image,
+        $this->db->query("SELECT u.UserID as coach_id, TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as name, u.Email, u.ProfileImage as image,
             cp.Specialization as specialization, cp.Experience as experience_years, cp.Certifications, cp.IsHeadCoach
             FROM User u
             JOIN coachprofile cp ON u.UserID = cp.CoachID
-            WHERE u.Role = "Coach" AND u.Status = "active"
-            ORDER BY u.Name');
+            WHERE u.Role = 'Coach' AND u.Status = 'active'
+            ORDER BY u.FirstName, u.LastName");
         return $this->db->resultSet();
     }
 
     public function getCoachSkillAgeGroupAssignments(): array {
         $this->db->query(
             "SELECT csg.CoachID,
-                    u.Name AS CoachName,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) AS CoachName,
                     csg.CoachingType,
                     GROUP_CONCAT(csg.AgeGroup ORDER BY csg.PriorityRank ASC SEPARATOR ', ') AS AgeGroups,
                     cp.IsHeadCoach
@@ -1873,9 +1980,10 @@ class M_Users {
              JOIN user u ON u.UserID = csg.CoachID
              JOIN coachprofile cp ON cp.CoachID = csg.CoachID
              WHERE csg.IsActive = 1
-             GROUP BY csg.CoachID, u.Name, csg.CoachingType, cp.IsHeadCoach
+              GROUP BY csg.CoachID, u.FirstName, u.LastName, csg.CoachingType, cp.IsHeadCoach
              ORDER BY cp.IsHeadCoach DESC,
-                      u.Name ASC,
+                 u.FirstName ASC,
+                 u.LastName ASC,
                       FIELD(csg.CoachingType, 'batting', 'bowling', 'fielding')"
         );
 
@@ -1973,12 +2081,12 @@ class M_Users {
 
     // Get all trainer profiles with user info
     public function getAllTrainerProfiles() {
-        $this->db->query('SELECT u.UserID as trainer_id, u.Name as name, u.Email, u.ProfileImage as image,
+        $this->db->query("SELECT u.UserID as trainer_id, TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as name, u.Email, u.ProfileImage as image,
             NULL as specialization, tp.Experience as experience_years, tp.Certifications
             FROM User u
             JOIN trainerprofile tp ON u.UserID = tp.TrainerID
-            WHERE u.Role = "Trainer" AND u.Status = "active"
-            ORDER BY u.Name');
+            WHERE u.Role = 'Trainer' AND u.Status = 'active'
+            ORDER BY u.FirstName, u.LastName");
         return $this->db->resultSet();
     }
 }
