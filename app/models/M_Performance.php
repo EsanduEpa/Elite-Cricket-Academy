@@ -248,7 +248,7 @@ class M_Performance {
 
     /*// Get performance updates/assessments from coaches
     public function getPerformanceUpdates($playerId, $limit = 10) {
-        $this->db->query('SELECT pu.*, u.Name AS CoachName, s.Name AS SessionName
+        $this->db->query('SELECT pu.*, CONCAT(u.FirstName, \' \', u.LastName) AS CoachName, s.Name AS SessionName
             FROM performanceupdate pu
             JOIN user u ON pu.CoachID = u.UserID
             LEFT JOIN session s ON pu.SessionID = s.SessionID
@@ -417,8 +417,8 @@ class M_Performance {
         $this->db->query("SELECT pmp.*, 
             cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.OurScore, cm.OpponentScore,
             t.Name AS TournamentName,
-            u1.Name AS AddedByName,
-            u2.Name AS VerifiedByName,
+            CONCAT(u1.FirstName, ' ', u1.LastName) AS AddedByName,
+            CONCAT(u2.FirstName, ' ', u2.LastName) AS VerifiedByName,
             pmp.VerifiedStatus,
             pmp.VerifiedAt
             FROM playermatchperformance pmp 
@@ -439,8 +439,8 @@ class M_Performance {
             $this->db->query('SELECT pmp.*, 
                 cm.Date, cm.Venue, cm.OpponentTeam, cm.Result,
                 t.Name AS TournamentName,
-                u.Name AS PlayerName,
-                u1.Name AS AddedByName
+                CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
+                CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName
                 FROM playermatchperformance pmp 
                 LEFT JOIN crimatch cm ON pmp.MatchID = cm.MatchID 
                 LEFT JOIN tournament t ON cm.TournamentID = t.TournamentID 
@@ -454,8 +454,8 @@ class M_Performance {
             $this->db->query('SELECT pmp.*, 
                 cm.Date, cm.Venue, cm.OpponentTeam, cm.Result,
                 t.Name AS TournamentName,
-                u.Name AS PlayerName,
-                u1.Name AS AddedByName
+                CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
+                CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName
                 FROM playermatchperformance pmp 
                 LEFT JOIN crimatch cm ON pmp.MatchID = cm.MatchID 
                 LEFT JOIN tournament t ON cm.TournamentID = t.TournamentID 
@@ -519,8 +519,8 @@ public function updatePerformanceVerification($performanceId, $status, $verified
         $this->db->query('SELECT pmp.*, 
             cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.OurScore, cm.OpponentScore,
             t.Name AS TournamentName, t.TournamentID,
-            u1.Name AS AddedByName,
-            u2.Name AS VerifiedByName
+            CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName,
+            CONCAT(u2.FirstName, \' \', u2.LastName) AS VerifiedByName
             FROM playermatchperformance pmp 
             LEFT JOIN crimatch cm ON pmp.MatchID = cm.MatchID 
             LEFT JOIN tournament t ON cm.TournamentID = t.TournamentID 

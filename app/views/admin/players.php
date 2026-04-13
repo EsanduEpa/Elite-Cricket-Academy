@@ -166,6 +166,16 @@
                             <option value="suspended">Suspended</option>
                             <option value="inactive">Inactive</option>
                         </select>
+                        <select id="ageGroupFilter" class="filter-select">
+                            <option value="all">All Age Groups</option>
+                            <option value="Under 11">Under 11</option>
+                            <option value="Under 13">Under 13</option>
+                            <option value="Under 15">Under 15</option>
+                            <option value="Under 17">Under 17</option>
+                            <option value="Under 19">Under 19</option>
+                            <option value="Under 21">Under 21</option>
+                            <option value="Open">Open</option>
+                        </select>
                         <select id="subscriptionFilter" class="filter-select">
                             <option value="all">All Subscriptions</option>
                             <option value="premium">Premium</option>
@@ -204,7 +214,7 @@
                         <tbody id="playersTableBody">
                             <?php if (!empty($data['players'])): ?>
                                 <?php foreach ($data['players'] as $player): ?>
-                            <tr>
+                            <tr data-player-age="<?php echo (int)($player->Age ?? 0); ?>">
                                 <td><input type="checkbox" class="player-checkbox"></td>
                                 <td>
                                     <div class="staff-info">
@@ -222,7 +232,13 @@
                                         <span class="role-badge">Not set</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><span class="role-badge <?php echo strtolower($player->SubscriptionType ?? 'basic'); ?>"><?php echo ucfirst($player->SubscriptionType ?? 'Basic'); ?></span></td>
+                                <td>
+                                    <?php
+                                        $subscriptionLabel = $player->SubscriptionPlanName ?? $player->SubscriptionType ?? 'Basic';
+                                        $subscriptionClass = strtolower(preg_replace('/[^a-z0-9]+/i', '-', (string)$subscriptionLabel));
+                                    ?>
+                                    <span class="role-badge <?php echo htmlspecialchars($subscriptionClass); ?>"><?php echo htmlspecialchars($subscriptionLabel); ?></span>
+                                </td>
                                 <td><span class="status-badge <?php echo strtolower($player->Status ?? 'active'); ?>"><?php echo ucfirst($player->Status ?? 'active'); ?></span></td>
                                 <td>
                                     <div class="action-btns">

@@ -23,7 +23,7 @@ $isEdit = $t !== null;
 $requiredPlanValue = trim((string)($t->RequiredPlanFeature ?? ''));
 $slotTypeValue = (string)($t->SlotType ?? '');
 $pricePerSessionValue = $t->PricePerSession ?? '0.00';
-$ageGroupOptions = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'];
+$ageGroupOptions = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'];
 $categoryOptions = ['Batting', 'Bowling', 'Fielding', 'Fitness'];
 $requiredPlanOptions = [
     'sessions' => 'Group Sessions',

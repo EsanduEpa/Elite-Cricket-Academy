@@ -822,7 +822,7 @@
                             <div class="form-group">
                                 <label>Age Groups</label>
                                 <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px;">
-                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'] as $ageGroup): ?>
+                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'] as $ageGroup): ?>
                                         <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid #d8e0ef; border-radius:10px; background:#f8fbff; cursor:pointer;">
                                             <input type="checkbox" name="age_groups[]" value="<?php echo htmlspecialchars($ageGroup); ?>" class="coach-age-group-checkbox">
                                             <span><?php echo htmlspecialchars($ageGroup); ?></span>
@@ -1029,6 +1029,9 @@
                 coachPlayersModal.style.display = 'none';
             }
 
+            const openCoachAssignmentsFromLink = window.location.hash === '#coachAssignmentsModal'
+                || new URLSearchParams(window.location.search).get('open') === 'coach-assignments';
+
             if (manageCoachAssignmentsBtn) {
                 manageCoachAssignmentsBtn.addEventListener('click', openCoachAssignmentsModal);
             }
@@ -1075,6 +1078,10 @@
                     });
                 });
             });
+
+            if (openCoachAssignmentsFromLink) {
+                openCoachAssignmentsModal();
+            }
 
             document.querySelectorAll('.coach-players-view-btn').forEach(button => {
                 button.addEventListener('click', function() {

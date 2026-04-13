@@ -117,7 +117,7 @@ SHOW CREATE TABLE slot_audit_log\G
 | `app/views/admin/slots/timeslots.php` | Toggle time bands active/inactive |
 | `app/views/admin/slots/templates.php` | List all templates |
 | `app/views/admin/slots/template_form.php` | Create/edit template form |
-| `app/views/admin/slots/staff.php` | Assign coaches or trainers to a template |
+| `app/views/admin/slots/admin_slots_staff.php` | Assign coaches or trainers to a template |
 
 ### Bug fixed
 `public/css/admin/admin-dashboard.css` — `.dashboard-header::before` overlay blocked all clicks.
@@ -1382,7 +1382,7 @@ app/models/M_SlotAdmin.php
 app/views/admin/slots/timeslots.php
 app/views/admin/slots/templates.php
 app/views/admin/slots/template_form.php
-app/views/admin/slots/staff.php
+app/views/admin/slots/admin_slots_staff.php
 public/css/admin/admin-dashboard.css  (bug fix applied)
 ```
 

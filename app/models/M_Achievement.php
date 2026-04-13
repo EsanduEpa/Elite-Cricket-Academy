@@ -235,7 +235,7 @@ class M_Achievement {
     public function getAllAchievementsWithPlayerInfo() {
         $this->db->query('SELECT 
             a.*,
-            u.Name as PlayerName,
+            CONCAT(u.FirstName, \' \', u.LastName) as PlayerName,
             u.PhoneNumber as PlayerContact,
             u.Email as PlayerEmail
             FROM Achievements a

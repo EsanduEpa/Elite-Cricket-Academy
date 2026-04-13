@@ -25,7 +25,7 @@ class M_TournamentJoinRequest
     public function getRequestsByTournament($tournamentId)
     {
         $this->db->query(
-            'SELECT tjr.*, u.Name, u.Email,
+            'SELECT tjr.*, CONCAT(u.FirstName, \' \', u.LastName) AS Name, u.Email,
                     u.ProfileImage,
                     COUNT(DISTINCT ctr.RecommendationID) AS CoachRecs,
                     COUNT(DISTINCT ttr.RecommendationID) AS TrainerRecs

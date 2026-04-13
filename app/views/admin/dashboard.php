@@ -200,6 +200,107 @@
                 </div>
             </div>
 
+            <!-- Slot Occurrence Calendar -->
+            <div class="calendar-section" style="margin-top:30px;">
+                <style>
+                    .slot-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:120px; width:14.28%; padding:8px; background:#fff; }
+                    .slot-cal-today     { background:#fffde7; }
+                    .slot-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:5px; font-size:12px; cursor:pointer; text-decoration:none; display:block; }
+                    .slot-cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
+                    .slot-cal-private   { background:#fff3cd; color:#856404; border-left:3px solid #856404; }
+                    .slot-cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
+                    .slot-cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
+                    .slot-cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
+                </style>
+                <div class="calendar-header">
+                    <h3><i class="fas fa-clock"></i> Slot Occurrence Calendar</h3>
+                    <div class="calendar-controls">
+                        <div class="calendar-nav">
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_start=<?= $data['slotPrevWeek'] ?>"
+                               class="calendar-btn" title="Previous Week"><i class="fas fa-chevron-left"></i></a>
+                            <span style="font-weight:700;font-size:14px;color:#2c3e50;">
+                                <?= date('j M Y', strtotime($data['slotFrom'])) ?> &mdash; <?= date('j M Y', strtotime($data['slotTo'])) ?>
+                            </span>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_start=<?= $data['slotNextWeek'] ?>"
+                               class="calendar-btn" title="Next Week"><i class="fas fa-chevron-right"></i></a>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard"
+                               class="calendar-btn today-btn" title="Current Week" style="margin-left:8px;"><i class="fas fa-calendar-check"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin:12px 0 16px;flex-wrap:wrap;font-size:12px;">
+                    <span style="background:#cce5ff;color:#004085;padding:3px 10px;border-radius:10px;">Program</span>
+                    <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:10px;">Private</span>
+                    <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;">Facility Only</span>
+                    <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Ad-hoc</span>
+                    <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
+                </div>
+
+                <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <?php
+                                $slotDayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                                for ($si = 0; $si < 7; $si++):
+                                    $sts   = strtotime("+{$si} days", $data['slotMonTs']);
+                                    $sdate = date('Y-m-d', $sts);
+                                    $sIsToday = ($sdate === date('Y-m-d'));
+                                ?>
+                                <th style="padding:10px 8px;text-align:center;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;<?= $sIsToday ? 'background:#fffde7;' : '' ?>">
+                                    <div style="font-weight:700;"><?= $slotDayNames[$si] ?></div>
+                                    <div style="font-size:12px;color:#888;"><?= date('j M', $sts) ?></div>
+                                </th>
+                                <?php endfor; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <?php
+                                for ($si = 0; $si < 7; $si++):
+                                    $sts   = strtotime("+{$si} days", $data['slotMonTs']);
+                                    $sdate = date('Y-m-d', $sts);
+                                    $sIsToday = ($sdate === date('Y-m-d'));
+                                    $soccs = $data['slotByDate'][$sdate] ?? [];
+                                ?>
+                                <td class="slot-cal-cell<?= $sIsToday ? ' slot-cal-today' : '' ?>">
+                                    <?php if (empty($soccs)): ?>
+                                        <div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">&mdash;</div>
+                                    <?php else: ?>
+                                        <?php foreach ($soccs as $socc):
+                                            if ($socc->Status === 'cancelled') {
+                                                $scls = 'slot-cal-cancelled';
+                                            } elseif ($socc->TemplateID === null) {
+                                                $scls = 'slot-cal-adhoc';
+                                            } else {
+                                                $smap = ['program'=>'slot-cal-program','private'=>'slot-cal-private','facility_only'=>'slot-cal-facility'];
+                                                $scls = $smap[$socc->SlotType] ?? 'slot-cal-program';
+                                            }
+                                        ?>
+                                        <a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= $socc->OccurrenceID ?>" class="slot-cal-card <?= $scls ?>">
+                                            <div style="font-weight:600;"><?= htmlspecialchars($socc->TemplateName ?? 'Ad-hoc') ?></div>
+                                            <div><?= htmlspecialchars($socc->SlotLabel ?? '') ?></div>
+                                            <?php if (!empty($socc->FacilityName)): ?>
+                                                <div><i class="fas fa-map-marker-alt" style="font-size:10px;"></i> <?= htmlspecialchars($socc->FacilityName) ?></div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($socc->StaffNames)): ?>
+                                                <div><i class="fas fa-user-tie" style="font-size:10px;"></i> <?= htmlspecialchars($socc->StaffNames) ?></div>
+                                            <?php endif; ?>
+                                            <div style="margin-top:3px;">
+                                                <i class="fas fa-users" style="font-size:10px;"></i> <?= (int)$socc->BookingCount ?> booked
+                                            </div>
+                                        </a>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </td>
+                                <?php endfor; ?>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Recent Activity Table -->
             <div class="recent-activity-section">
                 <div class="section-header">

@@ -13,7 +13,7 @@ class M_TournamentResult
     {
         $this->db->query(
             'SELECT tr.*,
-                    u.Name AS ManName
+                    CONCAT(u.FirstName, \' \', u.LastName) AS ManName
              FROM tournament_result tr
              LEFT JOIN user u ON u.UserID = tr.ManOfTournament
              WHERE tr.TournamentID = :tid'
@@ -93,7 +93,7 @@ class M_TournamentResult
     public function getAllStatsForTournament($tournamentId)
     {
         $this->db->query(
-            'SELECT pts.*, u.Name, tp.RoleInTeam
+            'SELECT pts.*, CONCAT(u.FirstName, \' \', u.LastName) AS Name, tp.RoleInTeam
              FROM playertournamentstats pts
              JOIN user u ON u.UserID = pts.PlayerID
              LEFT JOIN tournamentplayer tp ON tp.TournamentID = pts.TournamentID AND tp.PlayerID = pts.PlayerID

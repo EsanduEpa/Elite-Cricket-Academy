@@ -27,6 +27,7 @@ class Admin extends Controller {
         $userModel = $this->model('M_Users');      // User-related queries
         $feedbackModel = $this->model('Feedback'); // Feedback queries
         $financeModel = $this->model('Finance');   // Finance/revenue queries
+        $slotModel = $this->model('M_SlotAdmin');  // Slot calendar queries
         
         // STEP 3: FETCH USER STATISTICS FROM DATABASE
         // Query the User table to get real counts for each role
@@ -57,6 +58,24 @@ class Admin extends Controller {
         // Status = 'pending' means not yet reviewed by admin
         $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
         
+        // STEP 6.5: FETCH SLOT OCCURRENCE CALENDAR DATA
+        $slotStartParam = $_GET['slot_start'] ?? null;
+        if ($slotStartParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $slotStartParam)) {
+            $slotWeekTs = strtotime($slotStartParam);
+        } else {
+            $slotWeekTs = time();
+        }
+        $slotDow   = (int) date('N', $slotWeekTs);
+        $slotMonTs = strtotime('-' . ($slotDow - 1) . ' days', $slotWeekTs);
+        $slotSunTs = strtotime('+6 days', $slotMonTs);
+        $slotFrom  = date('Y-m-d', $slotMonTs);
+        $slotTo    = date('Y-m-d', $slotSunTs);
+        $slotOccurrences = $slotModel->getOccurrencesForCalendar($slotFrom, $slotTo);
+        $slotByDate = [];
+        foreach ($slotOccurrences as $occ) {
+            $slotByDate[$occ->OccurrenceDate][] = $occ;
+        }
+
         // STEP 7: PREPARE DATA ARRAY FOR VIEW
         // All data now comes from database queries above
         $data = [
@@ -99,7 +118,15 @@ class Admin extends Controller {
             ],
             
             // MONTHLY REVENUE from Finance model
-            'monthlyRevenue' => $financeModel->getMonthlyRevenue()
+            'monthlyRevenue' => $financeModel->getMonthlyRevenue(),
+
+            // SLOT OCCURRENCE CALENDAR
+            'slotFrom'     => $slotFrom,
+            'slotTo'       => $slotTo,
+            'slotPrevWeek' => date('Y-m-d', strtotime('-7 days', $slotMonTs)),
+            'slotNextWeek' => date('Y-m-d', strtotime('+7 days', $slotMonTs)),
+            'slotByDate'   => $slotByDate,
+            'slotMonTs'    => $slotMonTs,
         ];
         
         // STEP 8: LOAD DASHBOARD VIEW
@@ -1439,7 +1466,7 @@ class Admin extends Controller {
         $coachingType = trim($_POST['coaching_type'] ?? '');
         $ageGroups = $_POST['age_groups'] ?? [];
         $validCoachingTypes = ['batting', 'bowling', 'fielding'];
-        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'];
+        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'];
 
         if ($coachId <= 0 || !in_array($coachingType, $validCoachingTypes, true)) {
             $_SESSION['error'] = 'Please choose a coach and coaching type.';

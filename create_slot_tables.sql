@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   `DayOfWeek`           TINYINT(1)    DEFAULT NULL        COMMENT '1=Mon…7=Sun; NULL=no fixed day',
   `FacilityID`          INT(11)       DEFAULT NULL        COMMENT 'FK → facility; NULL=assigned per occurrence',
 
-  `AgeGroup`            VARCHAR(50)   DEFAULT NULL        COMMENT '"Under 15", "Under 19", "Open"',
+  `AgeGroup`            VARCHAR(50)   DEFAULT NULL        COMMENT '"Under 15", "Under 19", "Under 21", "Open"',
   `Category`            VARCHAR(100)  DEFAULT NULL        COMMENT '"Batting","Bowling","Fielding","Fitness"',
   `Description`         TEXT          DEFAULT NULL,
 

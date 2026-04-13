@@ -31,9 +31,9 @@ class M_SupplementPlan {
                     SELECT
                         spl.PlanID,
                         COUNT(DISTINCT spl.PlayerID) AS assignment_count,
-                        GROUP_CONCAT(DISTINCT spl.PlayerID ORDER BY assigned_u.name SEPARATOR ",") AS assigned_player_ids,
-                        GROUP_CONCAT(DISTINCT assigned_u.name ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_names,
-                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_emails
+                        GROUP_CONCAT(DISTINCT spl.PlayerID ORDER BY assigned_u.FirstName SEPARATOR ",") AS assigned_player_ids,
+                        GROUP_CONCAT(DISTINCT CONCAT(assigned_u.FirstName, \' \', assigned_u.LastName) ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_names,
+                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_emails
                     FROM supplement_player spl
                     INNER JOIN ' . $userTable . ' assigned_u ON spl.PlayerID = assigned_u.UserID
                     GROUP BY spl.PlanID
@@ -43,10 +43,10 @@ class M_SupplementPlan {
         } else {
             $this->db->query('SELECT 
                 sp.*, 
-                u.name as player_name,
+                CONCAT(u.FirstName, \' \', u.LastName) as player_name,
                 u.email as player_email,
                 CASE WHEN sp.PlayerID IS NULL OR sp.PlayerID = 0 THEN 0 ELSE 1 END AS assigned_player_count,
-                COALESCE(u.name, "") AS assigned_player_names,
+                COALESCE(CONCAT(u.FirstName, \' \', u.LastName), "") AS assigned_player_names,
                 COALESCE(u.email, "") AS assigned_player_emails
                 FROM ' . $supplementTable . ' sp 
                 LEFT JOIN ' . $userTable . ' u ON sp.PlayerID = u.UserID 
@@ -151,9 +151,9 @@ class M_SupplementPlan {
                     SELECT
                         spl.PlanID,
                         COUNT(DISTINCT spl.PlayerID) AS assignment_count,
-                        GROUP_CONCAT(DISTINCT spl.PlayerID ORDER BY assigned_u.name SEPARATOR ",") AS assigned_player_ids,
-                        GROUP_CONCAT(DISTINCT assigned_u.name ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_names,
-                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_emails
+                        GROUP_CONCAT(DISTINCT spl.PlayerID ORDER BY assigned_u.FirstName SEPARATOR ",") AS assigned_player_ids,
+                        GROUP_CONCAT(DISTINCT CONCAT(assigned_u.FirstName, \' \', assigned_u.LastName) ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_names,
+                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_emails
                     FROM supplement_player spl
                     INNER JOIN ' . $userTable . ' assigned_u ON spl.PlayerID = assigned_u.UserID
                     GROUP BY spl.PlanID
@@ -162,7 +162,7 @@ class M_SupplementPlan {
         } else {
             $query = 'SELECT 
                 sp.*, 
-                u.name as player_name,
+                CONCAT(u.FirstName, \' \', u.LastName) as player_name,
                 u.email as player_email
                 FROM ' . $supplementTable . ' sp 
                 LEFT JOIN ' . $userTable . ' u ON sp.PlayerID = u.UserID 
@@ -304,8 +304,8 @@ class M_SupplementPlan {
             (object)['key' => 'all', 'label' => 'All Players', 'description' => 'Assign the plan to every active player.'],
             (object)['key' => 'under_13', 'label' => 'Under 13 Players', 'description' => 'Players younger than 13 years old.'],
             (object)['key' => 'under_15', 'label' => 'Under 15 Players', 'description' => 'Players younger than 15 years old.'],
-            (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players younger than 19 years old.'],
-            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players younger than 21 years old.'],
+            (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players 19 years old or younger.'],
+            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players 21 years old or younger.'],
             (object)['key' => 'tournament', 'label' => 'Tournament Players', 'description' => 'Players selected for a tournament squad.'],
         ];
     }
@@ -314,7 +314,7 @@ class M_SupplementPlan {
         $groupKey = strtolower(trim((string)$groupKey));
 
         if ($groupKey === 'all') {
-            $this->db->query('SELECT UserID FROM ' . $this->userTable . ' WHERE Role = "Player" AND Status = "active" ORDER BY name');
+            $this->db->query('SELECT UserID FROM ' . $this->userTable . ' WHERE Role = "Player" AND Status = "active" ORDER BY FirstName');
             $rows = $this->db->resultSet();
         } elseif (in_array($groupKey, ['under_13', 'under_15', 'under_19', 'under_21'], true)) {
             $ageLimit = (int)str_replace('under_', '', $groupKey);
@@ -324,7 +324,7 @@ class M_SupplementPlan {
                   AND Status = "active"
                   AND DateOfBirth IS NOT NULL
                   AND TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < :age_limit
-                ORDER BY name');
+                ORDER BY FirstName');
             $this->db->bind(':age_limit', $ageLimit);
             $rows = $this->db->resultSet();
         } elseif ($groupKey === 'tournament') {
@@ -332,7 +332,7 @@ class M_SupplementPlan {
                 FROM tournamentplayer tp
                 INNER JOIN ' . $this->userTable . ' u ON u.UserID = tp.PlayerID
                 WHERE u.Role = "Player" AND u.Status = "active"
-                ORDER BY u.name');
+                ORDER BY u.FirstName');
             $rows = $this->db->resultSet();
         } else {
             $this->db->query('SELECT UserID FROM User WHERE 1 = 0');
@@ -362,7 +362,7 @@ class M_SupplementPlan {
     }
 
     public function getSupplementPlansByPlayer($playerId) {
-        $this->db->query('SELECT sp.*, u.Name AS trainer_name 
+        $this->db->query('SELECT sp.*, CONCAT(u.FirstName, \' \', u.LastName) AS trainer_name 
             FROM supplementplan sp 
             JOIN supplement_player spp ON sp.PlanID = spp.PlanID
             JOIN user u ON sp.TrainerID = u.UserID 

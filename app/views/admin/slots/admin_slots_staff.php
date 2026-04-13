@@ -39,15 +39,24 @@
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-text">
-                    <div style="font-size:12px;color:#aaa;margin-bottom:4px;">
-                        <a href="<?php echo URLROOT; ?>/adminslots/templates" style="color:#3498db;text-decoration:none;">Templates</a>
-                        <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
-                        <?= htmlspecialchars($data['template']->TemplateName) ?>
-                        <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
-                        Staff
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;font-weight:600;">
+                            <i class="fas fa-arrow-left"></i> Back to Templates
+                        </a>
+                        <div style="font-size:12px;color:#aaa;">
+                            <a href="<?php echo URLROOT; ?>/adminslots/templates" style="color:#3498db;text-decoration:none;">Templates</a>
+                            <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
+                            <?= htmlspecialchars($data['template']->TemplateName) ?>
+                            <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
+                            Staff
+                        </div>
                     </div>
                     <h1><i class="fas fa-users"></i> Staff Assignment</h1>
-                    <p><?= htmlspecialchars($data['template']->TemplateName) ?> — <?= htmlspecialchars($data['template']->SlotLabel ?? '') ?></p>
+                    <p><?= htmlspecialchars($data['template']->TemplateName) ?> — <?= htmlspecialchars($data['template']->SlotLabel ?? '') ?>
+                       <?php if (!empty($data['template']->AgeGroup)): ?>
+                           <span style="background:#e8f4fd;color:#0c5460;padding:2px 10px;border-radius:10px;font-size:11px;margin-left:8px;"><?= htmlspecialchars($data['template']->AgeGroup) ?></span>
+                       <?php endif; ?>
+                    </p>
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $data['template']->TemplateID ?>"
@@ -60,49 +69,14 @@
 
         <div style="padding:0 25px 40px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
 
-            <!-- Currently Assigned Staff -->
-            <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
-                <h3 style="margin:0 0 16px;font-size:16px;color:#2c3e50;"><i class="fas fa-id-badge"></i> Assigned Staff</h3>
+            <?php if (!empty($data['fromCreate'])): ?>
+                <div style="grid-column:1/-1;background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;">
+                    <i class="fas fa-check-circle"></i> Template created successfully! Now assign staff members, then proceed to generate occurrences.
+                </div>
+            <?php endif; ?>
 
-                <?php if (empty($data['staff'])): ?>
-                    <div style="text-align:center;padding:30px;color:#aaa;">
-                        <i class="fas fa-user-slash" style="font-size:32px;margin-bottom:10px;display:block;"></i>
-                        <p>No staff assigned yet. Use the form to add coaches or trainers.</p>
-                    </div>
-                <?php else: ?>
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:#f8f9fa;">
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Name</th>
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Type</th>
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Role</th>
-                                <th style="padding:10px 12px;border-bottom:2px solid #dee2e6;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($data['staff'] as $s): ?>
-                            <tr style="border-bottom:1px solid #f5f5f5;">
-                                <td style="padding:10px 12px;font-weight:600;color:#2c3e50;"><?= htmlspecialchars($s->UserName) ?></td>
-                                <td style="padding:10px 12px;">
-                                    <span class="<?= $s->StaffType === 'coach' ? 'badge-coach-t' : 'badge-trainer-t' ?>"><?= ucfirst($s->StaffType) ?></span>
-                                </td>
-                                <td style="padding:10px 12px;">
-                                    <span class="<?= $s->StaffRole === 'lead' ? 'badge-lead' : 'badge-assistant' ?>"><?= ucfirst($s->StaffRole) ?></span>
-                                </td>
-                                <td style="padding:10px 12px;text-align:right;">
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Remove this staff member?');">
-                                        <input type="hidden" name="remove_staff" value="<?= $s->ID ?>">
-                                        <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">
-                                            <i class="fas fa-times"></i> Remove
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
+            <!-- Currently Assigned Staff -->
+            
 
             <!-- Add Staff Form -->
             <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
@@ -171,11 +145,28 @@
             </div>
         </div>
 
-        <!-- Next step -->
+        <!-- Proceed to Generate -->
+        <div style="padding:0 25px 20px;">
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="proceed_generate" value="1">
+                <button type="submit" style="padding:12px 28px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-arrow-right"></i> Proceed to Generate Occurrences
+                </button>
+            </form>
+            <a href="<?php echo URLROOT; ?>/adminslots/templates" style="margin-left:12px;padding:12px 20px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;display:inline-block;">
+                <i class="fas fa-list"></i> Back to Templates
+            </a>
+        </div>
+
         <div style="padding:0 25px 30px;">
-            <div style="background:#e8f4fd;border:1px solid #bee5eb;border-radius:8px;padding:14px 18px;color:#0c5460;font-size:13px;">
-                <i class="fas fa-arrow-right"></i>
-                Once staff are assigned, <strong><a href="<?php echo URLROOT; ?>/adminslots/generate" style="color:#0c5460;">generate occurrences</a></strong> to put this template on the calendar.
+            <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <h3 style="margin:0 0 8px;font-size:16px;color:#2c3e50;"><i class="fas fa-list"></i> Current Coach Assignment Matrix</h3>
+                    <p style="margin:0;color:#64748b;font-size:13px;">The live coach assignment matrix is managed from Staff Management.</p>
+                </div>
+                <a href="<?php echo URLROOT; ?>/admin/staff#coachAssignmentsModal" style="padding:10px 18px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;">
+                    <i class="fas fa-user-tie"></i> Open in Staff Management
+                </a>
             </div>
         </div>
     </div>

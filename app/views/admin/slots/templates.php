@@ -63,8 +63,9 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates" style="padding:7px 16px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Ad-hoc Session</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px;">
@@ -123,7 +124,13 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                             <td style="padding:12px 14px;font-size:13px;"><?= $t->DayOfWeek ? $dayNames[(int)$t->DayOfWeek] : '<span style="color:#aaa;">Any</span>' ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->FacilityName ?? '—') ?></td>
                             <td style="padding:12px 14px;font-size:13px;text-align:center;"><?= $t->MaxParticipants !== null ? (int) $t->MaxParticipants : '<span style="color:#999;">Age-group based</span>' ?></td>
-                            <td style="padding:12px 14px;font-size:13px;"><?= $t->PricePerSession > 0 ? 'Rs. ' . number_format($t->PricePerSession,2) : '<span style="color:#27ae60;">Free</span>' ?></td>
+                            <td style="padding:12px 14px;font-size:13px;">
+                                <?php if ($t->SlotType === 'facility_only'): ?>
+                                    <?= $t->PricePerSession > 0 ? 'Rs. ' . number_format($t->PricePerSession,2) : '<span style="color:#27ae60;">Free</span>' ?>
+                                <?php else: ?>
+                                    <span style="color:#2980b9;font-weight:600;">Covered</span>
+                                <?php endif; ?>
+                            </td>
                             <td style="padding:12px 14px;">
                                 <?php if ($t->IsActive): ?>
                                     <span class="badge-active">Active</span>
@@ -136,9 +143,15 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                                     <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#3498db;color:#fff;">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
-                                    <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#9b59b6;color:#fff;">
-                                        <i class="fas fa-users"></i> Staff
-                                    </a>
+                                    <?php if ($t->SlotType === 'facility_only'): ?>
+                                        <a class="tbl-action-btn" style="background:#ccc;color:#fff;pointer-events:none;opacity:0.6;" tabindex="-1" title="Staff assignment not available for facility-only templates">
+                                            <i class="fas fa-users"></i> Staff
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#9b59b6;color:#fff;">
+                                            <i class="fas fa-users"></i> Staff
+                                        </a>
+                                    <?php endif; ?>
                                     <form method="POST" style="display:inline;">
                                         <input type="hidden" name="toggle_template" value="<?= $t->TemplateID ?>">
                                         <?php if ($t->IsActive): ?>

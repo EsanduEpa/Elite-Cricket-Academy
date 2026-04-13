@@ -177,7 +177,7 @@ class M_Trainer {
                 wp.Benefits,
                 wp.Status,
                 wp.CreatedDate,
-                u.Name  AS trainer_name,
+                CONCAT(u.FirstName, \' \', u.LastName) AS trainer_name,
                 IF(wp.TrainerID = :trainer_id, 1, 0) AS is_own,
                 COUNT(wpp.PlayerID) AS assigned_count
             FROM workoutplan wp
@@ -199,13 +199,13 @@ class M_Trainer {
         $this->db->query('
             SELECT
                 pp.PlayerID,
-                u.Name          AS player_name,
+                CONCAT(u.FirstName, \' \', u.LastName) AS player_name,
                 u.Email         AS player_email,
                 wpp.AssignedBy,
                 wpp.AssignedDate,
                 wpp.EndDate,
                 wpp.Status      AS assignment_status,
-                assigned_t.Name AS assigned_by_name
+                CONCAT(assigned_t.FirstName, \' \', assigned_t.LastName) AS assigned_by_name
             FROM workoutplan_player wpp
             JOIN playerprofile pp  ON wpp.PlayerID  = pp.PlayerID
             JOIN `user` u          ON pp.PlayerID   = u.UserID
@@ -354,7 +354,7 @@ class M_Trainer {
 
     // Get all players for dropdown
     public function getAllPlayers() {
-        $this->db->query('SELECT pp.PlayerID, u.Name FROM playerprofile pp JOIN `user` u ON pp.PlayerID = u.UserID ORDER BY u.Name');
+        $this->db->query('SELECT pp.PlayerID, CONCAT(u.FirstName, \' \', u.LastName) AS Name FROM playerprofile pp JOIN `user` u ON pp.PlayerID = u.UserID ORDER BY u.FirstName');
         return $this->db->resultSet();
     }
 
@@ -447,11 +447,11 @@ class M_Trainer {
         $this->db->query('
             SELECT
                 wp.*,
-                u.Name          AS trainer_name,
+                CONCAT(u.FirstName, \' \', u.LastName) AS trainer_name,
                 wpp.AssignedDate,
                 wpp.EndDate,
                 wpp.Status      AS assignment_status,
-                ab.Name         AS assigned_by_name
+                CONCAT(ab.FirstName, \' \', ab.LastName) AS assigned_by_name
             FROM workoutplan wp
             JOIN workoutplan_player wpp ON wp.PlanID = wpp.PlanID
             JOIN `user` u               ON wp.TrainerID = u.UserID
@@ -467,7 +467,7 @@ class M_Trainer {
 
     // Get trainer bookings (appointments) from the trainerappointment table  
     public function getTrainerAppointments($trainerId) {
-        $this->db->query('SELECT ta.*, u.Name AS player_name, u.Email AS player_email,
+        $this->db->query('SELECT ta.*, CONCAT(u.FirstName, \' \', u.LastName) AS player_name, u.Email AS player_email,
             pp.BattingStyle, pp.BowlingStyle, pp.PlayingRole
             FROM trainerappointment ta
             JOIN user u ON ta.PlayerID = u.UserID

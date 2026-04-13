@@ -175,7 +175,7 @@ class M_SlotStaff {
         $this->db->query(
             'SELECT sb.BookingID, sb.Status, sb.CreatedAt,
                     u.UserID AS PlayerID,
-                    u.Name AS PlayerName, u.Email AS PlayerEmail
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
              FROM slot_booking sb
              JOIN user u ON u.UserID = sb.PlayerID
              WHERE sb.OccurrenceID = :oid
