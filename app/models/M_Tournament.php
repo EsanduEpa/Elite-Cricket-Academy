@@ -14,7 +14,7 @@ class M_Tournament
     {
         if ($status) {
             $this->db->query(
-                'SELECT t.*, u.Name AS CreatedByName
+                'SELECT t.*, CONCAT(u.FirstName, \' \', u.LastName) AS CreatedByName
                  FROM tournament t
                  LEFT JOIN user u ON u.UserID = t.CreatedBy
                  WHERE t.Status = :status
@@ -23,7 +23,7 @@ class M_Tournament
             $this->db->bind(':status', $status);
         } else {
             $this->db->query(
-                'SELECT t.*, u.Name AS CreatedByName
+                'SELECT t.*, CONCAT(u.FirstName, \' \', u.LastName) AS CreatedByName
                  FROM tournament t
                  LEFT JOIN user u ON u.UserID = t.CreatedBy
                  ORDER BY t.tdate DESC'
@@ -47,7 +47,7 @@ class M_Tournament
     public function getTournamentById($id)
     {
         $this->db->query(
-            'SELECT t.*, u.Name AS CreatedByName
+            'SELECT t.*, CONCAT(u.FirstName, \' \', u.LastName) AS CreatedByName
              FROM tournament t
              LEFT JOIN user u ON u.UserID = t.CreatedBy
              WHERE t.TournamentID = :id'
@@ -131,7 +131,7 @@ class M_Tournament
     public function getTeam($tournamentId)
     {
         $this->db->query(
-            'SELECT tp.*, u.Name, u.Email,
+            'SELECT tp.*, CONCAT(u.FirstName, \' \', u.LastName) AS Name, u.Email,
                     u.ProfileImage
              FROM tournamentplayer tp
              JOIN user u ON u.UserID = tp.PlayerID
@@ -206,7 +206,7 @@ class M_Tournament
     public function getPlayerSelectionSummary($tournamentId)
     {
         $this->db->query(
-            'SELECT u.UserID, u.Name AS PlayerName,
+            'SELECT u.UserID, CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
                     u.Email,
                     u.ProfileImage,
                     COUNT(DISTINCT ctr.RecommendationID) AS CoachRecs,

@@ -4,6 +4,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('playerSearch');
     const statusFilter = document.getElementById('statusFilter');
+    const ageGroupFilter = document.getElementById('ageGroupFilter');
     const subscriptionFilter = document.getElementById('subscriptionFilter');
     const battingFilter = document.getElementById('battingFilter');
     
@@ -15,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Filter functions
     if (statusFilter) {
         statusFilter.addEventListener('change', filterPlayers);
+    }
+
+    if (ageGroupFilter) {
+        ageGroupFilter.addEventListener('change', filterPlayers);
     }
     
     if (subscriptionFilter) {
@@ -28,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterPlayers() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         const statusValue = statusFilter ? statusFilter.value.toLowerCase() : 'all';
+        const ageGroupValue = ageGroupFilter ? ageGroupFilter.value.toLowerCase() : 'all';
         const subscriptionValue = subscriptionFilter ? subscriptionFilter.value.toLowerCase() : 'all';
         const battingValue = battingFilter ? battingFilter.value.toLowerCase() : 'all';
         
@@ -38,6 +44,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const playerAge = row.querySelector('.staff-info p')?.textContent.toLowerCase() || '';
             const jerseyNumber = row.cells[2]?.textContent.toLowerCase() || '';
             const playerEmail = row.cells[3]?.textContent.toLowerCase() || '';
+            const ageValue = parseInt(row.dataset.playerAge || '0', 10);
+
+            function getAgeGroup(age) {
+                if (!age || Number.isNaN(age) || age <= 0) return '';
+                if (age < 11) return 'under 11';
+                if (age < 13) return 'under 13';
+                if (age < 15) return 'under 15';
+                if (age < 17) return 'under 17';
+                if (age < 19) return 'under 19';
+                if (age < 21) return 'under 21';
+                return 'open';
+            }
+
+            const playerAgeGroup = getAgeGroup(ageValue);
             
             // Get status from badge class
             const statusBadge = row.querySelector('.status-badge');
@@ -64,6 +84,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Apply status filter
             if (statusValue !== 'all' && playerStatus !== statusValue) {
+                showRow = false;
+            }
+
+            if (ageGroupValue !== 'all' && playerAgeGroup !== ageGroupValue) {
                 showRow = false;
             }
             
@@ -94,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function resetFilters() {
     document.getElementById('playerSearch').value = '';
     document.getElementById('statusFilter').value = 'all';
+    document.getElementById('ageGroupFilter').value = 'all';
     document.getElementById('subscriptionFilter').value = 'all';
     document.getElementById('battingFilter').value = 'all';
     

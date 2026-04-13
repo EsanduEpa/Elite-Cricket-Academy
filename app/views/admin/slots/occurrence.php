@@ -71,8 +71,9 @@ $staff = $data['staff'];
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Ad-hoc Session</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px; max-width:900px;">
@@ -88,7 +89,7 @@ $staff = $data['staff'];
             <div class="detail-card">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
                     <h2 style="margin:0;font-size:18px;color:#2c3e50;">
-                        <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Ad-hoc Session</em>' ?>
+                        <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Academy Event</em>' ?>
                     </h2>
                     <?php
                     $statusClass = 'occ-status-' . $occ->Status;
@@ -141,7 +142,7 @@ $staff = $data['staff'];
                 <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;"><i class="fas fa-users"></i> Assigned Staff</h3>
                 <?php if (empty($staff)): ?>
                     <p style="color:#888;font-size:13px;margin:0;">
-                        <?= $occ->TemplateID ? 'No staff assigned to this template yet.' : 'No staff assigned to this ad-hoc occurrence.' ?>
+                        <?= $occ->TemplateID ? 'No staff assigned to this template yet.' : 'No staff assigned to this academy event.' ?>
                     </p>
                 <?php else: ?>
                     <table style="width:100%;border-collapse:collapse;">

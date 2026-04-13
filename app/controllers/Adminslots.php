@@ -65,7 +65,12 @@ class Adminslots extends Controller {
             $post              = $_POST;
             $post['CreatedBy'] = $_SESSION['user_id'];
             $id = $model->createTemplate($post);
-            redirect('adminslots/generate?created=1&template_id=' . $id);
+            $slotType = strtolower(trim($post['SlotType'] ?? ''));
+            if ($slotType === 'facility_only') {
+                redirect('adminslots/generate?created=1&template_id=' . $id);
+            } else {
+                redirect('adminslots/staff/' . $id . '?created=1');
+            }
         }
 
         $data = [
@@ -113,11 +118,17 @@ class Adminslots extends Controller {
 
         $error   = null;
         $success = null;
+        $fromCreate = isset($_GET['created']);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['remove_staff'])) {
                 $model->removeStaff((int)$_POST['remove_staff']);
                 redirect('adminslots/staff/' . $templateId);
+            }
+
+            // "Done" button — proceed to occurrence generator
+            if (isset($_POST['proceed_generate'])) {
+                redirect('adminslots/generate?created=1&template_id=' . $templateId);
             }
 
             $result = $model->assignStaff(
@@ -141,16 +152,23 @@ class Adminslots extends Controller {
             }
         }
 
+        // Only show coaches in the assignment matrix (exclude admins/managers)
+        $allCoachDetails = $model->getCoachesWithAssignments();
+        $coachDetails = array_filter($allCoachDetails, function($c) {
+            return isset($c->Role) ? strtolower($c->Role) === 'coach' : true;
+        });
         $data = [
             'title'     => 'Assign Staff — ' . $template->TemplateName,
             'template'  => $template,
             'staff'     => $model->getStaffForTemplate((int)$templateId),
             'coaches'   => $model->getAvailableCoaches(),
+            'coachDetails' => $coachDetails,
             'trainers'  => $model->getAvailableTrainers(),
             'error'     => $error,
             'success'   => $success,
+            'fromCreate' => $fromCreate,
         ];
-        $this->view('admin/slots/staff', $data);
+        $this->view('admin/slots/admin_slots_staff', $data);
     }
 
     // =========================================================
@@ -162,6 +180,7 @@ class Adminslots extends Controller {
         $error  = null;
         $notice = null;
         $selectedTemplateId = (int) ($_GET['template_id'] ?? 0);
+        $existingOccurrences = [];
 
         if (isset($_GET['created'])) {
             $notice = 'Template created successfully. You can now generate occurrences for it.';
@@ -181,7 +200,14 @@ class Adminslots extends Controller {
                 $error = 'Start date must be on or before end date.';
             } else {
                 $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
+                if (!empty($result['inserted']) && $result['inserted'] > 0) {
+                    redirect('adminslots/calendar?generated=1&count=' . $result['inserted']);
+                }
             }
+        }
+
+        if ($selectedTemplateId > 0) {
+            $existingOccurrences = $model->getOccurrencesForTemplate($selectedTemplateId);
         }
 
         $data = [
@@ -191,6 +217,7 @@ class Adminslots extends Controller {
             'error'     => $error,
             'notice'    => $notice,
             'selectedTemplateId' => $selectedTemplateId,
+            'existingOccurrences' => $existingOccurrences,
         ];
         $this->view('admin/slots/generate', $data);
     }
@@ -272,6 +299,59 @@ class Adminslots extends Controller {
     }
 
     // =========================================================
+    // WEEKLY TIMETABLE  —  /adminslots/weeklytimetable
+    // =========================================================
+    public function weeklytimetable() {
+        $model      = $this->model('M_SlotAdmin');
+        $startParam = $_GET['start'] ?? null;
+
+        if ($startParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $startParam)) {
+            $weekTs = strtotime($startParam);
+        } else {
+            $weekTs = time();
+        }
+
+        $dow   = (int) date('N', $weekTs);
+        $monTs = strtotime('-' . ($dow - 1) . ' days', $weekTs);
+        $sunTs = strtotime('+6 days', $monTs);
+        $from  = date('Y-m-d', $monTs);
+        $to    = date('Y-m-d', $sunTs);
+
+        $occurrences = $model->getOccurrencesForCalendar($from, $to);
+        $timeBands = $model->getTimeBands();
+
+        $grid = [];
+        foreach ($occurrences as $occurrence) {
+            $slotId = (int) ($occurrence->SlotID ?? 0);
+            if ($slotId <= 0) {
+                continue;
+            }
+
+            $dateKey = (string) $occurrence->OccurrenceDate;
+            if (!isset($grid[$slotId])) {
+                $grid[$slotId] = [];
+            }
+            if (!isset($grid[$slotId][$dateKey])) {
+                $grid[$slotId][$dateKey] = [];
+            }
+
+            $grid[$slotId][$dateKey][] = $occurrence;
+        }
+
+        $data = [
+            'title'     => 'Weekly Timetable',
+            'from'      => $from,
+            'to'        => $to,
+            'prevWeek'  => date('Y-m-d', strtotime('-7 days', $monTs)),
+            'nextWeek'  => date('Y-m-d', strtotime('+7 days', $monTs)),
+            'monTs'     => $monTs,
+            'timeBands' => $timeBands,
+            'grid'      => $grid,
+        ];
+        $this->view('admin/slots/weekly_timetable', $data);
+    }
+
+    // =========================================================
     // OCCURRENCE DETAIL  —  /adminslots/occurrence/{id}
     // =========================================================
     public function occurrence($id = null) {
@@ -339,30 +419,74 @@ class Adminslots extends Controller {
     }
 
     // =========================================================
-    // AD-HOC OCCURRENCE  —  /adminslots/adhoc
+    // ACADEMY EVENT  —  /adminslots/adhoc
     // =========================================================
     public function adhoc() {
-        $model = $this->model('M_SlotAdmin');
+        $eventModel = $this->model('Event');
         $error = null;
+        $success = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (empty($_POST['SlotID']) || empty($_POST['OccurrenceDate']) || empty($_POST['FacilityID'])) {
-                $error = 'Time band, date, and facility are all required.';
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
+            $requiredFields = [
+                'event_name',
+                'event_type',
+                'event_venue',
+                'start_date',
+                'start_time',
+                'end_date',
+                'end_time',
+                'primary_contact',
+                'contact_email',
+                'contact_phone',
+            ];
+
+            $missingFields = [];
+            foreach ($requiredFields as $field) {
+                if (empty($_POST[$field])) {
+                    $missingFields[] = $field;
+                }
+            }
+
+            if (!empty($missingFields)) {
+                $error = 'Please complete all required event fields.';
             } else {
-                $newId = $model->createAdHocOccurrence($_POST, (int) $_SESSION['user_id']);
-                if ($newId > 0) {
-                    redirect('adminslots/occurrence/' . $newId);
+                $registrationStart = !empty($_POST['registration_start']) ? str_replace('T', ' ', $_POST['registration_start']) . ':00' : null;
+                $registrationEnd = !empty($_POST['registration_end']) ? str_replace('T', ' ', $_POST['registration_end']) . ':00' : null;
+
+                $eventData = [
+                    'name' => trim($_POST['event_name']),
+                    'type' => $_POST['event_type'],
+                    'category' => 'academy',
+                    'description' => !empty($_POST['event_description']) ? trim($_POST['event_description']) : null,
+                    'start_date' => $_POST['start_date'] . ' ' . $_POST['start_time'] . ':00',
+                    'end_date' => $_POST['end_date'] . ' ' . $_POST['end_time'] . ':00',
+                    'location' => trim($_POST['event_venue']),
+                    'status' => !empty($_POST['event_status']) ? $_POST['event_status'] : 'upcoming',
+                    'max_participants' => !empty($_POST['max_participants']) ? (int) $_POST['max_participants'] : null,
+                    'registration_fee' => !empty($_POST['registration_fee']) ? (float) $_POST['registration_fee'] : null,
+                    'registration_start' => $registrationStart,
+                    'registration_end' => $registrationEnd,
+                    'primary_contact' => trim($_POST['primary_contact']),
+                    'contact_email' => trim($_POST['contact_email']),
+                    'contact_phone' => trim($_POST['contact_phone']),
+                ];
+
+                $created = $eventModel->createEvent($eventData);
+                if ($created) {
+                    flash('event_message', 'Academy event "' . $eventData['name'] . '" created successfully.', 'alert alert-success');
+                    redirect('admin/events');
                 } else {
-                    $error = 'Could not create occurrence — this facility and time band may already be booked on that date.';
+                    $error = 'Could not create academy event. Please check the entered details and try again.';
                 }
             }
         }
 
         $data = [
-            'title'      => 'New Ad-hoc Session',
-            'timeBands'  => $model->getActiveTimeBands(),
-            'facilities' => $model->getFacilities(),
+            'title'      => 'New Academy Event',
             'error'      => $error,
+            'success'    => $success,
         ];
         $this->view('admin/slots/adhoc', $data);
     }

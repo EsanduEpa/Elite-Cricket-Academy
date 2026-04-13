@@ -244,7 +244,7 @@ class M_Shop {
                 po.TotalAmount,
                 po.PaymentMethod,
                 po.Status,
-                u.Name as CustomerName,
+                CONCAT(u.FirstName, \' \', u.LastName) as CustomerName,
                 u.Email,
                 COUNT(poi.OrderItemID) as item_count
             FROM productorder po
@@ -264,7 +264,7 @@ class M_Shop {
                 po.TotalAmount,
                 po.PaymentMethod,
                 po.Status,
-                u.Name as CustomerName,
+                CONCAT(u.FirstName, \' \', u.LastName) as CustomerName,
                 u.Email,
                 COUNT(poi.OrderItemID) as item_count
             FROM productorder po
@@ -372,7 +372,7 @@ class M_Shop {
     // Get all equipment rentals with details
     public function getAllRentals() {
         $this->db->query('SELECT er.*, e.Name AS equipment_name, e.Category, 
-            u.Name AS renter_name
+            CONCAT(u.FirstName, \' \', u.LastName) AS renter_name
             FROM equipmentrental er 
             JOIN equipment e ON er.EquipmentID = e.EquipmentID 
             JOIN user u ON er.PlayerID = u.UserID 
@@ -382,7 +382,7 @@ class M_Shop {
 
     // Get all product reviews with details
     public function getAllProductReviews() {
-        $this->db->query('SELECT pr.*, p.Name AS product_name, u.Name AS customer_name
+        $this->db->query('SELECT pr.*, p.Name AS product_name, CONCAT(u.FirstName, \' \', u.LastName) AS customer_name
             FROM productreview pr 
             JOIN product p ON pr.ProductID = p.ProductID 
             JOIN user u ON pr.UserID = u.UserID 
@@ -406,7 +406,7 @@ class M_Shop {
     public function getSupplementPrescriptions() {
         $this->db->query('SELECT sp.PlanID, sp.SupplementPlanName AS supplements, 
             sp.Dosage, sp.Duration, sp.CreatedDate AS date,
-            u_player.Name AS patient, u_trainer.Name AS prescribed_by,
+            CONCAT(u_player.FirstName, \' \', u_player.LastName) AS patient, CONCAT(u_trainer.FirstName, \' \', u_trainer.LastName) AS prescribed_by,
             CASE WHEN DATEDIFF(CURDATE(), sp.CreatedDate) < sp.Duration THEN "active" ELSE "completed" END AS status
             FROM supplementplan sp
             JOIN supplement_player spp ON sp.PlanID = spp.PlanID

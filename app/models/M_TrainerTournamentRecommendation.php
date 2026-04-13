@@ -42,7 +42,7 @@ class M_TrainerTournamentRecommendation
         $this->db->query(
             'SELECT ttr.*,
                     t.Name AS TournamentName, t.tdate, t.Status AS TournamentStatus, t.Format,
-                    u.Name AS PlayerName, u.Email
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email
              FROM trainer_tournament_recommendations ttr
              JOIN tournament t ON t.TournamentID = ttr.TournamentID
              JOIN user u ON u.UserID = ttr.PlayerID
@@ -58,8 +58,8 @@ class M_TrainerTournamentRecommendation
     {
         $this->db->query(
             'SELECT ttr.*,
-                    u_player.Name AS PlayerName,
-                    u_trainer.Name AS TrainerName
+                    CONCAT(u_player.FirstName, \' \', u_player.LastName) AS PlayerName,
+                    CONCAT(u_trainer.FirstName, \' \', u_trainer.LastName) AS TrainerName
              FROM trainer_tournament_recommendations ttr
              JOIN user u_player ON u_player.UserID = ttr.PlayerID
              JOIN user u_trainer ON u_trainer.UserID = ttr.TrainerID
@@ -111,11 +111,11 @@ class M_TrainerTournamentRecommendation
     public function getAllActivePlayers()
     {
         $this->db->query(
-            'SELECT u.UserID, u.Name, u.Email, u.ProfileImage
+            'SELECT u.UserID, CONCAT(u.FirstName, \' \', u.LastName) AS Name, u.Email, u.ProfileImage
              FROM user u
              JOIN playerprofile pp ON pp.PlayerID = u.UserID
              WHERE u.Role = "Player"
-             ORDER BY u.Name'
+             ORDER BY u.FirstName'
         );
         return $this->db->resultset();
     }

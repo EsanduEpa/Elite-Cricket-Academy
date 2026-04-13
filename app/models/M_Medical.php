@@ -10,7 +10,7 @@ class M_Medical {
     public function getMedicalRecords($playerId) {
         $this->db->query('SELECT 
             pmr.*,
-            u.name as reported_by_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as reported_by_name,
             u.role as reported_by_role
             FROM PlayerMedicalRecord pmr 
             LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
@@ -123,7 +123,7 @@ class M_Medical {
     public function getMedicalRecord($recordId) {
         $this->db->query('SELECT 
             pmr.*,
-            u.name as reported_by_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as reported_by_name,
             u.role as reported_by_role
             FROM PlayerMedicalRecord pmr 
             LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
@@ -138,9 +138,9 @@ class M_Medical {
     public function getAllMedicalRecords() {
         $this->db->query('SELECT 
             pmr.*,
-            u.name as reported_by_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as reported_by_name,
             u.role as reported_by_role,
-            p.name as player_name,
+            CONCAT(p.FirstName, \' \', p.LastName) as player_name,
             p.UserID as player_user_id
             FROM PlayerMedicalRecord pmr 
             LEFT JOIN User u ON pmr.ReportedBy = u.UserID 
@@ -154,7 +154,7 @@ class M_Medical {
     public function getAllMedicalRecordsWithPlayerInfo() {
         $this->db->query('SELECT 
             pmr.*,
-            u.Name as PlayerName,
+            CONCAT(u.FirstName, \' \', u.LastName) as PlayerName,
             u.PhoneNumber as PlayerContact,
             u.Email as PlayerEmail
             FROM PlayerMedicalRecord pmr 

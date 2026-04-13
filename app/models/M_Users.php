@@ -666,11 +666,13 @@ class M_Users {
         $today = new DateTime();
         $age = $today->diff($birthDate)->y;
 
-        if ($age <= 10) return 'Under 11';
-        if ($age <= 12) return 'Under 13';
-        if ($age <= 14) return 'Under 15';
-        if ($age <= 16) return 'Under 17';
-        if ($age <= 18) return 'Under 19';
+
+        if ($age < 11) return 'Under 11';
+        if ($age < 13) return 'Under 13';
+        if ($age < 15) return 'Under 15';
+        if ($age < 17) return 'Under 17';
+        if ($age < 19) return 'Under 19';
+        if ($age < 21) return 'Under 21';
         return 'Open';
     }
 
@@ -1518,6 +1520,7 @@ class M_Users {
             pp.BowlingStyle,
             pp.JerseyNumber,
             pp.SubscriptionType,
+            mp.PlanName AS SubscriptionPlanName,
             pp.EmergencyContactName,
             pp.EmergencyContactPhone,
             pp.ParentGuardianName,
@@ -1529,6 +1532,15 @@ class M_Users {
             TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) as Age
         FROM user u
         LEFT JOIN playerprofile pp ON u.UserID = pp.PlayerID
+        LEFT JOIN playersubscription ps ON ps.SubscriptionID = (
+            SELECT ps2.SubscriptionID
+            FROM playersubscription ps2
+            WHERE ps2.PlayerID = u.UserID
+              AND ps2.Status = 'active'
+            ORDER BY ps2.StartDate DESC, ps2.SubscriptionID DESC
+            LIMIT 1
+        )
+        LEFT JOIN membershipplan mp ON mp.PlanID = ps.PlanID
         WHERE u.Role = 'Player'
         ORDER BY u.DateJoined DESC");
         

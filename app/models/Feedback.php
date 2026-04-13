@@ -34,7 +34,7 @@ class Feedback {
             f.Rating as rating,
             f.Status as status,
             f.CreatedDate as created_at,
-            u.Name as user_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as user_name,
             CASE 
                 WHEN f.Rating >= 4 THEN "low"
                 WHEN f.Rating = 3 THEN "medium"
@@ -90,9 +90,9 @@ class Feedback {
             f.Rating as rating,
             f.Status as status,
             f.CreatedDate as created_at,
-            u.Name as user_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as user_name,
             u.Email as user_email,
-            target_user.Name as target_name,
+            CONCAT(target_user.FirstName, \' \', target_user.LastName) as target_name,
             CASE 
                 WHEN f.Rating >= 4 THEN "low"
                 WHEN f.Rating = 3 THEN "medium"
@@ -127,9 +127,9 @@ class Feedback {
             f.Rating as rating,
             f.Status as status,
             f.CreatedDate as created_at,
-            u.Name as user_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as user_name,
             u.Email as user_email,
-            target_user.Name as target_name
+            CONCAT(target_user.FirstName, \' \', target_user.LastName) as target_name
         FROM feedback f 
         LEFT JOIN User u ON f.FromUserID = u.UserID 
         LEFT JOIN User target_user ON f.ToUserID = target_user.UserID

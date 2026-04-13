@@ -184,7 +184,7 @@ class M_SlotAdmin {
 
     public function getStaffForTemplate(int $templateId): array {
         $this->db->query(
-            'SELECT ts.*, u.Name AS UserName, u.Role AS UserRole
+            'SELECT ts.*, CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole
              FROM slot_template_staff ts
              JOIN user u ON u.UserID = ts.UserID
              WHERE ts.TemplateID = :tid
@@ -250,14 +250,31 @@ class M_SlotAdmin {
 
     public function getAvailableCoaches(): array {
         $this->db->query(
-            "SELECT UserID, Name FROM user WHERE LOWER(Role) IN ('coach','admin') AND Status='Active' ORDER BY Name"
+            "SELECT UserID, CONCAT(FirstName, ' ', LastName) AS Name FROM user WHERE LOWER(Role) IN ('coach','admin') AND Status='Active' ORDER BY FirstName"
+        );
+        return $this->db->resultSet();
+    }
+
+    public function getCoachesWithAssignments(): array {
+        $this->db->query(
+            "SELECT u.UserID,
+                    CONCAT(u.FirstName, ' ', u.LastName) AS Name,
+                    cp.Specialization,
+                    cp.IsHeadCoach,
+                    GROUP_CONCAT(DISTINCT CONCAT(csg.CoachingType, ':', csg.AgeGroup) ORDER BY csg.CoachingType, csg.PriorityRank SEPARATOR '|') AS Assignments
+             FROM user u
+             LEFT JOIN coachprofile cp ON cp.CoachID = u.UserID
+             LEFT JOIN coach_skill_age_group_assignment csg ON csg.CoachID = u.UserID AND csg.IsActive = 1
+             WHERE LOWER(u.Role) IN ('coach','admin') AND u.Status = 'Active'
+             GROUP BY u.UserID, u.FirstName, u.LastName, cp.Specialization, cp.IsHeadCoach
+             ORDER BY cp.IsHeadCoach DESC, u.FirstName"
         );
         return $this->db->resultSet();
     }
 
     public function getAvailableTrainers(): array {
         $this->db->query(
-            "SELECT UserID, Name FROM user WHERE LOWER(Role) = 'trainer' AND Status='Active' ORDER BY Name"
+            "SELECT UserID, CONCAT(FirstName, ' ', LastName) AS Name FROM user WHERE LOWER(Role) = 'trainer' AND Status='Active' ORDER BY FirstName"
         );
         return $this->db->resultSet();
     }
@@ -432,11 +449,11 @@ class M_SlotAdmin {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, " ", u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, " ", u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -492,7 +509,7 @@ class M_SlotAdmin {
             $this->db->query(
                 'SELECT ov.ID, ov.UserID, ov.StaffType, ov.StaffRole,
                         ov.OverridesUserID, ov.OverrideReason,
-                        u.Name AS UserName, u.Role AS UserRole,
+                        CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole,
                         \'override\' AS Source
                  FROM slot_occurrence_staff_override ov
                  JOIN user u ON u.UserID = ov.UserID
@@ -507,7 +524,7 @@ class M_SlotAdmin {
         $this->db->query(
             'SELECT ts.ID, ts.UserID, ts.StaffType, ts.StaffRole,
                     NULL AS OverridesUserID, NULL AS OverrideReason,
-                    u.Name AS UserName, u.Role AS UserRole,
+                    CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole,
                     \'template\' AS Source
              FROM slot_template_staff ts
              JOIN user u ON u.UserID = ts.UserID
@@ -608,8 +625,8 @@ class M_SlotAdmin {
         $this->db->query(
             'SELECT sb.BookingID, sb.PlayerID, sb.Status, sb.MedicalClearedBy,
                     sb.BookingSource, sb.AmountCharged, sb.PaymentStatus, sb.CreatedAt,
-                    u.Name AS PlayerName,
-                    clr.Name AS ClearedByName
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
+                    CONCAT(clr.FirstName, \' \', clr.LastName) AS ClearedByName
              FROM slot_booking sb
              JOIN user u         ON u.UserID  = sb.PlayerID
              LEFT JOIN user clr  ON clr.UserID = sb.MedicalClearedBy

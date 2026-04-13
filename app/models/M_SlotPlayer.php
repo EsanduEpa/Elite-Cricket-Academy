@@ -224,11 +224,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -273,11 +273,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -322,11 +322,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -399,11 +399,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR ", ")
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR ", ")
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR ", ")
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR ", ")
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -703,7 +703,7 @@ class M_SlotPlayer {
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     st.TemplateName, st.SlotType,
                     f.Name AS FacilityName,
-                    u.Name AS PlayerName, u.Email AS PlayerEmail
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
              FROM slot_booking sb
              JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
              JOIN slot_template st ON st.TemplateID = so.TemplateID
@@ -784,11 +784,11 @@ class M_SlotPlayer {
 
     public function searchPlayers(string $term): array {
         $this->db->query(
-            'SELECT UserID, Name, Email, PhoneNumber
+            'SELECT UserID, CONCAT(FirstName, \' \', LastName) AS Name, Email, PhoneNumber
              FROM user
              WHERE Role = \'Player\'
                AND Status = \'active\'
-               AND (Name LIKE :t OR Email LIKE :t2 OR UserID = :id)
+               AND (CONCAT(FirstName, \' \', LastName) LIKE :t OR Email LIKE :t2 OR UserID = :id)
              LIMIT 20'
         );
         $like = '%' . $term . '%';
