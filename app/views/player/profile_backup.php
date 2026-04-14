@@ -308,8 +308,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                                         <option value="">Select specialization</option>
                                         <option value="Batting" <?php echo ($data['user']->CoachSpecialization ?? '') === 'Batting' ? 'selected' : ''; ?>>Batting</option>
                                         <option value="Bowling" <?php echo ($data['user']->CoachSpecialization ?? '') === 'Bowling' ? 'selected' : ''; ?>>Bowling</option>
-                                        <option value="All-rounder" <?php echo ($data['user']->CoachSpecialization ?? '') === 'All-rounder' ? 'selected' : ''; ?>>All-rounder</option>
-                                        <option value="Wicket-keeping" <?php echo ($data['user']->CoachSpecialization ?? '') === 'Wicket-keeping' ? 'selected' : ''; ?>>Wicket-keeping</option>
+                                        <option value="Fielding" <?php echo ($data['user']->CoachSpecialization ?? '') === 'Fielding' ? 'selected' : ''; ?>>Fielding</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
