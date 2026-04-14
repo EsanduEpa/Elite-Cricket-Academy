@@ -6,7 +6,7 @@ INSERT INTO CoachProfile (
     IsHeadCoach
 ) VALUES (
     4,
-    'All-rounder',
+    'Fielding',
     0,
     NULL,
     0

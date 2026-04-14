@@ -47,15 +47,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `AutoAssignCoach` (IN `p_player_id` 
     JOIN User u ON c.CoachID = u.UserID
     WHERE u.Status = 'active'
     AND (
-        (player_age <= 12 AND c.Specialization IN ('All-rounder', 'Batting')) OR
-        (player_age BETWEEN 13 AND 16 AND c.Specialization IN ('All-rounder', 'Batting', 'Bowling')) OR
+        (player_age <= 12 AND c.Specialization IN ('Batting', 'Fielding')) OR
+        (player_age BETWEEN 13 AND 16 AND c.Specialization IN ('Batting', 'Bowling', 'Fielding')) OR
         (player_age >= 17)
     )
     ORDER BY 
         CASE 
-            WHEN c.Specialization = 'All-rounder' THEN 1
-            WHEN (player_bowling_style != 'None' AND c.Specialization = 'Bowling') THEN 2
-            WHEN c.Specialization = 'Batting' THEN 3
+          WHEN c.Specialization = 'Batting' THEN 1
+          WHEN (player_bowling_style != 'None' AND c.Specialization = 'Bowling') THEN 2
+          WHEN c.Specialization = 'Fielding' THEN 3
             ELSE 4
         END,
         c.Experience DESC
@@ -229,7 +229,7 @@ CREATE TABLE `coachappointment` (
 CREATE TABLE `coachingeffectiveness` (
 `CoachID` int(11)
 ,`CoachName` varchar(255)
-,`Specialization` enum('Batting','Bowling','All-rounder','Wicket-keeping')
+,`Specialization` enum('Batting','Bowling','Fielding')
 ,`PlayersAssigned` bigint(21)
 ,`PerformanceUpdatesGiven` bigint(21)
 ,`SessionsLogged` bigint(21)
@@ -314,7 +314,7 @@ CREATE TABLE `coachplayerpermissions` (
 
 CREATE TABLE `coachprofile` (
   `CoachID` int(11) NOT NULL,
-  `Specialization` enum('Batting','Bowling','All-rounder','Wicket-keeping') DEFAULT NULL,
+  `Specialization` enum('Batting','Bowling','Fielding') DEFAULT NULL,
   `Experience` int(11) DEFAULT NULL COMMENT 'Years of experience',
   `Certifications` text DEFAULT NULL,
   `IsHeadCoach` tinyint(1) DEFAULT 0 COMMENT 'Head coach flag - only one per academy with enhanced permissions'

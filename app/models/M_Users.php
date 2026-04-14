@@ -938,12 +938,29 @@ class M_Users {
                          VALUES (:coach_id, :specialization, :experience, :certifications, :is_head_coach)');
         
         $this->db->bind(':coach_id', $coachId);
-        $this->db->bind(':specialization', $data['specialization'] ?? 'All-rounder');
+        $this->db->bind(':specialization', $this->normalizeCoachSpecialization($data['specialization'] ?? 'Batting'));
         $this->db->bind(':experience', $data['experience'] ?? 0);
         $this->db->bind(':certifications', $data['certifications'] ?? null);
         $this->db->bind(':is_head_coach', $data['is_head_coach'] ?? false);
         
         return $this->db->execute();
+    }
+
+    private function normalizeCoachSpecialization(?string $specialization): string {
+        $allowed = ['Batting', 'Bowling', 'Fielding'];
+        $normalized = trim((string) $specialization);
+
+        if ($normalized === '') {
+            return 'Batting';
+        }
+
+        foreach ($allowed as $allowedSpecialization) {
+            if (strcasecmp($normalized, $allowedSpecialization) === 0) {
+                return $allowedSpecialization;
+            }
+        }
+
+        return 'Batting';
     }
 
     // Create trainer profile
@@ -1104,7 +1121,7 @@ class M_Users {
                          WHERE CoachID = :user_id');
         
         $this->db->bind(':user_id', $data['user_id']);
-        $this->db->bind(':specialization', $data['specialization'] ?? null);
+        $this->db->bind(':specialization', $this->normalizeCoachSpecialization($data['specialization'] ?? null));
         $this->db->bind(':experience', $data['experience'] ?? 0);
         $this->db->bind(':certifications', $data['certifications'] ?? null);
         

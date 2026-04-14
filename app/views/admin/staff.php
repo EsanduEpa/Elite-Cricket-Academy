@@ -618,8 +618,12 @@
                         <label for="editSpecialization">
                             <i class="fas fa-certificate"></i> Specialization
                         </label>
-                        <input type="text" id="editSpecialization" name="specialization" 
-                               placeholder="e.g., Batting Coach, Bowling Coach, Fitness Trainer">
+                        <select id="editSpecialization" name="specialization">
+                            <option value="">Select specialization</option>
+                            <option value="Batting">Batting</option>
+                            <option value="Bowling">Bowling</option>
+                            <option value="Fielding">Fielding</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
