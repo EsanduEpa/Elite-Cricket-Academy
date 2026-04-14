@@ -79,6 +79,11 @@ $requiredPlanOptions = [
 
         <div style="padding:0 25px 40px;">
             <div class="stack-layout">
+            <?php if (!empty($data['error'])): ?>
+                <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:12px 16px;border-radius:8px;">
+                    <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($data['error']) ?>
+                </div>
+            <?php endif; ?>
             <form method="POST" class="form-card">
                 <input type="hidden" name="form_action" value="save_template">
 
@@ -86,6 +91,14 @@ $requiredPlanOptions = [
                     <div class="form-group" style="grid-column:1/-1;">
                         <label>Template Name <span style="color:#e74c3c;">*</span></label>
                         <input type="text" name="TemplateName" required value="<?= htmlspecialchars($t->TemplateName ?? '') ?>" placeholder="e.g. U15 Batting Practice">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label>Template Code</label>
+                        <input type="text" name="temp_code" required value="<?= htmlspecialchars($t->temp_code ?? '') ?>" placeholder="e.g. U15-BAT-PN1">
+                        <p class="hint">Enter a unique code manually. This is stored exactly as typed.</p>
                     </div>
                 </div>
 

@@ -148,7 +148,7 @@
                                 <?php foreach ($data['templates'] as $t): ?>
                                     <option value="<?= $t->TemplateID ?>"
                                         <?= ((int)($data['selectedTemplateId'] ?? 0) === (int)$t->TemplateID) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($t->TemplateName) ?>
+                                        <?= htmlspecialchars(($t->temp_code ?? ('T' . $t->TemplateID)) . ' — ' . $t->TemplateName) ?>
                                         <?php if ($t->DayOfWeek): ?>
                                             <?php $days = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun']; ?>
                                             — every <?= $days[(int)$t->DayOfWeek] ?>

@@ -8,6 +8,57 @@
  */
 class SlotBookingService {
 
+    public static function getEligiblePlayerCountForTemplate(int $templateId): int {
+        $db = new Database();
+
+        $db->query(
+            'SELECT AgeGroup
+             FROM slot_template
+             WHERE TemplateID = :tid
+             LIMIT 1'
+        );
+        $db->bind(':tid', $templateId, PDO::PARAM_INT);
+        $template = $db->single();
+
+        if (!$template) {
+            return 0;
+        }
+
+        $ageGroup = trim((string)($template->AgeGroup ?? ''));
+        if ($ageGroup === '' || strtolower($ageGroup) === 'open') {
+            $db->query(
+                "SELECT COUNT(*) AS cnt
+                 FROM user
+                 WHERE Role = 'Player'
+                   AND Status = 'active'
+                   AND DateOfBirth IS NOT NULL"
+            );
+            $row = $db->single();
+            return (int)($row->cnt ?? 0);
+        }
+
+        $db->query(
+            "SELECT COUNT(*) AS cnt
+             FROM user
+             WHERE Role = 'Player'
+               AND Status = 'active'
+               AND DateOfBirth IS NOT NULL
+               AND CASE
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 11 THEN 'Under 11'
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 13 THEN 'Under 13'
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 15 THEN 'Under 15'
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 17 THEN 'Under 17'
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 19 THEN 'Under 19'
+                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 21 THEN 'Under 21'
+                    ELSE 'Open'
+                  END = :age_group"
+        );
+        $db->bind(':age_group', $ageGroup);
+        $row = $db->single();
+
+        return (int)($row->cnt ?? 0);
+    }
+
     // =========================================================
     // ENTITLEMENT CHECK — Does the player's plan cover this slot?
     // =========================================================
@@ -21,8 +72,8 @@ class SlotBookingService {
     public static function validateEntitlement(int $playerId, int $templateId): array {
         $db = new Database();
 
-        // 1. Load the template's required plan feature
-        $db->query('SELECT RequiredPlanFeature FROM slot_template WHERE TemplateID = :tid');
+        // 1. Load the template's required plan feature and slot type
+        $db->query('SELECT RequiredPlanFeature, SlotType FROM slot_template WHERE TemplateID = :tid');
         $db->bind(':tid', $templateId, PDO::PARAM_INT);
         $template = $db->single();
 
@@ -31,6 +82,7 @@ class SlotBookingService {
         }
 
         $requiredPlan = trim((string)($template->RequiredPlanFeature ?? ''));
+        $slotType = trim((string)($template->SlotType ?? ''));
 
         // 2. Legacy open access templates remain bookable until they are updated.
         if ($requiredPlan === '' || $requiredPlan === 'none') {
@@ -40,6 +92,7 @@ class SlotBookingService {
         // 3. Find player's active subscription
         $db->query(
             'SELECT ps.SubscriptionID, ps.PlanID,
+                mp.PlanName,
                     mp.SessionsPerWeek, mp.PrivateSessionsIncluded, mp.FacilityAccessIncluded
              FROM playersubscription ps
              JOIN membershipplan mp ON mp.PlanID = ps.PlanID
@@ -57,6 +110,12 @@ class SlotBookingService {
                 'code'    => 'no_subscription',
                 'message' => 'You do not have an active subscription. Please subscribe to a plan to book sessions.',
             ];
+        }
+
+        // Facility-only templates can be booked by any active membership.
+        // The active subscription check above still applies.
+        if ($slotType === 'facility_only') {
+            return ['ok' => true, 'subscription_id' => (int) $sub->SubscriptionID];
         }
 
         // 4. New templates require an exact membership plan. Older templates may
@@ -180,17 +239,26 @@ class SlotBookingService {
             return ['ok' => false, 'code' => 'not_found', 'message' => 'Occurrence not found.'];
         }
 
-        // Capacity is only enforced for facility_only and private slot types
-        if (!in_array($row->SlotType, ['facility_only', 'private'], true)) {
-            return ['ok' => true, 'spots_left' => null];
+        // Group sessions use the eligible player count for the template's age group.
+        if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+            $max = self::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
+        } else {
+            // Occurrence-level override takes priority; fall back to template value.
+            // This value is the allowed headcount inside a single reservation.
+            $max = $row->OccMax ?? $row->TplMax ?? null;
         }
 
-        // Occurrence-level override takes priority; fall back to template value.
-        // This value is the allowed headcount inside a single reservation.
-        $max    = $row->OccMax ?? $row->TplMax ?? null;
         $booked = (int) $row->Booked;
 
-        if ($booked >= 1) {
+        if ($max !== null && (int)$max <= 0) {
+            return [
+                'ok'      => false,
+                'code'    => 'full',
+                'message' => 'This slot is already reserved.',
+            ];
+        }
+
+        if (in_array($row->SlotType, ['facility_only', 'private', 'program'], true) && $booked >= (int) ($row->SlotType === 'program' ? ($max ?? 1) : 1)) {
             return [
                 'ok'      => false,
                 'code'    => 'full',
@@ -200,7 +268,7 @@ class SlotBookingService {
 
         return [
             'ok'             => true,
-            'spots_left'     => 1,
+            'spots_left'     => $max !== null ? max(0, (int)$max - $booked) : 1,
             'group_capacity' => $max !== null ? (int) $max : null,
         ];
     }

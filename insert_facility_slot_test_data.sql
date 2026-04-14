@@ -77,6 +77,75 @@ VALUES
   (8, 'Private 1-on-1 Coaching',
     'private', 'coach', 4, 1, 1, 1500.00, 'private_sessions', 1, 1);
 
+  UPDATE slot_template st
+  LEFT JOIN slot_time_band tb ON tb.SlotID = st.SlotID
+  SET st.temp_code = CASE
+    WHEN st.SlotType = 'facility_only' THEN CONCAT(
+      'FAC-',
+      COALESCE(
+        CASE st.DayOfWeek
+          WHEN 1 THEN 'MON'
+          WHEN 2 THEN 'TUE'
+          WHEN 3 THEN 'WED'
+          WHEN 4 THEN 'THU'
+          WHEN 5 THEN 'FRI'
+          WHEN 6 THEN 'SAT'
+          WHEN 7 THEN 'SUN'
+        END,
+        'ANY'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+    WHEN st.SlotType = 'private' THEN CONCAT(
+      'PVT-',
+      COALESCE(
+        CASE st.Category
+          WHEN 'Batting' THEN 'BAT'
+          WHEN 'Bowling' THEN 'BOWL'
+          WHEN 'Fielding' THEN 'FLD'
+          WHEN 'Fitness' THEN 'FIT'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+    ELSE CONCAT(
+      COALESCE(
+        CASE st.AgeGroup
+          WHEN 'Under 11' THEN 'U11'
+          WHEN 'Under 13' THEN 'U13'
+          WHEN 'Under 15' THEN 'U15'
+          WHEN 'Under 17' THEN 'U17'
+          WHEN 'Under 19' THEN 'U19'
+          WHEN 'Under 21' THEN 'U21'
+          WHEN 'Open' THEN 'OPEN'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(
+        CASE st.Category
+          WHEN 'Batting' THEN 'BAT'
+          WHEN 'Bowling' THEN 'BOWL'
+          WHEN 'Fielding' THEN 'FLD'
+          WHEN 'Fitness' THEN 'FIT'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+  END
+  WHERE st.TemplateID IN (4,5,6,7,8);
+
 -- ─────────────────────────────────────────────────────────────
 -- 3. OCCURRENCES  (dates: Apr 10–20 2026)
 -- ─────────────────────────────────────────────────────────────

@@ -169,62 +169,34 @@
                 </div>
             </div>
 
-            <!-- Academy Calendar - Custom JS Implementation -->
-            <div class="calendar-section">
-                <div class="calendar-header">
-                    <h3><i class="fas fa-calendar-alt"></i> Academy Calendar</h3>
-                    <div class="calendar-controls">
-                        <div class="view-toggle">
-                            <button class="view-btn active" data-view="month"><i class="fas fa-calendar"></i> Month</button>
-                            <button class="view-btn" data-view="week"><i class="fas fa-calendar-week"></i> Week</button>
-                            <button class="view-btn" data-view="day"><i class="fas fa-calendar-day"></i> Day</button>
-                        </div>
-                        <div class="calendar-nav">
-                            <button id="todayBtn" class="calendar-btn today-btn" title="Go to Today"><i class="fas fa-calendar-check"></i></button>
-                            <button id="prevPeriod" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
-                            <span id="currentPeriod"></span>
-                            <button id="nextPeriod" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-                </div>
-                <div id="calendarContent" class="calendar-content">
-                    <div id="monthView" class="calendar-grid"></div>
-                    <div id="weekView" class="week-view" style="display: none;"></div>
-                    <div id="dayView" class="day-view" style="display: none;"></div>
-                </div>
-                <div class="calendar-legend">
-                    <div class="legend-item"><span class="legend-dot event"></span> Events</div>
-                    <div class="legend-item"><span class="legend-dot coaching"></span> Coaching Sessions</div>
-                    <div class="legend-item"><span class="legend-dot tournament"></span> Tournaments</div>
-                    <div class="legend-item"><span class="legend-dot meeting"></span> Meetings</div>
-                </div>
-            </div>
-
-            <!-- Slot Occurrence Calendar -->
+            <!-- Academy Calendar -->
             <div class="calendar-section" style="margin-top:30px;">
                 <style>
-                    .slot-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:120px; width:14.28%; padding:8px; background:#fff; }
+                    .slot-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:160px; width:14.28%; padding:8px; background:#fff; }
+                    .slot-cal-outside   { background:#fafafa; color:#999; }
                     .slot-cal-today     { background:#fffde7; }
-                    .slot-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:5px; font-size:12px; cursor:pointer; text-decoration:none; display:block; }
+                    .slot-cal-day-num   { display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:8px; }
+                    .slot-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:6px; font-size:12px; cursor:pointer; text-decoration:none; display:block; }
                     .slot-cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
                     .slot-cal-private   { background:#fff3cd; color:#856404; border-left:3px solid #856404; }
                     .slot-cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
                     .slot-cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
                     .slot-cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
+                    .slot-cal-tournament { background:#fff1d6; color:#8a4b00; border-left:3px solid #e67e22; }
                 </style>
                 <div class="calendar-header">
-                    <h3><i class="fas fa-clock"></i> Slot Occurrence Calendar</h3>
+                    <h3><i class="fas fa-calendar-alt"></i> Academy Calendar</h3>
                     <div class="calendar-controls">
                         <div class="calendar-nav">
-                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_start=<?= $data['slotPrevWeek'] ?>"
-                               class="calendar-btn" title="Previous Week"><i class="fas fa-chevron-left"></i></a>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_month=<?= $data['slotPrevMonth'] ?>"
+                               class="calendar-btn" title="Previous Month"><i class="fas fa-chevron-left"></i></a>
                             <span style="font-weight:700;font-size:14px;color:#2c3e50;">
-                                <?= date('j M Y', strtotime($data['slotFrom'])) ?> &mdash; <?= date('j M Y', strtotime($data['slotTo'])) ?>
+                                <?= date('F Y', $data['slotMonthTs']) ?>
                             </span>
-                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_start=<?= $data['slotNextWeek'] ?>"
-                               class="calendar-btn" title="Next Week"><i class="fas fa-chevron-right"></i></a>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_month=<?= $data['slotNextMonth'] ?>"
+                               class="calendar-btn" title="Next Month"><i class="fas fa-chevron-right"></i></a>
                             <a href="<?php echo URLROOT; ?>/admin/dashboard"
-                               class="calendar-btn today-btn" title="Current Week" style="margin-left:8px;"><i class="fas fa-calendar-check"></i></a>
+                               class="calendar-btn today-btn" title="Current Month" style="margin-left:8px;"><i class="fas fa-calendar-check"></i></a>
                         </div>
                     </div>
                 </div>
@@ -234,6 +206,7 @@
                     <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:10px;">Private</span>
                     <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;">Facility Only</span>
                     <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Ad-hoc</span>
+                    <span style="background:#fff1d6;color:#8a4b00;padding:3px 10px;border-radius:10px;">Tournament</span>
                     <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
                 </div>
 
@@ -241,32 +214,43 @@
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
                             <tr style="background:#f8f9fa;">
-                                <?php
-                                $slotDayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-                                for ($si = 0; $si < 7; $si++):
-                                    $sts   = strtotime("+{$si} days", $data['slotMonTs']);
-                                    $sdate = date('Y-m-d', $sts);
-                                    $sIsToday = ($sdate === date('Y-m-d'));
-                                ?>
-                                <th style="padding:10px 8px;text-align:center;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;<?= $sIsToday ? 'background:#fffde7;' : '' ?>">
-                                    <div style="font-weight:700;"><?= $slotDayNames[$si] ?></div>
-                                    <div style="font-size:12px;color:#888;"><?= date('j M', $sts) ?></div>
+                                <?php foreach (['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $slotDayName): ?>
+                                <th style="padding:10px 8px;text-align:center;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">
+                                    <div style="font-weight:700;"><?= $slotDayName ?></div>
                                 </th>
-                                <?php endfor; ?>
+                                <?php endforeach; ?>
                             </tr>
                         </thead>
                         <tbody>
+                            <?php
+                            $slotMonthStartTs = strtotime($data['slotMonthFrom']);
+                            $slotMonthEndTs = strtotime($data['slotMonthTo']);
+                            $slotMonthStartDow = (int) date('N', $slotMonthStartTs);
+                            $slotGridStartTs = strtotime('-' . ($slotMonthStartDow - 1) . ' days', $slotMonthStartTs);
+                            $slotGridEndDow = (int) date('N', $slotMonthEndTs);
+                            $slotGridEndTs = strtotime('+' . (7 - $slotGridEndDow) . ' days', $slotMonthEndTs);
+
+                            for ($weekTs = $slotGridStartTs; $weekTs <= $slotGridEndTs; $weekTs = strtotime('+7 days', $weekTs)):
+                            ?>
                             <tr>
-                                <?php
-                                for ($si = 0; $si < 7; $si++):
-                                    $sts   = strtotime("+{$si} days", $data['slotMonTs']);
-                                    $sdate = date('Y-m-d', $sts);
-                                    $sIsToday = ($sdate === date('Y-m-d'));
-                                    $soccs = $data['slotByDate'][$sdate] ?? [];
+                                <?php for ($si = 0; $si < 7; $si++):
+                                    $dayTs = strtotime("+{$si} days", $weekTs);
+                                    $dayKey = date('Y-m-d', $dayTs);
+                                    $isToday = ($dayKey === date('Y-m-d'));
+                                    $isCurrentMonth = (date('Y-m', $dayTs) === date('Y-m', $slotMonthStartTs));
+                                    $soccs = $data['slotByDate'][$dayKey] ?? [];
+                                    $tournaments = $data['tournamentsByDate'][$dayKey] ?? [];
                                 ?>
-                                <td class="slot-cal-cell<?= $sIsToday ? ' slot-cal-today' : '' ?>">
-                                    <?php if (empty($soccs)): ?>
-                                        <div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">&mdash;</div>
+                                <td class="slot-cal-cell<?= $isToday ? ' slot-cal-today' : '' ?><?= $isCurrentMonth ? '' : ' slot-cal-outside' ?>">
+                                    <div class="slot-cal-day-num">
+                                        <span><?= date('j', $dayTs) ?></span>
+                                        <?php if (!$isCurrentMonth): ?>
+                                            <span style="font-weight:600;font-size:10px;opacity:.65;"><?= date('M', $dayTs) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <?php if (empty($soccs) && empty($tournaments)): ?>
+                                        <div style="color:#ccc;font-size:11px;text-align:center;padding-top:16px;">&mdash;</div>
                                     <?php else: ?>
                                         <?php foreach ($soccs as $socc):
                                             if ($socc->Status === 'cancelled') {
@@ -292,10 +276,24 @@
                                             </div>
                                         </a>
                                         <?php endforeach; ?>
+
+                                        <?php foreach ($tournaments as $tournament): ?>
+                                        <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?= (int)$tournament->TournamentID ?>" class="slot-cal-card slot-cal-tournament">
+                                            <div style="font-weight:600;"><i class="fas fa-trophy"></i> <?= htmlspecialchars($tournament->Name) ?></div>
+                                            <div><?= htmlspecialchars(trim(($tournament->AgeGroup ?? '') . (!empty($tournament->Format) ? ' · ' . $tournament->Format : ''))) ?></div>
+                                            <?php if (!empty($tournament->Location)): ?>
+                                                <div><i class="fas fa-map-marker-alt" style="font-size:10px;"></i> <?= htmlspecialchars($tournament->Location) ?></div>
+                                            <?php endif; ?>
+                                            <div style="margin-top:3px;">
+                                                <i class="fas fa-info-circle" style="font-size:10px;"></i> <?= htmlspecialchars($tournament->Status ?? 'created') ?>
+                                            </div>
+                                        </a>
+                                        <?php endforeach; ?>
                                     <?php endif; ?>
                                 </td>
                                 <?php endfor; ?>
                             </tr>
+                            <?php endfor; ?>
                         </tbody>
                     </table>
                 </div>

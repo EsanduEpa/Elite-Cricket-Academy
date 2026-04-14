@@ -58,22 +58,31 @@ class Admin extends Controller {
         // Status = 'pending' means not yet reviewed by admin
         $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
         
-        // STEP 6.5: FETCH SLOT OCCURRENCE CALENDAR DATA
-        $slotStartParam = $_GET['slot_start'] ?? null;
-        if ($slotStartParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $slotStartParam)) {
-            $slotWeekTs = strtotime($slotStartParam);
+        // STEP 6.5: FETCH MONTH-BASED SLOT AND TOURNAMENT CALENDAR DATA
+        $tournamentModel = $this->model('M_Tournament');
+
+        $slotMonthParam = $_GET['slot_month'] ?? null;
+        if ($slotMonthParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $slotMonthParam)) {
+            $slotMonthTs = strtotime($slotMonthParam);
         } else {
-            $slotWeekTs = time();
+            $slotMonthTs = time();
         }
-        $slotDow   = (int) date('N', $slotWeekTs);
-        $slotMonTs = strtotime('-' . ($slotDow - 1) . ' days', $slotWeekTs);
-        $slotSunTs = strtotime('+6 days', $slotMonTs);
-        $slotFrom  = date('Y-m-d', $slotMonTs);
-        $slotTo    = date('Y-m-d', $slotSunTs);
+        $slotMonthTs = strtotime(date('Y-m-01', $slotMonthTs));
+        $slotMonthEndTs = strtotime(date('Y-m-t', $slotMonthTs));
+        $slotFrom = date('Y-m-d', $slotMonthTs);
+        $slotTo = date('Y-m-d', $slotMonthEndTs);
+
         $slotOccurrences = $slotModel->getOccurrencesForCalendar($slotFrom, $slotTo);
         $slotByDate = [];
         foreach ($slotOccurrences as $occ) {
             $slotByDate[$occ->OccurrenceDate][] = $occ;
+        }
+
+        $tournaments = $tournamentModel->getTournamentsForCalendar($slotFrom, $slotTo);
+        $tournamentsByDate = [];
+        foreach ($tournaments as $tournament) {
+            $tournamentDate = date('Y-m-d', strtotime((string) $tournament->tdate));
+            $tournamentsByDate[$tournamentDate][] = $tournament;
         }
 
         // STEP 7: PREPARE DATA ARRAY FOR VIEW
@@ -121,12 +130,15 @@ class Admin extends Controller {
             'monthlyRevenue' => $financeModel->getMonthlyRevenue(),
 
             // SLOT OCCURRENCE CALENDAR
+            'slotMonthTs'  => $slotMonthTs,
+            'slotMonthFrom' => $slotFrom,
+            'slotMonthTo'  => $slotTo,
+            'slotPrevMonth' => date('Y-m-01', strtotime('-1 month', $slotMonthTs)),
+            'slotNextMonth' => date('Y-m-01', strtotime('+1 month', $slotMonthTs)),
             'slotFrom'     => $slotFrom,
             'slotTo'       => $slotTo,
-            'slotPrevWeek' => date('Y-m-d', strtotime('-7 days', $slotMonTs)),
-            'slotNextWeek' => date('Y-m-d', strtotime('+7 days', $slotMonTs)),
             'slotByDate'   => $slotByDate,
-            'slotMonTs'    => $slotMonTs,
+            'tournamentsByDate' => $tournamentsByDate,
         ];
         
         // STEP 8: LOAD DASHBOARD VIEW

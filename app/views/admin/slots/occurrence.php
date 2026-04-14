@@ -22,6 +22,10 @@
 <?php
 $occ  = $data['occurrence'];
 $staff = $data['staff'];
+$dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+$occDay = (int) date('N', strtotime($occ->OccurrenceDate));
+$templateDay = (int) ($occ->TemplateDayOfWeek ?? 0);
+$dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
 ?>
 
 <div class="admin-layout">
@@ -84,11 +88,18 @@ $staff = $data['staff'];
             <?php if ($data['success']): ?>
                 <div class="alert-success"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($data['success']) ?></div>
             <?php endif; ?>
+            <?php if ($dayMismatch): ?>
+                <div class="alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This occurrence falls on <?= htmlspecialchars(date('l', strtotime($occ->OccurrenceDate))) ?>, but the template is set for <?= htmlspecialchars($dayNames[$templateDay] ?? 'a different day') ?>.
+                </div>
+            <?php endif; ?>
 
             <!-- ── Occurrence Details ── -->
             <div class="detail-card">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
                     <h2 style="margin:0;font-size:18px;color:#2c3e50;">
+                        <?php if (!empty($occ->TemplateCode)): ?><span style="display:block;font-size:11px;letter-spacing:.4px;color:#6c757d;margin-bottom:4px;">#<?= htmlspecialchars($occ->TemplateCode) ?></span><?php endif; ?>
                         <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Academy Event</em>' ?>
                     </h2>
                     <?php
@@ -98,6 +109,10 @@ $staff = $data['staff'];
                 </div>
 
                 <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">Template Code</div>
+                        <div class="detail-value"><?= htmlspecialchars($occ->TemplateCode ?? '—') ?></div>
+                    </div>
                     <div>
                         <div class="detail-label">Date</div>
                         <div class="detail-value"><?= date('l, j F Y', strtotime($occ->OccurrenceDate)) ?></div>

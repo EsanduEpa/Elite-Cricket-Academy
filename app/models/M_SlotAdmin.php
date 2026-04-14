@@ -67,15 +67,20 @@ class M_SlotAdmin {
 
         $this->db->query(
             'INSERT INTO slot_template
-             (TemplateName, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
+             (TemplateName, temp_code, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
               AgeGroup, Category, Description, MaxParticipants, PricePerSession,
               RequiredPlanFeature, IsActive, CreatedBy)
              VALUES
-             (:name, :stype, :stafftype, :slotid, :dow, :fid,
+             (:name, :temp_code, :stype, :stafftype, :slotid, :dow, :fid,
               :age, :cat, :desc, :max, :price,
               :rpf, 1, :createdby)'
         );
+        $tempCode = trim((string)($d['temp_code'] ?? ''));
+        if ($tempCode === '') {
+            throw new InvalidArgumentException('Template code is required.');
+        }
         $this->db->bind(':name',      $d['TemplateName']);
+        $this->db->bind(':temp_code', $tempCode);
         $this->db->bind(':stype',     $d['SlotType']);
         $this->db->bind(':stafftype', $d['StaffType']);
         $this->db->bind(':slotid',    (int)$d['SlotID'], PDO::PARAM_INT);
@@ -99,12 +104,17 @@ class M_SlotAdmin {
 
         $this->db->query(
             'UPDATE slot_template SET
-             TemplateName=:name, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
+                         TemplateName=:name, temp_code=:temp_code, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
              DayOfWeek=:dow, FacilityID=:fid, AgeGroup=:age, Category=:cat, Description=:desc,
                MaxParticipants=:max, PricePerSession=:price, RequiredPlanFeature=:rpf
              WHERE TemplateID=:id'
         );
+                $tempCode = trim((string)($d['temp_code'] ?? ''));
+                if ($tempCode === '') {
+                        throw new InvalidArgumentException('Template code is required.');
+                }
         $this->db->bind(':name',      $d['TemplateName']);
+                $this->db->bind(':temp_code', $tempCode);
         $this->db->bind(':stype',     $d['SlotType']);
         $this->db->bind(':stafftype', $d['StaffType']);
         $this->db->bind(':slotid',    (int)$d['SlotID'], PDO::PARAM_INT);
@@ -332,11 +342,45 @@ class M_SlotAdmin {
             return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Template not found'];
         }
 
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Invalid date format supplied.'];
+        }
+
+        $current = strtotime($from);
+        $end     = strtotime($to);
+
+        if ($current === false || $end === false) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Could not parse the selected date range.'];
+        }
+
+        if ($current > $end) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Start date must be on or before end date.'];
+        }
+
+        $matchingDays = [];
+        $scan = $current;
+        while ($scan <= $end) {
+            $dow = (int) date('N', $scan);
+            if ($template->DayOfWeek === null || (int) $template->DayOfWeek === $dow) {
+                $matchingDays[] = date('Y-m-d', $scan);
+            }
+            $scan = strtotime('+1 day', $scan);
+        }
+
+        if (empty($matchingDays)) {
+            $weekdayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+            $expectedDay = $template->DayOfWeek ? ($weekdayNames[(int) $template->DayOfWeek] ?? 'the selected day') : 'any day';
+            return [
+                'inserted' => 0,
+                'skipped' => 0,
+                'skipped_dates' => [],
+                'error' => "The selected range does not include any {$expectedDay} dates for this template.",
+            ];
+        }
+
         $inserted     = 0;
         $skipped      = 0;
         $skippedDates = [];
-        $current      = strtotime($from);
-        $end          = strtotime($to);
 
         while ($current <= $end) {
             $dow  = (int) date('N', $current); // 1=Mon … 7=Sun
@@ -441,7 +485,7 @@ class M_SlotAdmin {
     public function getOccurrencesForCalendar(string $from, string $to): array {
         $this->db->query(
             'SELECT so.*,
-                    st.TemplateName, st.SlotType, st.StaffType,
+                    st.TemplateName, st.temp_code AS TemplateCode, st.SlotType, st.StaffType, st.DayOfWeek AS TemplateDayOfWeek,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
                     IF(
@@ -476,7 +520,7 @@ class M_SlotAdmin {
     public function getOccurrenceById(int $id): ?object {
         $this->db->query(
             'SELECT so.*,
-                    st.TemplateName, st.SlotType, st.StaffType,
+                    st.TemplateName, st.temp_code AS TemplateCode, st.SlotType, st.StaffType, st.DayOfWeek AS TemplateDayOfWeek,
                     st.MaxParticipants AS TemplateMaxParticipants,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,

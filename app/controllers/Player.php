@@ -18,6 +18,7 @@ class Player extends Controller {
         $this->productModel = $this->model('M_Product');
         $this->trainerModel = $this->model('M_Trainer');
         $this->slotPlayerModel = $this->model('M_SlotPlayer');
+        require_once APPROOT . '/libraries/SlotBookingService.php';
     }
     
     private function requireLogin() {
@@ -884,18 +885,149 @@ class Player extends Controller {
         $this->view('player/payhere_gateway', $data);
     }
 
+    /** POST /player/facility_payhere_checkout — generate hash and auto-submit to PayHere */
+    public function facility_payhere_checkout() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('playerslots/facilities');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $playerData = $this->getPlayerData();
+        $playerId   = (int)($playerData['id'] ?? 0);
+        $occurrenceId = (int)($_POST['occurrence_id'] ?? 0);
+
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            $_SESSION['slot_error'] = 'Invalid slot selected. Please try again.';
+            redirect('playerslots/facilities');
+        }
+
+        $occurrence = null;
+        foreach ($this->slotPlayerModel->getFacilityOccurrences($playerId) as $row) {
+            if ((int)($row->OccurrenceID ?? 0) === $occurrenceId) {
+                $occurrence = $row;
+                break;
+            }
+        }
+
+        if (!$occurrence || !empty($occurrence->blocked)) {
+            $_SESSION['slot_error'] = 'Selected slot is no longer available. Please choose another one.';
+            redirect('playerslots/facilities');
+        }
+
+        $amount   = number_format((float)($occurrence->PricePerSession ?? 0), 2, '.', '');
+        $currency = 'LKR';
+
+        if ((float)$amount <= 0) {
+            $_SESSION['slot_error'] = 'This facility slot has no configured payment amount. Please contact admin to set the price before booking.';
+            redirect('playerslots/facilities');
+        }
+
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+        $orderId    = 'ELITE-FAC-' . $playerId . '-' . $occurrenceId . '-' . time();
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        $_SESSION['payhere_pending_facility_booking'] = [
+            'order_id'      => $orderId,
+            'occurrence_id'  => $occurrenceId,
+            'player_id'     => $playerId,
+            'amount'        => (float)$amount,
+        ];
+
+        $itemsLabel = trim((string)($occurrence->FacilityName ?? 'Facility Booking'));
+        if (!empty($occurrence->SlotLabel)) {
+            $itemsLabel .= ' - ' . $occurrence->SlotLabel;
+        }
+
+        $data = [
+            'title'   => 'Redirecting to PayHere...',
+            'player'  => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id'    => $orderId,
+                'amount'      => $amount,
+                'currency'    => $currency,
+                'items'       => $itemsLabel,
+                'hash'        => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url'  => URLROOT . '/player/payhere_return',
+                'cancel_url'  => URLROOT . '/player/payhere_cancel',
+                'notify_url'  => URLROOT . '/player/payhere_notify',
+                'first_name'  => $nameParts[0] ?? 'Player',
+                'last_name'   => $nameParts[1] ?? '',
+                'email'       => $playerData['email'],
+                'phone'       => $playerData['phone'] ?: '0000000000',
+                'address'     => $playerData['address'] ?: 'N/A',
+                'city'        => 'Colombo',
+                'country'     => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+
     /** GET /player/payhere_return — PayHere browser redirect on payment success */
     public function payhere_return() {
+        $playerData = $this->getPlayerData();
+        $orderId    = htmlspecialchars($_GET['order_id'] ?? '');
+        $message    = 'Your order has been placed successfully.';
+        $primaryUrl = URLROOT . '/player/shopping';
+        $primaryLabel = 'Continue Shopping';
+        $secondaryUrl = URLROOT . '/player';
+        $secondaryLabel = 'Dashboard';
+
+        $pendingFacilityBooking = $_SESSION['payhere_pending_facility_booking'] ?? null;
+        if (is_array($pendingFacilityBooking) && !empty($pendingFacilityBooking['order_id'])
+            && ($orderId === '' || $pendingFacilityBooking['order_id'] === $orderId)) {
+            $occurrenceId = (int)($pendingFacilityBooking['occurrence_id'] ?? 0);
+            $amount       = max(0.0, (float)($pendingFacilityBooking['amount'] ?? 0));
+
+            if ($occurrenceId > 0) {
+                $bookingResult = $this->slotPlayerModel->createBooking(
+                    $occurrenceId,
+                    (int)$playerData['id'],
+                    'self',
+                    (int)$playerData['id'],
+                    null,
+                    $amount,
+                    'payhere',
+                    'paid',
+                    1
+                );
+
+                if ($bookingResult === true || $bookingResult === 'duplicate') {
+                    $message = 'Your facility booking has been confirmed successfully.';
+                    $primaryUrl = URLROOT . '/playerslots/bookings';
+                    $primaryLabel = 'View My Bookings';
+                    $secondaryUrl = URLROOT . '/playerslots/facilities';
+                    $secondaryLabel = 'Back to Facilities';
+                } else {
+                    $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
+                }
+            }
+
+            unset($_SESSION['payhere_pending_facility_booking']);
+            unset($_SESSION['payhere_pending_order']);
+        }
+
         $data = [
             'title'    => 'Payment Successful',
-            'player'   => $this->getPlayerData(),
-            'order_id' => htmlspecialchars($_GET['order_id'] ?? ''),
+            'player'   => $playerData,
+            'order_id' => $orderId,
+            'message'  => $message,
+            'primary_url' => $primaryUrl,
+            'primary_label' => $primaryLabel,
+            'secondary_url' => $secondaryUrl,
+            'secondary_label' => $secondaryLabel,
         ];
         $this->view('player/payhere_return', $data);
     }
 
     /** GET /player/payhere_cancel — PayHere browser redirect when user cancels */
     public function payhere_cancel() {
+        unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_order']);
+
         $data = [
             'title'  => 'Payment Cancelled',
             'player' => $this->getPlayerData(),

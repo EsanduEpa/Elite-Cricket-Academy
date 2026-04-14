@@ -44,6 +44,28 @@ class M_Tournament
         return $this->db->resultset();
     }
 
+    public function getTournamentsForCalendar(string $from, string $to): array
+    {
+        $this->db->query(
+            'SELECT t.TournamentID,
+                    t.Name,
+                    t.AgeGroup,
+                    t.Format,
+                    t.Description,
+                    t.tdate,
+                    t.Location,
+                    t.Status,
+                    t.PrizePool
+             FROM tournament t
+             WHERE t.tdate BETWEEN :from AND :to
+             ORDER BY t.tdate ASC, t.Name ASC'
+        );
+        $this->db->bind(':from', $from);
+        $this->db->bind(':to', $to);
+
+        return $this->db->resultset();
+    }
+
     public function getTournamentById($id)
     {
         $this->db->query(
