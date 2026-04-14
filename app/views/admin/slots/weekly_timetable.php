@@ -129,6 +129,9 @@
                                                 }
                                                 ?>
                                                 <a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= $occurrence->OccurrenceID ?>" class="tt-card <?= $cardClass ?>">
+                                                    <?php if (!empty($occurrence->TemplateCode)): ?>
+                                                        <div style="font-size:10px;letter-spacing:.4px;opacity:.75;margin-bottom:2px;">#<?= htmlspecialchars($occurrence->TemplateCode) ?></div>
+                                                    <?php endif; ?>
                                                     <div class="tt-name"><?= $occurrence->TemplateName ? htmlspecialchars($occurrence->TemplateName) : 'Academy Event' ?></div>
                                                     <div class="tt-badge-row">
                                                         <span class="tt-badge"><?= htmlspecialchars($slotTypeLabel) ?></span>

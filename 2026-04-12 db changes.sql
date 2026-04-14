@@ -105,6 +105,9 @@ ALTER TABLE productorder
 --    Legacy "none" values are converted to NULL so old rows do not break.
 -- ----------------------------------------------------------------
 ALTER TABLE slot_template
+    ADD COLUMN IF NOT EXISTS temp_code VARCHAR(50) NULL AFTER TemplateName;
+
+ALTER TABLE slot_template
     MODIFY COLUMN RequiredPlanFeature VARCHAR(50) NULL
     COMMENT 'NULL = open to all; supports legacy feature rules and plan:ID values checked at booking time';
 
@@ -112,10 +115,86 @@ UPDATE slot_template
 SET RequiredPlanFeature = NULL
 WHERE RequiredPlanFeature = 'none';
 
+UPDATE slot_template st
+LEFT JOIN slot_time_band tb ON tb.SlotID = st.SlotID
+SET st.temp_code = CASE
+    WHEN st.SlotType = 'facility_only' THEN CONCAT(
+        'FAC-',
+        COALESCE(
+            CASE st.DayOfWeek
+                WHEN 1 THEN 'MON'
+                WHEN 2 THEN 'TUE'
+                WHEN 3 THEN 'WED'
+                WHEN 4 THEN 'THU'
+                WHEN 5 THEN 'FRI'
+                WHEN 6 THEN 'SAT'
+                WHEN 7 THEN 'SUN'
+            END,
+            'ANY'
+        ),
+        '-',
+        COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+        '-',
+        st.TemplateID
+    )
+    WHEN st.SlotType = 'private' THEN CONCAT(
+        'PVT-',
+        COALESCE(
+            CASE st.Category
+                WHEN 'Batting' THEN 'BAT'
+                WHEN 'Bowling' THEN 'BOWL'
+                WHEN 'Fielding' THEN 'FLD'
+                WHEN 'Fitness' THEN 'FIT'
+            END,
+            'GEN'
+        ),
+        '-',
+        COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+        '-',
+        st.TemplateID
+    )
+    ELSE CONCAT(
+        COALESCE(
+            CASE st.AgeGroup
+                WHEN 'Under 11' THEN 'U11'
+                WHEN 'Under 13' THEN 'U13'
+                WHEN 'Under 15' THEN 'U15'
+                WHEN 'Under 17' THEN 'U17'
+                WHEN 'Under 19' THEN 'U19'
+                WHEN 'Under 21' THEN 'U21'
+                WHEN 'Open' THEN 'OPEN'
+            END,
+            'GEN'
+        ),
+        '-',
+        COALESCE(
+            CASE st.Category
+                WHEN 'Batting' THEN 'BAT'
+                WHEN 'Bowling' THEN 'BOWL'
+                WHEN 'Fielding' THEN 'FLD'
+                WHEN 'Fitness' THEN 'FIT'
+            END,
+            'GEN'
+        ),
+        '-',
+        COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+        '-',
+        st.TemplateID
+    )
+END
+WHERE st.temp_code IS NULL OR st.temp_code = '';
+
 -- Optional follow-up after every existing template has been assigned a real plan:
 -- ALTER TABLE slot_template
 --     MODIFY COLUMN RequiredPlanFeature VARCHAR(50) NOT NULL
 --     COMMENT 'Stores required membership plan values like plan:3';
+
+ALTER TABLE slot_template
+    MODIFY COLUMN temp_code VARCHAR(50) NOT NULL
+    COMMENT 'Generated template code like U15-BAT-PN1-12';
+
+ALTER TABLE slot_template
+    ADD UNIQUE KEY uq_st_temp_code (temp_code);
 
 -- ----------------------------------------------------------------
 -- 5) Template recurrence dates are no longer collected on the form.

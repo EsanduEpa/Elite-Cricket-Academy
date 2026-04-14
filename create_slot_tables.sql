@@ -65,6 +65,7 @@ VALUES
 CREATE TABLE IF NOT EXISTS `slot_template` (
   `TemplateID`          INT(11)       NOT NULL AUTO_INCREMENT,
   `TemplateName`        VARCHAR(255)  NOT NULL,
+  `temp_code`           VARCHAR(50)   DEFAULT NULL        COMMENT 'Generated template code like U15-BAT-PN1-12',
 
   `SlotType`            ENUM('program','private','facility_only') NOT NULL
     COMMENT 'program=group subscription session | private=1:1 on request | facility_only=no staff',
@@ -98,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   KEY `idx_st_facility`   (`FacilityID`),
   KEY `idx_st_type`       (`SlotType`),
   KEY `idx_st_stafftype`  (`StaffType`),
+  UNIQUE KEY `uq_st_temp_code` (`temp_code`),
   CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_st_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`),
   CONSTRAINT `fk_st_creator`  FOREIGN KEY (`CreatedBy`)  REFERENCES `user`(`UserID`)

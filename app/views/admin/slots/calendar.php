@@ -10,6 +10,7 @@
 .cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
 .cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
 .cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
+.cal-mismatch  { background:#f8d7da; color:#721c24; border-left:3px solid #c0392b; }
 </style>
 
 <div class="admin-layout">
@@ -132,10 +133,15 @@
                                     <div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">—</div>
                                 <?php else: ?>
                                     <?php foreach ($occs as $occ):
+                                        $occDay = (int) date('N', strtotime($occ->OccurrenceDate));
+                                        $templateDay = (int) ($occ->TemplateDayOfWeek ?? 0);
+                                        $dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
                                         if ($occ->Status === 'cancelled') {
                                             $cls = 'cal-cancelled';
                                         } elseif ($occ->TemplateID === null) {
                                             $cls = 'cal-adhoc';
+                                        } elseif ($dayMismatch) {
+                                            $cls = 'cal-mismatch';
                                         } else {
                                             $map = ['program'=>'cal-program','private'=>'cal-private','facility_only'=>'cal-facility'];
                                             $cls = $map[$occ->SlotType] ?? 'cal-program';
@@ -145,6 +151,9 @@
                                        style="display:block;text-decoration:none;">
                                         <div class="cal-card <?= $cls ?>">
                                             <div style="font-weight:700;margin-bottom:2px;">
+                                                <?php if (!empty($occ->TemplateCode)): ?>
+                                                    <span style="display:block;font-size:10px;letter-spacing:.4px;color:inherit;opacity:.7;">#<?= htmlspecialchars($occ->TemplateCode) ?></span>
+                                                <?php endif; ?>
                                                 <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Academy Event</em>' ?>
                                             </div>
                                             <div><?= htmlspecialchars($occ->SlotLabel ?? '—') ?></div>
@@ -153,6 +162,11 @@
                                             <?php endif; ?>
                                             <?php if ($occ->StaffNames): ?>
                                                 <div style="opacity:.75;margin-top:2px;"><i class="fas fa-user" style="font-size:10px;"></i> <?= htmlspecialchars($occ->StaffNames) ?></div>
+                                            <?php endif; ?>
+                                            <?php if ($dayMismatch): ?>
+                                                <div style="margin-top:4px;font-size:11px;font-weight:700;">
+                                                    <i class="fas fa-exclamation-triangle"></i> Date does not match template weekday
+                                                </div>
                                             <?php endif; ?>
                                             <div style="margin-top:3px;">
                                                 <i class="fas fa-users" style="font-size:10px;"></i> <?= (int)$occ->BookingCount ?> booked

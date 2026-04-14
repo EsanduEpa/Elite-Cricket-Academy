@@ -90,13 +90,11 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                     <thead>
                         <tr style="background:#f8f9fa;">
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Template</th>
+                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Code</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Type</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Staff</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Time Band</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Day</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Facility</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Max</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Price</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Status</th>
                             <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Actions</th>
                         </tr>
@@ -108,29 +106,20 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                                 <div style="font-weight:600;color:#2c3e50;"><?= htmlspecialchars($t->TemplateName) ?></div>
                                 <?php if ($t->AgeGroup): ?><div style="font-size:11px;color:#888;"><?= htmlspecialchars($t->AgeGroup) ?><?= $t->Category ? ' · ' . htmlspecialchars($t->Category) : '' ?></div><?php endif; ?>
                             </td>
+                            <td style="padding:12px 14px;font-size:12px;color:#475467;font-weight:600;letter-spacing:.2px;">
+                                <?= htmlspecialchars($t->temp_code ?? '—') ?>
+                            </td>
                             <td style="padding:12px 14px;">
                                 <?php
                                 $tc = ['program'=>'badge-program','private'=>'badge-private','facility_only'=>'badge-facility'];
                                 echo '<span class="' . ($tc[$t->SlotType] ?? 'badge-none') . '">' . ucfirst(str_replace('_',' ',$t->SlotType)) . '</span>';
                                 ?>
                             </td>
-                            <td style="padding:12px 14px;">
-                                <?php
-                                $sc = ['coach'=>'badge-coach','trainer'=>'badge-trainer','none'=>'badge-none'];
-                                echo '<span class="' . ($sc[$t->StaffType] ?? 'badge-none') . '">' . ucfirst($t->StaffType) . '</span>';
-                                ?>
-                            </td>
+                            
                             <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->SlotLabel ?? '—') ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= $t->DayOfWeek ? $dayNames[(int)$t->DayOfWeek] : '<span style="color:#aaa;">Any</span>' ?></td>
                             <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->FacilityName ?? '—') ?></td>
-                            <td style="padding:12px 14px;font-size:13px;text-align:center;"><?= $t->MaxParticipants !== null ? (int) $t->MaxParticipants : '<span style="color:#999;">Age-group based</span>' ?></td>
-                            <td style="padding:12px 14px;font-size:13px;">
-                                <?php if ($t->SlotType === 'facility_only'): ?>
-                                    <?= $t->PricePerSession > 0 ? 'Rs. ' . number_format($t->PricePerSession,2) : '<span style="color:#27ae60;">Free</span>' ?>
-                                <?php else: ?>
-                                    <span style="color:#2980b9;font-weight:600;">Covered</span>
-                                <?php endif; ?>
-                            </td>
+                           
                             <td style="padding:12px 14px;">
                                 <?php if ($t->IsActive): ?>
                                     <span class="badge-active">Active</span>
@@ -140,6 +129,9 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                             </td>
                             <td style="padding:12px 14px;">
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <a href="<?php echo URLROOT; ?>/adminslots/template_detail/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#16a085;color:#fff;">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
                                     <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#3498db;color:#fff;">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>

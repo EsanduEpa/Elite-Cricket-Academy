@@ -258,27 +258,18 @@
                                     <span class="block-tag block-full"><i class="fas fa-ban"></i> Unavailable</span>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <?php if ($occ->PricePerSession > 0): ?>
-                                    <button
-                                        type="button"
-                                        class="btn-book-pay js-open-pay-modal"
-                                        data-occ-id="<?php echo (int)$occ->OccurrenceID; ?>"
-                                        data-facility="<?php echo htmlspecialchars($occ->FacilityName, ENT_QUOTES, 'UTF-8'); ?>"
-                                        data-date="<?php echo htmlspecialchars(date('D, d M Y', strtotime($occ->OccurrenceDate)), ENT_QUOTES, 'UTF-8'); ?>"
-                                        data-time="<?php echo htmlspecialchars($occ->SlotLabel, ENT_QUOTES, 'UTF-8'); ?>"
-                                        data-amount="<?php echo (float)$occ->PricePerSession; ?>"
-                                    >
-                                        <i class="fas fa-credit-card"></i> Book &amp; Pay
-                                    </button>
-                                <?php else: ?>
-                                    <form method="POST" action="<?php echo URLROOT; ?>/playerslots/bookfacility">
-                                        <input type="hidden" name="occurrence_id" value="<?php echo (int)$occ->OccurrenceID; ?>">
-                                        <input type="hidden" name="amount" value="0">
-                                        <button type="submit" class="btn-book-row">
-                                            <i class="fas fa-check"></i> Book
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
+                                <button
+                                    type="button"
+                                    class="btn-book-pay js-open-facility-details"
+                                    data-occ-id="<?php echo (int)$occ->OccurrenceID; ?>"
+                                    data-facility="<?php echo htmlspecialchars($occ->FacilityName, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-date="<?php echo htmlspecialchars(date('D, d M Y', strtotime($occ->OccurrenceDate)), ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-time="<?php echo htmlspecialchars($occ->SlotLabel, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-slot-type="<?php echo htmlspecialchars($occ->SlotType, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-amount="<?php echo (float)$occ->PricePerSession; ?>"
+                                >
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -291,10 +282,10 @@
     </div>
 </div>
 
-<div id="payModal" class="pay-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+<div id="payModal" class="pay-modal-overlay" data-pay-url="<?php echo URLROOT; ?>/player/facility_payhere_checkout" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
     <div class="pay-modal">
         <div class="pay-modal-header">
-            <h3 id="payModalTitle"><i class="fas fa-lock"></i> Secure Payment</h3>
+            <h3 id="payModalTitle"><i class="fas fa-info-circle"></i> Slot Details</h3>
             <button type="button" class="pay-close" id="payModalClose" aria-label="Close">&times;</button>
         </div>
 
@@ -312,46 +303,21 @@
                 <strong id="pTime"></strong>
             </div>
             <div class="pay-summary-row pay-total">
-                <span>Amount Due</span>
+                <span>Price</span>
                 <strong id="pTotal"></strong>
             </div>
         </div>
 
-        <form method="POST" action="<?php echo URLROOT; ?>/playerslots/bookfacility" id="payForm">
+        <form method="POST" action="<?php echo URLROOT; ?>/player/facility_payhere_checkout" id="payForm">
             <input type="hidden" name="occurrence_id" id="pOccId">
             <input type="hidden" name="amount" id="pAmount">
 
-            <div class="pay-field">
-                <label for="cardName">Cardholder Name</label>
-                <input type="text" id="cardName" name="card_name" placeholder="Name as on card" autocomplete="cc-name" required>
-            </div>
-
-            <div class="pay-field">
-                <label for="cardNum">Card Number</label>
-                <div class="card-num-wrap">
-                    <i class="fas fa-credit-card"></i>
-                    <input type="text" id="cardNum" name="card_number" placeholder="0000  0000  0000  0000" maxlength="19" autocomplete="cc-number" inputmode="numeric" required>
-                </div>
-                <div id="cardBrand" class="card-brand-hint"></div>
-            </div>
-
-            <div class="pay-row">
-                <div class="pay-field">
-                    <label for="cardExp">Expiry</label>
-                    <input type="text" id="cardExp" name="card_expiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" inputmode="numeric" required>
-                </div>
-                <div class="pay-field">
-                    <label for="cardCvv">CVV</label>
-                    <input type="text" id="cardCvv" name="card_cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc" inputmode="numeric" required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-pay">
+            <button type="submit" class="btn-pay" id="payConfirmButton">
                 <i class="fas fa-lock"></i> Pay &amp; Confirm Booking
             </button>
-            <p class="pay-secure-note">
+            <p class="pay-secure-note" id="payNote">
                 <i class="fas fa-shield-alt"></i>
-                Payments are processed securely. Your card details are not stored.
+                Review the slot details, then continue to the payment portal.
             </p>
         </form>
     </div>

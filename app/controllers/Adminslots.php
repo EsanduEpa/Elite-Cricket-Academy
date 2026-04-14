@@ -2,6 +2,7 @@
 class Adminslots extends Controller {
 
     public function __construct() {
+        require_once APPROOT . '/libraries/SlotBookingService.php';
         requireAuth(['Admin']);
     }
 
@@ -56,26 +57,66 @@ class Adminslots extends Controller {
     }
 
     // =========================================================
+    // TEMPLATE DETAIL  —  /adminslots/template_detail/{id}
+    // =========================================================
+    public function template_detail($id = null) {
+        if (!$id) redirect('adminslots/templates');
+
+        $model = $this->model('M_SlotAdmin');
+        $slotService = new SlotBookingService();
+        $template = $model->getTemplateById((int)$id);
+        if (!$template) redirect('adminslots/templates');
+
+        $staff = $model->getStaffForTemplate((int)$id);
+        $occurrences = $model->getOccurrencesForTemplate((int)$id);
+        $eligiblePlayerCount = 0;
+        if (($template->SlotType ?? '') === 'program') {
+            $eligiblePlayerCount = $slotService->getEligiblePlayerCountForTemplate((int)$id);
+        }
+
+        $data = [
+            'title' => 'Template Detail - ' . ($template->temp_code ?? ('T' . $template->TemplateID)),
+            'template' => $template,
+            'staff' => $staff,
+            'occurrences' => $occurrences,
+            'occurrenceCount' => count($occurrences),
+            'staffCount' => count($staff),
+            'eligiblePlayerCount' => $eligiblePlayerCount,
+        ];
+
+        $this->view('admin/slots/template_detail', $data);
+    }
+
+    // =========================================================
     // NEW TEMPLATE  —  /adminslots/newtemplate
     // =========================================================
     public function newtemplate() {
         $model = $this->model('M_SlotAdmin');
+        $error = null;
+        $templateData = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $post              = $_POST;
+            $post = $_POST;
             $post['CreatedBy'] = $_SESSION['user_id'];
-            $id = $model->createTemplate($post);
-            $slotType = strtolower(trim($post['SlotType'] ?? ''));
-            if ($slotType === 'facility_only') {
-                redirect('adminslots/generate?created=1&template_id=' . $id);
-            } else {
-                redirect('adminslots/staff/' . $id . '?created=1');
+            $templateData = (object) $post;
+
+            try {
+                $id = $model->createTemplate($post);
+                $slotType = strtolower(trim($post['SlotType'] ?? ''));
+                if ($slotType === 'facility_only') {
+                    redirect('adminslots/generate?created=1&template_id=' . $id);
+                } else {
+                    redirect('adminslots/staff/' . $id . '?created=1');
+                }
+            } catch (InvalidArgumentException $e) {
+                $error = $e->getMessage();
             }
         }
 
         $data = [
             'title'     => 'New Session Template',
-            'template'  => null,
+            'template'  => $templateData,
+            'error'     => $error,
             'timeBands' => $model->getActiveTimeBands(),
             'facilities'=> $model->getFacilities(),
             'membershipPlans' => $model->getActiveMembershipPlans(),
@@ -91,15 +132,24 @@ class Adminslots extends Controller {
         $model    = $this->model('M_SlotAdmin');
         $template = $model->getTemplateById((int)$id);
         if (!$template) redirect('adminslots/templates');
+        $error = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $model->updateTemplate((int)$id, $_POST);
-            redirect('adminslots/generate?saved=1&template_id=' . (int)$id);
+            $templateData = (object) array_merge((array) $template, $_POST);
+
+            try {
+                $model->updateTemplate((int)$id, $_POST);
+                redirect('adminslots/generate?saved=1&template_id=' . (int)$id);
+            } catch (InvalidArgumentException $e) {
+                $error = $e->getMessage();
+                $template = $templateData;
+            }
         }
 
         $data = [
             'title'     => 'Edit Template',
             'template'  => $template,
+            'error'     => $error,
             'timeBands' => $model->getActiveTimeBands(),
             'facilities'=> $model->getFacilities(),
             'membershipPlans' => $model->getActiveMembershipPlans(),
@@ -112,6 +162,7 @@ class Adminslots extends Controller {
     // =========================================================
     public function staff($templateId = null) {
         if (!$templateId) redirect('adminslots/templates');
+        $userModel = $this->model('M_Users');
         $model    = $this->model('M_SlotAdmin');
         $template = $model->getTemplateById((int)$templateId);
         if (!$template) redirect('adminslots/templates');
@@ -153,16 +204,20 @@ class Adminslots extends Controller {
         }
 
         // Only show coaches in the assignment matrix (exclude admins/managers)
-        $allCoachDetails = $model->getCoachesWithAssignments();
-        $coachDetails = array_filter($allCoachDetails, function($c) {
-            return isset($c->Role) ? strtolower($c->Role) === 'coach' : true;
-        });
+        $coaches = $userModel->getAllCoachProfiles();
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $coachAssignedPlayers = [];
+
+        foreach ($coaches as $coach) {
+            $coachAssignedPlayers[(int)$coach->coach_id] = $userModel->getCoachAssignedPlayers((int)$coach->coach_id);
+        }
         $data = [
-            'title'     => 'Assign Staff — ' . $template->TemplateName,
+            'title'     => 'Assign Staff — ' . ($template->temp_code ?? 'TMP') . ' · ' . $template->TemplateName,
             'template'  => $template,
             'staff'     => $model->getStaffForTemplate((int)$templateId),
-            'coaches'   => $model->getAvailableCoaches(),
-            'coachDetails' => $coachDetails,
+            'coaches'   => $coaches,
+            'coachAssignments' => $coachAssignments,
+            'coachAssignedPlayers' => $coachAssignedPlayers,
             'trainers'  => $model->getAvailableTrainers(),
             'error'     => $error,
             'success'   => $success,
@@ -200,6 +255,9 @@ class Adminslots extends Controller {
                 $error = 'Start date must be on or before end date.';
             } else {
                 $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
+                if (!empty($result['error'])) {
+                    $error = $result['error'];
+                }
                 if (!empty($result['inserted']) && $result['inserted'] > 0) {
                     redirect('adminslots/calendar?generated=1&count=' . $result['inserted']);
                 }
@@ -250,6 +308,14 @@ class Adminslots extends Controller {
         }
 
         $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
+
+        if (!empty($result['error'])) {
+            return [
+                'result' => $result,
+                'error' => $result['error'],
+                'values' => $values,
+            ];
+        }
 
         return [
             'result' => $result,

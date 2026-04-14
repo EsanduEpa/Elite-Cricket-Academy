@@ -54,6 +54,12 @@ class M_SlotPlayer {
 
         // Run gate checks and annotate each row
         foreach ($rows as $row) {
+            if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+                $eligibleCount = SlotBookingService::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
+                $row->EligiblePlayerCount = $eligibleCount;
+                $row->TplMax = $eligibleCount;
+            }
+
             if ($row->AlreadyBooked) {
                 $row->blocked     = true;
                 $row->blockReason = 'already_booked';
