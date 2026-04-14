@@ -35,23 +35,31 @@ class Playerslots extends Controller {
 
     private function renderSessionCatalog(?string $staffType = null): void {
         $playerId    = $this->playerId();
-        $occurrences = $this->slotModel->getAvailableOccurrences($playerId);
+        if ($staffType === 'coach') {
+            $occurrences = $this->slotModel->getAssignedCoachOccurrences($playerId);
+        } else {
+            $occurrences = $this->slotModel->getAvailableOccurrences($playerId);
+        }
 
         if ($staffType !== null) {
             $occurrences = array_values(array_filter($occurrences, function ($occ) use ($staffType) {
+                if ($staffType === 'coach') {
+                    return ($occ->SlotType ?? '') === 'program';
+                }
+
                 return ($occ->SlotType ?? '') !== 'facility_only'
                     && strcasecmp((string)($occ->StaffType ?? ''), $staffType) === 0;
             }));
         }
 
         $titles = [
-            'coach' => 'Coach Bookings',
+            'coach' => 'Assigned Coach Sessions',
             'trainer' => 'Trainer Bookings',
             null => 'Book a Session',
         ];
 
         $descriptions = [
-            'coach' => 'Browse available coach-led sessions and book your next appointment.',
+            'coach' => 'See the group sessions assigned to your age group and coach.',
             'trainer' => 'Browse available trainer-led sessions and book your next appointment.',
             null => 'Browse available training slots and book your next session.',
         ];

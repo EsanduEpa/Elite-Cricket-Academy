@@ -45,7 +45,7 @@ class M_SlotPlayer {
              WHERE so.Status IN (\'scheduled\', \'active\')
                AND so.OccurrenceDate >= CURDATE()
                AND (st.IsActive = 1 OR so.TemplateID IS NULL)
-                             AND (so.TemplateID IS NULL OR st.SlotType IN (\'private\', \'facility_only\'))
+                                                         AND (so.TemplateID IS NULL OR st.SlotType IN (\'program\', \'facility_only\'))
              GROUP BY so.OccurrenceID
              ORDER BY so.OccurrenceDate, tb.StartTime'
         );
@@ -58,6 +58,11 @@ class M_SlotPlayer {
                 $eligibleCount = SlotBookingService::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
                 $row->EligiblePlayerCount = $eligibleCount;
                 $row->TplMax = $eligibleCount;
+
+                $row->blocked     = true;
+                $row->blockReason = 'assigned_program';
+                $row->spotsLeft   = null;
+                continue;
             }
 
             if ($row->AlreadyBooked) {
@@ -93,6 +98,50 @@ class M_SlotPlayer {
             $row->blocked     = false;
             $row->blockReason = null;
             $row->spotsLeft   = $cap['spots_left'];
+        }
+
+        return $rows;
+    }
+
+    public function getAssignedCoachOccurrences(int $playerId): array {
+        $this->db->query(
+            'SELECT DISTINCT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
+                    so.Notes,
+                    st.TemplateID,
+                    COALESCE(st.TemplateName, "Group Session") AS TemplateName,
+                    COALESCE(st.SlotType, "program") AS SlotType,
+                    COALESCE(st.StaffType, "coach") AS StaffType,
+                    COALESCE(st.PricePerSession, 0) AS PricePerSession,
+                    st.RequiredPlanFeature,
+                    st.MaxParticipants AS TplMax,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    f.Name AS FacilityName,
+                    CONCAT(c.FirstName, " ", c.LastName) AS CoachName,
+                    psca.AgeGroup AS PlayerAgeGroup
+             FROM slot_occurrence so
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             JOIN slot_template_staff ts ON ts.TemplateID = st.TemplateID
+             JOIN user c ON c.UserID = ts.UserID
+             JOIN player_skill_coach_assignment psca
+               ON psca.PlayerID = :pid
+              AND psca.CoachID = c.UserID
+             WHERE so.Status IN ("scheduled", "active")
+               AND so.OccurrenceDate >= CURDATE()
+               AND st.IsActive = 1
+               AND st.SlotType = "program"
+               AND LOWER(TRIM(psca.AgeGroup)) = LOWER(TRIM(COALESCE(st.AgeGroup, "")))
+               AND LOWER(TRIM(psca.CoachingType)) = LOWER(TRIM(COALESCE(st.Category, "")))
+             ORDER BY so.OccurrenceDate, tb.StartTime'
+        );
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $rows = $this->db->resultSet();
+
+        foreach ($rows as $row) {
+            $row->blocked = true;
+            $row->blockReason = 'assigned_program';
+            $row->spotsLeft = null;
         }
 
         return $rows;
@@ -298,20 +347,41 @@ class M_SlotPlayer {
              WHERE sb.PlayerID = :pid
                AND sb.Status != \'cancelled\'
                AND so.Status != \'cancelled\'
+               AND COALESCE(st.SlotType, \'program\') != \'private\'
                AND so.OccurrenceDate > CURDATE()
              ORDER BY so.OccurrenceDate ASC, tb.StartTime ASC'
         );
         $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
-        return $this->db->resultSet();
+        $sessions = $this->db->resultSet();
+
+        foreach ($this->getAssignedCoachOccurrences($playerId) as $assignedSession) {
+            $sessions[] = (object) [
+                'BookingID' => null,
+                'OccurrenceID' => $assignedSession->OccurrenceID,
+                'Date' => $assignedSession->OccurrenceDate,
+                'StartTime' => $assignedSession->StartTime,
+                'EndTime' => $assignedSession->EndTime,
+                'Name' => $assignedSession->TemplateName,
+                'Location' => $assignedSession->FacilityName ?? 'Academy',
+                'SessionType' => 'Assigned Program',
+                'SessionMode' => 'Group',
+                'CoachName' => $assignedSession->CoachName ?? null,
+                'BookingSource' => 'system',
+                'Status' => 'scheduled',
+            ];
+        }
+
+        usort($sessions, function ($left, $right) {
+            $leftKey = ($left->Date ?? '') . ' ' . ($left->StartTime ?? '');
+            $rightKey = ($right->Date ?? '') . ' ' . ($right->StartTime ?? '');
+            return strcmp($leftKey, $rightKey);
+        });
+
+        return $sessions;
     }
 
     public function getUpcomingCoachSessions(int $playerId): array {
-        $sessions = $this->getUpcomingScheduleSessions($playerId);
-
-        return array_values(array_filter($sessions, function ($session) {
-            return ($session->SessionType ?? '') === 'Assigned Program'
-                || ($session->SessionType ?? '') === 'Private Session';
-        }));
+        return $this->getAssignedCoachOccurrences($playerId);
     }
 
     public function getUpcomingBookingFeed(int $playerId): array {
@@ -347,6 +417,7 @@ class M_SlotPlayer {
              WHERE sb.PlayerID = :pid
                AND sb.Status != \'cancelled\'
                AND so.Status != \'cancelled\'
+                             AND COALESCE(st.SlotType, \'program\') != \'private\'
                AND so.OccurrenceDate >= CURDATE()
              ORDER BY so.OccurrenceDate ASC, tb.StartTime ASC'
         );
@@ -364,6 +435,27 @@ class M_SlotPlayer {
                 $row->booking_type = 'session';
             }
         }
+
+        foreach ($this->getAssignedCoachOccurrences($playerId) as $assignedSession) {
+            $rows[] = (object) [
+                'id' => 'assigned_' . $assignedSession->OccurrenceID,
+                'raw_type' => 'program',
+                'date' => $assignedSession->OccurrenceDate,
+                'StartTime' => $assignedSession->StartTime,
+                'EndTime' => $assignedSession->EndTime,
+                'Status' => 'scheduled',
+                'reason' => $assignedSession->TemplateName,
+                'practitioner_name' => $assignedSession->CoachName ?? null,
+                'location' => $assignedSession->FacilityName ?? 'Academy',
+                'booking_type' => 'program',
+            ];
+        }
+
+        usort($rows, function ($left, $right) {
+            $leftKey = ($left->date ?? '') . ' ' . ($left->StartTime ?? '');
+            $rightKey = ($right->date ?? '') . ' ' . ($right->StartTime ?? '');
+            return strcmp($leftKey, $rightKey);
+        });
 
         return $rows;
     }
@@ -387,6 +479,7 @@ class M_SlotPlayer {
              LEFT JOIN slot_template  st ON st.TemplateID  = so.TemplateID
              LEFT JOIN facility        f  ON f.FacilityID   = so.FacilityID
              WHERE sb.PlayerID = :pid
+                             AND COALESCE(st.SlotType, 'program') != 'private'
              ORDER BY so.OccurrenceDate DESC'
         );
         $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
