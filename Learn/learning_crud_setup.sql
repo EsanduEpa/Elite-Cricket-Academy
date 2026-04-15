@@ -17,11 +17,11 @@
 -- ── STEP 1: CREATE DATABASE (if it does not exist yet) ──────
 -- A database is a container that holds many tables.
 -- IF NOT EXISTS means: skip this line if the database already exists.
-CREATE DATABASE IF NOT EXISTS cricket_academy;
+CREATE DATABASE IF NOT EXISTS cricket_academy_learn;
 
 -- ── STEP 2: SELECT THE DATABASE ─────────────────────────────
 -- All SQL commands after this line will run inside cricket_academy.
-USE cricket_academy;
+USE cricket_academy_learn;
 
 -- ── STEP 3: DROP OLD TABLE (so we start fresh each time) ────
 -- DROP TABLE IF EXISTS removes the table only if it already exists.
