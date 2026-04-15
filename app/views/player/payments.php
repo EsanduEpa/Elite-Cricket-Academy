@@ -36,15 +36,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
-                            <i class="fas fa-ticket-alt"></i>
-                            <span>Book Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link">
-                            <i class="fas fa-list-alt"></i>
-                            <span>My Sessions</span>
+                        <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Bookings</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -133,7 +127,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td style="text-align: center;">
-                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                            <div class="table-cell-primary payment-amount">Rs. <?= number_format($payment['amount'] ?? 0, 2) ?></div>
                                         </td>
                                         <td>
                                             <div class="payment-method">
@@ -200,7 +194,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td style="text-align: center;">
-                                            <div class="table-cell-primary payment-amount">$<?= number_format($payment['amount'] ?? 0, 2) ?></div>
+                                            <div class="table-cell-primary payment-amount">Rs. <?= number_format($payment['amount'] ?? 0, 2) ?></div>
                                         </td>
                                         <td>
                                             <div class="payment-method">

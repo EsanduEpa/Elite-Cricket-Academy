@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/medical.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/medical.css?v=<?php echo time(); ?>">
     
     <div class="player-layout">
         <!-- Simple Sidebar -->
@@ -23,34 +24,17 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/training" class="nav-link">
-                            <i class="fas fa-dumbbell"></i>
-                            <span>Training</span>
-                        </a>
-                    </li>
+                  
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
                     </li>
-                      <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link"><i class="fas fa-ticket-alt"></i><span>Book Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/facilities"   class="nav-link"><i class="fas fa-building"></i><span>Book Facility</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots/bookings"    class="nav-link"><i class="fas fa-list-alt"></i><span>My Sessions</span></a></li>
+                        <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
-                            <i class="fas fa-ticket-alt"></i>
-                            <span>Book Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link">
-                            <i class="fas fa-list-alt"></i>
-                            <span>My Sessions</span>
-                        </a>
-                    </li>
+                   
+                    
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
@@ -85,7 +69,7 @@
                 </div>
                 <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
                 <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
+                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn profile-logout-link">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
@@ -108,7 +92,7 @@
                 <div class="card-header">
                     <div class="header-content">
                         <h2><i class="fas fa-notes-medical"></i> Recent Medical Records</h2>
-                        <button class="quick-btn " onclick="openAddMedicalModal()">
+                        <button type="button" class="quick-btn" data-medical-action="open-add-modal">
                             <i class="fas fa-plus"></i> Add Record
                         </button>
                     </div>
@@ -260,23 +244,31 @@
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="action-btn btn-update" onclick="openUpdateStatusModal(
-                                                    <?php echo $record->RecordID; ?>,
-                                                    '<?php echo htmlspecialchars($record->RecoveryStatus, ENT_QUOTES); ?>',
-                                                    '<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>',
-                                                    '<?php echo htmlspecialchars($record->Diagnosis, ENT_QUOTES); ?>',
-                                                    '<?php echo htmlspecialchars($record->TreatmentGiven ?? '', ENT_QUOTES); ?>',
-                                                    '<?php echo htmlspecialchars($record->bodyarea ?? '', ENT_QUOTES); ?>',
-                                                    '<?php echo htmlspecialchars($record->InjuryDate ?? '', ENT_QUOTES); ?>',
-                                                    '<?php echo htmlspecialchars($record->ReportedDate ?? '', ENT_QUOTES); ?>',
-                                                    '<?php echo htmlspecialchars($record->HappenedAtAcademy ?? 'no', ENT_QUOTES); ?>',
-                                                    <?php echo intval($record->RestDaysNeeded); ?>
-                                                )" title="Update Record">
+                                                <button
+                                                    type="button"
+                                                    class="action-btn btn-update"
+                                                    data-medical-action="open-update-modal"
+                                                    data-record-id="<?php echo $record->RecordID; ?>"
+                                                    data-recovery-status="<?php echo htmlspecialchars($record->RecoveryStatus, ENT_QUOTES); ?>"
+                                                    data-verify-status="<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>"
+                                                    data-diagnosis="<?php echo htmlspecialchars($record->Diagnosis, ENT_QUOTES); ?>"
+                                                    data-treatment="<?php echo htmlspecialchars($record->TreatmentGiven ?? '', ENT_QUOTES); ?>"
+                                                    data-body-area="<?php echo htmlspecialchars($record->bodyarea ?? '', ENT_QUOTES); ?>"
+                                                    data-injury-date="<?php echo htmlspecialchars($record->InjuryDate ?? '', ENT_QUOTES); ?>"
+                                                    data-reported-date="<?php echo htmlspecialchars($record->ReportedDate ?? '', ENT_QUOTES); ?>"
+                                                    data-happened-at-academy="<?php echo htmlspecialchars($record->HappenedAtAcademy ?? 'no', ENT_QUOTES); ?>"
+                                                    data-rest-days="<?php echo intval($record->RestDaysNeeded); ?>"
+                                                    title="Update Record">
                                                     <i class="fas fa-edit"></i>
                                                     <span>Update</span>
                                                 </button>
                                                 <?php if (strtolower($record->verifyStatus ?? 'pending') === 'rejected'): ?>
-                                                    <button class="action-btn btn-delete" onclick="confirmDeleteRecord(<?php echo $record->RecordID; ?>)" title="Delete Record">
+                                                    <button
+                                                        type="button"
+                                                        class="action-btn btn-delete"
+                                                        data-medical-action="confirm-delete"
+                                                        data-record-id="<?php echo $record->RecordID; ?>"
+                                                        title="Delete Record">
                                                         <i class="fas fa-trash-alt"></i>
                                                         <span>Delete</span>
                                                     </button>
@@ -338,7 +330,7 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button class="action-btn btn-update" onclick="viewWorkoutPlan(<?= $plan->PlanID ?>)">
+                                                <button type="button" class="action-btn btn-update" data-medical-action="view-workout" data-plan-id="<?= $plan->PlanID ?>">
                                                     <i class="fas fa-eye"></i>
                                                     <span>View</span>
                                                 </button>
@@ -388,7 +380,7 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button class="action-btn btn-update" onclick="viewNutritionPlan(<?= $nplan->PlanID ?>)">
+                                                <button type="button" class="action-btn btn-update" data-medical-action="view-nutrition" data-plan-id="<?= $nplan->PlanID ?>">
                                                     <i class="fas fa-eye"></i>
                                                     <span>View</span>
                                                 </button>
@@ -481,65 +473,54 @@
     </div>
 
     <!-- Add Medical Record Modal -->
-    <div id="addMedicalModal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-in-out; overflow-y: auto;">
-        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 3% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 750px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out; max-height: 85vh; overflow-y: auto;">
-            <!-- Modal Header -->
-            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-notes-medical" style="color: #fff;"></i> Add Medical Record
+    <div id="addMedicalModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--wide medical-modal-content medical-modal-content--wide">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h2 class="medical-modal-title app-modal__title">
+                    <i class="fas fa-notes-medical medical-modal-title-icon"></i> Add Medical Record
                 </h2>
-                <span class="close" onclick="closeAddMedicalModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; transition: all 0.3s; padding: 5px; border-radius: 50%; opacity: 0.8; line-height: 1;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.opacity='1';" onmouseout="this.style.backgroundColor='transparent'; this.style.opacity='0.8';">&times;</span>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="addMedicalModal" aria-label="Close add medical record modal">&times;</button>
             </div>
 
-            <!-- Modal Body -->
-            <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord" enctype="multipart/form-data">
-                <div class="modal-body" style="padding: 35px;">
-
-                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 25px;">
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label for="injury_date" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-calendar-alt" style="color: #4A90E2; margin-right: 8px;"></i> Injury Date *
+            <form method="POST" action="<?php echo URLROOT; ?>/player/addMedicalRecord" enctype="multipart/form-data" class="medical-modal-form app-form">
+                <div class="modal-body app-modal__body medical-modal-body">
+                    <div class="medical-form-row app-form-row">
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="injury_date" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-calendar-alt medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Injury Date *
                             </label>
-                            <input type="date" id="injury_date" name="injury_date" required max="<?php echo date('Y-m-d'); ?>"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
-                            <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;">When did the injury occur?</small>
+                            <input type="date" id="injury_date" name="injury_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
+                            <small class="medical-help-text app-form-help">When did the injury occur?</small>
                         </div>
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label for="reported_date" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-calendar-check" style="color: #4A90E2; margin-right: 8px;"></i> Reported Date *
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="reported_date" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-calendar-check medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Reported Date *
                             </label>
-                            <input type="date" id="reported_date" name="reported_date" required max="<?php echo date('Y-m-d'); ?>"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
-                            <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;">When are you reporting this?</small>
+                            <input type="date" id="reported_date" name="reported_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
+                            <small class="medical-help-text app-form-help">When are you reporting this?</small>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-hospital" style="color: #4A90E2; margin-right: 8px;"></i> Did the injury happen at the academy? *
+                    <div class="medical-form-row app-form-row">
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label class="app-form-label app-form-label--strong">
+                            <i class="fas fa-hospital medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Did the injury happen at the academy? *
                         </label>
-                        <div style="display: flex; gap: 25px; margin-top: 8px;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #2c3e50; font-size: 14px;">
+                        <div class="medical-radio-group app-form-radio-group">
+                            <label class="medical-radio-option">
                                 <input type="radio" name="happened_at_academy" value="yes" required> Yes
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #2c3e50; font-size: 14px;">
+                            <label class="medical-radio-option">
                                 <input type="radio" name="happened_at_academy" value="no" checked> No
                             </label>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label for="body_area" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-user-injured" style="color: #e74c3c; margin-right: 8px;"></i> Body Area *
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="body_area" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-user-injured medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Body Area *
                         </label>
-                        <select id="body_area" name="body_area" required
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="body_area" name="body_area" class="form-control app-form-control app-form-control--lg app-form-select" required>
                             <option value="">Select body area...</option>
                             <option value="Head/Face">Head/Face</option>
                             <option value="Neck">Neck</option>
@@ -554,15 +535,14 @@
                             <option value="Ankle/Foot">Ankle/Foot</option>
                         </select>
                     </div>
+                    </div>
 
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label for="diagnosis" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-stethoscope" style="color: #e74c3c; margin-right: 8px;"></i> Diagnosis *
+                    <div class="medical-form-row app-form-row">
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="diagnosis" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-stethoscope medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Diagnosis *
                         </label>
-                        <select id="diagnosis" name="diagnosis" required
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="diagnosis" name="diagnosis" class="form-control app-form-control app-form-control--lg app-form-select" required>
                             <option value="">Select diagnosis...</option>
                             <option value="Sprain">Sprain</option>
                             <option value="Strain">Strain</option>
@@ -576,14 +556,11 @@
                         </select>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label for="treatment_given" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-hand-holding-medical" style="color: #27ae60; margin-right: 8px;"></i> Treatment Given
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="treatment_given" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-hand-holding-medical medical-field-icon medical-field-icon--success app-form-icon app-form-icon--success"></i> Treatment Given
                         </label>
-                        <select id="treatment_given" name="treatment_given"
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="treatment_given" name="treatment_given" class="form-control app-form-control app-form-control--lg app-form-select">
                             <option value="">Select treatment...</option>
                             <option value="RICE Procedure">RICE Procedure</option>
                             <option value="First Aid/Wound Care">First Aid/Wound Care</option>
@@ -594,27 +571,22 @@
                             <option value="Observation">Observation</option>
                         </select>
                     </div>
+                    </div>
 
-                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 25px;">
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label for="rest_days_needed" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-bed" style="color: #f39c12; margin-right: 8px;"></i> Estimated Rest Days Needed
+                    <div class="medical-form-row app-form-row">
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="rest_days_needed" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-bed medical-field-icon medical-field-icon--warning app-form-icon app-form-icon--warning"></i> Estimated Rest Days Needed
                             </label>
-                            <input type="number" id="rest_days_needed" name="rest_days_needed" min="0" max="1000" step="1" value="0" placeholder="e.g. 7"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
-                            <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;">Number of days rest required (max 1000)</small>
-                            <small id="rest_days_error" style="color: #e74c3c; font-size: 12px; margin-top: 3px; display: none;"></small>
+                            <input type="number" id="rest_days_needed" name="rest_days_needed" class="form-control app-form-control app-form-control--lg" min="0" max="1000" step="1" value="0" placeholder="e.g. 7">
+                            <small class="medical-help-text app-form-help">Number of days rest required (max 1000)</small>
+                            <small id="rest_days_error" class="medical-error-text app-form-error" aria-live="polite"></small>
                         </div>
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label for="recovery_status" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-heartbeat" style="color: #e74c3c; margin-right: 8px;"></i> Recovery Status *
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="recovery_status" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-heartbeat medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Recovery Status *
                             </label>
-                            <select id="recovery_status" name="recovery_status" required
-                                    style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                    onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                    onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                            <select id="recovery_status" name="recovery_status" class="form-control app-form-control app-form-control--lg app-form-select" required>
                                 <option value="">Select status...</option>
                                 <option value="ongoing">Ongoing</option>
                                 <option value="recovering">Recovering</option>
@@ -624,26 +596,19 @@
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label for="diagnosis_receipt" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-file-medical" style="color: #4A90E2; margin-right: 8px;"></i> Diagnosis Receipt/Document (Optional)
+                    <div class="form-group medical-form-group medical-form-group--full app-form-group app-form-group--full">
+                        <label for="diagnosis_receipt" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-file-medical medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Diagnosis Receipt/Document (Optional)
                         </label>
-                        <input type="file" id="diagnosis_receipt" name="diagnosis_receipt" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                               style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; box-sizing: border-box;">
-                        <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;"><i class="fas fa-info-circle"></i> Upload medical receipt, prescription, or diagnosis document (JPG, PNG, PDF, DOC - Max 5MB)</small>
+                        <input type="file" id="diagnosis_receipt" name="diagnosis_receipt" class="form-control medical-file-input app-form-control" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                        <small class="medical-help-text app-form-help"><i class="fas fa-info-circle"></i> Upload medical receipt, prescription, or diagnosis document (JPG, PNG, PDF, DOC - Max 5MB)</small>
                     </div>
 
-                    <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #ecf0f1; display: flex; gap: 15px; justify-content: flex-end;">
-                        <button type="button" onclick="closeAddMedicalModal()"
-                                style="padding: 14px 28px; background: #95a5a6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px;"
-                                onmouseover="this.style.backgroundColor='#7f8c8d';"
-                                onmouseout="this.style.backgroundColor='#95a5a6';">
+                    <div class="medical-form-actions app-form-actions">
+                        <button type="button" class="medical-btn medical-btn--secondary" data-medical-close="addMedicalModal">
                             <i class="fas fa-times"></i> Cancel
                         </button>
-                        <button type="submit"
-                                style="padding: 14px 28px; background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(74,144,226,0.3);"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(74,144,226,0.4)';"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(74,144,226,0.3)';">
+                        <button type="submit" class="medical-btn medical-btn--primary">
                             <i class="fas fa-save"></i> Save Record
                         </button>
                     </div>
@@ -653,87 +618,79 @@
     </div>
 
     <!-- Workout Plan Modal -->
-    <div id="workoutPlanModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-dumbbell"></i> Workout Plan Details</h3>
-                <span class="close" onclick="closeModal('workoutPlanModal')">&times;</span>
+    <div id="workoutPlanModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h3 class="medical-modal-title app-modal__title"><i class="fas fa-dumbbell"></i> Workout Plan Details</h3>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="workoutPlanModal" aria-label="Close workout plan modal">&times;</button>
             </div>
-            <div class="modal-body" id="workoutPlanContent">
+            <div class="modal-body app-modal__body medical-modal-body" id="workoutPlanContent">
                 <!-- Workout plan content will be loaded here -->
             </div>
         </div>
     </div>
 
     <!-- Nutrition Plan Modal -->
-    <div id="nutritionPlanModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-apple-alt"></i> Nutrition Plan Details</h3>
-                <span class="close" onclick="closeModal('nutritionPlanModal')">&times;</span>
+    <div id="nutritionPlanModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h3 class="medical-modal-title app-modal__title"><i class="fas fa-apple-alt"></i> Nutrition Plan Details</h3>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="nutritionPlanModal" aria-label="Close nutrition plan modal">&times;</button>
             </div>
-            <div class="modal-body" id="nutritionPlanContent">
+            <div class="modal-body app-modal__body medical-modal-body" id="nutritionPlanContent">
                 <!-- Nutrition plan content will be loaded here -->
             </div>
         </div>
     </div>
 
     <!-- Update Medical Record Modal — Full edit (pending) -->
-    <div id="editFullRecordModal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-in-out; overflow-y: auto;">
-        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 3% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 750px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out; max-height: 85vh; overflow-y: auto;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-edit" style="color: #fff;"></i> Edit Medical Record
+    <div id="editFullRecordModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--wide medical-modal-content medical-modal-content--wide">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h2 class="medical-modal-title app-modal__title">
+                    <i class="fas fa-edit medical-modal-title-icon"></i> Edit Medical Record
                 </h2>
-                <span class="close" onclick="closeEditFullRecordModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; transition: all 0.3s; padding: 5px; border-radius: 50%; opacity: 0.8; line-height: 1;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.opacity='1';" onmouseout="this.style.backgroundColor='transparent'; this.style.opacity='0.8';">&times;</span>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="editFullRecordModal" aria-label="Close edit medical record modal">&times;</button>
             </div>
-            <form method="POST" action="<?php echo URLROOT; ?>/player/fullUpdateMedicalRecord">
-                <div class="modal-body" style="padding: 35px;">
+            <form method="POST" action="<?php echo URLROOT; ?>/player/fullUpdateMedicalRecord" class="medical-modal-form app-form">
+                <div class="modal-body app-modal__body medical-modal-body">
                     <input type="hidden" id="edit_record_id" name="record_id">
 
-                    <div style="display: flex; gap: 15px; margin-bottom: 25px;">
-                        <div style="flex: 1;">
-                            <label for="edit_injury_date" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-calendar-alt" style="color: #4A90E2; margin-right: 8px;"></i> Injury Date *
+                    <div class="medical-form-row app-form-row">
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="edit_injury_date" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-calendar-alt medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Injury Date *
                             </label>
-                            <input type="date" id="edit_injury_date" name="injury_date" required max="<?php echo date('Y-m-d'); ?>"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                            <input type="date" id="edit_injury_date" name="injury_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
                         </div>
-                        <div style="flex: 1;">
-                            <label for="edit_reported_date" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-calendar-check" style="color: #4A90E2; margin-right: 8px;"></i> Reported Date *
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="edit_reported_date" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-calendar-check medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Reported Date *
                             </label>
-                            <input type="date" id="edit_reported_date" name="reported_date" required max="<?php echo date('Y-m-d'); ?>"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                            <input type="date" id="edit_reported_date" name="reported_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-hospital" style="color: #4A90E2; margin-right: 8px;"></i> Did the injury happen at the academy? *
+                    <div class="medical-form-row app-form-row">
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label class="app-form-label app-form-label--strong">
+                            <i class="fas fa-hospital medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Did the injury happen at the academy? *
                         </label>
-                        <div style="display: flex; gap: 25px; margin-top: 8px;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #2c3e50; font-size: 14px;">
+                        <div class="medical-radio-group app-form-radio-group">
+                            <label class="medical-radio-option">
                                 <input type="radio" id="edit_academy_yes" name="happened_at_academy" value="yes"> Yes
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #2c3e50; font-size: 14px;">
+                            <label class="medical-radio-option">
                                 <input type="radio" id="edit_academy_no" name="happened_at_academy" value="no"> No
                             </label>
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <label for="edit_body_area" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-user-injured" style="color: #e74c3c; margin-right: 8px;"></i> Body Area *
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="edit_body_area" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-user-injured medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Body Area *
                         </label>
-                        <select id="edit_body_area" name="body_area" required
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="edit_body_area" name="body_area" class="form-control app-form-control app-form-control--lg app-form-select" required>
                             <option value="">Select body area...</option>
                             <option value="Head/Face">Head/Face</option>
                             <option value="Neck">Neck</option>
@@ -748,15 +705,14 @@
                             <option value="Ankle/Foot">Ankle/Foot</option>
                         </select>
                     </div>
+                    </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <label for="edit_diagnosis" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-stethoscope" style="color: #e74c3c; margin-right: 8px;"></i> Diagnosis *
+                    <div class="medical-form-row app-form-row">
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="edit_diagnosis" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-stethoscope medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Diagnosis *
                         </label>
-                        <select id="edit_diagnosis" name="diagnosis" required
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="edit_diagnosis" name="diagnosis" class="form-control app-form-control app-form-control--lg app-form-select" required>
                             <option value="">Select diagnosis...</option>
                             <option value="Sprain">Sprain</option>
                             <option value="Strain">Strain</option>
@@ -770,14 +726,11 @@
                         </select>
                     </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <label for="edit_treatment" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-hand-holding-medical" style="color: #27ae60; margin-right: 8px;"></i> Treatment Given
+                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="edit_treatment" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-hand-holding-medical medical-field-icon medical-field-icon--success app-form-icon app-form-icon--success"></i> Treatment Given
                         </label>
-                        <select id="edit_treatment" name="treatment_given"
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="edit_treatment" name="treatment_given" class="form-control app-form-control app-form-control--lg app-form-select">
                             <option value="">Select treatment...</option>
                             <option value="RICE Procedure">RICE Procedure</option>
                             <option value="First Aid/Wound Care">First Aid/Wound Care</option>
@@ -788,25 +741,20 @@
                             <option value="Observation">Observation</option>
                         </select>
                     </div>
+                    </div>
 
-                    <div style="display: flex; gap: 15px; margin-bottom: 25px;">
-                        <div style="flex: 1;">
-                            <label for="edit_rest_days" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-bed" style="color: #f39c12; margin-right: 8px;"></i> Estimated Rest Days Needed
+                    <div class="medical-form-row app-form-row">
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="edit_rest_days" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-bed medical-field-icon medical-field-icon--warning app-form-icon app-form-icon--warning"></i> Estimated Rest Days Needed
                             </label>
-                            <input type="number" id="edit_rest_days" name="rest_days_needed" min="0" max="1000" step="1" value="0"
-                                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                   onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                            <input type="number" id="edit_rest_days" name="rest_days_needed" class="form-control app-form-control app-form-control--lg" min="0" max="1000" step="1" value="0">
                         </div>
-                        <div style="flex: 1;">
-                            <label for="edit_recovery_status" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                                <i class="fas fa-heartbeat" style="color: #e74c3c; margin-right: 8px;"></i> Recovery Status *
+                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                            <label for="edit_recovery_status" class="app-form-label app-form-label--strong">
+                                <i class="fas fa-heartbeat medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Recovery Status *
                             </label>
-                            <select id="edit_recovery_status" name="recovery_status" required
-                                    style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                    onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                    onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                            <select id="edit_recovery_status" name="recovery_status" class="form-control app-form-control app-form-control--lg app-form-select" required>
                                 <option value="">Select status...</option>
                                 <option value="ongoing">Ongoing</option>
                                 <option value="recovering">Recovering</option>
@@ -816,17 +764,11 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #ecf0f1; display: flex; gap: 15px; justify-content: flex-end;">
-                        <button type="button" onclick="closeEditFullRecordModal()"
-                                style="padding: 14px 28px; background: #95a5a6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px;"
-                                onmouseover="this.style.backgroundColor='#7f8c8d';"
-                                onmouseout="this.style.backgroundColor='#95a5a6';">
+                    <div class="medical-form-actions app-form-actions">
+                        <button type="button" class="medical-btn medical-btn--secondary" data-medical-close="editFullRecordModal">
                             <i class="fas fa-times"></i> Cancel
                         </button>
-                        <button type="submit"
-                                style="padding: 14px 28px; background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(74,144,226,0.3);"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(74,144,226,0.4)';"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(74,144,226,0.3)';">
+                        <button type="submit" class="medical-btn medical-btn--primary">
                             <i class="fas fa-save"></i> Save Changes
                         </button>
                     </div>
@@ -836,26 +778,23 @@
     </div>
 
     <!-- Update Medical Record Modal — Recovery status only (verified) -->
-    <div id="updateStatusModal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-in-out; overflow-y: auto;">
-        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 5% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 520px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-heartbeat" style="color: #fff;"></i> Update Recovery Status
+    <div id="updateStatusModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--compact medical-modal-content medical-modal-content--compact">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h2 class="medical-modal-title app-modal__title">
+                    <i class="fas fa-heartbeat medical-modal-title-icon"></i> Update Recovery Status
                 </h2>
-                <span class="close" onclick="closeUpdateStatusModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; transition: all 0.3s; padding: 5px; border-radius: 50%; opacity: 0.8; line-height: 1;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.opacity='1';" onmouseout="this.style.backgroundColor='transparent'; this.style.opacity='0.8';">&times;</span>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="updateStatusModal" aria-label="Close update status modal">&times;</button>
             </div>
-            <form method="POST" action="<?php echo URLROOT; ?>/player/updateMedicalRecord">
-                <div class="modal-body" style="padding: 35px;">
+            <form method="POST" action="<?php echo URLROOT; ?>/player/updateMedicalRecord" class="medical-modal-form app-form">
+                <div class="modal-body app-modal__body medical-modal-body">
                     <input type="hidden" id="update_record_id" name="record_id">
 
-                    <div style="margin-bottom: 25px;">
-                        <label for="update_recovery_status" style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 14px;">
-                            <i class="fas fa-heartbeat" style="color: #e74c3c; margin-right: 8px;"></i> Recovery Status *
+                    <div class="form-group medical-form-group app-form-group app-form-group--full">
+                        <label for="update_recovery_status" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-heartbeat medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Recovery Status *
                         </label>
-                        <select id="update_recovery_status" name="recovery_status" required
-                                style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; background: #fafafa;"
-                                onfocus="this.style.borderColor='#4A90E2'; this.style.backgroundColor='white'; this.style.boxShadow='0 0 0 3px rgba(74,144,226,0.1)';"
-                                onblur="this.style.borderColor='#ddd'; this.style.backgroundColor='#fafafa'; this.style.boxShadow='none';">
+                        <select id="update_recovery_status" name="recovery_status" class="form-control app-form-control app-form-control--lg app-form-select" required>
                             <option value="">Select status...</option>
                             <option value="ongoing">Ongoing</option>
                             <option value="recovering">Recovering</option>
@@ -864,9 +803,9 @@
                         </select>
                     </div>
 
-                    <div style="background: #f0f7ff; border-left: 4px solid #4A90E2; border-radius: 6px; padding: 16px; margin-bottom: 10px; font-size: 13px; color: #2c3e50;">
-                        <p style="margin: 0 0 8px 0; font-weight: 600;"><i class="fas fa-info-circle" style="color: #4A90E2; margin-right: 6px;"></i> Status Definitions</p>
-                        <ul style="margin: 0; padding-left: 18px; line-height: 1.8;">
+                    <div class="medical-info-panel">
+                        <p class="medical-info-title"><i class="fas fa-info-circle medical-field-icon medical-field-icon--primary"></i> Status Definitions</p>
+                        <ul class="medical-info-list">
                             <li><strong>Ongoing:</strong> Condition is still active/symptomatic</li>
                             <li><strong>Recovering:</strong> In the process of healing</li>
                             <li><strong>Fully Recovered:</strong> No symptoms, returned to full activity</li>
@@ -874,17 +813,11 @@
                         </ul>
                     </div>
 
-                    <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #ecf0f1; display: flex; gap: 15px; justify-content: flex-end;">
-                        <button type="button" onclick="closeUpdateStatusModal()"
-                                style="padding: 14px 28px; background: #95a5a6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px;"
-                                onmouseover="this.style.backgroundColor='#7f8c8d';"
-                                onmouseout="this.style.backgroundColor='#95a5a6';">
+                    <div class="medical-form-actions app-form-actions">
+                        <button type="button" class="medical-btn medical-btn--secondary" data-medical-close="updateStatusModal">
                             <i class="fas fa-times"></i> Cancel
                         </button>
-                        <button type="submit"
-                                style="padding: 14px 28px; background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(74,144,226,0.3);"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(74,144,226,0.4)';"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(74,144,226,0.3)';">
+                        <button type="submit" class="medical-btn medical-btn--primary">
                             <i class="fas fa-save"></i> Update Status
                         </button>
                     </div>
@@ -894,26 +827,26 @@
     </div>
 
     <!-- Delete Medical Record Confirmation Modal -->
-    <div id="deleteRecordModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle text-danger"></i> Delete Medical Record</h3>
-                <span class="close" onclick="closeDeleteRecordModal()">&times;</span>
+    <div id="deleteRecordModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--compact medical-modal-content medical-modal-content--compact">
+            <div class="modal-header app-modal__header medical-modal-header">
+                <h3 class="medical-modal-title app-modal__title"><i class="fas fa-exclamation-triangle text-danger"></i> Delete Medical Record</h3>
+                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="deleteRecordModal" aria-label="Close delete record modal">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body app-modal__body medical-modal-body">
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>Warning:</strong> This action cannot be undone.
                 </div>
-                
+
                 <p>Are you sure you want to delete this medical record?</p>
                 <p class="text-muted">This record has been marked as "rejected" by a trainer, which allows deletion. Once deleted, this information will be permanently removed from your medical history.</p>
-                
+
                 <input type="hidden" id="delete_record_id">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeDeleteRecordModal()">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="deleteMedicalRecord()">
+            <div class="modal-footer app-modal__footer medical-modal-footer">
+                <button type="button" class="btn btn-secondary" data-medical-close="deleteRecordModal">Cancel</button>
+                <button type="button" class="btn btn-danger" data-medical-action="delete-record">
                     <i class="fas fa-trash"></i> Delete Record
                 </button>
             </div>
@@ -927,7 +860,7 @@
     ], JSON_UNESCAPED_SLASHES); ?></script>
 
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
-    <script src="<?php echo URLROOT; ?>/js/player/medical-page.js"></script>
+    <script src="<?php echo URLROOT; ?>/js/player/medical.js?v=<?php echo time(); ?>"></script>
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 </html>

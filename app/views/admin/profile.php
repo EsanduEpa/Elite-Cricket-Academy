@@ -160,9 +160,14 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="name">Full Name</label>
-                                    <input type="text" id="name" name="name" class="form-control" 
-                                           value="<?php echo htmlspecialchars($data['user']->Name ?? ''); ?>" required>
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" id="firstName" name="firstName" class="form-control" 
+                                           value="<?php echo htmlspecialchars($data['user']->FirstName ?? ''); ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name</label>
+                                    <input type="text" id="lastName" name="lastName" class="form-control" 
+                                           value="<?php echo htmlspecialchars($data['user']->LastName ?? ''); ?>" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email Address</label>

@@ -467,7 +467,7 @@ class M_CoachTournamentRecommendation
             $this->db->query("
                 SELECT 
                     p.PlayerID,
-                    u.Name as PlayerName,
+                    CONCAT(u.FirstName, ' ', u.LastName) as PlayerName,
                     u.UserID,
                     p.BattingStyle,
                     p.BowlingStyle,
@@ -480,7 +480,7 @@ class M_CoachTournamentRecommendation
                 WHERE pca.CoachID = :coachId 
                 AND pca.Status = 'active'
                 AND u.Status = 'active'
-                ORDER BY u.Name ASC
+                ORDER BY u.FirstName ASC
             ");
 
             $this->db->bind(':coachId', $coachId);

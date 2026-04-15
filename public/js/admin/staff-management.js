@@ -465,7 +465,9 @@ function validateWizardStep(step) {
 
 function updateReviewSection() {
     // Personal Information
-    const fullName = document.getElementById('fullName').value;
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const fullName = [firstName, lastName].filter(Boolean).join(' ');
     const dob = document.getElementById('dateOfBirth').value;
     const school = document.getElementById('school').value;
     
@@ -574,7 +576,8 @@ function handleAddStaff(e) {
             // Add to local array for immediate display
             const newStaff = {
                 id: data.userId || data.data?.id,
-                fullName: formData.get('fullName'),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
                 email: formData.get('email'),
                 phone: formData.get('phone'),
                 role: formData.get('role'),

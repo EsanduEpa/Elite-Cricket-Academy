@@ -54,6 +54,12 @@ class M_SlotPlayer {
 
         // Run gate checks and annotate each row
         foreach ($rows as $row) {
+            if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+                $eligibleCount = SlotBookingService::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
+                $row->EligiblePlayerCount = $eligibleCount;
+                $row->TplMax = $eligibleCount;
+            }
+
             if ($row->AlreadyBooked) {
                 $row->blocked     = true;
                 $row->blockReason = 'already_booked';
@@ -224,11 +230,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -273,11 +279,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -322,11 +328,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -399,11 +405,11 @@ class M_SlotPlayer {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR ", ")
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR ", ")
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR ", ")
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, \' \', u.LastName) ORDER BY u.FirstName SEPARATOR ", ")
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -693,13 +699,102 @@ class M_SlotPlayer {
         return $this->db->resultSet();
     }
 
+    public function getFacilityOnlyBookingsForCounter(int $daysBack = 7, int $daysForward = 14): array {
+        $daysBack = max(0, $daysBack);
+        $daysForward = max(0, $daysForward);
+
+        $this->db->query(
+            'SELECT sb.BookingID, sb.Status, sb.BookingSource, sb.CreatedAt,
+                    so.OccurrenceID, so.OccurrenceDate,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    st.TemplateName, st.SlotType,
+                    f.Name AS FacilityName,
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
+             FROM slot_booking sb
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             JOIN user u ON u.UserID = sb.PlayerID
+             WHERE st.SlotType = \'facility_only\'
+               AND so.Status != \'cancelled\'
+               AND so.OccurrenceDate BETWEEN DATE_SUB(CURDATE(), INTERVAL :daysBack DAY)
+                                         AND DATE_ADD(CURDATE(), INTERVAL :daysForward DAY)
+             ORDER BY so.OccurrenceDate DESC, tb.StartTime DESC, sb.CreatedAt DESC'
+        );
+        $this->db->bind(':daysBack', $daysBack, PDO::PARAM_INT);
+        $this->db->bind(':daysForward', $daysForward, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function updateFacilityBookingStatus(int $bookingId, string $status, int $shopEmployeeId): bool|string {
+        $status = strtolower(trim($status));
+        $statusMap = [
+            'confirmed' => 'confirmed',
+            'completed' => 'attended',
+            'attended' => 'attended',
+            'not_attended' => 'missed',
+            'missed' => 'missed',
+        ];
+
+        if (!isset($statusMap[$status])) {
+            return 'invalid_status';
+        }
+
+        $this->db->query(
+            'SELECT sb.BookingID, sb.Status AS OldStatus, sb.OccurrenceID,
+                    so.Status AS OccurrenceStatus,
+                    st.SlotType
+             FROM slot_booking sb
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             WHERE sb.BookingID = :bid'
+        );
+        $this->db->bind(':bid', $bookingId, PDO::PARAM_INT);
+        $row = $this->db->single();
+
+        if (!$row) {
+            return 'not_found';
+        }
+
+        if (($row->SlotType ?? '') !== 'facility_only') {
+            return 'not_allowed';
+        }
+
+        if (($row->OccurrenceStatus ?? '') === 'cancelled' || ($row->OldStatus ?? '') === 'cancelled') {
+            return 'locked';
+        }
+
+        $normalizedStatus = $statusMap[$status];
+
+        $this->db->query(
+            'UPDATE slot_booking
+             SET Status = :status, UpdatedAt = NOW()
+             WHERE BookingID = :bid'
+        );
+        $this->db->bind(':status', $normalizedStatus);
+        $this->db->bind(':bid', $bookingId, PDO::PARAM_INT);
+        $ok = $this->db->execute();
+
+        if (!$ok) {
+            return 'error';
+        }
+
+        $this->_auditLog('booking', $bookingId, 'update', 'Status', $row->OldStatus, $normalizedStatus,
+            'Facility booking status updated by shop employee', $shopEmployeeId);
+        $this->_activityLog($shopEmployeeId, 'update_facility_booking_status',
+            "Updated facility booking #{$bookingId} status to {$normalizedStatus}");
+
+        return true;
+    }
+
     public function searchPlayers(string $term): array {
         $this->db->query(
-            'SELECT UserID, Name, Email, PhoneNumber
+            'SELECT UserID, CONCAT(FirstName, \' \', LastName) AS Name, Email, PhoneNumber
              FROM user
              WHERE Role = \'Player\'
                AND Status = \'active\'
-               AND (Name LIKE :t OR Email LIKE :t2 OR UserID = :id)
+               AND (CONCAT(FirstName, \' \', LastName) LIKE :t OR Email LIKE :t2 OR UserID = :id)
              LIMIT 20'
         );
         $like = '%' . $term . '%';
@@ -707,5 +802,44 @@ class M_SlotPlayer {
         $this->db->bind(':t2', $like);
         $this->db->bind(':id', is_numeric($term) ? (int)$term : 0, PDO::PARAM_INT);
         return $this->db->resultSet();
+    }
+
+    private function _auditLog(
+        string $entityType,
+        int $entityId,
+        string $action,
+        ?string $changedField,
+        ?string $oldValue,
+        ?string $newValue,
+        ?string $reason,
+        int $userId
+    ): void {
+        $this->db->query(
+            'INSERT INTO slot_audit_log
+             (EntityType, EntityID, Action, ChangedField, OldValue, NewValue, Reason, ChangedBy, IPAddress)
+             VALUES (:et, :eid, :act, :cf, :ov, :nv, :reason, :uid, :ip)'
+        );
+        $this->db->bind(':et', $entityType);
+        $this->db->bind(':eid', $entityId, PDO::PARAM_INT);
+        $this->db->bind(':act', $action);
+        $this->db->bind(':cf', $changedField);
+        $this->db->bind(':ov', $oldValue);
+        $this->db->bind(':nv', $newValue);
+        $this->db->bind(':reason', $reason);
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':ip', $_SERVER['REMOTE_ADDR'] ?? null);
+        $this->db->execute();
+    }
+
+    private function _activityLog(int $userId, string $action, string $description): void {
+        $this->db->query(
+            'INSERT INTO activitylog (UserID, Action, Description, IPAddress)
+             VALUES (:uid, :action, :desc, :ip)'
+        );
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':action', $action);
+        $this->db->bind(':desc', $description);
+        $this->db->bind(':ip', $_SERVER['REMOTE_ADDR'] ?? null);
+        $this->db->execute();
     }
 }

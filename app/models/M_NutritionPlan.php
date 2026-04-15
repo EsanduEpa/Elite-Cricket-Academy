@@ -5,12 +5,216 @@ class M_NutritionPlan {
     public function __construct() {
         $this->db = new Database;
     }
+
+    private function nutritionTemplateFallbacks(): array {
+        return [
+            (object)[
+                'TemplateID' => 1,
+                'PlanName' => 'High Protein',
+                'ProteinPercentage' => 45,
+                'CarbohydratePercentage' => 35,
+                'FatPercentage' => 20,
+                'RecommendedCalories' => 2400,
+                'Description' => 'Supports muscle repair and strength development with a protein-forward meal balance.',
+                'SortOrder' => 1,
+                'IsActive' => 1,
+            ],
+            (object)[
+                'TemplateID' => 2,
+                'PlanName' => 'Low Carb',
+                'ProteinPercentage' => 40,
+                'CarbohydratePercentage' => 25,
+                'FatPercentage' => 35,
+                'RecommendedCalories' => 2200,
+                'Description' => 'Reduces carbohydrate load while keeping protein high for satiety and recovery.',
+                'SortOrder' => 2,
+                'IsActive' => 1,
+            ],
+            (object)[
+                'TemplateID' => 3,
+                'PlanName' => 'Balanced Diet',
+                'ProteinPercentage' => 30,
+                'CarbohydratePercentage' => 40,
+                'FatPercentage' => 30,
+                'RecommendedCalories' => 2300,
+                'Description' => 'A balanced everyday plan for training consistency and general performance.',
+                'SortOrder' => 3,
+                'IsActive' => 1,
+            ],
+            (object)[
+                'TemplateID' => 4,
+                'PlanName' => 'Weight Loss / Lean',
+                'ProteinPercentage' => 40,
+                'CarbohydratePercentage' => 30,
+                'FatPercentage' => 30,
+                'RecommendedCalories' => 1900,
+                'Description' => 'Uses controlled calories with higher protein to protect lean mass.',
+                'SortOrder' => 4,
+                'IsActive' => 1,
+            ],
+            (object)[
+                'TemplateID' => 5,
+                'PlanName' => 'Recovery',
+                'ProteinPercentage' => 35,
+                'CarbohydratePercentage' => 45,
+                'FatPercentage' => 20,
+                'RecommendedCalories' => 2500,
+                'Description' => 'Prioritises glycogen replenishment and recovery nutrition after training or matches.',
+                'SortOrder' => 5,
+                'IsActive' => 1,
+            ],
+            (object)[
+                'TemplateID' => 6,
+                'PlanName' => 'Hydration & Light Nutrition',
+                'ProteinPercentage' => 25,
+                'CarbohydratePercentage' => 50,
+                'FatPercentage' => 25,
+                'RecommendedCalories' => 2000,
+                'Description' => 'Keeps meals light and easy to digest while maintaining hydration and energy.',
+                'SortOrder' => 6,
+                'IsActive' => 1,
+            ],
+        ];
+    }
+
+    public function getNutritionTemplates($activeOnly = true) {
+        if (!$this->tableExists('nutrition_plan_templates')) {
+            return $this->nutritionTemplateFallbacks();
+        }
+
+        $sql = 'SELECT TemplateID, PlanName, ProteinPercentage, CarbohydratePercentage, FatPercentage, RecommendedCalories, Description, SortOrder, IsActive
+                FROM nutrition_plan_templates';
+        if ($activeOnly) {
+            $sql .= ' WHERE IsActive = 1';
+        }
+        $sql .= ' ORDER BY SortOrder ASC, PlanName ASC';
+
+        $this->db->query($sql);
+        $rows = $this->db->resultSet();
+        return !empty($rows) ? $rows : $this->nutritionTemplateFallbacks();
+    }
+
+    public function getNutritionTemplateById($templateId) {
+        $templateId = (int)$templateId;
+        if ($templateId <= 0) {
+            return null;
+        }
+
+        if (!$this->tableExists('nutrition_plan_templates')) {
+            foreach ($this->nutritionTemplateFallbacks() as $template) {
+                if ((int)$template->TemplateID === $templateId) {
+                    return $template;
+                }
+            }
+            return null;
+        }
+
+        $this->db->query('SELECT TemplateID, PlanName, ProteinPercentage, CarbohydratePercentage, FatPercentage, RecommendedCalories, Description, SortOrder, IsActive
+            FROM nutrition_plan_templates
+            WHERE TemplateID = :template_id
+            LIMIT 1');
+        $this->db->bind(':template_id', $templateId);
+        return $this->db->single();
+    }
+
+    public function getNutritionTemplateByName($planName) {
+        $planName = trim((string)$planName);
+        if ($planName === '') {
+            return null;
+        }
+
+        if (!$this->tableExists('nutrition_plan_templates')) {
+            foreach ($this->nutritionTemplateFallbacks() as $template) {
+                if (strcasecmp($template->PlanName, $planName) === 0) {
+                    return $template;
+                }
+            }
+            return null;
+        }
+
+        $this->db->query('SELECT TemplateID, PlanName, ProteinPercentage, CarbohydratePercentage, FatPercentage, RecommendedCalories, Description, SortOrder, IsActive
+            FROM nutrition_plan_templates
+            WHERE PlanName = :plan_name
+            LIMIT 1');
+        $this->db->bind(':plan_name', $planName);
+        return $this->db->single();
+    }
+
+    private function appendNutritionStructuredColumns(array $data, array &$columns, array &$placeholders, array &$bindings): void {
+        if ($this->columnExists('NutritionPlan', 'TemplateID')) {
+            $columns[] = 'TemplateID';
+            $placeholders[] = ':template_id';
+            $bindings[':template_id'] = !empty($data['template_id']) ? (int)$data['template_id'] : null;
+        }
+
+        if ($this->columnExists('NutritionPlan', 'ProteinPercentage')) {
+            $columns[] = 'ProteinPercentage';
+            $placeholders[] = ':protein_percentage';
+            $bindings[':protein_percentage'] = $data['protein_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'CarbohydratePercentage')) {
+            $columns[] = 'CarbohydratePercentage';
+            $placeholders[] = ':carbohydrate_percentage';
+            $bindings[':carbohydrate_percentage'] = $data['carbohydrate_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'FatPercentage')) {
+            $columns[] = 'FatPercentage';
+            $placeholders[] = ':fat_percentage';
+            $bindings[':fat_percentage'] = $data['fat_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'RecommendedCalories')) {
+            $columns[] = 'RecommendedCalories';
+            $placeholders[] = ':recommended_calories';
+            $bindings[':recommended_calories'] = $data['recommended_calories'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Description')) {
+            $columns[] = 'Description';
+            $placeholders[] = ':description';
+            $bindings[':description'] = $data['description'];
+        }
+    }
+
+    private function appendNutritionStructuredUpdates(array $data, array &$sets, array &$bindings): void {
+        if ($this->columnExists('NutritionPlan', 'TemplateID')) {
+            $sets[] = 'TemplateID = :template_id';
+            $bindings[':template_id'] = !empty($data['template_id']) ? (int)$data['template_id'] : null;
+        }
+
+        if ($this->columnExists('NutritionPlan', 'ProteinPercentage')) {
+            $sets[] = 'ProteinPercentage = :protein_percentage';
+            $bindings[':protein_percentage'] = $data['protein_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'CarbohydratePercentage')) {
+            $sets[] = 'CarbohydratePercentage = :carbohydrate_percentage';
+            $bindings[':carbohydrate_percentage'] = $data['carbohydrate_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'FatPercentage')) {
+            $sets[] = 'FatPercentage = :fat_percentage';
+            $bindings[':fat_percentage'] = $data['fat_percentage'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'RecommendedCalories')) {
+            $sets[] = 'RecommendedCalories = :recommended_calories';
+            $bindings[':recommended_calories'] = $data['recommended_calories'];
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Description')) {
+            $sets[] = 'Description = :description';
+            $bindings[':description'] = $data['description'];
+        }
+    }
     
     // Get all nutrition plans created by a trainer
     public function getNutritionPlansByTrainer($trainerId) {
         $this->db->query('SELECT 
             np.*,
-            u.name as player_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as player_name,
             u.email as player_email
             FROM NutritionPlan np 
             LEFT JOIN User u ON np.PlayerID = u.UserID 
@@ -87,7 +291,7 @@ class M_NutritionPlan {
     public function getNutritionPlan($planId) {
         $this->db->query('SELECT 
             np.*,
-            u.name as player_name,
+            CONCAT(u.FirstName, \' \', u.LastName) as player_name,
             u.email as player_email
             FROM NutritionPlan np 
             LEFT JOIN User u ON np.PlayerID = u.UserID 
@@ -100,11 +304,11 @@ class M_NutritionPlan {
     
     // Get all active players for dropdown
     public function getAllPlayers() {
-        $this->db->query('SELECT u.UserID, u.name, u.email, COALESCE(pp.SubscriptionType, "basic") AS group_key
+        $this->db->query('SELECT u.UserID, CONCAT(u.FirstName, \' \', u.LastName) AS name, u.email, COALESCE(pp.SubscriptionType, "basic") AS group_key
             FROM User u
             LEFT JOIN PlayerProfile pp ON pp.PlayerID = u.UserID
             WHERE u.Role = "Player" AND u.Status = "active"
-            ORDER BY u.name');
+            ORDER BY u.FirstName');
         
         return $this->db->resultSet();
     }
@@ -114,8 +318,8 @@ class M_NutritionPlan {
             (object)['key' => 'all', 'label' => 'All Players', 'description' => 'Assign the plan to every active player.'],
             (object)['key' => 'under_13', 'label' => 'Under 13 Players', 'description' => 'Players younger than 13 years old.'],
             (object)['key' => 'under_15', 'label' => 'Under 15 Players', 'description' => 'Players younger than 15 years old.'],
-            (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players younger than 19 years old.'],
-            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players younger than 21 years old.'],
+            (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players 19 years old or younger.'],
+            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players 21 years old or younger.'],
             (object)['key' => 'tournament', 'label' => 'Tournament Players', 'description' => 'Players who have been selected for a tournament squad.'],
         ];
     }
@@ -127,9 +331,7 @@ class M_NutritionPlan {
             $this->db->query('SELECT u.UserID
                 FROM User u
                 WHERE u.Role = "Player" AND u.Status = "active"
-                ORDER BY u.name');
-            $rows = $this->db->resultSet();
-        } elseif (in_array($groupKey, ['under_13', 'under_15', 'under_19', 'under_21'], true)) {
+                ORDER BY u.FirstName');
             $ageLimit = (int)str_replace('under_', '', $groupKey);
             $this->db->query('SELECT u.UserID
                 FROM User u
@@ -137,7 +339,7 @@ class M_NutritionPlan {
                   AND u.Status = "active"
                   AND u.DateOfBirth IS NOT NULL
                   AND TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < :age_limit
-                ORDER BY u.name');
+                ORDER BY u.FirstName');
             $this->db->bind(':age_limit', $ageLimit);
             $rows = $this->db->resultSet();
         } elseif ($groupKey === 'tournament') {
@@ -145,7 +347,7 @@ class M_NutritionPlan {
                 FROM tournamentplayer tp
                 INNER JOIN User u ON u.UserID = tp.PlayerID
                 WHERE u.Role = "Player" AND u.Status = "active"
-                ORDER BY u.name');
+                ORDER BY u.FirstName');
             $rows = $this->db->resultSet();
         } else {
             $this->db->query('SELECT u.UserID
@@ -185,6 +387,8 @@ class M_NutritionPlan {
             $placeholders[] = ':plan_name';
             $bindings[':plan_name'] = $data['plan_name'];
         }
+
+        $this->appendNutritionStructuredColumns($data, $columns, $placeholders, $bindings);
 
         if ($this->columnExists('NutritionPlan', 'Notes')) {
             $columns[] = 'Notes';
@@ -292,10 +496,10 @@ class M_NutritionPlan {
         if (!$this->tableExists('nutritionplan_player')) {
             $this->db->query('SELECT
                 np.*,
-                u.name  AS player_name,
+                CONCAT(u.FirstName, \' \', u.LastName)  AS player_name,
                 u.email AS player_email,
                 CASE WHEN np.PlayerID IS NULL OR np.PlayerID = 0 THEN 0 ELSE 1 END AS assigned_player_count,
-                COALESCE(u.name, "") AS assigned_player_names,
+                COALESCE(CONCAT(u.FirstName, \' \', u.LastName), \"\") AS assigned_player_names,
                 COALESCE(u.email, "") AS assigned_player_emails
                 FROM NutritionPlan np
                 LEFT JOIN User u ON np.PlayerID = u.UserID
@@ -304,7 +508,7 @@ class M_NutritionPlan {
         } else {
             $this->db->query('SELECT
                 np.*,
-                u.name  AS player_name,
+                CONCAT(u.FirstName, \' \', u.LastName)  AS player_name,
                 u.email AS player_email,
                 COALESCE(a.assignment_count, 0) AS assigned_player_count,
                 COALESCE(a.assigned_player_names, "") AS assigned_player_names,
@@ -315,8 +519,8 @@ class M_NutritionPlan {
                     SELECT
                         npp.PlanID,
                         COUNT(DISTINCT npp.PlayerID) AS assignment_count,
-                        GROUP_CONCAT(DISTINCT assigned_u.name ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_names,
-                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.name SEPARATOR ", ") AS assigned_player_emails
+                        GROUP_CONCAT(DISTINCT CONCAT(assigned_u.FirstName, \' \', assigned_u.LastName) ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_names,
+                        GROUP_CONCAT(DISTINCT assigned_u.email ORDER BY assigned_u.FirstName SEPARATOR ", ") AS assigned_player_emails
                     FROM nutritionplan_player npp
                     INNER JOIN User assigned_u ON npp.PlayerID = assigned_u.UserID
                     GROUP BY npp.PlanID
@@ -332,7 +536,7 @@ class M_NutritionPlan {
     public function getPlanById($planId, $trainerId) {
         $this->db->query('SELECT
             np.*,
-            u.name  AS player_name,
+            CONCAT(u.FirstName, \' \', u.LastName)  AS player_name,
             u.email AS player_email
             FROM NutritionPlan np
             LEFT JOIN User u ON np.PlayerID = u.UserID
@@ -373,6 +577,8 @@ class M_NutritionPlan {
             $sets[] = 'nutritionPlanName = :plan_name';
             $bindings[':plan_name'] = $data['plan_name'] ?? '';
         }
+
+        $this->appendNutritionStructuredUpdates($data, $sets, $bindings);
 
         if ($this->columnExists('NutritionPlan', 'DietDetails')) {
             $sets[] = 'DietDetails = :diet_details';
@@ -426,14 +632,17 @@ class M_NutritionPlan {
 
     private function replaceAssignedPlayers($planId, array $playerIds, $assignedDate = null): bool {
         $playerIds = array_values(array_unique(array_filter(array_map('intval', $playerIds), static fn($id) => $id > 0)));
-        if (empty($playerIds)) {
-            return false;
-        }
-
+        
+        // Delete existing assignments
         $this->db->query('DELETE FROM nutritionplan_player WHERE PlanID = :plan_id');
         $this->db->bind(':plan_id', (int)$planId);
         if (!$this->db->execute()) {
             return false;
+        }
+
+        // If no players to assign, return success (plan can exist without assigned players)
+        if (empty($playerIds)) {
+            return true;
         }
 
         return $this->assignPlayersToPlan($planId, $playerIds, $assignedDate);
@@ -451,7 +660,7 @@ class M_NutritionPlan {
 
     // Get nutrition plans assigned to a player
     public function getNutritionPlansByPlayer($playerId) {
-        $this->db->query('SELECT np.*, u.Name AS trainer_name 
+        $this->db->query('SELECT np.*, CONCAT(u.FirstName, \' \', u.LastName) AS trainer_name 
             FROM nutritionplan np 
             JOIN nutritionplan_player npp ON np.PlanID = npp.PlanID
             JOIN user u ON np.TrainerID = u.UserID 

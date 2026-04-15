@@ -337,12 +337,21 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-group">
-                                <label for="fullName">
-                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                                </label>
-                                <input type="text" id="fullName" name="fullName" required 
-                                       placeholder="Enter full name">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">
+                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="firstName" name="firstName" required 
+                                           placeholder="Enter first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">
+                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="lastName" name="lastName" required 
+                                           placeholder="Enter last name">
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -609,8 +618,12 @@
                         <label for="editSpecialization">
                             <i class="fas fa-certificate"></i> Specialization
                         </label>
-                        <input type="text" id="editSpecialization" name="specialization" 
-                               placeholder="e.g., Batting Coach, Bowling Coach, Fitness Trainer">
+                        <select id="editSpecialization" name="specialization">
+                            <option value="">Select specialization</option>
+                            <option value="Batting">Batting</option>
+                            <option value="Bowling">Bowling</option>
+                            <option value="Fielding">Fielding</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -813,7 +826,7 @@
                             <div class="form-group">
                                 <label>Age Groups</label>
                                 <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px;">
-                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'] as $ageGroup): ?>
+                                    <?php foreach (['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'] as $ageGroup): ?>
                                         <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid #d8e0ef; border-radius:10px; background:#f8fbff; cursor:pointer;">
                                             <input type="checkbox" name="age_groups[]" value="<?php echo htmlspecialchars($ageGroup); ?>" class="coach-age-group-checkbox">
                                             <span><?php echo htmlspecialchars($ageGroup); ?></span>
@@ -1020,6 +1033,9 @@
                 coachPlayersModal.style.display = 'none';
             }
 
+            const openCoachAssignmentsFromLink = window.location.hash === '#coachAssignmentsModal'
+                || new URLSearchParams(window.location.search).get('open') === 'coach-assignments';
+
             if (manageCoachAssignmentsBtn) {
                 manageCoachAssignmentsBtn.addEventListener('click', openCoachAssignmentsModal);
             }
@@ -1066,6 +1082,10 @@
                     });
                 });
             });
+
+            if (openCoachAssignmentsFromLink) {
+                openCoachAssignmentsModal();
+            }
 
             document.querySelectorAll('.coach-players-view-btn').forEach(button => {
                 button.addEventListener('click', function() {

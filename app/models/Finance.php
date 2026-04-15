@@ -99,7 +99,7 @@ class Finance {
         $this->db->query("SELECT 
             po.OrderID as id,
             'Product Order' as type,
-            u.Name as customer,
+            CONCAT(u.FirstName, ' ', u.LastName) as customer,
             po.TotalAmount as amount,
             po.OrderDate as date,
             po.Status as status,
@@ -127,7 +127,7 @@ class Finance {
         $this->db->query("SELECT 
             sp.PaymentID as id,
             'Subscription Payment' as type,
-            u.Name as customer,
+            CONCAT(u.FirstName, ' ', u.LastName) as customer,
             sp.Amount as amount,
             sp.PaymentDate as date,
             sp.Status as status,

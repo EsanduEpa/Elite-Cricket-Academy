@@ -3,6 +3,20 @@
 (function () {
     'use strict';
 
+    function showCheckoutModal(modal) {
+        if (!modal) return;
+        modal.classList.add('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+    }
+
+    function hideCheckoutModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+    }
+
     function getCheckoutUrlRoot() {
         const page = document.getElementById('checkoutPage');
         return (page && page.dataset && page.dataset.urlroot) ? page.dataset.urlroot : '';
@@ -215,8 +229,7 @@
 
             const modal = document.getElementById('paymentSuccessModal');
             if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                showCheckoutModal(modal);
             }
 
             paymentBtn.innerHTML = originalText;
@@ -224,8 +237,7 @@
 
             window.setTimeout(() => {
                 if (modal) {
-                    modal.style.display = 'none';
-                    document.body.style.overflow = '';
+                    hideCheckoutModal(modal);
                 }
 
                 window.location.href = getCheckoutUrlRoot() + '/player/shopping';
@@ -245,10 +257,20 @@
     window.goToOrders = goToOrders;
     window.continueShopping = continueShopping;
 
-    window.addEventListener('click', function (event) {
-        if (event.target && event.target.classList && event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-            document.body.style.overflow = '';
+    document.addEventListener('click', function (event) {
+        const actionTrigger = event.target.closest('[data-checkout-action]');
+        if (actionTrigger) {
+            if (actionTrigger.dataset.checkoutAction === 'go-to-orders') {
+                goToOrders();
+            } else if (actionTrigger.dataset.checkoutAction === 'continue-shopping') {
+                continueShopping();
+            }
+            return;
+        }
+
+        const modal = document.getElementById('paymentSuccessModal');
+        if (modal && event.target === modal) {
+            hideCheckoutModal(modal);
         }
     });
 

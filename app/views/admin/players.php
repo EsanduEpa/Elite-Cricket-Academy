@@ -166,6 +166,16 @@
                             <option value="suspended">Suspended</option>
                             <option value="inactive">Inactive</option>
                         </select>
+                        <select id="ageGroupFilter" class="filter-select">
+                            <option value="all">All Age Groups</option>
+                            <option value="Under 11">Under 11</option>
+                            <option value="Under 13">Under 13</option>
+                            <option value="Under 15">Under 15</option>
+                            <option value="Under 17">Under 17</option>
+                            <option value="Under 19">Under 19</option>
+                            <option value="Under 21">Under 21</option>
+                            <option value="Open">Open</option>
+                        </select>
                         <select id="subscriptionFilter" class="filter-select">
                             <option value="all">All Subscriptions</option>
                             <option value="premium">Premium</option>
@@ -204,7 +214,7 @@
                         <tbody id="playersTableBody">
                             <?php if (!empty($data['players'])): ?>
                                 <?php foreach ($data['players'] as $player): ?>
-                            <tr>
+                            <tr data-player-age="<?php echo (int)($player->Age ?? 0); ?>">
                                 <td><input type="checkbox" class="player-checkbox"></td>
                                 <td>
                                     <div class="staff-info">
@@ -222,7 +232,13 @@
                                         <span class="role-badge">Not set</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><span class="role-badge <?php echo strtolower($player->SubscriptionType ?? 'basic'); ?>"><?php echo ucfirst($player->SubscriptionType ?? 'Basic'); ?></span></td>
+                                <td>
+                                    <?php
+                                        $subscriptionLabel = $player->SubscriptionPlanName ?? $player->SubscriptionType ?? 'Basic';
+                                        $subscriptionClass = strtolower(preg_replace('/[^a-z0-9]+/i', '-', (string)$subscriptionLabel));
+                                    ?>
+                                    <span class="role-badge <?php echo htmlspecialchars($subscriptionClass); ?>"><?php echo htmlspecialchars($subscriptionLabel); ?></span>
+                                </td>
                                 <td><span class="status-badge <?php echo strtolower($player->Status ?? 'active'); ?>"><?php echo ucfirst($player->Status ?? 'active'); ?></span></td>
                                 <td>
                                     <div class="action-btns">
@@ -511,11 +527,19 @@
                     
                     <div class="form-section">
                         <h4><i class="fas fa-id-card"></i> Personal Information</h4>
-                        <div class="form-group">
-                            <label for="editPlayerName">
-                                <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                            </label>
-                            <input type="text" id="editPlayerName" name="fullName" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPlayerFirstName">
+                                    <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="editPlayerFirstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editPlayerLastName">
+                                    <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                </label>
+                                <input type="text" id="editPlayerLastName" name="lastName" required>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -645,12 +669,21 @@
                         <!-- Personal Details -->
                         <div class="form-section">
                             <h4><i class="fas fa-id-card"></i> Personal Details</h4>
-                            <div class="form-group">
-                                <label for="playerFullName">
-                                    <i class="fas fa-user"></i> Full Name <span class="required">*</span>
-                                </label>
-                                <input type="text" id="playerFullName" name="fullName" required 
-                                       placeholder="Enter full name">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="playerFirstName">
+                                        <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="playerFirstName" name="firstName" required 
+                                           placeholder="Enter first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="playerLastName">
+                                        <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="playerLastName" name="lastName" required 
+                                           placeholder="Enter last name">
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -954,8 +987,12 @@
             
             function updatePlayerReview() {
                 // Personal Information
+                const playerFullName = [
+                    document.getElementById('playerFirstName').value,
+                    document.getElementById('playerLastName').value
+                ].filter(Boolean).join(' ');
                 document.getElementById('reviewPlayerFullName').textContent = 
-                    document.getElementById('playerFullName').value || '-';
+                    playerFullName || '-';
                 document.getElementById('reviewPlayerDOB').textContent = 
                     document.getElementById('playerDOB').value || '-';
                 document.getElementById('reviewPlayerJersey').textContent = 
@@ -1108,8 +1145,12 @@
             // Edit Player Modal Functions
             function openEditPlayerModal(data) {
                 const modal = document.getElementById('editPlayerModal');
+                const nameParts = String(data.name || '').trim().split(/\s+/);
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ');
                 document.getElementById('editPlayerId').value = data.id;
-                document.getElementById('editPlayerName').value = data.name;
+                document.getElementById('editPlayerFirstName').value = firstName;
+                document.getElementById('editPlayerLastName').value = lastName;
                 document.getElementById('editPlayerEmail').value = data.email;
                 document.getElementById('editPlayerPhone').value = data.phone || '';
                 document.getElementById('editPlayerAddress').value = data.address || '';

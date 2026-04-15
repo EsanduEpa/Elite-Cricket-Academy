@@ -157,9 +157,14 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="name"><i class="fas fa-user"></i> Full Name</label>
-                                    <input type="text" id="name" name="name" class="form-control" 
-                                           value="<?php echo htmlspecialchars($data['user']->Name ?? ''); ?>" required>
+                                    <label for="firstName"><i class="fas fa-user"></i> First Name</label>
+                                    <input type="text" id="firstName" name="firstName" class="form-control" 
+                                           value="<?php echo htmlspecialchars($data['user']->FirstName ?? ''); ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName"><i class="fas fa-user"></i> Last Name</label>
+                                    <input type="text" id="lastName" name="lastName" class="form-control" 
+                                           value="<?php echo htmlspecialchars($data['user']->LastName ?? ''); ?>" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
@@ -202,8 +207,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                                         <option value="">Select Specialization</option>
                                         <option value="Batting" <?php echo (isset($data['user']->CoachSpecialization) && $data['user']->CoachSpecialization == 'Batting') ? 'selected' : ''; ?>>🏏 Batting</option>
                                         <option value="Bowling" <?php echo (isset($data['user']->CoachSpecialization) && $data['user']->CoachSpecialization == 'Bowling') ? 'selected' : ''; ?>>🎯 Bowling</option>
-                                        <option value="All-rounder" <?php echo (isset($data['user']->CoachSpecialization) && $data['user']->CoachSpecialization == 'All-rounder') ? 'selected' : ''; ?>>⭐ All-rounder</option>
-                                        <option value="Wicket-keeping" <?php echo (isset($data['user']->CoachSpecialization) && $data['user']->CoachSpecialization == 'Wicket-keeping') ? 'selected' : ''; ?>>🧤 Wicket-keeping</option>
+                                        <option value="Fielding" <?php echo (isset($data['user']->CoachSpecialization) && $data['user']->CoachSpecialization == 'Fielding') ? 'selected' : ''; ?>>🧤 Fielding</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

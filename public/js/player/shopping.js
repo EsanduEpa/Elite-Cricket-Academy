@@ -7,6 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let currentProduct = null;
 
+function openShoppingModal(modal) {
+    if (!modal) return;
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+function closeShoppingModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+}
+
 function getUrlRoot() {
     const page = document.getElementById('shoppingPage');
     return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
@@ -52,13 +66,14 @@ function initPlayerShoppingProducts() {
     document.querySelectorAll('.js-buy-now-details').forEach(btn => {
         btn.addEventListener('click', buyNowFromDetails);
     });
+    document.querySelectorAll('.js-tab-toggle').forEach(btn => {
+        btn.addEventListener('click', () => showTab(btn.dataset.tab, btn));
+    });
 
     // Close modal when clicking backdrop
     window.addEventListener('click', (event) => {
-        if (event.target && event.target.classList && event.target.classList.contains('modal')) {
-            if (event.target.id === 'productDetailsModal') {
-                closeProductDetails();
-            }
+        if (event.target && event.target.id === 'productDetailsModal') {
+            closeProductDetails();
         }
     });
 
@@ -167,7 +182,7 @@ function initProductCategoryNavigation() {
     const nav = document.getElementById('product-category-navigation');
     if (!nav) return;
 
-    const buttons = nav.querySelectorAll('.product-category-btn');
+    const buttons = nav.querySelectorAll('.nav-btn[data-category]');
     if (!buttons.length) return;
 
     buttons.forEach(btn => {
@@ -193,7 +208,7 @@ function updateProductCategoryNavButtons(activeCategory) {
     if (!nav) return;
 
     const normalized = (activeCategory || 'all').toString();
-    const buttons = nav.querySelectorAll('.product-category-btn');
+    const buttons = nav.querySelectorAll('.nav-btn[data-category]');
     let anyMatched = false;
 
     buttons.forEach(btn => {
@@ -217,11 +232,12 @@ function filterProducts() {
     const categoryFilter = document.getElementById('category-filter');
     const brandFilter = document.getElementById('brand-filter');
     const priceFilter = document.getElementById('price-filter');
-    
-    const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
+
+    const activeCategoryButton = document.querySelector('#product-category-navigation .nav-btn.active[data-category]');
+    const selectedCategory = categoryFilter ? categoryFilter.value : (activeCategoryButton ? activeCategoryButton.dataset.category : 'all');
     const selectedBrand = brandFilter ? brandFilter.value : 'all';
     const selectedPrice = priceFilter ? priceFilter.value : 'all';
-    
+
     const grid = document.getElementById('products-grid');
     const productCards = grid ? grid.querySelectorAll('.product-card') : document.querySelectorAll('.product-card');
     
@@ -261,7 +277,7 @@ function filterProducts() {
             }
         }
         
-        card.style.display = showCard ? 'block' : 'none';
+        card.style.display = showCard ? '' : 'none';
     });
 }
 
@@ -374,6 +390,8 @@ function viewProductFromDB(productId) {
                 UpdatedBy: product.UpdatedBy
             };
 
+            const fullRecord = { ...product };
+
             // Populate modal
             const setText = (id, value) => {
                 const el = document.getElementById(id);
@@ -417,10 +435,12 @@ function viewProductFromDB(productId) {
                 quantityInput.value = 1;
             }
 
+            renderProductRecord(fullRecord);
+            showTab('shipping', document.querySelector('#productDetailsModal .tab-btn'));
+
             const modal = document.getElementById('productDetailsModal');
             if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                openShoppingModal(modal);
             }
         })
         .catch(error => {
@@ -431,11 +451,60 @@ function viewProductFromDB(productId) {
 
 function closeProductDetails() {
     const modal = document.getElementById('productDetailsModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    document.body.style.overflow = '';
+    closeShoppingModal(modal);
     currentProduct = null;
+}
+
+function renderProductRecord(product) {
+    const recordGrid = document.getElementById('productRecordGrid');
+    if (!recordGrid) return;
+
+    const formatLabel = (key) => String(key)
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+
+    const formatValue = (value) => {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        return String(value);
+    };
+
+    const entries = Object.entries(product);
+    recordGrid.innerHTML = entries.map(([key, value]) => {
+        const stringValue = formatValue(value);
+        const fullWidth = stringValue.length > 90 || /description/i.test(key);
+
+        return `
+            <div class="record-item${fullWidth ? ' full-width' : ''}">
+                <span class="record-label">${formatLabel(key)}</span>
+                <span class="record-value">${escapeHtml(stringValue)}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function showTab(tabName, button = null) {
+    const panes = document.querySelectorAll('#productDetailsModal .tab-pane');
+    panes.forEach((pane) => {
+        pane.classList.toggle('active', pane.id === `${tabName}-tab`);
+    });
+
+    const buttons = document.querySelectorAll('#productDetailsModal .tab-btn');
+    buttons.forEach((btn) => btn.classList.remove('active'));
+
+    if (button) {
+        button.classList.add('active');
+    }
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function adjustQuantity(change) {

@@ -7,22 +7,24 @@
         <div style="text-align:center;background:#fff;border-radius:16px;padding:48px 40px;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:440px;width:90%;">
             <div style="font-size:64px;margin-bottom:16px;">✅</div>
             <h2 style="color:#28a745;margin-bottom:8px;">Payment Successful!</h2>
-            <p style="color:#666;margin-bottom:8px;">Your order has been placed successfully.</p>
+            <p style="color:#666;margin-bottom:8px;">
+                <?php echo htmlspecialchars($data['message'] ?? 'Your order has been placed successfully.'); ?>
+            </p>
             <?php if ($data['order_id']): ?>
                 <p style="color:#888;font-size:.9rem;margin-bottom:24px;">
                     Order reference: <strong><?php echo $data['order_id']; ?></strong>
                 </p>
             <?php endif; ?>
             <p style="color:#888;font-size:.85rem;margin-bottom:32px;">
-                You will receive a confirmation once the payment is verified.
+                <?php echo !empty($data['secondary_label']) ? 'Choose where you want to go next.' : 'You will receive a confirmation once the payment is verified.'; ?>
             </p>
-            <a href="<?php echo URLROOT; ?>/player/shopping"
+            <a href="<?php echo htmlspecialchars($data['primary_url'] ?? (URLROOT . '/player/shopping')); ?>"
                style="display:inline-block;padding:10px 28px;background:#1a73e8;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin-right:10px;">
-                Continue Shopping
+                <?php echo htmlspecialchars($data['primary_label'] ?? 'Continue Shopping'); ?>
             </a>
-            <a href="<?php echo URLROOT; ?>/player"
+            <a href="<?php echo htmlspecialchars($data['secondary_url'] ?? (URLROOT . '/player')); ?>"
                style="display:inline-block;padding:10px 28px;background:#6c757d;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
-                Dashboard
+                <?php echo htmlspecialchars($data['secondary_label'] ?? 'Dashboard'); ?>
             </a>
         </div>
     </div>

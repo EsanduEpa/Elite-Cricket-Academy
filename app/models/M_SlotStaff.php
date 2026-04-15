@@ -174,7 +174,8 @@ class M_SlotStaff {
     public function getBookingsForOccurrence(int $occId): array {
         $this->db->query(
             'SELECT sb.BookingID, sb.Status, sb.CreatedAt,
-                    u.Name AS PlayerName, u.Email AS PlayerEmail
+                    u.UserID AS PlayerID,
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
              FROM slot_booking sb
              JOIN user u ON u.UserID = sb.PlayerID
              WHERE sb.OccurrenceID = :oid
@@ -331,15 +332,31 @@ class M_SlotStaff {
     // =========================================================
 
     /**
-     * Mark a single booking as 'attended' or 'missed'.
+     * Update a single booking outcome for an occurrence assigned to this staff member.
+     *
+     * Accepted inputs:
+     * - confirmed
+     * - attended / completed
+     * - missed / not_attended
      *
      * Returns true, 'not_found', 'not_assigned', 'invalid_status', or 'error'.
      * Only bookings that belong to an occurrence assigned to $staffId are writable.
-     
+     */
     public function markAttendance(int $bookingId, string $status, int $staffId): bool|string {
-        if (!in_array($status, ['attended', 'missed'], true)) {
+        $status = strtolower(trim($status));
+        $statusMap = [
+            'confirmed' => 'confirmed',
+            'completed' => 'attended',
+            'attended' => 'attended',
+            'not_attended' => 'missed',
+            'missed' => 'missed',
+        ];
+
+        if (!isset($statusMap[$status])) {
             return 'invalid_status';
         }
+
+        $normalizedStatus = $statusMap[$status];
 
         // Load the booking + ownership check in one query
         $this->db->query(
@@ -364,18 +381,18 @@ class M_SlotStaff {
             "UPDATE slot_booking SET Status = :status, UpdatedAt = NOW()
              WHERE BookingID = :bid"
         );
-        $this->db->bind(':status', $status);
+        $this->db->bind(':status', $normalizedStatus);
         $this->db->bind(':bid',    $bookingId, PDO::PARAM_INT);
         $ok = $this->db->execute();
         if (!$ok) return 'error';
 
-        $this->_auditLog('booking', $bookingId, 'update', 'Status', $oldStatus, $status,
-                         'Attendance marked by staff', $staffId);
-        $this->_activityLog($staffId, 'mark_attendance',
-                            "Marked booking #{$bookingId} as {$status}");
+        $this->_auditLog('booking', $bookingId, 'update', 'Status', $oldStatus, $normalizedStatus,
+                         'Booking status updated by staff', $staffId);
+        $this->_activityLog($staffId, 'update_booking_status',
+                            "Updated booking #{$bookingId} status to {$normalizedStatus}");
         return true;
     }
-*/
+
     // =========================================================
     // SUPPORTING LOOKUPS
     // =========================================================

@@ -27,6 +27,7 @@ class Admin extends Controller {
         $userModel = $this->model('M_Users');      // User-related queries
         $feedbackModel = $this->model('Feedback'); // Feedback queries
         $financeModel = $this->model('Finance');   // Finance/revenue queries
+        $slotModel = $this->model('M_SlotAdmin');  // Slot calendar queries
         
         // STEP 3: FETCH USER STATISTICS FROM DATABASE
         // Query the User table to get real counts for each role
@@ -57,6 +58,33 @@ class Admin extends Controller {
         // Status = 'pending' means not yet reviewed by admin
         $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
         
+        // STEP 6.5: FETCH MONTH-BASED SLOT AND TOURNAMENT CALENDAR DATA
+        $tournamentModel = $this->model('M_Tournament');
+
+        $slotMonthParam = $_GET['slot_month'] ?? null;
+        if ($slotMonthParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $slotMonthParam)) {
+            $slotMonthTs = strtotime($slotMonthParam);
+        } else {
+            $slotMonthTs = time();
+        }
+        $slotMonthTs = strtotime(date('Y-m-01', $slotMonthTs));
+        $slotMonthEndTs = strtotime(date('Y-m-t', $slotMonthTs));
+        $slotFrom = date('Y-m-d', $slotMonthTs);
+        $slotTo = date('Y-m-d', $slotMonthEndTs);
+
+        $slotOccurrences = $slotModel->getOccurrencesForCalendar($slotFrom, $slotTo);
+        $slotByDate = [];
+        foreach ($slotOccurrences as $occ) {
+            $slotByDate[$occ->OccurrenceDate][] = $occ;
+        }
+
+        $tournaments = $tournamentModel->getTournamentsForCalendar($slotFrom, $slotTo);
+        $tournamentsByDate = [];
+        foreach ($tournaments as $tournament) {
+            $tournamentDate = date('Y-m-d', strtotime((string) $tournament->tdate));
+            $tournamentsByDate[$tournamentDate][] = $tournament;
+        }
+
         // STEP 7: PREPARE DATA ARRAY FOR VIEW
         // All data now comes from database queries above
         $data = [
@@ -99,7 +127,18 @@ class Admin extends Controller {
             ],
             
             // MONTHLY REVENUE from Finance model
-            'monthlyRevenue' => $financeModel->getMonthlyRevenue()
+            'monthlyRevenue' => $financeModel->getMonthlyRevenue(),
+
+            // SLOT OCCURRENCE CALENDAR
+            'slotMonthTs'  => $slotMonthTs,
+            'slotMonthFrom' => $slotFrom,
+            'slotMonthTo'  => $slotTo,
+            'slotPrevMonth' => date('Y-m-01', strtotime('-1 month', $slotMonthTs)),
+            'slotNextMonth' => date('Y-m-01', strtotime('+1 month', $slotMonthTs)),
+            'slotFrom'     => $slotFrom,
+            'slotTo'       => $slotTo,
+            'slotByDate'   => $slotByDate,
+            'tournamentsByDate' => $tournamentsByDate,
         ];
         
         // STEP 8: LOAD DASHBOARD VIEW
@@ -782,7 +821,7 @@ class Admin extends Controller {
             }
             
             // Validate required fields
-            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'address', 'username', 'role'];
+            $requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'email', 'address', 'username', 'role'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -875,7 +914,8 @@ class Admin extends Controller {
             
             // Prepare staff data
             $staffData = [
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'dateOfBirth' => $postData['dateOfBirth'],
                 'phone' => trim($postData['phone']),
                 'email' => trim($postData['email']),
@@ -897,7 +937,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Staff Created',
-                    'Added new staff member: ' . $staffData['fullName'] . ' (' . $staffData['role'] . ')',
+                    'Added new staff member: ' . trim($staffData['firstName'] . ' ' . $staffData['lastName']) . ' (' . $staffData['role'] . ')',
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -912,7 +952,7 @@ class Admin extends Controller {
                     'data' => [
                         'id' => $userId,
                         'username' => $postData['username'],
-                        'name' => $postData['fullName'],
+                        'name' => trim($postData['firstName'] . ' ' . $postData['lastName']),
                         'role' => $postData['role']
                     ]
                 ]);
@@ -974,7 +1014,7 @@ class Admin extends Controller {
             }
             
             // Validate required fields
-            $requiredFields = ['fullName', 'dateOfBirth', 'phone', 'email', 'username', 'subscriptionType'];
+            $requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'email', 'username', 'subscriptionType'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -1066,7 +1106,8 @@ class Admin extends Controller {
             
             // Prepare player data
             $playerData = [
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'dateOfBirth' => $postData['dateOfBirth'],
                 'phone' => trim($postData['phone']),
                 'email' => trim($postData['email']),
@@ -1089,7 +1130,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Player Created',
-                    'Added new player: ' . $playerData['fullName'],
+                    'Added new player: ' . trim($playerData['firstName'] . ' ' . $playerData['lastName']),
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -1104,7 +1145,7 @@ class Admin extends Controller {
                     'data' => [
                         'id' => $userId,
                         'username' => $postData['username'],
-                        'name' => $postData['fullName']
+                        'name' => trim($postData['firstName'] . ' ' . $postData['lastName'])
                     ]
                 ]);
             } else {
@@ -1191,7 +1232,7 @@ class Admin extends Controller {
             error_log("Update player request data: " . print_r($postData, true));
             
             // Validate required fields
-            $required = ['playerId', 'fullName', 'email', 'phone', 'subscriptionType', 'status'];
+            $required = ['playerId', 'firstName', 'lastName', 'email', 'phone', 'subscriptionType', 'status'];
             foreach ($required as $field) {
                 if (empty($postData[$field])) {
                     throw new Exception("Missing required field: $field");
@@ -1217,7 +1258,8 @@ class Admin extends Controller {
             // Prepare update data
             $playerData = [
                 'playerId' => $postData['playerId'],
-                'fullName' => trim($postData['fullName']),
+                'firstName' => trim($postData['firstName']),
+                'lastName' => trim($postData['lastName']),
                 'email' => trim($postData['email']),
                 'phone' => trim($postData['phone']),
                 'address' => trim($postData['address'] ?? ''),
@@ -1240,7 +1282,7 @@ class Admin extends Controller {
                 $userModel->logActivity(
                     $_SESSION['user_id'] ?? 0,
                     'Player Updated',
-                    'Updated player: ' . $playerData['fullName'],
+                    'Updated player: ' . trim($playerData['firstName'] . ' ' . $playerData['lastName']),
                     $_SERVER['REMOTE_ADDR'] ?? null,
                     $_SERVER['HTTP_USER_AGENT'] ?? null
                 );
@@ -1259,7 +1301,7 @@ class Admin extends Controller {
                     'message' => 'Player updated successfully!',
                     'data' => [
                         'id' => $playerData['playerId'],
-                        'name' => $playerData['fullName']
+                        'name' => trim($playerData['firstName'] . ' ' . $playerData['lastName'])
                     ]
                 ]);
             } else {
@@ -1436,7 +1478,7 @@ class Admin extends Controller {
         $coachingType = trim($_POST['coaching_type'] ?? '');
         $ageGroups = $_POST['age_groups'] ?? [];
         $validCoachingTypes = ['batting', 'bowling', 'fielding'];
-        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'];
+        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'];
 
         if ($coachId <= 0 || !in_array($coachingType, $validCoachingTypes, true)) {
             $_SESSION['error'] = 'Please choose a coach and coaching type.';
@@ -1648,7 +1690,8 @@ class Admin extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address'] ?? ''),
@@ -1659,7 +1702,7 @@ class Admin extends Controller {
             
             if ($userModel->updateUser($userData)) {
                 // Update session name if changed
-                $_SESSION['user_name'] = $userData['name'];
+                $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                 
                 flash('profile_message', 'Profile updated successfully!', 'alert alert-success');
             } else {
@@ -2029,6 +2072,37 @@ class Admin extends Controller {
         }
     }
 
+    private function getAvailableTournamentStatuses($tournament)
+    {
+        $transitions = [
+            'created'             => ['registration_open'],
+            'registration_open'   => ['registration_closed'],
+            'registration_closed' => $tournament->IsTeamAnnounced ? ['ongoing'] : ['team_announced', 'ongoing'],
+            'team_announced'      => ['ongoing'],
+            'ongoing'             => ['completed'],
+        ];
+
+        $availableStatuses = [];
+        $queue = $transitions[$tournament->Status] ?? [];
+
+        while (!empty($queue)) {
+            $status = array_shift($queue);
+            if (in_array($status, $availableStatuses, true)) {
+                continue;
+            }
+
+            $availableStatuses[] = $status;
+
+            foreach ($transitions[$status] ?? [] as $nextStatus) {
+                if (!in_array($nextStatus, $availableStatuses, true)) {
+                    $queue[] = $nextStatus;
+                }
+            }
+        }
+
+        return $availableStatuses;
+    }
+
     public function tournament_detail($id = null)
     {
         if (!$id) { redirect('admin/tournaments'); return; }
@@ -2049,6 +2123,7 @@ class Admin extends Controller {
         $data['trainer_recs']  = $M_TrainerRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
         $data['player_stats']  = $M_Result->getAllStatsForTournament($id);
+        $data['status_options'] = $this->getAvailableTournamentStatuses($tournament);
 
         $this->view('admin/tournaments/detail', $data);
     }
@@ -2057,7 +2132,15 @@ class Admin extends Controller {
     {
         if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('admin/tournaments'); return; }
 
-        $allowed = ['created','registration_open','registration_closed','team_announced','ongoing','completed','cancelled'];
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('admin/tournaments');
+            return;
+        }
+
+        $allowed = $this->getAvailableTournamentStatuses($tournament);
         $newStatus = $_POST['status'] ?? '';
 
         if (!in_array($newStatus, $allowed)) {
@@ -2066,9 +2149,13 @@ class Admin extends Controller {
             return;
         }
 
-        $M_Tournament = $this->model('M_Tournament');
-        $M_Tournament->updateStatus($id, $newStatus);
-        $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        if ($newStatus === 'team_announced') {
+            $M_Tournament->announceTeam($id);
+            $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
+        } else {
+            $M_Tournament->updateStatus($id, $newStatus);
+            $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        }
         redirect('admin/tournament_detail/' . $id);
     }
 

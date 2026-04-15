@@ -28,6 +28,45 @@ membershipplan                playersubscription              subscriptionpaymen
 - Add an index on `(Status, MonthlyFee)` because the app frequently loads active plans ordered by fee.
 - (Optional) add `Currency` / `BillingIntervalMonths` if you plan to support non-monthly billing later.
 
+### New plan type: `facility_only`
+
+Business decision:
+- `general` = recurring group coaching by age group
+- `private` = recurring one-to-one coach-led training
+- `pro` = both group and private coaching access
+- `facility_only` = facility usage without a coach and without a recurring monthly fee
+
+Important billing rule:
+- `facility_only` should exist in `membershipplan`, but it must **not** participate in recurring monthly subscription billing.
+- `facility_only` users should pay per facility booking through the facility booking payment flow.
+- No initial `subscriptionpayment` row should be auto-created for `facility_only`.
+
+Recommended insert:
+
+```sql
+INSERT INTO membershipplan
+  (PlanName, Description, MonthlyFee, SessionsPerWeek, PrivateSessionsIncluded, FacilityAccessIncluded, Status)
+VALUES
+  (
+    'facility_only',
+    'Facility access without a coach. No recurring monthly membership fee. Users pay the facility booking price per booking.',
+    0.00,
+    0,
+    0,
+    1,
+    'active'
+  );
+```
+
+Recommended application rule:
+
+```sql
+-- Use this logic in application code, not as a DB trigger:
+-- skip recurring subscription-payment generation when:
+--   PlanName = 'facility_only'
+--   OR MonthlyFee = 0.00
+```
+
 ### 2) `playersubscription` (player ↔ plan + price snapshot)
 - Add timestamps + cancellation fields so you can answer: “when did this subscription start/end/cancel?”.
 - Add an index on `(PlayerID, Status, StartDate)` because the app loads the latest active subscription per player.
@@ -222,6 +261,8 @@ VALUES (123, '2026-02-14', 4500.00, 'card', 'pending');
 4. (Optional) update application logic to:
   - set `PaymentDate` only when `Status='completed'`
   - populate `PaymentReference/Gateway*` for online payments
+5. Insert the new `facility_only` plan into `membershipplan`.
+6. Update registration and subscription-payment creation logic so `facility_only` skips recurring monthly pending fee creation.
 
 ---
 
@@ -549,6 +590,11 @@ WHERE Status = 'refunded'
 1. **membershipplan** = Template (what's offered)
 2. **playersubscription** = Active agreement (who subscribed to what)
 3. **subscriptionpayment** = Financial transactions (payment history)
+
+Special case:
+- `facility_only` can still be represented in `membershipplan` and `playersubscription` for access control purposes.
+- But `subscriptionpayment` should remain reserved for recurring fee plans only.
+- Facility-only revenue should come from facility booking payments, not monthly subscription charges.
 
 **Data Flow:**
 ```

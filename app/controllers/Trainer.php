@@ -18,12 +18,11 @@ class Trainer extends Controller {
         }
 
         $trainerId = (int)$_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
-        $sessions = $sessionModel->getSessionsByCoach($trainerId);
-
-        foreach ($sessions as $session) {
-            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
-        }
+        $sessions = $this->getTrainerSlotSessions(
+            $trainerId,
+            date('Y-m-d', strtotime('-30 days')),
+            date('Y-m-d', strtotime('+60 days'))
+        );
 
         $today = date('Y-m-d');
         $todaySessions = array_values(array_filter($sessions, fn($s) => ($s->Date ?? '') === $today));
@@ -62,180 +61,14 @@ class Trainer extends Controller {
     }
 
     public function bookings() {
-        $trainerId    = $_SESSION['user_id'];
-        $sessionModel = $this->model('M_Session');
-        $sessions     = $sessionModel->getSessionsByCoach($trainerId);
-
-        foreach ($sessions as $session) {
-            $session->players = $sessionModel->getSessionParticipants($session->SessionID);
-        }
-
-        $data = [
-            'title'    => 'Schedule & Bookings',
-            'sessions' => $sessions,
-        ];
-        $this->view('trainer/bookings', $data);
+        redirect('staffslots/calendar');
     }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Add Session  — GET shows form, POST processes it  (/trainer/addSession)
     // ──────────────────────────────────────────────────────────────────────────
     public function addSession() {
-        // Ensure logged-in trainer
-        if (!isset($_SESSION['user_id'])) {
-            redirect('login');
-        }
-
-        // ── GET: render the Add Session form page ─────────────────────────────
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            // Pull back any errors/old values from a previous failed submission
-            $errors  = $_SESSION['add_session_errors'] ?? [];
-            $oldData = $_SESSION['add_session_data']   ?? [];
-            unset($_SESSION['add_session_errors'], $_SESSION['add_session_data']);
-
-            $data = [
-                'title'   => 'Add Session',
-                'errors'  => $errors,
-                'oldData' => $oldData,
-            ];
-            $this->view('trainer/add_session', $data);
-            return;
-        }
-
-        // ── Allowed option lists (whitelist) ──────────────────────────────────
-        $validTimeSlots = [
-            '06:00-07:00', '07:00-08:00', '07:30-08:30', '08:00-09:00',
-            '09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00',
-            '13:00-14:00', '14:00-15:00', '15:00-16:00', '16:00-17:00',
-            '17:00-18:00', '18:00-19:00',
-        ];
-        $validLocations = [
-            'Gym A - Weight Room',
-            'Cardio Zone - Fitness Center',
-            'Yoga Studio - Recovery Room',
-            'Field Area - Training Ground',
-            'Indoor Court - Sports Hall',
-            'Cricket Ground - Main Oval',
-            'Swimming Pool - Aquatic Center',
-            'Conference Room - Meeting Room',
-        ];
-
-        // ── Sanitise inputs ───────────────────────────────────────────────────
-        $title       = trim(htmlspecialchars($_POST['session_title']       ?? '', ENT_QUOTES, 'UTF-8'));
-        $clientName  = trim(htmlspecialchars($_POST['session_client']      ?? '', ENT_QUOTES, 'UTF-8'));
-        $date        = trim($_POST['session_date']       ?? '');
-        $timeSlot    = trim($_POST['session_time_slot']  ?? '');
-        $location    = trim(htmlspecialchars($_POST['session_location']    ?? '', ENT_QUOTES, 'UTF-8'));
-        $description = trim(htmlspecialchars($_POST['session_description'] ?? '', ENT_QUOTES, 'UTF-8'));
-        $status      = trim($_POST['session_status']     ?? '');
-
-        // ── Server-side validation ────────────────────────────────────────────
-        $errors = [];
-
-        // Session Title
-        if (empty($title)) {
-            $errors['session_title'] = 'Session title is required.';
-        } elseif (strlen($title) < 3 || strlen($title) > 100) {
-            $errors['session_title'] = 'Title must be between 3 and 100 characters.';
-        }
-
-        // Client Name
-        if (empty($clientName)) {
-            $errors['session_client'] = 'Client name is required.';
-        } elseif (!preg_match("/^[a-zA-Z\s'\-\.]+$/u", $clientName)) {
-            $errors['session_client'] = 'Client name must contain letters only.';
-        } elseif (strlen($clientName) > 100) {
-            $errors['session_client'] = 'Client name must not exceed 100 characters.';
-        }
-
-        // Date — required & not in the past
-        if (empty($date)) {
-            $errors['session_date'] = 'Session date is required.';
-        } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            $errors['session_date'] = 'Invalid date format.';
-        } else {
-            $today  = new DateTime('today');
-            $chosen = DateTime::createFromFormat('Y-m-d', $date);
-            if (!$chosen || $chosen < $today) {
-                $errors['session_date'] = 'Date cannot be in the past.';
-            }
-        }
-
-        // Time Slot — must be from predefined list
-        if (empty($timeSlot)) {
-            $errors['session_time_slot'] = 'Please select a time slot.';
-        } elseif (!in_array($timeSlot, $validTimeSlots, true)) {
-            $errors['session_time_slot'] = 'Invalid time slot selected.';
-        }
-
-        // Location — must be from predefined list
-        if (empty($location)) {
-            $errors['session_location'] = 'Please select a location.';
-        } elseif (!in_array($location, $validLocations, true)) {
-            $errors['session_location'] = 'Invalid location selected.';
-        }
-
-        // Description
-        if (empty($description)) {
-            $errors['session_description'] = 'Description is required.';
-        } elseif (strlen($description) < 10) {
-            $errors['session_description'] = 'Description must be at least 10 characters.';
-        } elseif (strlen($description) > 1000) {
-            $errors['session_description'] = 'Description must not exceed 1000 characters.';
-        }
-
-        // Status
-        if (empty($status) || !in_array($status, ['active', 'upcoming', 'planned', 'completed'], true)) {
-            $errors['session_status'] = 'Please select a status.';
-        }
-
-        // ── If validation failed, bounce back to the form with errors ───────────
-        if (!empty($errors)) {
-            $_SESSION['add_session_errors'] = $errors;
-            $_SESSION['add_session_data']   = [
-                'session_title'       => $title,
-                'session_client'      => $clientName,
-                'session_date'        => $date,
-                'session_time_slot'   => $timeSlot,
-                'session_location'    => $location,
-                'session_description' => $description,
-                'session_status'      => $status,
-            ];
-            redirect('trainer/addSession');
-        }
-
-        // ── Parse time slot into start/end times ──────────────────────────────
-        // Format: "HH:MM-HH:MM"  e.g. "06:00-07:00"
-        list($startHHMM, $endHHMM) = explode('-', $timeSlot);
-        $startTime = $startHHMM . ':00';  // "06:00:00"
-        $endTime   = $endHHMM   . ':00';  // "07:00:00"
-
-        // Map UI status to DB status (planned/upcoming → active in DB)
-        $dbStatus = ($status === 'completed') ? 'completed' : 'active';
-
-        // ── Save to database ──────────────────────────────────────────────────
-        $sessionModel = $this->model('M_Session');
-        $sessionId = $sessionModel->addTrainerBookingSession([
-            'trainer_id'  => $_SESSION['user_id'],
-            'title'       => $title,
-            'client_name' => $clientName,
-            'date'        => $date,
-            'start_time'  => $startTime,
-            'end_time'    => $endTime,
-            'location'    => $location,
-            'description' => $description,
-            'status'      => $dbStatus,
-        ]);
-
-        if ($sessionId) {
-            $_SESSION['flash_message'] = 'Session "' . $title . '" added successfully!';
-            $_SESSION['flash_type']    = 'success';
-        } else {
-            $_SESSION['flash_message'] = 'Failed to add session. Please try again.';
-            $_SESSION['flash_type']    = 'error';
-        }
-
-        redirect('trainer/bookings');
+        redirect('staffslots/private_session');
     }
 
     public function tournaments() {
@@ -796,8 +629,11 @@ class Trainer extends Controller {
 
     // Helper methods
     private function getUpcomingSessions(int $trainerId): array {
-        $sessionModel = $this->model('M_Session');
-        $sessions = $sessionModel->getSessionsByCoach($trainerId);
+        $sessions = $this->getTrainerSlotSessions(
+            $trainerId,
+            date('Y-m-d'),
+            date('Y-m-d', strtotime('+60 days'))
+        );
         $today = date('Y-m-d');
 
         $upcoming = array_values(array_filter($sessions, function($s) use ($today) {
@@ -841,6 +677,76 @@ class Trainer extends Controller {
         ];
     }
 
+    private function getTrainerSlotSessions(int $trainerId, string $from, string $to): array {
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $occurrences = $slotStaffModel->getMyOccurrences($trainerId, 'trainer', $from, $to);
+        $sessions = [];
+
+        foreach ($occurrences as $occurrence) {
+            $bookings = $slotStaffModel->getBookingsForOccurrence((int) $occurrence->OccurrenceID);
+            $sessions[] = $this->mapSlotOccurrenceToTrainerSession($occurrence, $bookings);
+        }
+
+        usort($sessions, fn($a, $b) => strcmp(($a->Date ?? '') . ($a->StartTime ?? ''), ($b->Date ?? '') . ($b->StartTime ?? '')));
+        return $sessions;
+    }
+
+    private function mapSlotOccurrenceToTrainerSession(object $occurrence, array $bookings): object {
+        $session = new stdClass();
+        $session->SessionID = (int) ($occurrence->OccurrenceID ?? 0);
+        $session->Name = (string) ($occurrence->SessionName ?? 'Session');
+        $session->Date = (string) ($occurrence->OccurrenceDate ?? '');
+        $session->StartTime = (string) ($occurrence->StartTime ?? '00:00:00');
+        $session->EndTime = (string) ($occurrence->EndTime ?? '00:00:00');
+        $session->Location = (string) ($occurrence->FacilityName ?? $occurrence->SlotLabel ?? 'Academy');
+        $session->SessionType = $this->formatTrainerSlotType((string) ($occurrence->SlotType ?? 'program'));
+        $session->SessionMode = in_array(($occurrence->SlotType ?? ''), ['private', 'facility_only'], true) ? 'Individual' : 'Group';
+        $session->MaxParticipants = $occurrence->MaxSlots ?? null;
+        $session->ParticipantCount = count(array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled'));
+        $session->Status = $this->normalizeTrainerOccurrenceStatus($occurrence, $bookings);
+        $session->players = array_values(array_map(function($booking) {
+            return (object) [
+                'PlayerID' => (int) ($booking->PlayerID ?? 0),
+                'Name' => (string) ($booking->PlayerName ?? ''),
+                'Status' => (string) ($booking->Status ?? 'confirmed'),
+            ];
+        }, array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled')));
+
+        return $session;
+    }
+
+    private function normalizeTrainerOccurrenceStatus(object $occurrence, array $bookings): string {
+        $occurrenceStatus = strtolower((string) ($occurrence->Status ?? 'scheduled'));
+        if ($occurrenceStatus === 'cancelled') {
+            return 'cancelled';
+        }
+        if ($occurrenceStatus === 'completed') {
+            return 'completed';
+        }
+
+        $today = date('Y-m-d');
+        $finalized = array_filter($bookings, fn($booking) => in_array(strtolower((string) ($booking->Status ?? '')), ['attended', 'missed'], true));
+        $nonCancelled = array_filter($bookings, fn($booking) => strtolower((string) ($booking->Status ?? '')) !== 'cancelled');
+
+        if (($occurrence->OccurrenceDate ?? '') < $today && !empty($nonCancelled) && count($finalized) === count($nonCancelled)) {
+            return 'completed';
+        }
+
+        if (($occurrence->OccurrenceDate ?? '') > $today) {
+            return 'upcoming';
+        }
+
+        return 'active';
+    }
+
+    private function formatTrainerSlotType(string $slotType): string {
+        return match (strtolower($slotType)) {
+            'private' => 'Private Training',
+            'facility_only' => 'Facility Booking',
+            default => 'Program Session',
+        };
+    }
+
     // Profile Management
     public function profile() {
         // Get comprehensive user profile data
@@ -868,9 +774,10 @@ class Trainer extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
-                'phone_number' => trim($_POST['phone_number']),
+                'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address']),
                 'school' => trim($_POST['school']),
                 'role' => $_SESSION['user_role'] ?? 'Trainer',
@@ -888,8 +795,11 @@ class Trainer extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -919,7 +829,7 @@ class Trainer extends Controller {
             if (empty($errors)) {
                 if ($userModel->updateUser($userData) && $userModel->updateTrainerProfile($trainerData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     flash('profile_message', 'Profile updated successfully');

@@ -38,15 +38,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/available" class="nav-link">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>Book Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="nav-link">
-                        <i class="fas fa-list-alt"></i>
-                        <span>My Sessions</span>
+                    <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Bookings</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -252,9 +246,9 @@
 </div>
 
 <!-- Checkout Confirmation Modal -->
-<div id="checkoutModal" class="modal">
-    <div class="modal-content modal-lg">
-        <div class="modal-header gradient-header">
+<div id="checkoutModal" class="modal app-modal">
+    <div class="modal-content modal-lg app-modal__dialog app-modal__dialog--wide">
+        <div class="modal-header gradient-header app-modal__header">
             <div class="header-icon">
                 <i class="fas fa-credit-card"></i>
             </div>
@@ -262,12 +256,12 @@
                 <h3>Checkout Confirmation</h3>
                 <p>Review your order details before completing purchase</p>
             </div>
-            <button class="modal-close" onclick="closeCheckoutModal()">
+            <button type="button" class="modal-close app-modal__close" data-cart-close="checkoutModal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         
-        <div class="modal-body">
+        <div class="modal-body app-modal__body">
             <div class="checkout-summary">
                 <h4>Order Details</h4>
                 <div id="checkout-items-list" class="checkout-items">
@@ -322,11 +316,11 @@
             </div>
         </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeCheckoutModal()">
+        <div class="modal-footer app-modal__footer">
+            <button type="button" class="btn btn-secondary" data-cart-close="checkoutModal">
                 <i class="fas fa-arrow-left"></i> Back to Cart
             </button>
-            <button type="button" class="btn btn-primary" onclick="completeOrder()">
+            <button type="button" class="btn btn-primary" data-cart-action="complete-order">
                 <i class="fas fa-check"></i> Complete Order
             </button>
         </div>
@@ -334,9 +328,9 @@
 </div>
 
 <!-- Order Success Modal -->
-<div id="orderSuccessModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header success-header">
+<div id="orderSuccessModal" class="modal app-modal">
+    <div class="modal-content app-modal__dialog app-modal__dialog--compact">
+        <div class="modal-header success-header app-modal__header app-modal__header--success">
             <div class="header-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
@@ -346,7 +340,7 @@
             </div>
         </div>
         
-        <div class="modal-body">
+        <div class="modal-body app-modal__body">
             <div class="success-content">
                 <div class="order-number">
                     <strong>Order #<span id="order-number">ORD-2024-001</span></strong>
@@ -365,11 +359,11 @@
             </div>
         </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeOrderSuccessModal()">
+        <div class="modal-footer app-modal__footer">
+            <button type="button" class="btn btn-secondary" data-cart-close="orderSuccessModal">
                 <i class="fas fa-home"></i> Back to Dashboard
             </button>
-            <button type="button" class="btn btn-primary" onclick="viewOrderHistory()">
+            <button type="button" class="btn btn-primary" data-cart-action="view-order-history">
                 <i class="fas fa-history"></i> View Orders
             </button>
         </div>

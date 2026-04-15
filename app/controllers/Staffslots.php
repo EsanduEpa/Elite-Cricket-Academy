@@ -79,23 +79,46 @@ class Staffslots extends Controller {
         $error   = null;
         $success = null;
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_cancel'])) {
-            $reason = trim($_POST['cancel_reason'] ?? '');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['action_cancel'])) {
+                $reason = trim($_POST['cancel_reason'] ?? '');
 
-            if (!$reason) {
-                $error = 'A cancellation reason is required.';
-            } else {
-                $result = $model->cancelOccurrence((int) $id, $reason, $this->userId);
-
-                if ($result === true) {
-                    $success    = 'Session cancelled successfully.';
-                    $occurrence = $model->getOccurrenceDetail((int) $id, $this->userId);
-                } elseif ($result === 'already_cancelled') {
-                    $error = 'This session is already cancelled.';
-                } elseif ($result === 'not_assigned') {
-                    $error = 'You are not assigned to this session.';
+                if (!$reason) {
+                    $error = 'A cancellation reason is required.';
                 } else {
-                    $error = 'Could not cancel the session. Please try again.';
+                    $result = $model->cancelOccurrence((int) $id, $reason, $this->userId);
+
+                    if ($result === true) {
+                        $success    = 'Session cancelled successfully.';
+                        $occurrence = $model->getOccurrenceDetail((int) $id, $this->userId);
+                    } elseif ($result === 'already_cancelled') {
+                        $error = 'This session is already cancelled.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You are not assigned to this session.';
+                    } else {
+                        $error = 'Could not cancel the session. Please try again.';
+                    }
+                }
+            } elseif (isset($_POST['action_update_booking'])) {
+                $bookingId = (int) ($_POST['booking_id'] ?? 0);
+                $status = trim((string) ($_POST['booking_status'] ?? ''));
+
+                if ($bookingId <= 0 || $status === '') {
+                    $error = 'Please choose a valid booking status.';
+                } else {
+                    $result = $model->markAttendance($bookingId, $status, $this->userId);
+
+                    if ($result === true) {
+                        $success = 'Booking status updated successfully.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You can only update bookings for your own slot sessions.';
+                    } elseif ($result === 'not_found') {
+                        $error = 'The selected booking could not be found.';
+                    } elseif ($result === 'invalid_status') {
+                        $error = 'That booking status is not allowed.';
+                    } else {
+                        $error = 'Could not update the booking status. Please try again.';
+                    }
                 }
             }
         }
@@ -126,13 +149,13 @@ class Staffslots extends Controller {
         $success = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
-            $statuses = $_POST['attendance']; // [bookingId => 'attended'|'missed'|'confirmed']
+            $statuses = $_POST['attendance']; // [bookingId => 'completed'|'not_attended'|'confirmed']
             $marked   = 0;
             $failed   = 0;
 
             foreach ($statuses as $bookingId => $status) {
-                if (!in_array($status, ['attended', 'missed'], true)) {
-                    continue; // skip unchanged/confirmed entries
+                if (!in_array($status, ['confirmed', 'attended', 'missed', 'completed', 'not_attended'], true)) {
+                    continue;
                 }
                 $result = $model->markAttendance((int) $bookingId, $status, $this->userId);
                 if ($result === true) {

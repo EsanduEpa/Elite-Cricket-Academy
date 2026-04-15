@@ -49,20 +49,38 @@ class M_SlotAdmin {
         return $row ?: null;
     }
 
+    public function getActiveMembershipPlans(): array {
+        $this->db->query(
+            'SELECT PlanID, PlanName, MonthlyFee
+             FROM membershipplan
+             WHERE Status = :status
+             ORDER BY MonthlyFee ASC, PlanName ASC'
+        );
+        $this->db->bind(':status', 'active');
+        return $this->db->resultSet();
+    }
+
     public function createTemplate(array $d): int {
         $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+        $pricePerSession = $this->normalizeTemplatePricePerSession($d);
+        $requiredPlanFeature = $this->normalizeRequiredPlanFeature($d['RequiredPlanFeature'] ?? null);
 
         $this->db->query(
             'INSERT INTO slot_template
-             (TemplateName, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
+             (TemplateName, temp_code, SlotType, StaffType, SlotID, DayOfWeek, FacilityID,
               AgeGroup, Category, Description, MaxParticipants, PricePerSession,
-              RequiredPlanFeature, RecurrenceStart, RecurrenceEnd, IsActive, CreatedBy)
+              RequiredPlanFeature, IsActive, CreatedBy)
              VALUES
-             (:name, :stype, :stafftype, :slotid, :dow, :fid,
+             (:name, :temp_code, :stype, :stafftype, :slotid, :dow, :fid,
               :age, :cat, :desc, :max, :price,
-              :rpf, :rstart, :rend, 1, :createdby)'
+              :rpf, 1, :createdby)'
         );
+        $tempCode = trim((string)($d['temp_code'] ?? ''));
+        if ($tempCode === '') {
+            throw new InvalidArgumentException('Template code is required.');
+        }
         $this->db->bind(':name',      $d['TemplateName']);
+        $this->db->bind(':temp_code', $tempCode);
         $this->db->bind(':stype',     $d['SlotType']);
         $this->db->bind(':stafftype', $d['StaffType']);
         $this->db->bind(':slotid',    (int)$d['SlotID'], PDO::PARAM_INT);
@@ -72,10 +90,8 @@ class M_SlotAdmin {
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
         $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
-        $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
-        $this->db->bind(':rstart',    $d['RecurrenceStart']);
-        $this->db->bind(':rend',      isset($d['RecurrenceEnd']) && $d['RecurrenceEnd'] !== '' ? $d['RecurrenceEnd'] : null);
+        $this->db->bind(':price',     $pricePerSession);
+        $this->db->bind(':rpf',       $requiredPlanFeature, $requiredPlanFeature === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $this->db->bind(':createdby', (int)$d['CreatedBy'], PDO::PARAM_INT);
         $this->db->execute();
         return (int)$this->db->lastInsertId();
@@ -83,16 +99,22 @@ class M_SlotAdmin {
 
     public function updateTemplate(int $id, array $d): bool {
         $maxParticipants = $this->normalizeTemplateMaxParticipants($d);
+        $pricePerSession = $this->normalizeTemplatePricePerSession($d);
+        $requiredPlanFeature = $this->normalizeRequiredPlanFeature($d['RequiredPlanFeature'] ?? null);
 
         $this->db->query(
             'UPDATE slot_template SET
-             TemplateName=:name, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
+                         TemplateName=:name, temp_code=:temp_code, SlotType=:stype, StaffType=:stafftype, SlotID=:slotid,
              DayOfWeek=:dow, FacilityID=:fid, AgeGroup=:age, Category=:cat, Description=:desc,
-             MaxParticipants=:max, PricePerSession=:price, RequiredPlanFeature=:rpf,
-             RecurrenceStart=:rstart, RecurrenceEnd=:rend
+               MaxParticipants=:max, PricePerSession=:price, RequiredPlanFeature=:rpf
              WHERE TemplateID=:id'
         );
+                $tempCode = trim((string)($d['temp_code'] ?? ''));
+                if ($tempCode === '') {
+                        throw new InvalidArgumentException('Template code is required.');
+                }
         $this->db->bind(':name',      $d['TemplateName']);
+                $this->db->bind(':temp_code', $tempCode);
         $this->db->bind(':stype',     $d['SlotType']);
         $this->db->bind(':stafftype', $d['StaffType']);
         $this->db->bind(':slotid',    (int)$d['SlotID'], PDO::PARAM_INT);
@@ -102,10 +124,8 @@ class M_SlotAdmin {
         $this->db->bind(':cat',       $d['Category'] ?? null);
         $this->db->bind(':desc',      $d['Description'] ?? null);
         $this->db->bind(':max',       $maxParticipants, $maxParticipants === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $this->db->bind(':price',     (float)($d['PricePerSession'] ?? 0));
-        $this->db->bind(':rpf',       $d['RequiredPlanFeature'] ?? 'none');
-        $this->db->bind(':rstart',    $d['RecurrenceStart']);
-        $this->db->bind(':rend',      isset($d['RecurrenceEnd']) && $d['RecurrenceEnd'] !== '' ? $d['RecurrenceEnd'] : null);
+        $this->db->bind(':price',     $pricePerSession);
+        $this->db->bind(':rpf',       $requiredPlanFeature, $requiredPlanFeature === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $this->db->bind(':id',        $id, PDO::PARAM_INT);
         return $this->db->execute();
     }
@@ -114,16 +134,52 @@ class M_SlotAdmin {
         $slotType = strtolower(trim((string)($data['SlotType'] ?? '')));
         $rawValue = trim((string)($data['MaxParticipants'] ?? ''));
 
+        if ($slotType !== 'facility_only') {
+            return null;
+        }
+
         if ($rawValue === '') {
-            return $slotType === 'program' ? null : 10;
+            return 10;
         }
 
         $maxParticipants = (int) $rawValue;
         if ($maxParticipants <= 0) {
-            return $slotType === 'program' ? null : 10;
+            return 10;
         }
 
         return $maxParticipants;
+    }
+
+    private function normalizeTemplatePricePerSession(array $data): float {
+        $slotType = strtolower(trim((string)($data['SlotType'] ?? '')));
+        if ($slotType !== 'facility_only') {
+            return 0.0;
+        }
+
+        $facilityId = isset($data['FacilityID']) && $data['FacilityID'] !== '' ? (int) $data['FacilityID'] : null;
+        if ($facilityId === null) {
+            return 0.0;
+        }
+
+        $this->db->query('SELECT HourlyRate FROM facility WHERE FacilityID = :facility_id LIMIT 1');
+        $this->db->bind(':facility_id', $facilityId, PDO::PARAM_INT);
+        $facility = $this->db->single();
+
+        return isset($facility->HourlyRate) ? max(0.0, (float) $facility->HourlyRate) : 0.0;
+    }
+
+    private function normalizeRequiredPlanFeature($value): ?string {
+        $value = trim((string)$value);
+
+        if ($value === '' || $value === 'none') {
+            return null;
+        }
+
+        if ($value === 'group_sessions') {
+            return 'sessions';
+        }
+
+        return in_array($value, ['sessions', 'facility_access'], true) ? $value : null;
     }
 
     public function toggleTemplate(int $id): bool {
@@ -138,7 +194,7 @@ class M_SlotAdmin {
 
     public function getStaffForTemplate(int $templateId): array {
         $this->db->query(
-            'SELECT ts.*, u.Name AS UserName, u.Role AS UserRole
+            'SELECT ts.*, CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole
              FROM slot_template_staff ts
              JOIN user u ON u.UserID = ts.UserID
              WHERE ts.TemplateID = :tid
@@ -204,20 +260,37 @@ class M_SlotAdmin {
 
     public function getAvailableCoaches(): array {
         $this->db->query(
-            "SELECT UserID, Name FROM user WHERE LOWER(Role) IN ('coach','admin') AND Status='Active' ORDER BY Name"
+            "SELECT UserID, CONCAT(FirstName, ' ', LastName) AS Name FROM user WHERE LOWER(Role) IN ('coach','admin') AND Status='Active' ORDER BY FirstName"
+        );
+        return $this->db->resultSet();
+    }
+
+    public function getCoachesWithAssignments(): array {
+        $this->db->query(
+            "SELECT u.UserID,
+                    CONCAT(u.FirstName, ' ', u.LastName) AS Name,
+                    cp.Specialization,
+                    cp.IsHeadCoach,
+                    GROUP_CONCAT(DISTINCT CONCAT(csg.CoachingType, ':', csg.AgeGroup) ORDER BY csg.CoachingType, csg.PriorityRank SEPARATOR '|') AS Assignments
+             FROM user u
+             LEFT JOIN coachprofile cp ON cp.CoachID = u.UserID
+             LEFT JOIN coach_skill_age_group_assignment csg ON csg.CoachID = u.UserID AND csg.IsActive = 1
+             WHERE LOWER(u.Role) IN ('coach','admin') AND u.Status = 'Active'
+             GROUP BY u.UserID, u.FirstName, u.LastName, cp.Specialization, cp.IsHeadCoach
+             ORDER BY cp.IsHeadCoach DESC, u.FirstName"
         );
         return $this->db->resultSet();
     }
 
     public function getAvailableTrainers(): array {
         $this->db->query(
-            "SELECT UserID, Name FROM user WHERE LOWER(Role) = 'trainer' AND Status='Active' ORDER BY Name"
+            "SELECT UserID, CONCAT(FirstName, ' ', LastName) AS Name FROM user WHERE LOWER(Role) = 'trainer' AND Status='Active' ORDER BY FirstName"
         );
         return $this->db->resultSet();
     }
 
     public function getFacilities(): array {
-        $this->db->query('SELECT FacilityID, Name FROM facility ORDER BY Name');
+        $this->db->query('SELECT FacilityID, Name, HourlyRate FROM facility ORDER BY Name');
         return $this->db->resultSet();
     }
 
@@ -239,6 +312,25 @@ class M_SlotAdmin {
         return $this->db->resultSet();
     }
 
+    public function getOccurrencesForTemplate(int $templateId): array {
+        $this->db->query(
+            'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status, so.CancelReason,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    f.Name AS FacilityName,
+                    (SELECT COUNT(*)
+                     FROM slot_booking sb
+                     WHERE sb.OccurrenceID = so.OccurrenceID
+                       AND sb.Status != \'cancelled\') AS BookingCount
+             FROM slot_occurrence so
+             LEFT JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             WHERE so.TemplateID = :template_id
+             ORDER BY so.OccurrenceDate DESC, tb.StartTime DESC'
+        );
+        $this->db->bind(':template_id', $templateId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     /**
      * Generate slot_occurrence rows for every matching weekday in the range.
      * Skips silently on UNIQUE KEY conflicts (duplicate).
@@ -250,11 +342,45 @@ class M_SlotAdmin {
             return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Template not found'];
         }
 
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Invalid date format supplied.'];
+        }
+
+        $current = strtotime($from);
+        $end     = strtotime($to);
+
+        if ($current === false || $end === false) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Could not parse the selected date range.'];
+        }
+
+        if ($current > $end) {
+            return ['inserted' => 0, 'skipped' => 0, 'skipped_dates' => [], 'error' => 'Start date must be on or before end date.'];
+        }
+
+        $matchingDays = [];
+        $scan = $current;
+        while ($scan <= $end) {
+            $dow = (int) date('N', $scan);
+            if ($template->DayOfWeek === null || (int) $template->DayOfWeek === $dow) {
+                $matchingDays[] = date('Y-m-d', $scan);
+            }
+            $scan = strtotime('+1 day', $scan);
+        }
+
+        if (empty($matchingDays)) {
+            $weekdayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+            $expectedDay = $template->DayOfWeek ? ($weekdayNames[(int) $template->DayOfWeek] ?? 'the selected day') : 'any day';
+            return [
+                'inserted' => 0,
+                'skipped' => 0,
+                'skipped_dates' => [],
+                'error' => "The selected range does not include any {$expectedDay} dates for this template.",
+            ];
+        }
+
         $inserted     = 0;
         $skipped      = 0;
         $skippedDates = [];
-        $current      = strtotime($from);
-        $end          = strtotime($to);
 
         while ($current <= $end) {
             $dow  = (int) date('N', $current); // 1=Mon … 7=Sun
@@ -359,7 +485,7 @@ class M_SlotAdmin {
     public function getOccurrencesForCalendar(string $from, string $to): array {
         $this->db->query(
             'SELECT so.*,
-                    st.TemplateName, st.SlotType, st.StaffType,
+                    st.TemplateName, st.temp_code AS TemplateCode, st.SlotType, st.StaffType, st.DayOfWeek AS TemplateDayOfWeek,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
                     IF(
@@ -367,11 +493,11 @@ class M_SlotAdmin {
                             SELECT 1 FROM slot_occurrence_staff_override ov0
                             WHERE ov0.OccurrenceID = so.OccurrenceID
                         ),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, " ", u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_occurrence_staff_override ov
                          JOIN user u ON u.UserID = ov.UserID
                          WHERE ov.OccurrenceID = so.OccurrenceID),
-                        (SELECT GROUP_CONCAT(u.Name ORDER BY u.Name SEPARATOR \', \')
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, " ", u.LastName) ORDER BY u.FirstName SEPARATOR \', \')
                          FROM slot_template_staff ts
                          JOIN user u ON u.UserID = ts.UserID
                          WHERE ts.TemplateID = so.TemplateID)
@@ -394,7 +520,7 @@ class M_SlotAdmin {
     public function getOccurrenceById(int $id): ?object {
         $this->db->query(
             'SELECT so.*,
-                    st.TemplateName, st.SlotType, st.StaffType,
+                    st.TemplateName, st.temp_code AS TemplateCode, st.SlotType, st.StaffType, st.DayOfWeek AS TemplateDayOfWeek,
                     st.MaxParticipants AS TemplateMaxParticipants,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
@@ -427,7 +553,7 @@ class M_SlotAdmin {
             $this->db->query(
                 'SELECT ov.ID, ov.UserID, ov.StaffType, ov.StaffRole,
                         ov.OverridesUserID, ov.OverrideReason,
-                        u.Name AS UserName, u.Role AS UserRole,
+                        CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole,
                         \'override\' AS Source
                  FROM slot_occurrence_staff_override ov
                  JOIN user u ON u.UserID = ov.UserID
@@ -442,7 +568,7 @@ class M_SlotAdmin {
         $this->db->query(
             'SELECT ts.ID, ts.UserID, ts.StaffType, ts.StaffRole,
                     NULL AS OverridesUserID, NULL AS OverrideReason,
-                    u.Name AS UserName, u.Role AS UserRole,
+                    CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole,
                     \'template\' AS Source
              FROM slot_template_staff ts
              JOIN user u ON u.UserID = ts.UserID
@@ -543,8 +669,8 @@ class M_SlotAdmin {
         $this->db->query(
             'SELECT sb.BookingID, sb.PlayerID, sb.Status, sb.MedicalClearedBy,
                     sb.BookingSource, sb.AmountCharged, sb.PaymentStatus, sb.CreatedAt,
-                    u.Name AS PlayerName,
-                    clr.Name AS ClearedByName
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
+                    CONCAT(clr.FirstName, \' \', clr.LastName) AS ClearedByName
              FROM slot_booking sb
              JOIN user u         ON u.UserID  = sb.PlayerID
              LEFT JOIN user clr  ON clr.UserID = sb.MedicalClearedBy

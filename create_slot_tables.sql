@@ -65,6 +65,7 @@ VALUES
 CREATE TABLE IF NOT EXISTS `slot_template` (
   `TemplateID`          INT(11)       NOT NULL AUTO_INCREMENT,
   `TemplateName`        VARCHAR(255)  NOT NULL,
+  `temp_code`           VARCHAR(50)   DEFAULT NULL        COMMENT 'Generated template code like U15-BAT-PN1-12',
 
   `SlotType`            ENUM('program','private','facility_only') NOT NULL
     COMMENT 'program=group subscription session | private=1:1 on request | facility_only=no staff',
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   `DayOfWeek`           TINYINT(1)    DEFAULT NULL        COMMENT '1=Mon…7=Sun; NULL=no fixed day',
   `FacilityID`          INT(11)       DEFAULT NULL        COMMENT 'FK → facility; NULL=assigned per occurrence',
 
-  `AgeGroup`            VARCHAR(50)   DEFAULT NULL        COMMENT '"Under 15", "Under 19", "Open"',
+  `AgeGroup`            VARCHAR(50)   DEFAULT NULL        COMMENT '"Under 15", "Under 19", "Under 21", "Open"',
   `Category`            VARCHAR(100)  DEFAULT NULL        COMMENT '"Batting","Bowling","Fielding","Fitness"',
   `Description`         TEXT          DEFAULT NULL,
 
@@ -84,12 +85,9 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   `PricePerSession`     DECIMAL(10,2) NOT NULL DEFAULT 0.00
     COMMENT '0.00 = subscription-covered; >0 = direct charge',
 
-  `RequiredPlanFeature` ENUM('none','sessions','private_sessions','facility_access')
-                        NOT NULL DEFAULT 'none'
-    COMMENT 'Checked against membershipplan at booking time',
+  `RequiredPlanFeature` VARCHAR(50) DEFAULT NULL
+    COMMENT 'NULL = open to all; supports legacy feature rules and plan:ID values checked at booking time',
 
-  `RecurrenceStart`     DATE          NOT NULL,
-  `RecurrenceEnd`       DATE          DEFAULT NULL        COMMENT 'NULL = open-ended season',
   `IsActive`            TINYINT(1)    NOT NULL DEFAULT 1,
 
   `CreatedBy`           INT(11)       NOT NULL            COMMENT 'FK → user (Admin)',
@@ -101,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `slot_template` (
   KEY `idx_st_facility`   (`FacilityID`),
   KEY `idx_st_type`       (`SlotType`),
   KEY `idx_st_stafftype`  (`StaffType`),
+  UNIQUE KEY `uq_st_temp_code` (`temp_code`),
   CONSTRAINT `fk_st_slot`     FOREIGN KEY (`SlotID`)     REFERENCES `slot_time_band`(`SlotID`),
   CONSTRAINT `fk_st_facility` FOREIGN KEY (`FacilityID`) REFERENCES `facility`(`FacilityID`),
   CONSTRAINT `fk_st_creator`  FOREIGN KEY (`CreatedBy`)  REFERENCES `user`(`UserID`)

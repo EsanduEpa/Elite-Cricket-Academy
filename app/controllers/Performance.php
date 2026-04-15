@@ -15,20 +15,32 @@ class Performance extends Controller {
     
     // Main performance dashboard
     public function index() {
-        $perfModel = $this->model('M_Performance');
-        $playerId = $_SESSION['user_id'] ?? 6;
-        
         $data = [
             'title' => 'Performance History',
             'player' => $this->getPlayerData(),
             'practiceMatches' => $this->getPracticeMatches(),
             'tournaments' => $this->getTournaments(),
+            'performanceSummary' => $this->getPerformanceStats(),
             'performanceStats' => $this->getDetailedPerformanceStats(),
+            'battingStats' => $this->getBattingStats(),
+            'bowlingStats' => $this->getBowlingStats(),
             'achievements' => $this->getPlayerAchievements(),
-            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
-            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId)
         ];
         $this->view('player/performance', $data);
+    }
+
+    public function match_history() {
+        $perfModel = $this->model('M_Performance');
+        $playerId = $_SESSION['user_id'] ?? 6;
+
+        $data = [
+            'title' => 'Match History',
+            'player' => $this->getPlayerData(),
+            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
+            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId),
+        ];
+
+        $this->view('player/match_history', $data);
     }
     
     // Add Achievement (AJAX method)

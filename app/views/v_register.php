@@ -19,6 +19,7 @@ if (!function_exists('flash')) {
                 </div>
                 
                 <?php flash('register_success'); ?>
+                <?php flash('register_payment'); ?>
 
                 <?php if (!empty($data['form_err'])): ?>
                     <div class="error-message show" style="display:block; margin-bottom:16px; text-align:center;">
@@ -36,17 +37,34 @@ if (!function_exists('flash')) {
 
                     <div class="form-row form-row-three">
                         <div class="form-group">
-                            <label for="fullName"><i class="fas fa-user"></i> Full Name</label>
+                            <label for="firstName"><i class="fas fa-user"></i> First Name</label>
                             <div class="input-icon-wrap"><i class="fas fa-user field-icon"></i>
-                            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" value="<?php echo $data['fullName']; ?>" required></div>
-                            <div class="error-message <?php echo (!empty($data['fullName_err'])) ? 'show' : ''; ?>" id="fullNameError"><?php echo $data['fullName_err']; ?></div>
+                            <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" value="<?php echo $data['firstName']; ?>" required></div>
+                            <div class="error-message <?php echo (!empty($data['firstName_err'])) ? 'show' : ''; ?>" id="firstNameError"><?php echo $data['firstName_err']; ?></div>
                         </div>
+                        <div class="form-group">
+                            <label for="lastName"><i class="fas fa-user"></i> Last Name</label>
+                            <div class="input-icon-wrap"><i class="fas fa-user field-icon"></i>
+                            <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" value="<?php echo $data['lastName']; ?>" required></div>
+                            <div class="error-message <?php echo (!empty($data['lastName_err'])) ? 'show' : ''; ?>" id="lastNameError"><?php echo $data['lastName_err']; ?></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row form-row-three">
                         <div class="form-group">
                             <label for="dateOfBirth"><i class="fas fa-calendar"></i> Date of Birth</label>
                             <div class="input-icon-wrap"><i class="fas fa-calendar field-icon"></i>
                             <input type="date" id="dateOfBirth" name="dateOfBirth" value="<?php echo $data['dateOfBirth']; ?>" max="<?php echo date('Y-m-d'); ?>" required></div>
                             <small class="form-hint">Must be at least 5 years old</small>
                             <div class="error-message <?php echo (!empty($data['dateOfBirth_err'])) ? 'show' : ''; ?>" id="dateOfBirthError"><?php echo $data['dateOfBirth_err']; ?></div>
+                        </div>
+
+                         <div class="form-group form-group-address">
+                            <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                            <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
+                            <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
+                            <small class="form-hint">Use this format: house number / street / town</small>
+                            <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
                         </div>
                     </div>
 
@@ -63,8 +81,8 @@ if (!function_exists('flash')) {
                         <div class="form-group">
                             <label for="contactNumber"><i class="fas fa-phone"></i> Contact Number</label>
                             <div class="input-icon-wrap"><i class="fas fa-phone field-icon"></i>
-                            <input type="tel" id="contactNumber" name="contactNumber" placeholder="e.g., 0771234567" value="<?php echo $data['contactNumber']; ?>" pattern="[0-9+\-\s()]+" required></div>
-                            <small class="form-hint">10-15 digits</small>
+                            <input type="tel" id="contactNumber" name="contactNumber" placeholder="Enter 10-digit number starting with 0" value="<?php echo $data['contactNumber']; ?>" inputmode="numeric" maxlength="10" autocomplete="tel" required></div>
+                            <small class="form-hint">Example: 0771234567</small>
                             <div class="error-message <?php echo (!empty($data['contactNumber_err'])) ? 'show' : ''; ?>" id="contactNumberError"><?php echo $data['contactNumber_err']; ?></div>
                         </div>
                     </div>
@@ -102,13 +120,7 @@ if (!function_exists('flash')) {
                     </div>
 
                     <div class="form-row form-row-address-plan">
-                        <div class="form-group form-group-address">
-                            <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
-                            <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
-                            <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
-                            <small class="form-hint">Use this format: house number / street / town</small>
-                            <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
-                        </div>
+                      
 
                         <div class="form-group form-group-plan">
                             <label for="membershipPlan"><i class="fas fa-medal"></i> Membership Plan</label>
@@ -116,7 +128,11 @@ if (!function_exists('flash')) {
                                 <select id="membershipPlan" name="membershipPlan" class="plan-select" required>
                                     <option value="">-- Select a Plan --</option>
                                     <?php foreach($data['membershipPlans'] as $plan): ?>
+                                    <?php $isFacilityOnly = strtolower((string)$plan->PlanName) === 'facility_only'; ?>
                                     <option value="<?php echo (int)$plan->PlanID; ?>"
+                                        data-fee="<?php echo number_format((float)$plan->MonthlyFee, 2, '.', ''); ?>"
+                                        data-plan-name="<?php echo htmlspecialchars(ucfirst($plan->PlanName)); ?>"
+                                        data-recurring-billing="<?php echo $isFacilityOnly || (float)$plan->MonthlyFee <= 0 ? '0' : '1'; ?>"
                                         <?php echo ($data['membershipPlan'] == $plan->PlanID) ? 'selected' : ''; ?>>
                                         <?php echo ucfirst(htmlspecialchars($plan->PlanName)); ?> &mdash; Rs. <?php echo number_format($plan->MonthlyFee, 2); ?>/month
                                     </option>
@@ -125,20 +141,41 @@ if (!function_exists('flash')) {
                                 <button type="button" id="seePlanDetailsBtn" class="see-plan-btn">See Plan Details</button>
                             </div>
                             <div class="error-message <?php echo (!empty($data['membershipPlan_err'])) ? 'show' : ''; ?>" id="membershipPlanError"><?php echo $data['membershipPlan_err']; ?></div>
+                            <div class="payment-portal-card">
+                                <div class="payment-portal-copy">
+                                    <h5>Pay the selected membership fee</h5>
+                                    <p id="selectedPlanFeeHint">Choose a membership plan, then continue to the payment portal with that monthly fee.</p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    id="paymentPortalBtn"
+                                    class="payment-portal-btn"
+                                    formaction="<?php echo URLROOT; ?>/register/payment_portal"
+                                    formmethod="POST"
+                                    formnovalidate
+                                >
+                                    <i class="fas fa-credit-card"></i>
+                                    <span id="paymentPortalBtnText">PayNow</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="register-actions-row">
+                    <div class="form-divider"><span></span></div>
+
+                    <div class="form-footer-actions">
+                        <p class="pay-later-copy">Or create the account and pay later.</p>
                         <button type="submit" class="register-submit-btn">
-                            <div class="loading" id="loadingSpinner"></div>
+                            <div class="loading" id="registerSubmitSpinner"></div>
                             <i class="fas fa-user-plus"></i>
-                            <span id="buttonText">Create Account</span>
+                            <span id="registerSubmitText">Create Account</span>
                         </button>
 
                         <div class="login-link">
                             Already have an account? <a href="<?php echo URLROOT; ?>/login">Login</a>
                         </div>
                     </div>
+                  
                 </form>
             </div>
         </div>
@@ -158,11 +195,16 @@ if (!function_exists('flash')) {
             <div class="plan-modal-body">
                 <div class="plan-cards-grid">
                     <?php foreach($data['membershipPlans'] as $plan): ?>
+                    <?php $isFacilityOnly = strtolower((string)$plan->PlanName) === 'facility_only'; ?>
                     <div class="plan-card" data-plan-id="<?php echo (int)$plan->PlanID; ?>">
                         <div class="plan-card-header">
                             <div class="plan-card-badge"><?php echo ucfirst(htmlspecialchars($plan->PlanName)); ?> Plan</div>
                             <h3 class="plan-card-name"><?php echo ucfirst(htmlspecialchars($plan->PlanName)); ?></h3>
-                            <div class="plan-card-price">Rs. <?php echo number_format($plan->MonthlyFee, 2); ?><span>/month</span></div>
+                            <?php if ($isFacilityOnly): ?>
+                                <div class="plan-card-price">No monthly fee - pay per booking</div>
+                            <?php else: ?>
+                                <div class="plan-card-price">Rs. <?php echo number_format($plan->MonthlyFee, 2); ?><span>/month</span></div>
+                            <?php endif; ?>
                         </div>
                         <div class="plan-card-body">
                             <?php if($plan->Description): ?>
@@ -246,6 +288,8 @@ if (!function_exists('flash')) {
                 card.classList.toggle('plan-card-selected', card.getAttribute('data-plan-id') === dropdown.value);
             });
         }
+
+        highlightSelected();
 
     }());
     </script>

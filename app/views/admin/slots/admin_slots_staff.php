@@ -39,15 +39,33 @@
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-text">
-                    <div style="font-size:12px;color:#aaa;margin-bottom:4px;">
-                        <a href="<?php echo URLROOT; ?>/adminslots/templates" style="color:#3498db;text-decoration:none;">Templates</a>
-                        <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
-                        <?= htmlspecialchars($data['template']->TemplateName) ?>
-                        <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
-                        Staff
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;font-weight:600;">
+                            <i class="fas fa-arrow-left"></i> Back to Templates
+                        </a>
+                        <div style="font-size:12px;color:#aaa;">
+                            <a href="<?php echo URLROOT; ?>/adminslots/templates" style="color:#3498db;text-decoration:none;">Templates</a>
+                            <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
+                            <?php if (!empty($data['template']->temp_code)): ?>
+                                #<?= htmlspecialchars($data['template']->temp_code) ?>
+                                <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
+                            <?php endif; ?>
+                            <?= htmlspecialchars($data['template']->TemplateName) ?>
+                            <i class="fas fa-chevron-right" style="font-size:10px;margin:0 6px;"></i>
+                            Staff
+                        </div>
                     </div>
                     <h1><i class="fas fa-users"></i> Staff Assignment</h1>
-                    <p><?= htmlspecialchars($data['template']->TemplateName) ?> — <?= htmlspecialchars($data['template']->SlotLabel ?? '') ?></p>
+                    <p>
+                       <?php if (!empty($data['template']->temp_code)): ?>
+                           <strong>#<?= htmlspecialchars($data['template']->temp_code) ?></strong>
+                           <span style="color:#adb5bd;">·</span>
+                       <?php endif; ?>
+                       <?= htmlspecialchars($data['template']->TemplateName) ?> — <?= htmlspecialchars($data['template']->SlotLabel ?? '') ?>
+                       <?php if (!empty($data['template']->AgeGroup)): ?>
+                           <span style="background:#e8f4fd;color:#0c5460;padding:2px 10px;border-radius:10px;font-size:11px;margin-left:8px;"><?= htmlspecialchars($data['template']->AgeGroup) ?></span>
+                       <?php endif; ?>
+                    </p>
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $data['template']->TemplateID ?>"
@@ -60,49 +78,14 @@
 
         <div style="padding:0 25px 40px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
 
-            <!-- Currently Assigned Staff -->
-            <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
-                <h3 style="margin:0 0 16px;font-size:16px;color:#2c3e50;"><i class="fas fa-id-badge"></i> Assigned Staff</h3>
+            <?php if (!empty($data['fromCreate'])): ?>
+                <div style="grid-column:1/-1;background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;">
+                    <i class="fas fa-check-circle"></i> Template created successfully! Now assign staff members, then proceed to generate occurrences.
+                </div>
+            <?php endif; ?>
 
-                <?php if (empty($data['staff'])): ?>
-                    <div style="text-align:center;padding:30px;color:#aaa;">
-                        <i class="fas fa-user-slash" style="font-size:32px;margin-bottom:10px;display:block;"></i>
-                        <p>No staff assigned yet. Use the form to add coaches or trainers.</p>
-                    </div>
-                <?php else: ?>
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:#f8f9fa;">
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Name</th>
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Type</th>
-                                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#555;border-bottom:2px solid #dee2e6;">Role</th>
-                                <th style="padding:10px 12px;border-bottom:2px solid #dee2e6;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($data['staff'] as $s): ?>
-                            <tr style="border-bottom:1px solid #f5f5f5;">
-                                <td style="padding:10px 12px;font-weight:600;color:#2c3e50;"><?= htmlspecialchars($s->UserName) ?></td>
-                                <td style="padding:10px 12px;">
-                                    <span class="<?= $s->StaffType === 'coach' ? 'badge-coach-t' : 'badge-trainer-t' ?>"><?= ucfirst($s->StaffType) ?></span>
-                                </td>
-                                <td style="padding:10px 12px;">
-                                    <span class="<?= $s->StaffRole === 'lead' ? 'badge-lead' : 'badge-assistant' ?>"><?= ucfirst($s->StaffRole) ?></span>
-                                </td>
-                                <td style="padding:10px 12px;text-align:right;">
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Remove this staff member?');">
-                                        <input type="hidden" name="remove_staff" value="<?= $s->ID ?>">
-                                        <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">
-                                            <i class="fas fa-times"></i> Remove
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
+            <!-- Currently Assigned Staff -->
+            
 
             <!-- Add Staff Form -->
             <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
@@ -141,7 +124,7 @@
                                 <option value="">No coaches available</option>
                             <?php else: ?>
                                 <?php foreach ($data['coaches'] as $c): ?>
-                                    <option value="<?= $c->UserID ?>"><?= htmlspecialchars($c->Name) ?></option>
+                                    <option value="<?= (int)$c->coach_id ?>"><?= htmlspecialchars($c->name ?? $c->Name ?? 'Coach') ?></option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
@@ -162,6 +145,9 @@
                             <option value="lead">Lead</option>
                             <option value="assistant">Assistant</option>
                         </select>
+                        <p style="font-size:11px;color:#888;margin-top:4px;">
+                            Use Lead for the primary staff member and Assistant for support. You can assign one lead and one assistant to the same template by submitting this form twice.
+                        </p>
                     </div>
 
                     <button type="submit" style="width:100%;padding:10px;background:#9b59b6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
@@ -171,11 +157,64 @@
             </div>
         </div>
 
-        <!-- Next step -->
+        <!-- Proceed to Generate -->
+        <div style="padding:0 25px 20px;">
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="proceed_generate" value="1">
+                <button type="submit" style="padding:12px 28px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-arrow-right"></i> Proceed to Generate Occurrences
+                </button>
+            </form>
+            <a href="<?php echo URLROOT; ?>/adminslots/templates" style="margin-left:12px;padding:12px 20px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;display:inline-block;">
+                <i class="fas fa-list"></i> Back to Templates
+            </a>
+        </div>
+
         <div style="padding:0 25px 30px;">
-            <div style="background:#e8f4fd;border:1px solid #bee5eb;border-radius:8px;padding:14px 18px;color:#0c5460;font-size:13px;">
-                <i class="fas fa-arrow-right"></i>
-                Once staff are assigned, <strong><a href="<?php echo URLROOT; ?>/adminslots/generate" style="color:#0c5460;">generate occurrences</a></strong> to put this template on the calendar.
+            <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+                <div style="margin-bottom:16px;">
+                    <h3 style="margin:0 0 8px;font-size:16px;color:#2c3e50;"><i class="fas fa-list"></i> Current Coach Assignment Matrix</h3>
+                    <p style="margin:0;color:#64748b;font-size:13px;">Live coach age-group assignments are shown here.</p>
+                </div>
+
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;min-width:760px;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Coach</th>
+                                <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Head Coach</th>
+                                <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Skill</th>
+                                <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Age Groups</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($data['coachAssignments'])): ?>
+                                <?php foreach ($data['coachAssignments'] as $assignment): ?>
+                                    <tr style="border-bottom:1px solid #f0f0f0;">
+                                        <td style="padding:10px 14px;font-size:13px;color:#2c3e50;"><?= htmlspecialchars($assignment->CoachName) ?></td>
+                                        <td style="padding:10px 14px;font-size:13px;">
+                                            <?php if (!empty($assignment->IsHeadCoach)): ?>
+                                                <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;">Head Coach</span>
+                                            <?php else: ?>
+                                                <span style="background:#eef2f7;color:#475467;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;">No</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="padding:10px 14px;font-size:13px;">
+                                            <span style="background:#e2d9f3;color:#4a1e8c;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;">
+                                                <?= htmlspecialchars(ucfirst($assignment->CoachingType)) ?>
+                                            </span>
+                                        </td>
+                                        <td style="padding:10px 14px;font-size:13px;color:#2c3e50;"><?= htmlspecialchars($assignment->AgeGroups) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:24px;color:#64748b;">No coach age-group assignments have been configured yet.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

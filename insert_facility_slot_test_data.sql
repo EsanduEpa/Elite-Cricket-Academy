@@ -54,28 +54,97 @@ DELETE FROM playersubscription WHERE PlayerID IN (7,20) AND PlanID IN (1,3);
 
 INSERT INTO slot_template
   (TemplateID, TemplateName, SlotType, StaffType, SlotID, FacilityID,
-   MaxParticipants, PricePerSession, RequiredPlanFeature,
-   RecurrenceStart, IsActive, CreatedBy)
+  MaxParticipants, PricePerSession, RequiredPlanFeature,
+  IsActive, CreatedBy)
 VALUES
   -- ID 4 – open, Practice Net 1, 11 am–1 pm, max 3
   (4, 'Practice Net 1 (Open)',
-   'facility_only', 'none', 2, 1, 3, 0.00, 'none', '2026-04-10', 1, 1),
+  'facility_only', 'none', 2, 1, 3, 0.00, 'none', 1, 1),
 
   -- ID 5 – gated, Bowling Machine, 1 pm–3 pm, max 1  ← tests FULL state
   (5, 'Bowling Machine Session',
-   'facility_only', 'none', 3, 3, 1, 0.00, 'facility_access', '2026-04-10', 1, 1),
+    'facility_only', 'none', 3, 3, 1, 0.00, 'facility_access', 1, 1),
 
   -- ID 6 – gated, Indoor Training Hall, 3 pm–5 pm, max 8
   (6, 'Indoor Hall Access',
-   'facility_only', 'none', 4, 5, 8, 0.00, 'facility_access', '2026-04-10', 1, 1),
+    'facility_only', 'none', 4, 5, 8, 0.00, 'facility_access', 1, 1),
 
   -- ID 7 – open, Practice Net 2, 5 pm–7 pm, max 3
   (7, 'Practice Net 2 (Evening)',
-   'facility_only', 'none', 5, 2, 3, 0.00, 'none', '2026-04-10', 1, 1),
+    'facility_only', 'none', 5, 2, 3, 0.00, 'none', 1, 1),
 
   -- ID 8 – private coaching, Practice Net 1, 3 pm–5 pm, max 1, LKR 1500
   (8, 'Private 1-on-1 Coaching',
-   'private', 'coach', 4, 1, 1, 1500.00, 'private_sessions', '2026-04-10', 1, 1);
+    'private', 'coach', 4, 1, 1, 1500.00, 'private_sessions', 1, 1);
+
+  UPDATE slot_template st
+  LEFT JOIN slot_time_band tb ON tb.SlotID = st.SlotID
+  SET st.temp_code = CASE
+    WHEN st.SlotType = 'facility_only' THEN CONCAT(
+      'FAC-',
+      COALESCE(
+        CASE st.DayOfWeek
+          WHEN 1 THEN 'MON'
+          WHEN 2 THEN 'TUE'
+          WHEN 3 THEN 'WED'
+          WHEN 4 THEN 'THU'
+          WHEN 5 THEN 'FRI'
+          WHEN 6 THEN 'SAT'
+          WHEN 7 THEN 'SUN'
+        END,
+        'ANY'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+    WHEN st.SlotType = 'private' THEN CONCAT(
+      'PVT-',
+      COALESCE(
+        CASE st.Category
+          WHEN 'Batting' THEN 'BAT'
+          WHEN 'Bowling' THEN 'BOWL'
+          WHEN 'Fielding' THEN 'FLD'
+          WHEN 'Fitness' THEN 'FIT'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+    ELSE CONCAT(
+      COALESCE(
+        CASE st.AgeGroup
+          WHEN 'Under 11' THEN 'U11'
+          WHEN 'Under 13' THEN 'U13'
+          WHEN 'Under 15' THEN 'U15'
+          WHEN 'Under 17' THEN 'U17'
+          WHEN 'Under 19' THEN 'U19'
+          WHEN 'Under 21' THEN 'U21'
+          WHEN 'Open' THEN 'OPEN'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(
+        CASE st.Category
+          WHEN 'Batting' THEN 'BAT'
+          WHEN 'Bowling' THEN 'BOWL'
+          WHEN 'Fielding' THEN 'FLD'
+          WHEN 'Fitness' THEN 'FIT'
+        END,
+        'GEN'
+      ),
+      '-',
+      COALESCE(NULLIF(REPLACE(REPLACE(UPPER(tb.SlotLabel), ' ', ''), '-', ''), ''), CONCAT('S', st.SlotID)),
+      '-',
+      st.TemplateID
+    )
+  END
+  WHERE st.TemplateID IN (4,5,6,7,8);
 
 -- ─────────────────────────────────────────────────────────────
 -- 3. OCCURRENCES  (dates: Apr 10–20 2026)
@@ -185,28 +254,28 @@ USE cricket_academy;
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO slot_template
   (TemplateName, SlotType, StaffType, SlotID, FacilityID,
-   MaxParticipants, PricePerSession, RequiredPlanFeature,
-   RecurrenceStart, IsActive, CreatedBy)
+  MaxParticipants, PricePerSession, RequiredPlanFeature,
+  IsActive, CreatedBy)
 VALUES
   -- Open access, no plan required — Practice Net 1, 11am-1pm, max 3
   ('Practice Net 1 (Open)',
-   'facility_only', 'none', 2, 1, 3, 0.00, 'none', '2026-04-10', 1, 1),
+  'facility_only', 'none', 2, 1, 3, 0.00, 'none', 1, 1),
 
   -- Facility-access plan required — Bowling Machine, 1pm-3pm, max 1 (testing FULL state)
   ('Bowling Machine Session',
-   'facility_only', 'none', 3, 3, 1, 0.00, 'facility_access', '2026-04-10', 1, 1),
+    'facility_only', 'none', 3, 3, 1, 0.00, 'facility_access', 1, 1),
 
   -- Facility-access plan required — Indoor Training Hall, 3pm-5pm, max 8
   ('Indoor Hall Access',
-   'facility_only', 'none', 4, 5, 8, 0.00, 'facility_access', '2026-04-10', 1, 1),
+    'facility_only', 'none', 4, 5, 8, 0.00, 'facility_access', 1, 1),
 
   -- Open access, no plan required — Practice Net 2, 5pm-7pm, max 3
   ('Practice Net 2 (Evening)',
-   'facility_only', 'none', 5, 2, 3, 0.00, 'none', '2026-04-10', 1, 1),
+    'facility_only', 'none', 5, 2, 3, 0.00, 'none', 1, 1),
 
   -- Private coaching — needs private_sessions plan, max 1, LKR 1500
   ('Private 1-on-1 Coaching',
-   'private', 'coach', 4, 1, 1, 1500.00, 'private_sessions', '2026-04-10', 1, 1);
+    'private', 'coach', 4, 1, 1, 1500.00, 'private_sessions', 1, 1);
 
 -- ─────────────────────────────────────────────────────────────
 -- 2. PLAYER SUBSCRIPTIONS

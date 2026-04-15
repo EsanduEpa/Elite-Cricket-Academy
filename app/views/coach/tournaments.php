@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.players.forEach(player => {
                         const option = document.createElement('option');
                         option.value = player.PlayerID;
-                        option.textContent = player.Name || `Player ${player.PlayerID}`;
+                        option.textContent = player.PlayerName || `Player ${player.PlayerID}`;
                         playerSelect.appendChild(option);
                     });
                 }

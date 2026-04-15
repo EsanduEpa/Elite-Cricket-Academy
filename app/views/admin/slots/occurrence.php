@@ -22,6 +22,10 @@
 <?php
 $occ  = $data['occurrence'];
 $staff = $data['staff'];
+$dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+$occDay = (int) date('N', strtotime($occ->OccurrenceDate));
+$templateDay = (int) ($occ->TemplateDayOfWeek ?? 0);
+$dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
 ?>
 
 <div class="admin-layout">
@@ -71,8 +75,9 @@ $staff = $data['staff'];
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Ad-hoc Session</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px; max-width:900px;">
@@ -83,12 +88,19 @@ $staff = $data['staff'];
             <?php if ($data['success']): ?>
                 <div class="alert-success"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($data['success']) ?></div>
             <?php endif; ?>
+            <?php if ($dayMismatch): ?>
+                <div class="alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This occurrence falls on <?= htmlspecialchars(date('l', strtotime($occ->OccurrenceDate))) ?>, but the template is set for <?= htmlspecialchars($dayNames[$templateDay] ?? 'a different day') ?>.
+                </div>
+            <?php endif; ?>
 
             <!-- ── Occurrence Details ── -->
             <div class="detail-card">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
                     <h2 style="margin:0;font-size:18px;color:#2c3e50;">
-                        <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Ad-hoc Session</em>' ?>
+                        <?php if (!empty($occ->TemplateCode)): ?><span style="display:block;font-size:11px;letter-spacing:.4px;color:#6c757d;margin-bottom:4px;">#<?= htmlspecialchars($occ->TemplateCode) ?></span><?php endif; ?>
+                        <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Academy Event</em>' ?>
                     </h2>
                     <?php
                     $statusClass = 'occ-status-' . $occ->Status;
@@ -97,6 +109,10 @@ $staff = $data['staff'];
                 </div>
 
                 <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">Template Code</div>
+                        <div class="detail-value"><?= htmlspecialchars($occ->TemplateCode ?? '—') ?></div>
+                    </div>
                     <div>
                         <div class="detail-label">Date</div>
                         <div class="detail-value"><?= date('l, j F Y', strtotime($occ->OccurrenceDate)) ?></div>
@@ -141,7 +157,7 @@ $staff = $data['staff'];
                 <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;"><i class="fas fa-users"></i> Assigned Staff</h3>
                 <?php if (empty($staff)): ?>
                     <p style="color:#888;font-size:13px;margin:0;">
-                        <?= $occ->TemplateID ? 'No staff assigned to this template yet.' : 'No staff assigned to this ad-hoc occurrence.' ?>
+                        <?= $occ->TemplateID ? 'No staff assigned to this template yet.' : 'No staff assigned to this academy event.' ?>
                     </p>
                 <?php else: ?>
                     <table style="width:100%;border-collapse:collapse;">

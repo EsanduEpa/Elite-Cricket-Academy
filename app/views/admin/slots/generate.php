@@ -42,11 +42,18 @@
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Ad-hoc Session</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px; max-width:680px;">
+
+            <?php if (!empty($data['notice'])): ?>
+                <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($data['notice']) ?>
+                </div>
+            <?php endif; ?>
 
             <?php if ($data['error']): ?>
                 <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
@@ -75,6 +82,59 @@
                 </div>
             <?php endif; ?>
 
+            <?php if (!empty($data['existingOccurrences'])): ?>
+                <?php
+                $existingOccurrences = $data['existingOccurrences'];
+                $latestOccurrence = $existingOccurrences[0];
+                $oldestOccurrence = $existingOccurrences[count($existingOccurrences) - 1];
+                ?>
+                <div style="background:#fff;border-radius:12px;padding:24px 28px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:24px;">
+                    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px;">
+                        <div>
+                            <h3 style="margin:0 0 6px;font-size:18px;color:#2c3e50;"><i class="fas fa-list"></i> Existing Generated Occurrences</h3>
+                            <p style="margin:0;font-size:13px;color:#6c757d;">This template already has generated occurrences in the system.</p>
+                        </div>
+                        <div style="font-size:12px;color:#475467;line-height:1.6;">
+                            <div><strong>Total:</strong> <?= count($existingOccurrences) ?></div>
+                            <div><strong>Duration:</strong> <?= htmlspecialchars(date('d M Y', strtotime($oldestOccurrence->OccurrenceDate))) ?> to <?= htmlspecialchars(date('d M Y', strtotime($latestOccurrence->OccurrenceDate))) ?></div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f8fafc;">
+                                    <th style="text-align:left;font-size:12px;color:#667085;padding:10px 8px;border-bottom:1px solid #e6ebf0;">Date</th>
+                                    <th style="text-align:left;font-size:12px;color:#667085;padding:10px 8px;border-bottom:1px solid #e6ebf0;">Time</th>
+                                    <th style="text-align:left;font-size:12px;color:#667085;padding:10px 8px;border-bottom:1px solid #e6ebf0;">Facility</th>
+                                    <th style="text-align:left;font-size:12px;color:#667085;padding:10px 8px;border-bottom:1px solid #e6ebf0;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach (array_slice($existingOccurrences, 0, 8) as $occurrence): ?>
+                                    <tr>
+                                        <td style="font-size:13px;color:#334155;padding:10px 8px;border-bottom:1px solid #eef2f6;"><?= htmlspecialchars(date('d M Y', strtotime($occurrence->OccurrenceDate))) ?></td>
+                                        <td style="font-size:13px;color:#334155;padding:10px 8px;border-bottom:1px solid #eef2f6;"><?= htmlspecialchars($occurrence->SlotLabel ?? (($occurrence->StartTime ?? '') . ' - ' . ($occurrence->EndTime ?? ''))) ?></td>
+                                        <td style="font-size:13px;color:#334155;padding:10px 8px;border-bottom:1px solid #eef2f6;"><?= htmlspecialchars($occurrence->FacilityName ?? '—') ?></td>
+                                        <td style="font-size:13px;color:#334155;padding:10px 8px;border-bottom:1px solid #eef2f6;"><?= htmlspecialchars(ucfirst((string)$occurrence->Status)) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <?php if (count($existingOccurrences) > 8): ?>
+                        <div style="margin-top:10px;font-size:12px;color:#667085;">
+                            Showing the latest 8 occurrences.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php elseif ((int)($data['selectedTemplateId'] ?? 0) > 0): ?>
+                <div style="background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:24px;color:#667085;font-size:13px;">
+                    <i class="fas fa-info-circle"></i> No generated occurrences exist yet for the selected template.
+                </div>
+            <?php endif; ?>
+
             <div style="background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
                 <form method="POST">
 
@@ -83,17 +143,17 @@
                         <?php if (empty($data['templates'])): ?>
                             <p style="color:#888;font-size:13px;">No active templates found. <a href="<?php echo URLROOT; ?>/adminslots/newtemplate">Create one first.</a></p>
                         <?php else: ?>
-                            <select name="template_id" required style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;color:#333;">
+                            <select name="template_id" id="templateSelect" required style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;color:#333;">
                                 <option value="">— Select a template —</option>
                                 <?php foreach ($data['templates'] as $t): ?>
                                     <option value="<?= $t->TemplateID ?>"
-                                        <?= (isset($_POST['template_id']) && $_POST['template_id'] == $t->TemplateID) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($t->TemplateName) ?>
+                                        <?= ((int)($data['selectedTemplateId'] ?? 0) === (int)$t->TemplateID) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars(($t->temp_code ?? ('T' . $t->TemplateID)) . ' — ' . $t->TemplateName) ?>
                                         <?php if ($t->DayOfWeek): ?>
                                             <?php $days = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun']; ?>
                                             — every <?= $days[(int)$t->DayOfWeek] ?>
                                         <?php else: ?>
-                                            — ad-hoc (any day)
+                                            — academy event (any day)
                                         <?php endif; ?>
                                         (<?= htmlspecialchars($t->SlotLabel ?? 'No band') ?>)
                                     </option>
@@ -133,4 +193,23 @@
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('templateSelect');
+    if (!templateSelect) {
+        return;
+    }
+
+    templateSelect.addEventListener('change', function() {
+        const templateId = templateSelect.value;
+        const url = new URL('<?php echo URLROOT; ?>/adminslots/generate', window.location.origin);
+
+        if (templateId) {
+            url.searchParams.set('template_id', templateId);
+        }
+
+        window.location.href = url.toString();
+    });
+});
+</script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

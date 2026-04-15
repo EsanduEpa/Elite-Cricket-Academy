@@ -438,7 +438,7 @@ function displaySessionDetails(session) {
             ${session.participants && session.participants.length > 0 ? 
                 session.participants.map(p => `
                     <div class="player-attendance-item">
-                        <span class="player-name">${p.Name}</span>
+                        <span class="player-name">${p.Name || (p.FirstName + ' ' + p.LastName)}</span>
                         <span class="attendance-status ${(p.AttendanceStatus || 'pending').toLowerCase()}">
                             ${p.AttendanceStatus || 'Pending'}
                         </span>

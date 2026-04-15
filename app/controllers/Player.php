@@ -18,6 +18,7 @@ class Player extends Controller {
         $this->productModel = $this->model('M_Product');
         $this->trainerModel = $this->model('M_Trainer');
         $this->slotPlayerModel = $this->model('M_SlotPlayer');
+        require_once APPROOT . '/libraries/SlotBookingService.php';
     }
     
     private function requireLogin() {
@@ -50,9 +51,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6),
             'coachSessions' => $coachSessions
         ];
 
@@ -73,9 +71,6 @@ class Player extends Controller {
             'calendarEvents' => $this->buildDashboardCalendarEvents(),
             'rentalsDue' => $this->getRentalsDue(),
             'paymentsDue' => $this->getPaymentsDue(),
-            'performanceStats' => $this->getPerformanceStats(),
-            'battingStats' => $this->model('M_Performance')->getBattingStatsForPlayer($_SESSION['user_id'] ?? 6),
-            'bowlingStats' => $this->model('M_Performance')->getBowlingStatsForPlayer($_SESSION['user_id'] ?? 6)
         ];
 
         $this->view('player/dashboard', $data);
@@ -483,12 +478,18 @@ class Player extends Controller {
     
     // Payment History
     public function payments() {
+        $recentPayments = $this->formatRecentSubscriptionPayments($this->getMonthlyFees());
+        $upcomingPayments = $this->formatUpcomingSubscriptionPayments($this->getUpcomingPayments());
+
         $data = [
             'title' => 'Payment History',
             'player' => $this->getPlayerData(),
             'monthlyFees' => $this->getMonthlyFees(),
             'eventFees' => $this->getEventFees(),
-            'upcomingPayments' => $this->getUpcomingPayments()
+            'upcomingPayments' => $this->getUpcomingPayments(),
+            'recent_payments' => $recentPayments,
+            'upcoming_payments' => $upcomingPayments,
+            'payment_methods' => $this->getPaymentMethodsList(),
         ];
         $this->view('player/payments', $data);
     }
@@ -499,21 +500,26 @@ class Player extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
 
         $tournaments = $M_Tournament->getPublicTournaments();
         $myRequests  = [];
+        $eligibility = [];
         foreach ($tournaments as $t) {
             $req = $M_JoinRequest->getRequestByPlayer($t->TournamentID, $playerId);
             if ($req) {
                 $myRequests[$t->TournamentID] = $req;
             }
+
+            $eligibility[$t->TournamentID] = $this->getTournamentEligibility($playerData, $t);
         }
 
         $data = [
             'title'       => 'Tournaments',
-            'player'      => $this->getPlayerData(),
+            'player'      => $playerData,
             'tournaments' => $tournaments,
             'my_requests' => $myRequests,
+            'eligibility' => $eligibility,
         ];
         $this->view('player/tournaments/index', $data);
     }
@@ -524,6 +530,7 @@ class Player extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
 
         $tournament = $M_Tournament->getTournamentById($id);
         if (!$tournament) {
@@ -533,10 +540,11 @@ class Player extends Controller {
 
         $data = [
             'title'      => $tournament->Name,
-            'player'     => $this->getPlayerData(),
+            'player'     => $playerData,
             'tournament' => $tournament,
             'team'       => $tournament->IsTeamAnnounced ? $M_Tournament->getTeam($id) : [],
             'my_request' => $M_JoinRequest->getRequestByPlayer($id, $playerId),
+            'eligibility'=> $this->getTournamentEligibility($playerData, $tournament),
         ];
         $this->view('player/tournaments/detail', $data);
     }
@@ -547,8 +555,27 @@ class Player extends Controller {
             redirect('player/tournaments');
         }
         $id            = (int)$id;
+        $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $playerId      = $_SESSION['user_id'];
+        $playerData    = $this->getPlayerData();
+
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            flash('tournament_message', 'Tournament not found.', 'alert alert-danger');
+            redirect('player/tournaments');
+        }
+
+        if ($tournament->Status !== 'registration_open') {
+            flash('tournament_message', 'Registration is not currently open for this tournament.', 'alert alert-warning');
+            redirect('player/tournament_detail/' . $id);
+        }
+
+        $eligibility = $this->getTournamentEligibility($playerData, $tournament);
+        if (!$eligibility['eligible']) {
+            flash('tournament_message', $eligibility['message'], 'alert alert-danger');
+            redirect('player/tournament_detail/' . $id);
+        }
 
         if ($M_JoinRequest->hasExistingRequest($id, $playerId)) {
             flash('tournament_message', 'You have already submitted a join request for this tournament.', 'alert alert-warning');
@@ -571,6 +598,73 @@ class Player extends Controller {
         $M_JoinRequest->cancelByPlayer($requestId, $_SESSION['user_id']);
         flash('tournament_message', 'Your join request has been cancelled.', 'alert alert-info');
         redirect('player/tournaments');
+    }
+
+    private function getTournamentEligibility(array $playerData, $tournament): array {
+        $playerAge = $this->getPlayerAge($playerData['date_of_birth'] ?? '');
+        $tournamentAgeGroup = trim((string)($tournament->AgeGroup ?? 'Open'));
+
+        if (empty($playerData['date_of_birth']) || $playerAge === null) {
+            return [
+                'eligible' => false,
+                'message' => 'Your date of birth is missing or invalid. Update your profile before applying for age-group tournaments.',
+                'player_age' => null,
+                'player_age_group' => 'Unknown',
+                'tournament_age_group' => $tournamentAgeGroup,
+            ];
+        }
+
+        $playerAgeGroup = $this->userModel->getAgeGroupForDateOfBirth((string)$playerData['date_of_birth']);
+
+        if ($tournamentAgeGroup === '' || strcasecmp($tournamentAgeGroup, 'Open') === 0) {
+            return [
+                'eligible' => true,
+                'message' => 'You are eligible for this open tournament.',
+                'player_age' => $playerAge,
+                'player_age_group' => $playerAgeGroup,
+                'tournament_age_group' => 'Open',
+            ];
+        }
+
+        if (preg_match('/under\s*(\d+)/i', $tournamentAgeGroup, $matches)) {
+            $ageLimit = (int)$matches[1];
+            $eligible = $playerAge !== null && $playerAge < $ageLimit;
+
+            return [
+                'eligible' => $eligible,
+                'message' => $eligible
+                    ? 'Eligible: your age matches the ' . $tournamentAgeGroup . ' requirement.'
+                    : 'Not eligible: this tournament is for ' . $tournamentAgeGroup . ' players, and you do not meet that age requirement.',
+                'player_age' => $playerAge,
+                'player_age_group' => $playerAgeGroup,
+                'tournament_age_group' => $tournamentAgeGroup,
+            ];
+        }
+
+        $eligible = strcasecmp($playerAgeGroup, $tournamentAgeGroup) === 0;
+
+        return [
+            'eligible' => $eligible,
+            'message' => $eligible
+                ? 'Eligible: your age group matches this tournament.'
+                : 'Not eligible: your age group does not match this tournament.',
+            'player_age' => $playerAge,
+            'player_age_group' => $playerAgeGroup,
+            'tournament_age_group' => $tournamentAgeGroup,
+        ];
+    }
+
+    private function getPlayerAge(string $dateOfBirth): ?int {
+        if ($dateOfBirth === '') {
+            return null;
+        }
+
+        try {
+            $birthDate = new DateTime($dateOfBirth);
+            return (new DateTime())->diff($birthDate)->y;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     // Equipment Rentals
@@ -791,18 +885,149 @@ class Player extends Controller {
         $this->view('player/payhere_gateway', $data);
     }
 
+    /** POST /player/facility_payhere_checkout — generate hash and auto-submit to PayHere */
+    public function facility_payhere_checkout() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('playerslots/facilities');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $playerData = $this->getPlayerData();
+        $playerId   = (int)($playerData['id'] ?? 0);
+        $occurrenceId = (int)($_POST['occurrence_id'] ?? 0);
+
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            $_SESSION['slot_error'] = 'Invalid slot selected. Please try again.';
+            redirect('playerslots/facilities');
+        }
+
+        $occurrence = null;
+        foreach ($this->slotPlayerModel->getFacilityOccurrences($playerId) as $row) {
+            if ((int)($row->OccurrenceID ?? 0) === $occurrenceId) {
+                $occurrence = $row;
+                break;
+            }
+        }
+
+        if (!$occurrence || !empty($occurrence->blocked)) {
+            $_SESSION['slot_error'] = 'Selected slot is no longer available. Please choose another one.';
+            redirect('playerslots/facilities');
+        }
+
+        $amount   = number_format((float)($occurrence->PricePerSession ?? 0), 2, '.', '');
+        $currency = 'LKR';
+
+        if ((float)$amount <= 0) {
+            $_SESSION['slot_error'] = 'This facility slot has no configured payment amount. Please contact admin to set the price before booking.';
+            redirect('playerslots/facilities');
+        }
+
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+        $orderId    = 'ELITE-FAC-' . $playerId . '-' . $occurrenceId . '-' . time();
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        $_SESSION['payhere_pending_facility_booking'] = [
+            'order_id'      => $orderId,
+            'occurrence_id'  => $occurrenceId,
+            'player_id'     => $playerId,
+            'amount'        => (float)$amount,
+        ];
+
+        $itemsLabel = trim((string)($occurrence->FacilityName ?? 'Facility Booking'));
+        if (!empty($occurrence->SlotLabel)) {
+            $itemsLabel .= ' - ' . $occurrence->SlotLabel;
+        }
+
+        $data = [
+            'title'   => 'Redirecting to PayHere...',
+            'player'  => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id'    => $orderId,
+                'amount'      => $amount,
+                'currency'    => $currency,
+                'items'       => $itemsLabel,
+                'hash'        => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url'  => URLROOT . '/player/payhere_return',
+                'cancel_url'  => URLROOT . '/player/payhere_cancel',
+                'notify_url'  => URLROOT . '/player/payhere_notify',
+                'first_name'  => $nameParts[0] ?? 'Player',
+                'last_name'   => $nameParts[1] ?? '',
+                'email'       => $playerData['email'],
+                'phone'       => $playerData['phone'] ?: '0000000000',
+                'address'     => $playerData['address'] ?: 'N/A',
+                'city'        => 'Colombo',
+                'country'     => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+
     /** GET /player/payhere_return — PayHere browser redirect on payment success */
     public function payhere_return() {
+        $playerData = $this->getPlayerData();
+        $orderId    = htmlspecialchars($_GET['order_id'] ?? '');
+        $message    = 'Your order has been placed successfully.';
+        $primaryUrl = URLROOT . '/player/shopping';
+        $primaryLabel = 'Continue Shopping';
+        $secondaryUrl = URLROOT . '/player';
+        $secondaryLabel = 'Dashboard';
+
+        $pendingFacilityBooking = $_SESSION['payhere_pending_facility_booking'] ?? null;
+        if (is_array($pendingFacilityBooking) && !empty($pendingFacilityBooking['order_id'])
+            && ($orderId === '' || $pendingFacilityBooking['order_id'] === $orderId)) {
+            $occurrenceId = (int)($pendingFacilityBooking['occurrence_id'] ?? 0);
+            $amount       = max(0.0, (float)($pendingFacilityBooking['amount'] ?? 0));
+
+            if ($occurrenceId > 0) {
+                $bookingResult = $this->slotPlayerModel->createBooking(
+                    $occurrenceId,
+                    (int)$playerData['id'],
+                    'self',
+                    (int)$playerData['id'],
+                    null,
+                    $amount,
+                    'payhere',
+                    'paid',
+                    1
+                );
+
+                if ($bookingResult === true || $bookingResult === 'duplicate') {
+                    $message = 'Your facility booking has been confirmed successfully.';
+                    $primaryUrl = URLROOT . '/playerslots/bookings';
+                    $primaryLabel = 'View My Bookings';
+                    $secondaryUrl = URLROOT . '/playerslots/facilities';
+                    $secondaryLabel = 'Back to Facilities';
+                } else {
+                    $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
+                }
+            }
+
+            unset($_SESSION['payhere_pending_facility_booking']);
+            unset($_SESSION['payhere_pending_order']);
+        }
+
         $data = [
             'title'    => 'Payment Successful',
-            'player'   => $this->getPlayerData(),
-            'order_id' => htmlspecialchars($_GET['order_id'] ?? ''),
+            'player'   => $playerData,
+            'order_id' => $orderId,
+            'message'  => $message,
+            'primary_url' => $primaryUrl,
+            'primary_label' => $primaryLabel,
+            'secondary_url' => $secondaryUrl,
+            'secondary_label' => $secondaryLabel,
         ];
         $this->view('player/payhere_return', $data);
     }
 
     /** GET /player/payhere_cancel — PayHere browser redirect when user cancels */
     public function payhere_cancel() {
+        unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_order']);
+
         $data = [
             'title'  => 'Payment Cancelled',
             'player' => $this->getPlayerData(),
@@ -998,11 +1223,30 @@ class Player extends Controller {
         $paymentModel = $this->model('M_Payment');
         return $paymentModel->getRentalPaymentsDue($playerId);
     }
+
+    private function getPaymentModelWithInitializedMembershipPayments() {
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $paymentModel = $this->model('M_Payment');
+        $paymentModel->ensureInitialPendingMembershipPayment($playerId);
+
+        return $paymentModel;
+    }
     
     private function getPaymentsDue() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
-        return $paymentModel->getUpcomingPayments($playerId);
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
+        $payments = $paymentModel->getUpcomingPayments($playerId);
+
+        return array_map(function ($payment) {
+            return [
+                'type' => 'Membership Pending',
+                'amount' => 'Rs. ' . number_format((float)($payment->Amount ?? 0), 2),
+                'due_date' => $payment->DueDate ?? date('Y-m-d'),
+                'message' => !empty($payment->Notes)
+                    ? $payment->Notes
+                    : 'Pay to experience the whole academy services.',
+            ];
+        }, $payments);
     }
     
     private function getTrainingSessions() {
@@ -1040,7 +1284,7 @@ class Player extends Controller {
     
     private function getMonthlyFees() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
         return $paymentModel->getPaymentHistory($playerId);
     }
     
@@ -1053,8 +1297,81 @@ class Player extends Controller {
     
     private function getUpcomingPayments() {
         $playerId = $_SESSION['user_id'] ?? 6;
-        $paymentModel = $this->model('M_Payment');
+        $paymentModel = $this->getPaymentModelWithInitializedMembershipPayments();
         return $paymentModel->getUpcomingPayments($playerId);
+    }
+
+    private function formatRecentSubscriptionPayments(array $payments): array {
+        $recentPayments = [];
+
+        foreach ($payments as $payment) {
+            if (($payment->Status ?? '') === 'pending' || empty($payment->PaymentDate)) {
+                continue;
+            }
+
+            $recentPayments[] = [
+                'date' => $payment->PaymentDate,
+                'description' => ucfirst((string)($payment->PlanName ?? 'Membership')) . ' Membership Fee',
+                'details' => !empty($payment->PaymentReference)
+                    ? 'Reference: ' . $payment->PaymentReference
+                    : 'Subscription payment recorded successfully.',
+                'amount' => (float)($payment->Amount ?? 0),
+                'method_type' => ($payment->PaymentMethod ?? '') === 'bank_transfer' ? 'bank' : 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($payment->PaymentMethod ?? 'online')),
+                'status' => ucfirst((string)($payment->Status ?? 'completed')),
+                'status_class' => ($payment->Status ?? 'completed') === 'completed' ? 'paid' : strtolower((string)$payment->Status),
+            ];
+        }
+
+        return $recentPayments;
+    }
+
+    private function formatUpcomingSubscriptionPayments(array $payments): array {
+        $upcomingPayments = [];
+
+        foreach ($payments as $payment) {
+            $upcomingPayments[] = [
+                'due_date' => $payment->DueDate ?? date('Y-m-d'),
+                'description' => 'Membership Pending',
+                'details' => !empty($payment->Notes)
+                    ? $payment->Notes
+                    : 'Pay to experience the whole academy services.',
+                'amount' => (float)($payment->Amount ?? 0),
+                'method_type' => ($payment->PaymentMethod ?? '') === 'bank_transfer' ? 'bank' : 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($payment->PaymentMethod ?? 'online')),
+                'status' => 'Pending',
+                'status_class' => 'pending',
+            ];
+        }
+
+        return $upcomingPayments;
+    }
+
+    private function formatPaymentMethodLabel(string $paymentMethod): string {
+        return match ($paymentMethod) {
+            'bank_transfer' => 'Bank Transfer',
+            'cash' => 'Cash',
+            'card' => 'Card',
+            'online' => 'Online Payment',
+            default => ucfirst(str_replace('_', ' ', $paymentMethod ?: 'online')),
+        };
+    }
+
+    private function getPaymentMethodsList(): array {
+        return [
+            [
+                'icon' => 'credit-card',
+                'color' => '#4A90E2',
+                'name' => 'PayHere Online Payment',
+                'details' => 'Use online payments to settle your pending membership fee and unlock full academy services.',
+            ],
+            [
+                'icon' => 'money-bill-wave',
+                'color' => '#16A34A',
+                'name' => 'Counter Payment',
+                'details' => 'You can also complete membership payments at the academy counter through the shop staff.',
+            ],
+        ];
     }
     
     // Tournament helper methods
@@ -1183,6 +1500,8 @@ class Player extends Controller {
         if (!$userProfile) {
             $userProfile = (object) [
                 'UserID' => $userId,
+                'FirstName' => '',
+                'LastName' => '',
                 'Name' => $_SESSION['user_name'] ?? 'Unknown User',
                 'Email' => $_SESSION['user_email'] ?? '',
                 'PhoneNumber' => '',
@@ -1211,7 +1530,7 @@ class Player extends Controller {
     private function isProfileComplete($userProfile) {
         // Check if essential player profile fields are filled
         $essentialFields = [
-            'Name', 'Email', 'PhoneNumber', 'Address'
+            'FirstName', 'LastName', 'Email', 'PhoneNumber', 'Address'
         ];
         
         foreach ($essentialFields as $field) {
@@ -1244,7 +1563,8 @@ class Player extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number']),
                 'address' => trim($_POST['address']),
@@ -1255,8 +1575,11 @@ class Player extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -1277,7 +1600,7 @@ class Player extends Controller {
                 // Update basic user info
                 if ($userModel->updateUser($userData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     // Add role-specific profile data
@@ -1332,7 +1655,8 @@ class Player extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
                 'phone_number' => trim($_POST['phone_number']),
                 'address' => trim($_POST['address']),
@@ -1343,8 +1667,11 @@ class Player extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -1359,7 +1686,7 @@ class Player extends Controller {
                 // Update basic user info
                 if ($userModel->updateUser($userData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     // Update role-specific profile data

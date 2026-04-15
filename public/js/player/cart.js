@@ -486,8 +486,11 @@ function proceedToCheckout() {
 // Close checkout modal
 function closeCheckoutModal() {
     const modal = document.getElementById('checkoutModal');
-    if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
+    if (modal) {
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+    document.body.classList.remove('modal-open');
 }
 
 // Complete order
@@ -506,7 +509,11 @@ function completeOrder() {
     const orderSuccessModal = document.getElementById('orderSuccessModal');
 
     if (orderNumberEl) orderNumberEl.textContent = orderNumber;
-    if (orderSuccessModal) orderSuccessModal.style.display = 'flex';
+    if (orderSuccessModal) {
+        orderSuccessModal.classList.add('app-modal--visible');
+        orderSuccessModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+    }
 
     loadCart();
     updateCartSummary();
@@ -515,9 +522,12 @@ function completeOrder() {
 // Close order success modal
 function closeOrderSuccessModal() {
     const modal = document.getElementById('orderSuccessModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('app-modal--visible');
+        modal.setAttribute('aria-hidden', 'true');
+    }
 
-    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
 
     const urlRoot = getCartUrlRoot();
     window.location.href = urlRoot ? `${urlRoot}/player` : '/player';
@@ -553,8 +563,29 @@ function showNotification(message, type = 'info') {
 }
 
 // Modal close handlers
+document.addEventListener('click', function(event) {
+    const closeTrigger = event.target.closest('[data-cart-close]');
+    if (closeTrigger) {
+        if (closeTrigger.dataset.cartClose === 'checkoutModal') {
+            closeCheckoutModal();
+        } else if (closeTrigger.dataset.cartClose === 'orderSuccessModal') {
+            closeOrderSuccessModal();
+        }
+        return;
+    }
+
+    const actionTrigger = event.target.closest('[data-cart-action]');
+    if (actionTrigger) {
+        if (actionTrigger.dataset.cartAction === 'complete-order') {
+            completeOrder();
+        } else if (actionTrigger.dataset.cartAction === 'view-order-history') {
+            viewOrderHistory();
+        }
+    }
+});
+
 window.addEventListener('click', function(event) {
-    if (event.target && event.target.classList && event.target.classList.contains('modal')) {
+    if (event.target && event.target.classList && event.target.classList.contains('app-modal')) {
         if (event.target.id === 'checkoutModal') {
             closeCheckoutModal();
         } else if (event.target.id === 'orderSuccessModal') {

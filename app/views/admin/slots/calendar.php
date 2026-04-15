@@ -10,6 +10,7 @@
 .cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
 .cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
 .cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
+.cal-mismatch  { background:#f8d7da; color:#721c24; border-left:3px solid #c0392b; }
 </style>
 
 <div class="admin-layout">
@@ -47,7 +48,7 @@
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/adminslots/adhoc" style="padding:9px 18px;border-radius:8px;background:#9b59b6;color:#fff;text-decoration:none;font-size:14px;font-weight:600;">
-                        <i class="fas fa-plus"></i> Ad-hoc Session
+                        <i class="fas fa-plus"></i> Academy Event
                     </a>
                 </div>
             </div>
@@ -58,8 +59,9 @@
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Ad-hoc Session</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px;">
@@ -83,12 +85,18 @@
                 </a>
             </div>
 
+            <?php if (isset($_GET['generated'])): ?>
+                <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                    <i class="fas fa-check-circle"></i> Successfully generated <strong><?= (int)($_GET['count'] ?? 0) ?></strong> occurrence(s). They are now visible on the calendar below.
+                </div>
+            <?php endif; ?>
+
             <!-- Legend -->
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;font-size:12px;">
                 <span style="background:#cce5ff;color:#004085;padding:3px 10px;border-radius:10px;">Program</span>
                 <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:10px;">Private</span>
                 <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;">Facility Only</span>
-                <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Ad-hoc</span>
+                <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Academy Event</span>
                 <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
             </div>
 
@@ -125,10 +133,15 @@
                                     <div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">—</div>
                                 <?php else: ?>
                                     <?php foreach ($occs as $occ):
+                                        $occDay = (int) date('N', strtotime($occ->OccurrenceDate));
+                                        $templateDay = (int) ($occ->TemplateDayOfWeek ?? 0);
+                                        $dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
                                         if ($occ->Status === 'cancelled') {
                                             $cls = 'cal-cancelled';
                                         } elseif ($occ->TemplateID === null) {
                                             $cls = 'cal-adhoc';
+                                        } elseif ($dayMismatch) {
+                                            $cls = 'cal-mismatch';
                                         } else {
                                             $map = ['program'=>'cal-program','private'=>'cal-private','facility_only'=>'cal-facility'];
                                             $cls = $map[$occ->SlotType] ?? 'cal-program';
@@ -138,7 +151,10 @@
                                        style="display:block;text-decoration:none;">
                                         <div class="cal-card <?= $cls ?>">
                                             <div style="font-weight:700;margin-bottom:2px;">
-                                                <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Ad-hoc</em>' ?>
+                                                <?php if (!empty($occ->TemplateCode)): ?>
+                                                    <span style="display:block;font-size:10px;letter-spacing:.4px;color:inherit;opacity:.7;">#<?= htmlspecialchars($occ->TemplateCode) ?></span>
+                                                <?php endif; ?>
+                                                <?= $occ->TemplateName ? htmlspecialchars($occ->TemplateName) : '<em>Academy Event</em>' ?>
                                             </div>
                                             <div><?= htmlspecialchars($occ->SlotLabel ?? '—') ?></div>
                                             <?php if ($occ->FacilityName): ?>
@@ -146,6 +162,11 @@
                                             <?php endif; ?>
                                             <?php if ($occ->StaffNames): ?>
                                                 <div style="opacity:.75;margin-top:2px;"><i class="fas fa-user" style="font-size:10px;"></i> <?= htmlspecialchars($occ->StaffNames) ?></div>
+                                            <?php endif; ?>
+                                            <?php if ($dayMismatch): ?>
+                                                <div style="margin-top:4px;font-size:11px;font-weight:700;">
+                                                    <i class="fas fa-exclamation-triangle"></i> Date does not match template weekday
+                                                </div>
                                             <?php endif; ?>
                                             <div style="margin-top:3px;">
                                                 <i class="fas fa-users" style="font-size:10px;"></i> <?= (int)$occ->BookingCount ?> booked

@@ -174,7 +174,21 @@ class Shop extends Controller {
 
         $facilities = $this->shopModel->getAllFacilities();
         $facilityStats = $this->shopModel->getFacilityStats();
-        $sessionModel = $this->model('M_Session');
+        $slotModel = $this->model('M_SlotPlayer');
+        $slotBookings = $slotModel->getFacilityOnlyBookingsForCounter(0, 0);
+        $todaysBookings = array_map(function($booking) {
+            $row = new stdClass();
+            $row->FacilityBookingID = (int) ($booking->BookingID ?? 0);
+            $row->facility_name = (string) ($booking->FacilityName ?? 'Unknown Facility');
+            $row->player_name = (string) ($booking->PlayerName ?? 'Unknown Player');
+            $row->player_email = (string) ($booking->PlayerEmail ?? 'N/A');
+            $row->StartTime = $booking->StartTime ?? null;
+            $row->EndTime = $booking->EndTime ?? null;
+            $row->TotalCost = (float) ($booking->AmountCharged ?? 0);
+            $row->Location = (string) ($booking->FacilityName ?? 'N/A');
+            $row->Status = (string) ($booking->Status ?? 'confirmed');
+            return $row;
+        }, $slotBookings);
 
         $data = [
             'title' => 'Facility Management - Elite Cricket Gear',
@@ -183,7 +197,7 @@ class Shop extends Controller {
             'totalFacilities' => $facilityStats->total_facilities ?? 0,
             'availableFacilities' => $facilityStats->available_facilities ?? 0,
             'todaysBookingCount' => $this->shopModel->getTodaysFacilityBookings(),
-            'todaysBookings' => $sessionModel->getTodaysFacilityBookings(),
+            'todaysBookings' => $todaysBookings,
             'facilitiesInMaintenance' => $this->shopModel->getFacilitiesInMaintenance(),
             'todaysRevenue' => $this->shopModel->getTodaysFacilityRevenue()
         ];
@@ -366,9 +380,10 @@ class Shop extends Controller {
             // Update basic user info
             $userData = [
                 'user_id' => $userId,
-                'name' => trim($_POST['name']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'email' => trim($_POST['email']),
-                'phone_number' => trim($_POST['phone_number']),
+                'phone_number' => trim($_POST['phone_number'] ?? $_POST['phone'] ?? ''),
                 'address' => trim($_POST['address']),
                 'school' => trim($_POST['school']),
                 'role' => $_SESSION['user_role'], // Keep current role
@@ -377,8 +392,11 @@ class Shop extends Controller {
             
             // Validate data
             $errors = [];
-            if (empty($userData['name'])) {
-                $errors[] = 'Name is required';
+            if (empty($userData['firstName'])) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($userData['lastName'])) {
+                $errors[] = 'Last name is required';
             }
             if (empty($userData['email'])) {
                 $errors[] = 'Email is required';
@@ -390,7 +408,7 @@ class Shop extends Controller {
             if (empty($errors)) {
                 if ($userModel->updateUser($userData)) {
                     // Update session data
-                    $_SESSION['user_name'] = $userData['name'];
+                    $_SESSION['user_name'] = trim($userData['firstName'] . ' ' . $userData['lastName']);
                     $_SESSION['user_email'] = $userData['email'];
                     
                     flash('profile_message', 'Profile updated successfully');
@@ -949,11 +967,13 @@ class Shop extends Controller {
 
         $slotModel = $this->model('M_SlotPlayer');
         $slots     = $slotModel->getCounterSlots();
+        $facilityBookings = $slotModel->getFacilityOnlyBookingsForCounter();
 
         $this->view('shop/counter_booking', [
             'title' => 'Counter Slot Booking',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
             'slots'  => $slots,
+            'facilityBookings' => $facilityBookings,
         ]);
     }
 
@@ -1032,6 +1052,41 @@ class Shop extends Controller {
             'not_found'   => 'Session not found.',
             'active_injury' => 'Player has an active medical flag — direct to Admin.',
             'error'       => 'An unexpected error occurred. Please try again.',
+        ];
+        $_SESSION['counter_error'] = $messages[$result] ?? $messages['error'];
+        redirect('shop/counter');
+    }
+
+    public function updateFacilityBookingStatus() {
+        requireAuth(['ShopEmployee']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('shop/counter');
+        }
+
+        $bookingId = (int) ($_POST['booking_id'] ?? 0);
+        $status = trim((string) ($_POST['booking_status'] ?? ''));
+        $shopEmployeeId = (int) ($_SESSION['user_id'] ?? 0);
+
+        if ($bookingId <= 0 || $status === '') {
+            $_SESSION['counter_error'] = 'Please select a valid facility booking status.';
+            redirect('shop/counter');
+        }
+
+        $slotModel = $this->model('M_SlotPlayer');
+        $result = $slotModel->updateFacilityBookingStatus($bookingId, $status, $shopEmployeeId);
+
+        if ($result === true) {
+            $_SESSION['counter_success'] = 'Facility booking status updated successfully.';
+            redirect('shop/counter');
+        }
+
+        $messages = [
+            'not_found' => 'The selected facility booking could not be found.',
+            'not_allowed' => 'Only facility-only slot bookings can be updated here.',
+            'locked' => 'Cancelled bookings cannot be changed here.',
+            'invalid_status' => 'That booking status is not allowed.',
+            'error' => 'Could not update the facility booking status. Please try again.',
         ];
         $_SESSION['counter_error'] = $messages[$result] ?? $messages['error'];
         redirect('shop/counter');

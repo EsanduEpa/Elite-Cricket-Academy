@@ -9,11 +9,20 @@
 $plan   = $data['plan'];
 $old    = $data['old']    ?? [];       // repopulated after failed submit
 $errors = $data['errors'] ?? [];
+$templates = $data['nutrition_templates'] ?? [];
 
 // Helper: return old (post) value if available, otherwise DB value
 $val = function(string $k, string $dbCol = '') use ($old, $plan) {
     if (isset($old[$k])) return htmlspecialchars($old[$k], ENT_QUOTES);
-    $col = $dbCol ?: $k;
+    $col = $dbCol;
+    if (!$col) {
+        // Special case: plan_name can map to PlanName or nutritionPlanName
+        if ($k === 'plan_name') {
+            $col = isset($plan->PlanName) ? 'PlanName' : 'nutritionPlanName';
+        } else {
+            $col = $k;
+        }
+    }
     return htmlspecialchars($plan->$col ?? '', ENT_QUOTES);
 };
 $err = fn(string $k) => $errors[$k] ?? '';
@@ -152,25 +161,57 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
 
                 <form method="POST"
                       action="<?php echo URLROOT; ?>/nutrition/update/<?php echo (int)$plan->PlanID; ?>"
+                      data-template-endpoint="<?php echo URLROOT; ?>/nutrition/template/"
                       novalidate>
 
-                                        <!-- Row 1: Plan + Assignment Type -->
+                    <!-- Row 1: Template + Plan Name -->
                     <div class="nc-field-row">
 
                         <div class="nc-field">
-                            <label for="plan_name">
-                                <i class="fas fa-tag"></i> Plan
+                            <label for="template_id">
+                                <i class="fas fa-layer-group"></i> Template
                                 <span class="req">*</span>
                             </label>
-                            <?php $currentPlanName = $old['plan_name'] ?? ($plan->PlanName ?? $plan->nutritionPlanName ?? ''); ?>
-                            <select id="plan_name" name="plan_name" class="form-control<?php echo $cls('plan_name'); ?>">
-                                <option value="">— Select a predefined plan —</option>
-                                <?php foreach (($data['plan_options'] ?? []) as $opt): ?>
-                                    <option value="<?php echo htmlspecialchars($opt, ENT_QUOTES); ?>" <?php echo $currentPlanName === $opt ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($opt); ?>
+                            <?php
+                                $currentTemplateId = (int)($old['template_id'] ?? ($plan->TemplateID ?? 0));
+                                if ($currentTemplateId <= 0) {
+                                    $currentPlanName = trim((string)($plan->PlanName ?? $plan->nutritionPlanName ?? ''));
+                                    foreach ($templates as $template) {
+                                        if (strcasecmp(trim((string)$template->PlanName), $currentPlanName) === 0) {
+                                            $currentTemplateId = (int)$template->TemplateID;
+                                            break;
+                                        }
+                                    }
+                                }
+                            ?>
+                            <select id="template_id" name="template_id" class="form-control<?php echo $cls('template_id'); ?>" data-template-select>
+                                <option value="">— Select a predefined template —</option>
+                                <?php foreach ($templates as $template): ?>
+                                    <option value="<?php echo (int)$template->TemplateID; ?>" <?php echo $currentTemplateId === (int)$template->TemplateID ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($template->PlanName); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if ($err('template_id')): ?>
+                                <span class="invalid-feedback">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <?php echo htmlspecialchars($err('template_id')); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="nc-field">
+                            <label for="plan_name">
+                                <i class="fas fa-tag"></i> Plan Name
+                                <span class="req">*</span>
+                            </label>
+                            <input type="text"
+                                   id="plan_name"
+                                   name="plan_name"
+                                   class="form-control<?php echo $cls('plan_name'); ?>"
+                                   value="<?php echo $val('plan_name'); ?>"
+                                   maxlength="150"
+                                   placeholder="e.g. Tournament Recovery Plan">
                             <?php if ($err('plan_name')): ?>
                                 <span class="invalid-feedback">
                                     <i class="fas fa-exclamation-circle"></i>
@@ -198,7 +239,65 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
 
                     </div>
 
-                    <!-- Row 2: Assignment Target -->
+                    <!-- Row 2: Macro breakdown -->
+                    <div class="nc-field-row third">
+                        <div class="nc-field">
+                            <label for="protein_percentage">
+                                <i class="fas fa-drumstick-bite"></i> Protein %
+                                <span class="req">*</span>
+                            </label>
+                            <input type="number" id="protein_percentage" name="protein_percentage" class="form-control<?php echo $cls('protein_percentage'); ?>" value="<?php echo $val('protein_percentage', 'ProteinPercentage'); ?>" min="0" max="100" step="0.01" placeholder="40">
+                            <?php if ($err('protein_percentage')): ?>
+                                <span class="invalid-feedback"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($err('protein_percentage')); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="nc-field">
+                            <label for="carbohydrate_percentage">
+                                <i class="fas fa-bread-slice"></i> Carbohydrate %
+                                <span class="req">*</span>
+                            </label>
+                            <input type="number" id="carbohydrate_percentage" name="carbohydrate_percentage" class="form-control<?php echo $cls('carbohydrate_percentage'); ?>" value="<?php echo $val('carbohydrate_percentage', 'CarbohydratePercentage'); ?>" min="0" max="100" step="0.01" placeholder="35">
+                            <?php if ($err('carbohydrate_percentage')): ?>
+                                <span class="invalid-feedback"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($err('carbohydrate_percentage')); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="nc-field">
+                            <label for="fat_percentage">
+                                <i class="fas fa-oil-can"></i> Fat %
+                                <span class="req">*</span>
+                            </label>
+                            <input type="number" id="fat_percentage" name="fat_percentage" class="form-control<?php echo $cls('fat_percentage'); ?>" value="<?php echo $val('fat_percentage', 'FatPercentage'); ?>" min="0" max="100" step="0.01" placeholder="25">
+                            <?php if ($err('fat_percentage')): ?>
+                                <span class="invalid-feedback"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($err('fat_percentage')); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Calories + Description -->
+                    <div class="nc-field-row full">
+                        <div class="nc-field">
+                            <label for="recommended_calories">
+                                <i class="fas fa-fire"></i> Recommended Calories
+                                <span class="req">*</span>
+                            </label>
+                            <input type="number" id="recommended_calories" name="recommended_calories" class="form-control<?php echo $cls('recommended_calories'); ?>" value="<?php echo $val('recommended_calories', 'RecommendedCalories'); ?>" min="500" max="10000" step="1" placeholder="2400">
+                            <?php if ($err('recommended_calories')): ?>
+                                <span class="invalid-feedback"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($err('recommended_calories')); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="nc-field">
+                            <label for="description">
+                                <i class="fas fa-align-left"></i> Description / Guidelines
+                            </label>
+                            <textarea id="description" name="description" class="form-control<?php echo $cls('description'); ?>" rows="4" placeholder="Add notes or guidelines for this customized plan."><?php echo $val('description', 'Description'); ?></textarea>
+                            <?php if ($err('description')): ?>
+                                <span class="invalid-feedback"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($err('description')); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Assignment Target -->
                     <div class="nc-field-row full nc-assignment-grid">
                         <div class="nc-field">
                             <label>
@@ -274,7 +373,7 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
                         </div>
                     </div>
 
-                    <!-- Row 3: Notes -->
+                    <!-- Row 5: Notes -->
                     <div class="nc-field-row full">
                         <div class="nc-field">
                             <label for="notes">
@@ -295,7 +394,7 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
                         </div>
                     </div>
 
-                    <!-- Row 3: Duration + Status + Created Date -->
+                    <!-- Row 6: Duration + Status + Created Date -->
                     <div class="nc-field-row third">
 
                         <div class="nc-field">
@@ -403,6 +502,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const form = document.querySelector('form');
+    const templateSelect = document.getElementById('template_id');
+    const templateEndpoint = form ? (form.dataset.templateEndpoint || '') : '';
     const assignmentMode = document.getElementById('assignment_mode');
     const individualPanel = document.getElementById('individualAssignmentPanel');
     const groupPanel = document.getElementById('groupAssignmentPanel');
@@ -414,6 +515,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const playerCheckboxes = Array.from(document.querySelectorAll('input[name="player_ids[]"]'));
     const selectAllBtn = document.getElementById('selectAllPlayersBtn');
     const clearBtn = document.getElementById('clearPlayersBtn');
+    const nutritionFieldIds = [
+        'plan_name',
+        'protein_percentage',
+        'carbohydrate_percentage',
+        'fat_percentage',
+        'recommended_calories',
+        'description',
+    ];
 
     function setPickerOpen(isOpen) {
         if (!pickerPanel || !pickerTrigger || !picker) return;
@@ -461,6 +570,53 @@ document.addEventListener('DOMContentLoaded', function () {
         picker.appendChild(error);
     }
 
+    function clearNutritionFields() {
+        nutritionFieldIds.forEach(function (id) {
+            const field = document.getElementById(id);
+            if (field) {
+                field.value = '';
+            }
+        });
+    }
+
+    function populateTemplate(template) {
+        if (!template) {
+            clearNutritionFields();
+            return;
+        }
+
+        const mappings = {
+            plan_name: template.plan_name || '',
+            protein_percentage: template.protein_percentage || '',
+            carbohydrate_percentage: template.carbohydrate_percentage || '',
+            fat_percentage: template.fat_percentage || '',
+            recommended_calories: template.recommended_calories || '',
+            description: template.description || '',
+        };
+
+        Object.keys(mappings).forEach(function (id) {
+            const field = document.getElementById(id);
+            if (field) {
+                field.value = mappings[id];
+            }
+        });
+    }
+
+    async function loadSelectedTemplate(templateId) {
+        if (!templateEndpoint || !templateId) {
+            clearNutritionFields();
+            return;
+        }
+
+        const response = await fetch(templateEndpoint + encodeURIComponent(templateId));
+        const payload = await response.json();
+        if (!response.ok || !payload.success || !payload.template) {
+            throw new Error(payload.message || 'Unable to load nutrition template.');
+        }
+
+        populateTemplate(payload.template);
+    }
+
     function syncAssignmentMode() {
         const mode = assignmentMode ? assignmentMode.value : 'individual';
         if (individualPanel) individualPanel.hidden = mode !== 'individual';
@@ -471,6 +627,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (assignmentMode) {
         assignmentMode.addEventListener('change', syncAssignmentMode);
         syncAssignmentMode();
+    }
+
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function () {
+            loadSelectedTemplate(this.value).catch(function (error) {
+                console.error(error);
+            });
+        });
     }
 
     if (pickerTrigger && pickerPanel) {
@@ -528,15 +692,33 @@ document.addEventListener('DOMContentLoaded', function () {
             valid = false;
         }
 
+        const templateId  = templateSelect ? templateSelect.value.trim() : '';
         const planName    = document.getElementById('plan_name').value.trim();
         const mode        = assignmentMode ? assignmentMode.value : 'individual';
         const groupValue  = document.getElementById('player_group') ? document.getElementById('player_group').value : '';
         const selectedPlayers = playerCheckboxes.filter(input => input.checked).map(input => input.value).filter(Boolean);
         const notes       = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
+        const protein     = document.getElementById('protein_percentage').value.trim();
+        const carbs       = document.getElementById('carbohydrate_percentage').value.trim();
+        const fat         = document.getElementById('fat_percentage').value.trim();
+        const calories    = document.getElementById('recommended_calories').value.trim();
+        const description = document.getElementById('description').value.trim();
         const duration    = document.getElementById('duration').value.trim();
         const createdDate = document.getElementById('created_date').value.trim();
 
-        if (!planName) addError('plan_name', 'Please select a plan.');
+        if (!templateId) addError('template_id', 'Please select a nutrition template.');
+        if (!planName) addError('plan_name', 'Plan name is required.');
+        if (!protein || isNaN(protein) || +protein < 0 || +protein > 100) addError('protein_percentage', 'Enter a valid percentage between 0 and 100.');
+        if (!carbs || isNaN(carbs) || +carbs < 0 || +carbs > 100) addError('carbohydrate_percentage', 'Enter a valid percentage between 0 and 100.');
+        if (!fat || isNaN(fat) || +fat < 0 || +fat > 100) addError('fat_percentage', 'Enter a valid percentage between 0 and 100.');
+        if (protein && carbs && fat && !isNaN(protein) && !isNaN(carbs) && !isNaN(fat)) {
+            const total = (+protein) + (+carbs) + (+fat);
+            if (Math.abs(total - 100) > 0.01) {
+                addError('fat_percentage', 'Protein (' + protein + '%) + Carbohydrate (' + carbs + '%) + Fat (' + fat + '%) = ' + total.toFixed(2) + '%. They must total exactly 100%.');
+            }
+        }
+        if (!calories || isNaN(calories) || +calories < 500 || +calories > 10000) addError('recommended_calories', 'Calories must be between 500 and 10000.');
+        if (description.length > 2000) addError('description', 'Description must be 2000 characters or fewer.');
         if (mode === 'group') {
             if (!groupValue) addError('player_group', 'Please select a player group.');
         } else if (!selectedPlayers.length) {

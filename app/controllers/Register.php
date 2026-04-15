@@ -44,10 +44,12 @@ class Register extends Controller {
             // === FORM SUBMISSION - PROCESS REGISTRATION ===
             // Process form - sanitize input data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            $this->storeRegistrationDraft($_POST);
 
             $data = [
                 // USER INPUT VALUES - trim() removes leading/trailing whitespace
-                'fullName' => trim($_POST['fullName']),
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
                 'dateOfBirth' => trim($_POST['dateOfBirth']),
                 'address' => trim($_POST['address']),
                 'email' => trim($_POST['email']),
@@ -60,7 +62,8 @@ class Register extends Controller {
                 'form_err' => '',
                 
                 // ERROR MESSAGE PLACEHOLDERS - Start empty, filled if validation fails
-                'fullName_err' => '',
+                'firstName_err' => '',
+                'lastName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',
                 'email_err' => '',
@@ -74,10 +77,16 @@ class Register extends Controller {
             ];
 
             // === STEP 3: VALIDATION - Check all input fields ===
-            if(empty($data['fullName'])) {
-                $data['fullName_err'] = 'Please enter your full name';
-            } elseif(strlen($data['fullName']) < 2) {
-                $data['fullName_err'] = 'Please enter your full name (at least 2 characters)';
+            if(empty($data['firstName'])) {
+                $data['firstName_err'] = 'Please enter your first name';
+            } elseif(strlen($data['firstName']) < 2) {
+                $data['firstName_err'] = 'First name must be at least 2 characters';
+            }
+
+            if(empty($data['lastName'])) {
+                $data['lastName_err'] = 'Please enter your last name';
+            } elseif(strlen($data['lastName']) < 2) {
+                $data['lastName_err'] = 'Last name must be at least 2 characters';
             }
 
             if(empty($data['dateOfBirth'])) {
@@ -124,16 +133,12 @@ class Register extends Controller {
             if(empty($data['contactNumber'])) {
                 $data['contactNumber_err'] = 'Please enter your contact number';
             } else {
-                // PHONE FORMAT VALIDATION (Sri Lankan format: 10 digits starting with 0)
-                // Remove all non-numeric characters to count actual digits
+                // PHONE FORMAT VALIDATION: exactly 10 digits and must start with 0
                 $phone = preg_replace('/[^0-9]/', '', $data['contactNumber']);
-                if(strlen($phone) < 10) {
-                    $data['contactNumber_err'] = 'Contact number must be at least 10 digits';
-                // Allow only numbers, +, -, spaces, and parentheses for formatting
-                } elseif(!preg_match('/^[0-9+\-\s()]+$/', $data['contactNumber'])) {
-                    $data['contactNumber_err'] = 'Please enter a valid phone number';
-                } elseif(strlen($phone) > 15) {
-                    $data['contactNumber_err'] = 'Contact number cannot exceed 15 digits';
+                if(!preg_match('/^0[0-9]{9}$/', $phone)) {
+                    $data['contactNumber_err'] = 'Contact number must be exactly 10 digits and start with 0';
+                } else {
+                    $data['contactNumber'] = $phone;
                 }
             }
 
@@ -193,7 +198,7 @@ class Register extends Controller {
 
             // === STEP 4: CHECK IF VALIDATION PASSED ===
             // If all _err fields are empty, validation passed
-            if(empty($data['fullName_err']) && empty($data['dateOfBirth_err']) && 
+                if(empty($data['firstName_err']) && empty($data['lastName_err']) && empty($data['dateOfBirth_err']) && 
                empty($data['address_err']) && empty($data['email_err']) && 
                empty($data['contactNumber_err']) && empty($data['school_err']) && 
                empty($data['username_err']) && empty($data['password_err']) && 
@@ -206,6 +211,8 @@ class Register extends Controller {
                 // Call model's register() method which executes INSERT query
                 // Returns the new UserID if successful, false if failed
                 if($userId = $this->userModel->register($data)) {
+                    $this->clearRegistrationDraft();
+
                     // === REGISTRATION SUCCESSFUL ===
                     
                     // STEP 7: CREATE PLAYER PROFILE (Optional - enhances user experience)
@@ -220,13 +227,25 @@ class Register extends Controller {
 
                     // STEP 7b: CREATE PLAYER SUBSCRIPTION
                     try {
-                        $subscriptionCreated = $this->userModel->createPlayerSubscription(
+                        $subscriptionId = $this->userModel->createPlayerSubscription(
                             $userId,
                             (int)$data['membershipPlan'],
                             $selectedPlan->MonthlyFee
                         );
 
-                        if ($subscriptionCreated) {
+                        if ($subscriptionId) {
+                            if ($this->userModel->planUsesRecurringBilling($selectedPlan)) {
+                                $pendingPaymentCreated = $this->userModel->createPendingSubscriptionPayment(
+                                    (int)$subscriptionId,
+                                    (float)$selectedPlan->MonthlyFee,
+                                    'Membership is pending. Pay to experience the whole academy services.'
+                                );
+
+                                if (!$pendingPaymentCreated) {
+                                    error_log('Initial pending membership payment could not be created for subscription #' . $subscriptionId);
+                                }
+                            }
+
                             $assigned = $this->userModel->autoAssignSkillCoachesAndPrograms(
                                 $userId,
                                 (int)$data['membershipPlan']
@@ -287,8 +306,9 @@ class Register extends Controller {
             // === GET REQUEST - DISPLAY REGISTRATION FORM ===
             // User is visiting the page for the first time
             // Initialize empty data array to avoid undefined variable errors in view
-            $data = [
-                'fullName' => '',
+            $data = array_merge([
+                'firstName' => '',
+                'lastName' => '',
                 'dateOfBirth' => '',
                 'address' => '',
                 'email' => '',
@@ -299,7 +319,8 @@ class Register extends Controller {
                 'confirmPassword' => '',
                 'membershipPlan' => '',
                 'form_err' => '',
-                'fullName_err' => '',
+                'firstName_err' => '',
+                'lastName_err' => '',
                 'dateOfBirth_err' => '',
                 'address_err' => '',
                 'email_err' => '',
@@ -310,11 +331,170 @@ class Register extends Controller {
                 'confirmPassword_err' => '',
                 'membershipPlan_err' => '',
                 'membershipPlans' => $membershipPlans
-            ];
+            ], $this->getRegistrationDraft());
+
+            $data['password'] = '';
+            $data['confirmPassword'] = '';
+            $data['membershipPlans'] = $membershipPlans;
 
             // Load view
             $this->view('v_register', $data);
         }
+    }
+
+    public function payment_portal() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('register');
+        }
+
+        $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $this->storeRegistrationDraft($_POST);
+
+        $membershipPlans = $this->userModel->getActiveMembershipPlans();
+        $selectedPlanId = (int)($_POST['membershipPlan'] ?? 0);
+        $selectedPlan = $selectedPlanId > 0 ? $this->userModel->getMembershipPlanById($selectedPlanId) : null;
+
+        if (!$selectedPlan) {
+            $data = [
+                'firstName' => trim($_POST['firstName'] ?? ''),
+                'lastName' => trim($_POST['lastName'] ?? ''),
+                'dateOfBirth' => trim($_POST['dateOfBirth'] ?? ''),
+                'address' => trim($_POST['address'] ?? ''),
+                'email' => trim($_POST['email'] ?? ''),
+                'contactNumber' => trim($_POST['contactNumber'] ?? ''),
+                'school' => trim($_POST['school'] ?? ''),
+                'username' => trim($_POST['username'] ?? ''),
+                'password' => '',
+                'confirmPassword' => '',
+                'membershipPlan' => trim($_POST['membershipPlan'] ?? ''),
+                'form_err' => '',
+                'firstName_err' => '',
+                'lastName_err' => '',
+                'dateOfBirth_err' => '',
+                'address_err' => '',
+                'email_err' => '',
+                'contactNumber_err' => '',
+                'school_err' => '',
+                'username_err' => '',
+                'password_err' => '',
+                'confirmPassword_err' => '',
+                'membershipPlan_err' => 'Please select a membership plan before continuing to payment.',
+                'membershipPlans' => $membershipPlans
+            ];
+
+            $this->view('v_register', $data);
+            return;
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $orderId = 'ELITE-REG-' . $selectedPlan->PlanID . '-' . time();
+        $amount = number_format((float)$selectedPlan->MonthlyFee, 2, '.', '');
+
+        $firstName = trim($_POST['firstName'] ?? 'Guest');
+        $lastName = trim($_POST['lastName'] ?? 'Registration');
+        $email = trim($_POST['email'] ?? 'guest@elite.local');
+        $phone = preg_replace('/[^0-9]/', '', trim($_POST['contactNumber'] ?? ''));
+        $address = trim($_POST['address'] ?? 'Elite Cricket Academy');
+
+        if ($firstName === '') {
+            $firstName = 'Guest';
+        }
+
+        if ($lastName === '') {
+            $lastName = 'Registration';
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $email = 'guest@elite.local';
+        }
+
+        if ($phone === '') {
+            $phone = '0000000000';
+        }
+
+        $_SESSION['register_payment_plan_id'] = (int)$selectedPlan->PlanID;
+        $_SESSION['register_payment_order_id'] = $orderId;
+
+        $data = [
+            'title' => 'Redirecting to PayHere...',
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'currency' => 'LKR',
+                'items' => ucfirst((string)$selectedPlan->PlanName) . ' Membership Plan',
+                'hash' => PayHere::buildHash($orderId, $amount, 'LKR'),
+                'return_url' => URLROOT . '/register/payhere_return',
+                'cancel_url' => URLROOT . '/register/payhere_cancel',
+                'notify_url' => URLROOT . '/register/payhere_notify',
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'phone' => $phone,
+                'address' => $address,
+                'city' => 'Colombo',
+                'country' => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+
+    public function payhere_return() {
+        flash('register_payment', 'Payment completed. You can now finish creating your account.', 'alert alert-success');
+        redirect('register');
+    }
+
+    public function payhere_cancel() {
+        flash('register_payment', 'Payment was cancelled. You can select a plan and try again.', 'alert alert-warning');
+        redirect('register');
+    }
+
+    public function payhere_notify() {
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $logFile = APPROOT . '/../payhere_notify_log.txt';
+        $orderId = $_POST['order_id'] ?? 'unknown';
+        $amount = $_POST['payhere_amount'] ?? '';
+        $currency = $_POST['payhere_currency'] ?? '';
+        $statusCode = $_POST['status_code'] ?? '';
+
+        if (PayHere::verifyNotify($_POST)) {
+            PayHere::log($logFile, "REGISTER PAYMENT SUCCESS order={$orderId} amount={$amount} {$currency}");
+            http_response_code(200);
+            echo 'OK';
+            return;
+        }
+
+        PayHere::log($logFile, "REGISTER PAYMENT FAILED order={$orderId} status={$statusCode}");
+        http_response_code(400);
+        echo 'INVALID';
+    }
+
+    private function storeRegistrationDraft(array $source): void {
+        $_SESSION['register_form_draft'] = [
+            'firstName' => trim((string)($source['firstName'] ?? '')),
+            'lastName' => trim((string)($source['lastName'] ?? '')),
+            'dateOfBirth' => trim((string)($source['dateOfBirth'] ?? '')),
+            'address' => trim((string)($source['address'] ?? '')),
+            'email' => trim((string)($source['email'] ?? '')),
+            'contactNumber' => trim((string)($source['contactNumber'] ?? '')),
+            'school' => trim((string)($source['school'] ?? '')),
+            'username' => trim((string)($source['username'] ?? '')),
+            'membershipPlan' => trim((string)($source['membershipPlan'] ?? '')),
+        ];
+    }
+
+    private function getRegistrationDraft(): array {
+        return is_array($_SESSION['register_form_draft'] ?? null)
+            ? $_SESSION['register_form_draft']
+            : [];
+    }
+
+    private function clearRegistrationDraft(): void {
+        unset($_SESSION['register_form_draft']);
     }
 
     /**
