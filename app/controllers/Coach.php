@@ -1289,15 +1289,11 @@ class Coach extends Controller {
      */
     public function tournament_recommendations() {
         $coachId = $_SESSION['user_id'];
-        $userModel = $this->model('M_Users');
-        $tournamentModel = $this->model('M_Tournament');
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
         
         try {
             // Get all recommendations for this coach
             $recommendations = $recommendationModel->getRecommendationsByCoach($coachId);
-            $players = $this->getCoachAssignedRecommendationPlayers($coachId);
-            $tournaments = $this->getCoachEligibleTournaments($coachId);
             
             // Get statistics
             $stats = $recommendationModel->getRecommendationStats($coachId);
@@ -1309,13 +1305,11 @@ class Coach extends Controller {
                 'title' => 'Tournament Recommendations - Coach Dashboard',
                 'coachId' => $coachId,
                 'recommendations' => $recommendations,
-                'players' => $players,
-                'tournaments' => $tournaments,
                 'stats' => $stats,
                 'pendingCount' => $pendingCount
             ];
             
-            $this->view('coach/tournament-recommendations', $data);
+            $this->view('coach/tournaments/tournament-recommendations', $data);
         } catch (Exception $e) {
             error_log('Error in tournament_recommendations: ' . $e->getMessage());
             redirect('coach/tournaments');

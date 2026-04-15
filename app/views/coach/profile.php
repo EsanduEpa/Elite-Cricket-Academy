@@ -53,10 +53,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link">
-                            <i class="fas fa-star"></i>
-                            <span>Recommendations</span>
-                        </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link">
@@ -251,12 +247,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Update Profile
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="window.location.href='<?php echo URLROOT; ?>/coach/dashboard'">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                        </div>
-                </form>
-            </div>
         </div>
     </div>
 

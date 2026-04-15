@@ -1,24 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; }
-.status-registration_open{background:#dcfce7;color:#166534;} .status-registration_closed{background:#fef9c3;color:#854d0e;}
-.panel-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:16px; overflow:hidden; }
-.panel-hdr { padding:14px 18px; border-bottom:1px solid #f1f5f9; }
-.panel-hdr h3 { margin:0; font-size:14px; color:#1e293b; font-weight:700; }
-.player-row { display:grid; grid-template-columns:36px 1fr 160px 52px; gap:10px; align-items:center; padding:10px 16px; border-bottom:1px solid #f8fafc; }
-.player-row:last-child { border-bottom:none; }
-.player-row:hover { background:#f8fafc; }
-.player-row input[type=checkbox] { width:18px; height:18px; cursor:pointer; }
-.player-row select { padding:5px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:12px; }
-.player-row .recs { font-size:11px; color:#64748b; }
-.rec-badge { display:inline-block; padding:1px 6px; border-radius:6px; font-size:10px; font-weight:700; }
-.rec-coach { background:#dbeafe; color:#1e40af; }
-.rec-trainer { background:#fce7f3; color:#9d174d; }
-.in-team { background:#f0fdf4; }
-.already-label { font-size:11px; font-weight:700; color:#16a34a; }
-.section-head { padding:10px 16px; background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; border-bottom:1px solid #e2e8f0; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -32,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link"><i class="fas fa-calendar"></i><span>Events</span></a></li>
@@ -56,7 +37,9 @@
                 <p>Select players and assign roles. Save as draft or confirm the final squad.</p>
             </div>
             <div style="padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" style="background:#64748b;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" class="page-action-btn" style="background:#64748b;color:#fff;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
             </div>
         </div>
 
@@ -118,7 +101,7 @@
                             $total  = $rec['coach'] + $rec['trainer'];
                         ?>
                         <div class="player-row <?php echo $inTeam ? 'in-team' : ''; ?>">
-                            <input type="checkbox" name="selected[]" value="<?php echo $pid; ?>" id="p<?php echo $pid; ?>" <?php echo $inTeam ? 'checked' : ''; ?> onchange="updateCount()">
+                            <input type="checkbox" name="selected[]" value="<?php echo $pid; ?>" id="p<?php echo $pid; ?>">
                             <label for="p<?php echo $pid; ?>" style="cursor:pointer;">
                                 <span style="font-weight:600;font-size:14px;"><?php echo htmlspecialchars($r->Name); ?></span>
                                 <?php if ($inTeam): ?><span class="already-label"> ✓ In squad</span><?php endif; ?>
@@ -157,7 +140,7 @@
                             $inTeam = isset($teamMap[$pid]);
                         ?>
                         <div class="player-row <?php echo $inTeam ? 'in-team' : ''; ?>">
-                            <input type="checkbox" name="selected[]" value="<?php echo $pid; ?>" id="p<?php echo $pid; ?>" <?php echo $inTeam ? 'checked' : ''; ?> onchange="updateCount()">
+                            <input type="checkbox" name="selected[]" value="<?php echo $pid; ?>" id="p<?php echo $pid; ?>">
                             <label for="p<?php echo $pid; ?>" style="cursor:pointer;">
                                 <span style="font-weight:600;font-size:14px;"><?php echo htmlspecialchars($playerName); ?></span>
                                 <?php if ($inTeam): ?><span class="already-label"> ✓ In draft</span><?php endif; ?>
@@ -187,7 +170,7 @@
                         <button type="submit" name="action" value="draft" style="width:100%;padding:10px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin-bottom:8px;font-size:14px;">
                             <i class="fas fa-pencil-alt"></i> Save as Draft
                         </button>
-                        <button type="submit" name="confirm" value="1" style="width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;" onclick="return confirm('Confirm the squad? This will lock all selections as confirmed.');">
+                        <button type="submit" name="confirm" value="1" data-confirm-message="Confirm the squad? This will lock all selections as confirmed." style="width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">
                             <i class="fas fa-check-circle"></i> Confirm Squad
                         </button>
                         <p style="font-size:12px;color:#94a3b8;margin-top:10px;">Confirming will lock selections. The admin can then publish the team announcement.</p>
@@ -211,19 +194,7 @@
     </main>
 </div>
 
-<script>
-function updateCount() {
-    const n = document.querySelectorAll('input[name="selected[]"]:checked').length;
-    document.getElementById('selectedCount').textContent = n;
-    // Dim role selects for unchecked rows
-    document.querySelectorAll('input[name="selected[]"]').forEach(cb => {
-        const row = cb.closest('.player-row');
-        const sel = row.querySelector('select');
-        if (sel) sel.style.opacity = cb.checked ? '1' : '0.4';
-    });
-}
-document.addEventListener('DOMContentLoaded', updateCount);
-</script>
+<script src="<?php echo URLROOT; ?>/js/coach-tournament-pages.js"></script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 </body>

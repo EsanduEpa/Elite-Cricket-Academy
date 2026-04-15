@@ -1,33 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.form-card { background:#fff; border-radius:12px; padding:30px; box-shadow:0 2px 10px rgba(0,0,0,.08); max-width:720px; margin-bottom:24px; }
-.form-group { margin-bottom:18px; }
-.form-group label { display:block; font-weight:600; margin-bottom:6px; color:#333; font-size:.91rem; }
-.form-group select, .form-group textarea {
-    width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px;
-    font-size:.93rem; font-family:inherit; box-sizing:border-box;
-}
-.form-group select:focus, .form-group textarea:focus {
-    outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.1);
-}
-.form-group textarea { resize:vertical; min-height:90px; }
-.btn { padding:10px 22px; border-radius:8px; border:none; cursor:pointer; font-size:.93rem; font-weight:600; text-decoration:none; display:inline-block; }
-.btn-primary   { background:#3b82f6; color:#fff; }
-.btn-secondary { background:#6c757d; color:#fff; }
-.tournament-info { background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 8px 8px 0; padding:14px 18px; margin-bottom:24px; }
-.tournament-info h4 { margin:0 0 4px; font-size:.95rem; color:#1e3a8a; }
-.tournament-info p  { margin:0; font-size:.85rem; color:#555; }
-.player-card { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f1f5f9; }
-.player-card:last-child { border-bottom:none; }
-.rec-badge { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
-.recs-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
-.recs-table th { padding:8px 12px; background:#f8fafc; color:#64748b; font-size:12px; font-weight:600; text-align:left; border-bottom:1px solid #e2e8f0; }
-.recs-table td { padding:8px 12px; border-bottom:1px solid #f8fafc; color:#374151; }
-.recs-table tr:last-child td { border-bottom:none; }
-.alert-success { padding:12px 16px; border-radius:8px; background:#d1fae5; color:#065f46; margin-bottom:16px; }
-.alert-error   { padding:12px 16px; border-radius:8px; background:#fee2e2; color:#991b1b; margin-bottom:16px; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -41,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
             </ul>
         </nav>
         <div class="profile-section">

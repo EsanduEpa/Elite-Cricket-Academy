@@ -1,22 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; }
-.status-created{background:#e2e8f0;color:#475569;} .status-registration_open{background:#dcfce7;color:#166534;}
-.status-registration_closed{background:#fef9c3;color:#854d0e;} .status-team_announced{background:#dbeafe;color:#1e40af;}
-.status-ongoing{background:#fde68a;color:#92400e;} .status-completed{background:#d1fae5;color:#065f46;} .status-cancelled{background:#fee2e2;color:#991b1b;}
-.panel-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:16px; overflow:hidden; }
-.panel-hdr { padding:14px 18px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
-.panel-hdr h3 { margin:0; font-size:14px; color:#1e293b; font-weight:700; }
-.data-table { width:100%; border-collapse:collapse; font-size:13px; }
-.data-table th { padding:9px 14px; text-align:left; color:#64748b; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-weight:600; font-size:12px; }
-.data-table td { padding:9px 14px; border-bottom:1px solid #f8fafc; color:#374151; vertical-align:middle; }
-.data-table tr:last-child td { border-bottom:none; }
-.badge-pending{background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-approved{background:#dcfce7;color:#166534;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-rejected{background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-confirmed{background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -30,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link"><i class="fas fa-calendar"></i><span>Events</span></a></li>
@@ -56,11 +39,16 @@
                 </p>
             </div>
             <div style="display:flex;gap:8px;padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournaments" style="background:#64748b;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+                <a href="<?php echo URLROOT; ?>/coach/tournaments" class="page-action-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Tournaments
+                </a>
                 <?php if ($data['is_head_coach'] && in_array($t->Status, ['registration_open','registration_closed'])): ?>
-                    <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" style="background:#16a34a;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-users-cog"></i> Finalize Squad</a>
+                    <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" class="page-action-btn" style="color:#16a34a;">
+                        <i class="fas fa-users-cog"></i>
+                        Finalize Squad
+                    </a>
                 <?php endif; ?>
-                <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" style="background:#3b82f6;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-star"></i> Recommend Players</a>
             </div>
         </div>
 
