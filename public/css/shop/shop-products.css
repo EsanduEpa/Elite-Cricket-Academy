@@ -200,6 +200,27 @@
     box-shadow: none;
 }
 
+/* Keep Product Management summary cards static (no hover/motion effects) */
+.summary-card,
+.summary-card::before,
+.summary-card .card-icon,
+.summary-card canvas {
+    transition: none !important;
+    animation: none !important;
+}
+
+.summary-card::before {
+    display: none !important;
+}
+
+.summary-card:hover,
+.summary-card:hover::before,
+.summary-card:hover .card-icon,
+.summary-card:hover canvas {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
 @media (max-width: 768px) {
     .data-table .table-header {
         align-items: flex-start;
