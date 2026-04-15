@@ -47,9 +47,46 @@ class Staffslots extends Controller {
 
         // Group by date for the weekly grid
         $byDate = [];
+        $dayLabels = [];
+        $attendanceAll = [];
+        $attendanceProgram = [];
+        $attendancePrivate = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $dayTs = strtotime("+{$i} days", $monTs);
+            $dateKey = date('Y-m-d', $dayTs);
+            $dayLabels[] = date('D j M', $dayTs);
+            $attendanceAll[$dateKey] = 0;
+            $attendanceProgram[$dateKey] = 0;
+            $attendancePrivate[$dateKey] = 0;
+        }
+
         foreach ($occurrences as $occ) {
             $byDate[$occ->OccurrenceDate][] = $occ;
+
+            $occDate = (string) ($occ->OccurrenceDate ?? '');
+            if (!array_key_exists($occDate, $attendanceAll)) {
+                continue;
+            }
+
+            $slotType = strtolower((string) ($occ->SlotType ?? 'program'));
+            $participantCount = $slotType === 'program'
+                ? (int) ($occ->EligiblePlayerCount ?? 0)
+                : (int) ($occ->BookingCount ?? 0);
+
+            $attendanceAll[$occDate] += $participantCount;
+            if ($slotType === 'program') {
+                $attendanceProgram[$occDate] += $participantCount;
+            } else {
+                $attendancePrivate[$occDate] += $participantCount;
+            }
         }
+
+        $attendanceValues = [
+            'all' => array_values($attendanceAll),
+            'program' => array_values($attendanceProgram),
+            'private' => array_values($attendancePrivate),
+        ];
 
         $data = [
             'title'    => 'My Sessions',
@@ -60,6 +97,14 @@ class Staffslots extends Controller {
             'nextWeek' => date('Y-m-d', strtotime('+7 days', $monTs)),
             'monTs'    => $monTs,
             'byDate'   => $byDate,
+            'attendanceChartData' => [
+                'labels' => $dayLabels,
+                'datasets' => [
+                    'all' => ['label' => 'All Sessions', 'values' => $attendanceValues['all']],
+                    'program' => ['label' => 'Program Sessions', 'values' => $attendanceValues['program']],
+                    'private' => ['label' => 'Private Sessions', 'values' => $attendanceValues['private']],
+                ],
+            ],
         ];
         $this->view('staff/slots/calendar', $data);
     }

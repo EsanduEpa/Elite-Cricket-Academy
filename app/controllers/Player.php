@@ -9,8 +9,13 @@ class Player extends Controller {
     private $slotPlayerModel;
     
     public function __construct() {
-        // Check authentication for all player pages
-        requireAuth(['Player']);
+        // PayHere server-to-server callbacks cannot carry a player browser session.
+        $urlParts = isset($_GET['url']) ? explode('/', trim((string)$_GET['url'], '/')) : [];
+        $currentMethod = $urlParts[1] ?? 'index';
+        if ($currentMethod !== 'payhere_notify') {
+            requireAuth(['Player']);
+        }
+
         // Enable database for achievement functionality
         $this->userModel = $this->model('M_Users');
         // $this->medicalModel = $this->model('M_Medical');
@@ -857,6 +862,12 @@ class Player extends Controller {
         $nameParts = explode(' ', trim($playerData['name']), 2);
 
         $_SESSION['payhere_pending_order'] = $orderId;
+        $_SESSION['payhere_pending_shop_payment'] = [
+            'order_id' => $orderId,
+            'amount'   => $amount,
+            'currency' => $currency,
+            'items'    => $itemsLabel,
+        ];
         $_SESSION['payhere_nonce']         = bin2hex(random_bytes(16));
 
         $data = [
@@ -927,6 +938,7 @@ class Player extends Controller {
         $orderId    = 'ELITE-FAC-' . $playerId . '-' . $occurrenceId . '-' . time();
 
         $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
         $_SESSION['payhere_pending_facility_booking'] = [
             'order_id'      => $orderId,
             'occurrence_id'  => $occurrenceId,
@@ -1007,7 +1019,28 @@ class Player extends Controller {
             }
 
             unset($_SESSION['payhere_pending_facility_booking']);
+            unset($_SESSION['payhere_pending_shop_payment']);
             unset($_SESSION['payhere_pending_order']);
+        } else {
+            $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
+            if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
+                $shopOrderId = (string)$pendingShopPayment['order_id'];
+                if ($orderId === '' || $orderId === $shopOrderId) {
+                    $orderId = $shopOrderId;
+                    $emailSent = $this->sendShopPaymentSuccessEmail(
+                        $shopOrderId,
+                        (string)($pendingShopPayment['amount'] ?? '0.00'),
+                        (string)($pendingShopPayment['currency'] ?? 'LKR')
+                    );
+
+                    if (!$emailSent) {
+                        error_log("Shop payment success email failed on return for order $shopOrderId");
+                    }
+
+                    unset($_SESSION['payhere_pending_shop_payment']);
+                    unset($_SESSION['payhere_pending_order']);
+                }
+            }
         }
 
         $data = [
@@ -1026,6 +1059,7 @@ class Player extends Controller {
     /** GET /player/payhere_cancel — PayHere browser redirect when user cancels */
     public function payhere_cancel() {
         unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_shop_payment']);
         unset($_SESSION['payhere_pending_order']);
 
         $data = [
@@ -1038,6 +1072,7 @@ class Player extends Controller {
     /** POST /player/payhere_notify — Server-to-server webhook from PayHere */
     public function payhere_notify() {
         require_once APPROOT . '/libraries/PayHere.php';
+        require_once APPROOT . '/libraries/Mailer.php';
 
         $logFile = APPROOT . '/../payhere_notify_log.txt';
         $orderId     = $_POST['order_id']       ?? '';
@@ -1047,7 +1082,10 @@ class Player extends Controller {
 
         if (PayHere::verifyNotify($_POST)) {
             PayHere::log($logFile, "SUCCESS order=$orderId amount=$amount $currency");
-            // TODO: mark shop order as paid in DB
+            if ($this->isShopProductPaymentOrder($orderId)) {
+                $emailSent = $this->sendShopPaymentSuccessEmail($orderId, $amount, $currency);
+                PayHere::log($logFile, 'SHOP_PAYMENT_EMAIL ' . ($emailSent ? 'SENT' : 'FAILED') . " order=$orderId");
+            }
         } else {
             PayHere::log($logFile, "UNVERIFIED/FAILED status=$statusCode order=$orderId");
         }
@@ -1055,6 +1093,108 @@ class Player extends Controller {
         http_response_code(200);
         echo 'OK';
         exit;
+    }
+
+    private function isShopProductPaymentOrder(string $orderId): bool {
+        return preg_match('/^ELITE-\d+-\d+$/', $orderId) === 1;
+    }
+
+    private function getPlayerIdFromShopOrderId(string $orderId): int {
+        if (preg_match('/^ELITE-(\d+)-\d+$/', $orderId, $matches) !== 1) {
+            return 0;
+        }
+        return (int)$matches[1];
+    }
+
+    private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
+        require_once APPROOT . '/libraries/Mailer.php';
+
+        $playerId = $this->getPlayerIdFromShopOrderId($orderId);
+        if ($playerId <= 0) {
+            error_log("Payment email skipped: could not parse player ID from order $orderId");
+            return false;
+        }
+
+        $emailModel = null;
+        try {
+            $emailModel = $this->model('M_Email');
+        } catch (Exception $e) {
+            error_log('Payment email log model unavailable: ' . $e->getMessage());
+        }
+
+        if ($emailModel && $emailModel->hasPaymentConfirmationBeenSent($orderId)) {
+            return true;
+        }
+
+        $player = $this->userModel->getUserById($playerId);
+        if (!$player || empty($player->Email)) {
+            error_log("Payment email skipped: player not found for order $orderId");
+            return false;
+        }
+
+        if (!filter_var((string)$player->Email, FILTER_VALIDATE_EMAIL)) {
+            error_log("Payment email skipped: invalid email for order $orderId");
+            if ($emailModel) {
+                $emailModel->logPaymentConfirmation(
+                    $playerId,
+                    (string)$player->Email,
+                    "Payment Confirmation - $orderId",
+                    false,
+                    'Skipped because player email is missing or invalid.'
+                );
+            }
+            return false;
+        }
+
+        $playerName = trim((string)($player->Name ?? ($player->FirstName ?? 'Player')));
+        $safeName = htmlspecialchars($playerName !== '' ? $playerName : 'Player', ENT_QUOTES, 'UTF-8');
+        $safeOrderId = htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8');
+        $safeAmount = htmlspecialchars(number_format((float)$amount, 2), ENT_QUOTES, 'UTF-8');
+        $safeCurrency = htmlspecialchars($currency ?: 'LKR', ENT_QUOTES, 'UTF-8');
+        $paidAt = date('Y-m-d H:i:s');
+
+        $subject = "Payment Confirmation - $orderId";
+        $htmlBody = '
+            <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
+                <h2 style="color: #0f766e; margin-bottom: 8px;">Payment Successful</h2>
+                <p>Hi ' . $safeName . ',</p>
+                <p>Your shop product payment has been successfully received by Elite Cricket Academy.</p>
+                <table style="border-collapse: collapse; margin: 16px 0; width: 100%; max-width: 520px;">
+                    <tr>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Order ID</td>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . $safeOrderId . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Amount</td>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . $safeCurrency . ' ' . $safeAmount . '</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Paid At</td>
+                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . htmlspecialchars($paidAt, ENT_QUOTES, 'UTF-8') . '</td>
+                    </tr>
+                </table>
+                <p>Thank you for shopping with Elite Cricket Academy.</p>
+                <p style="margin-top: 24px;">Regards,<br>Elite Cricket Academy</p>
+            </div>';
+
+        try {
+            $sent = Mailer::send((string)$player->Email, $subject, $htmlBody, $playerName);
+        } catch (Throwable $e) {
+            error_log('Payment email unexpected failure: ' . $e->getMessage());
+            $sent = false;
+        }
+
+        if ($emailModel) {
+            $emailModel->logPaymentConfirmation(
+                $playerId,
+                (string)$player->Email,
+                $subject,
+                $sent,
+                $sent ? null : 'SMTP send failed or recipient mailbox was unavailable. Check PHP error log for Mailer details.'
+            );
+        }
+
+        return $sent;
     }
 
     // Backwards-compatible route for older links

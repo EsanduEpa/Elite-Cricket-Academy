@@ -1,5 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach/players.css">
 
 <!-- Coach Dashboard Layout -->
 <div class="coach-layout">
@@ -24,12 +25,7 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Sessions</span>
-                    </a>
-                </li>
+              
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
                         <i class="fas fa-calendar-check"></i>
@@ -92,134 +88,191 @@
                         <i class="fas fa-users"></i>
                         Player Management
                     </h1>
-                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">View and manage your players</p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn-primary">
-                        <i class="fas fa-file-export"></i>
-                        Export List
-                    </button>
-                    <button class="btn-secondary">
-                        <i class="fas fa-filter"></i>
-                        Filter
-                    </button>
+                    <p class="coach-page-subtitle">View and manage your players</p>
                 </div>
             </div>
         </div>
 
         <!-- Stats Cards -->
-        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-            <div class="stat-card" style="background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div class="coach-stats-grid">
+            <div class="coach-stat-card coach-stat-card--blue">
+                <div class="coach-stat-card__content">
                     <div>
-                        <h3 style="margin: 0; font-size: 32px; font-weight: 700;"><?php echo $data['totalPlayers']; ?></h3>
-                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Total Players</p>
+                        <h3 class="coach-stat-card__value"><?php echo $data['totalPlayers']; ?></h3>
+                        <p class="coach-stat-card__label">Total Players</p>
                     </div>
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-users" style="font-size: 24px;"></i>
+                    <div class="coach-stat-card__icon">
+                        <i class="fas fa-users"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div class="coach-stat-card coach-stat-card--green">
+                <div class="coach-stat-card__content">
                     <div>
-                        <h3 style="margin: 0; font-size: 32px; font-weight: 700;"><?php echo $data['activePlayers']; ?></h3>
-                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Active Players</p>
+                        <h3 class="coach-stat-card__value"><?php echo $data['activePlayers']; ?></h3>
+                        <p class="coach-stat-card__label">Active Players</p>
                     </div>
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-user-check" style="font-size: 24px;"></i>
+                    <div class="coach-stat-card__icon">
+                        <i class="fas fa-user-check"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div class="coach-stat-card coach-stat-card--amber">
+                <div class="coach-stat-card__content">
                     <div>
-                        <h3 style="margin: 0; font-size: 32px; font-weight: 700;"><?php echo $data['inactivePlayers']; ?></h3>
-                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Inactive</p>
+                        <h3 class="coach-stat-card__value"><?php echo $data['inactivePlayers']; ?></h3>
+                        <p class="coach-stat-card__label">Inactive</p>
                     </div>
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-user-clock" style="font-size: 24px;"></i>
+                    <div class="coach-stat-card__icon">
+                        <i class="fas fa-user-clock"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div class="coach-stat-card coach-stat-card--violet">
+                <div class="coach-stat-card__content">
                     <div>
-                        <h3 style="margin: 0; font-size: 32px; font-weight: 700;"><?php echo $data['totalPlayers'] > 0 ? $data['totalPlayers'] : 0; ?></h3>
-                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Assigned to You</p>
+                        <h3 class="coach-stat-card__value"><?php echo $data['totalPlayers'] > 0 ? $data['totalPlayers'] : 0; ?></h3>
+                        <p class="coach-stat-card__label">Assigned to You</p>
                     </div>
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-chart-line" style="font-size: 24px;"></i>
+                    <div class="coach-stat-card__icon">
+                        <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
             </div>
         </div>
 
+        <?php
+        $coachAssignments = $data['coachAssignments'] ?? [];
+        $coachProfile = $data['coachProfile'] ?? null;
+        ?>
+        <div class="coach-assignment-banner">
+            <div class="coach-assignment-banner__header">
+                <div>
+                    <h2 class="coach-assignment-banner__title">Your Assignments</h2>
+                    <p class="coach-assignment-banner__subtitle">Skills and age groups mapped to your profile</p>
+                </div>
+            </div>
+            <div class="coach-assignment-badges">
+            <?php foreach ($coachAssignments as $assignment): ?>
+                <div class="coach-assignment-card">
+                    <div class="coach-assignment-label"><?php echo htmlspecialchars($assignment['skill_label']); ?></div>
+                    <div class="coach-age-group-list">
+                        <?php if (!empty($assignment['age_groups'])): ?>
+                            <?php foreach ($assignment['age_groups'] as $ageGroup): ?>
+                                <span class="coach-age-group-pill"><?php echo htmlspecialchars($ageGroup); ?></span>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <span class="coach-age-group-pill">Open</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            </div>
+        </div>
+
         <!-- Players Table -->
-        <div class="table-container" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
-            <div style="padding: 24px; border-bottom: 1px solid rgba(74, 144, 226, 0.2);">
-                <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #333;">
-                    <i class="fas fa-users" style="color: #4A90E2; margin-right: 10px;"></i>
-                    Player List
-                </h2>
+        <div class="coach-table-card">
+            <div class="coach-table-card__header">
+                <div class="coach-table-card__header-main">
+                    <h2 class="coach-table-card__title">
+                        <i class="fas fa-users"></i>
+                        Player List
+                    </h2>
+                    <p class="coach-table-card__subtitle">Search, filter, and export the players assigned to you</p>
+                </div>
+
+                <div class="coach-table-actions">
+                    <input type="text" class="coach-table-search" id="playerSearch" placeholder="Search players...">
+                    <select class="coach-table-filter" id="playerStatusFilter">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <select class="coach-table-filter" id="playerAgeGroupFilter">
+                        <option value="all">All Age Groups</option>
+                        <?php foreach (($data['ageGroups'] ?? []) as $ageGroup): ?>
+                            <option value="<?php echo htmlspecialchars(strtolower($ageGroup), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($ageGroup); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="button" class="coach-table-action-btn coach-table-action-btn--ghost" id="resetPlayerFiltersBtn">
+                        Reset
+                    </button>
+                    <button type="button" class="coach-table-action-btn coach-table-action-btn--primary" data-action="export-players">
+                        <i class="fas fa-download"></i>
+                        Export List
+                    </button>
+                </div>
             </div>
             
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead style="background: rgba(74, 144, 226, 0.1);">
+            <div class="coach-table-scroll coach-table-scroll--players">
+                <table class="coach-data-table" id="playersTable">
+                    <thead>
                         <tr>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Player</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Batting Style</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Bowling Style</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Assignment</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Contact</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid rgba(74, 144, 226, 0.2);">Status</th>
+                            <th>Player</th>
+                            <th>Batting Style</th>
+                            <th>Bowling Style</th>
+                            <th>Assignment</th>
+                            <th>Contact</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($data['players'])): ?>
                             <?php 
-                            $colors = ['#4A90E2', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-                            $i = 0;
                             foreach ($data['players'] as $player): 
-                                $initials = strtoupper(substr($player->Name, 0, 2));
-                                $color = $colors[$i % count($colors)];
-                                $i++;
+                                $playerSearchText = strtolower(trim(implode(' ', array_filter([
+                                    $player->Name ?? '',
+                                    $player->Email ?? '',
+                                    $player->BattingStyle ?? '',
+                                    $player->BowlingStyle ?? '',
+                                    $player->AssignmentType ?? '',
+                                    $player->AssignmentAgeGroups ?? '',
+                                    $player->PhoneNumber ?? '',
+                                    $player->Status ?? ''
+                                ]))));
+                                $playerStatus = strtolower(trim((string)($player->Status ?? 'unknown')));
+                                $playerAgeGroups = strtolower(trim((string)($player->AssignmentAgeGroups ?? '')));
                             ?>
-                            <tr style="border-bottom: 1px solid rgba(74, 144, 226, 0.1); transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='rgba(74,144,226,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
-                                <td style="padding: 16px;">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, <?php echo $color; ?>, <?php echo $color; ?>cc); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;"><?php echo $initials; ?></div>
-                                        <div>
-                                            <div style="font-weight: 600; color: #333;"><?php echo htmlspecialchars($player->Name); ?></div>
-                                            <div style="font-size: 12px; color: #999;"><?php echo htmlspecialchars($player->Email); ?></div>
-                                        </div>
+                            <tr data-player-search="<?php echo htmlspecialchars($playerSearchText, ENT_QUOTES, 'UTF-8'); ?>" data-player-status="<?php echo htmlspecialchars($playerStatus, ENT_QUOTES, 'UTF-8'); ?>" data-player-age-groups="<?php echo htmlspecialchars($playerAgeGroups, ENT_QUOTES, 'UTF-8'); ?>">
+                                <td>
+                                    <div class="coach-player-meta">
+                                        <div class="coach-player-meta__name"><?php echo htmlspecialchars($player->Name); ?></div>
+                                        <div class="coach-player-meta__email"><?php echo htmlspecialchars($player->Email); ?></div>
                                     </div>
                                 </td>
-                                <td style="padding: 16px;">
+                                <td>
                                     <span style="background: rgba(74, 144, 226, 0.15); color: #4A90E2; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                         <?php echo htmlspecialchars($player->BattingStyle ?? 'N/A'); ?>
                                     </span>
                                 </td>
-                                <td style="padding: 16px;">
+                                <td>
                                     <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                         <?php echo htmlspecialchars($player->BowlingStyle ?? 'N/A'); ?>
                                     </span>
                                 </td>
-                                <td style="padding: 16px;">
+                                <td>
                                     <?php 
                                     $assignColors = ['regular' => '#4A90E2', 'private' => '#8b5cf6', 'both' => '#f59e0b'];
-                                    $assignColor = $assignColors[$player->AssignmentType] ?? '#666';
+                                    $assignmentLabel = trim((string)($player->AssignmentType ?? ''));
+                                    $assignmentAgeGroups = trim((string)($player->AssignmentAgeGroups ?? ''));
+                                    $assignColor = $assignColors[$assignmentLabel] ?? '#666';
                                     ?>
-                                    <span style="background: rgba(0,0,0,0.05); color: <?php echo $assignColor; ?>; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
-                                        <?php echo htmlspecialchars($player->AssignmentType); ?>
-                                    </span>
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        <span style="background: rgba(0,0,0,0.05); color: <?php echo $assignColor; ?>; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: capitalize; width: fit-content;">
+                                            <?php echo htmlspecialchars($assignmentLabel !== '' ? $assignmentLabel : 'N/A'); ?>
+                                        </span>
+                                        <?php if ($assignmentAgeGroups !== ''): ?>
+                                            <span style="font-size: 12px; color: #666;">
+                                                Age groups: <?php echo htmlspecialchars($assignmentAgeGroups); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
-                                <td style="padding: 16px; color: #666;"><?php echo htmlspecialchars($player->PhoneNumber ?? 'N/A'); ?></td>
-                                <td style="padding: 16px;">
+                                <td style="color: #666;"><?php echo htmlspecialchars($player->PhoneNumber ?? 'N/A'); ?></td>
+                                <td>
                                     <?php if ($player->Status == 'active'): ?>
                                         <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                             <i class="fas fa-circle" style="font-size: 6px; margin-right: 6px;"></i>Active
@@ -247,43 +300,43 @@
             </div>
 
             <!-- Info -->
-            <div style="padding: 20px; border-top: 1px solid rgba(74, 144, 226, 0.2); display: flex; justify-content: space-between; align-items: center;">
-                <div style="color: #666; font-size: 14px;">
+            <div class="coach-table-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: #666; font-size: 14px;" id="playerCountLabel">
                     Showing <?php echo count($data['players']); ?> player(s) assigned to you
                 </div>
             </div>
         </div>
 
         <!-- Player Achievements Section -->
-        <div class="table-container" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; margin-top: 30px;">
-            <div style="padding: 24px; border-bottom: 1px solid rgba(74, 144, 226, 0.2);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="margin: 0; color: #333; font-size: 24px; font-weight: 700;">Player Achievements</h2>
-                        <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;">View all player achievements and milestones</p>
-                    </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button style="background: rgba(74, 144, 226, 0.1); border: none; color: #4A90E2; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                            <i class="fas fa-filter" style="margin-right: 8px;"></i>Filter
-                        </button>
-                        <button style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                            <i class="fas fa-download" style="margin-right: 8px;"></i>Export
-                        </button>
-                    </div>
+        <div class="coach-table-card">
+            <div class="coach-table-card__header">
+                <div class="coach-table-card__header-main">
+                    <h2 class="coach-table-card__title">Player Achievements</h2>
+                    <p class="coach-table-card__subtitle">View all player achievements and milestones</p>
+                </div>
+                <div class="coach-table-actions">
+                    <button type="button" class="coach-table-action-btn coach-table-action-btn--ghost">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </button>
+                    <button type="button" class="coach-table-action-btn coach-table-action-btn--primary">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
                 </div>
             </div>
 
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse;">
+            <div class="coach-table-scroll">
+                <table class="coach-data-table">
                     <thead>
                         <tr style="background: rgba(74, 144, 226, 0.05); border-bottom: 2px solid rgba(74, 144, 226, 0.2);">
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Player</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Achievement</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Match</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Tournament</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Date</th>
-                            <th style="padding: 16px; text-align: left; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Status</th>
-                            <th style="padding: 16px; text-align: center; font-weight: 700; color: #4A90E2; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Actions</th>
+                            <th>Player</th>
+                            <th>Achievement</th>
+                            <th>Match</th>
+                            <th>Tournament</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -291,14 +344,9 @@
                             <?php foreach ($data['achievements'] as $achievement): ?>
                                 <tr style="border-bottom: 1px solid rgba(74, 144, 226, 0.1); transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='rgba(74,144,226,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
                                     <td style="padding: 16px;">
-                                        <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">
-                                                <?php echo strtoupper(substr($achievement->PlayerName ?? 'NA', 0, 2)); ?>
-                                            </div>
-                                            <div>
-                                                <div style="font-weight: 600; color: #333;"><?php echo htmlspecialchars($achievement->PlayerName ?? 'Unknown'); ?></div>
-                                                <div style="font-size: 12px; color: #999;"><?php echo htmlspecialchars($achievement->PlayerEmail ?? ''); ?></div>
-                                            </div>
+                                        <div class="coach-player-meta">
+                                            <div class="coach-player-meta__name"><?php echo htmlspecialchars($achievement->PlayerName ?? 'Unknown'); ?></div>
+                                            <div class="coach-player-meta__email"><?php echo htmlspecialchars($achievement->PlayerEmail ?? ''); ?></div>
                                         </div>
                                     </td>
                                     <td style="padding: 16px;">
@@ -336,7 +384,7 @@
                                         </span>
                                     </td>
                                     <td style="padding: 16px; text-align: center;">
-                                        <button onclick="viewAchievementDetails(<?php echo $achievement->AchievementID; ?>)" style="background: rgba(74, 144, 226, 0.1); border: none; color: #4A90E2; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin: 0 4px;" title="View Details">
+                                        <button type="button" data-action="open-achievement" data-achievement-id="<?php echo (int) $achievement->AchievementID; ?>" style="background: rgba(74, 144, 226, 0.1); border: none; color: #4A90E2; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin: 0 4px;" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </td>
@@ -366,7 +414,7 @@
             <h2 style="margin: 0; font-size: 24px; font-weight: 700;">
                 <i class="fas fa-trophy" style="margin-right: 12px;"></i>Achievement Details
             </h2>
-            <button onclick="closeAchievementModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            <button type="button" data-action="close-achievement" style="background: rgba(255,255,255,0.2); border: none; color: white; min-width: 40px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; padding: 0 10px;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -377,136 +425,8 @@
 </div>
 
 <script>
-// Sidebar toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.querySelector('.main-content');
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            
-            // Update toggle icon
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('fa-angle-left');
-                icon.classList.add('fa-angle-right');
-                if (mainContent) {
-                    mainContent.style.marginLeft = '80px';
-                }
-            } else {
-                icon.classList.remove('fa-angle-right');
-                icon.classList.add('fa-angle-left');
-                if (mainContent) {
-                    mainContent.style.marginLeft = '280px';
-                }
-            }
-        });
-    }
-});
-
-// Achievement modal functions
-function viewAchievementDetails(id) {
-    const achievements = <?php echo json_encode($data['achievements'] ?? []); ?>;
-    const achievement = achievements.find(a => a.AchievementID === id);
-    
-    if (achievement) {
-        const modalBody = document.getElementById('achievementModalBody');
-        
-        let statusClass = '';
-        let statusIcon = '';
-        switch((achievement.VerifiedStatus || 'pending').toLowerCase()) {
-            case 'verified':
-                statusClass = 'background: rgba(16, 185, 129, 0.15); color: #10b981;';
-                statusIcon = 'fa-check-circle';
-                break;
-            case 'rejected':
-                statusClass = 'background: rgba(239, 68, 68, 0.15); color: #ef4444;';
-                statusIcon = 'fa-times-circle';
-                break;
-            default:
-                statusClass = 'background: rgba(245, 158, 11, 0.15); color: #f59e0b;';
-                statusIcon = 'fa-clock';
-        }
-        
-        modalBody.innerHTML = `
-            <div class="achievement-details">
-                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(74, 144, 226, 0.2);">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;">
-                            ${achievement.PlayerName ? achievement.PlayerName.substring(0, 2).toUpperCase() : 'NA'}
-                        </div>
-                        <div>
-                            <h3 style="margin: 0; color: #333; font-size: 20px;">${achievement.PlayerName || 'Unknown Player'}</h3>
-                            <p style="margin: 4px 0 0 0; color: #666;">${achievement.PlayerEmail || ''}</p>
-                            <p style="margin: 4px 0 0 0; color: #666;">${achievement.PlayerContact || ''}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="display: grid; gap: 16px;">
-                    <div style="padding: 16px; background: rgba(74, 144, 226, 0.05); border-radius: 8px;">
-                        <strong style="color: #4A90E2; display: block; margin-bottom: 8px;">Achievement</strong>
-                        <span style="color: #333; font-size: 18px; font-weight: 600;">${achievement.Achievement || 'Not specified'}</span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <strong style="color: #666; display: block; margin-bottom: 4px;">Match Name</strong>
-                            <span style="color: #333;">${achievement.MatchName || 'N/A'}</span>
-                        </div>
-                        <div>
-                            <strong style="color: #666; display: block; margin-bottom: 4px;">Tournament</strong>
-                            <span style="color: #333;">${achievement.Tournament || 'N/A'}</span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <strong style="color: #666; display: block; margin-bottom: 4px;">Date</strong>
-                            <span style="color: #333;">${new Date(achievement.Date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                        </div>
-                        <div>
-                            <strong style="color: #666; display: block; margin-bottom: 4px;">Verification Status</strong>
-                            <span style="${statusClass} padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
-                                <i class="fas ${statusIcon}" style="margin-right: 6px;"></i>${(achievement.VerifiedStatus || 'Pending').charAt(0).toUpperCase() + (achievement.VerifiedStatus || 'Pending').slice(1)}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    ${achievement.Description ? `
-                        <div style="padding: 16px; background: rgba(74, 144, 226, 0.05); border-radius: 8px;">
-                            <strong style="color: #4A90E2; display: block; margin-bottom: 8px;">Description</strong>
-                            <p style="margin: 0; color: #666; line-height: 1.6;">${achievement.Description}</p>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="padding: 12px; background: rgba(139, 92, 246, 0.05); border-radius: 8px; border-left: 4px solid #8b5cf6;">
-                        <div style="font-size: 12px; color: #8b5cf6; margin-bottom: 4px;">
-                            <i class="fas fa-clock" style="margin-right: 6px;"></i>Created
-                        </div>
-                        <div style="color: #666; font-size: 13px;">
-                            ${new Date(achievement.CreatedAt).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.getElementById('achievementModal').style.display = 'flex';
-    }
-}
-
-function closeAchievementModal() {
-    document.getElementById('achievementModal').style.display = 'none';
-}
-
-// Close modal when clicking outside
-document.getElementById('achievementModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAchievementModal();
-    }
-});
+    window.__COACH_PLAYERS_DATA = <?php echo json_encode($data['achievements'] ?? [], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
 </script>
+<script src="<?php echo URLROOT; ?>/js/coach/players.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

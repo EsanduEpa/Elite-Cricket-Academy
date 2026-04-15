@@ -96,10 +96,11 @@
                 <?php if ($data['result']): ?>
                 <div class="panel-card" style="padding:18px;">
                     <?php $res = $data['result']; ?>
-                    <div style="font-weight:800;font-size:15px;color:#065f46;margin-bottom:10px;"><i class="fas fa-medal"></i> Result</div>
-                    <div style="margin-bottom:8px;"><div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Position</div><div style="font-size:20px;font-weight:900;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
-                    <?php if ($res->OpponentInFinal): ?><div style="font-size:13px;color:#64748b;">vs <?php echo htmlspecialchars($res->OpponentInFinal); ?></div><?php endif; ?>
-                    <?php if ($res->ManName): ?><div style="margin-top:8px;font-size:13px;"><strong>Man of Tournament:</strong> <?php echo htmlspecialchars($res->ManName); ?></div><?php endif; ?>
+                        <div style="font-weight:800;font-size:15px;color:#065f46;margin-bottom:10px;"><i class="fas fa-medal"></i> Result</div>
+                        <div style="margin-bottom:8px;"><div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Position</div><div style="font-size:20px;font-weight:900;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
+                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Matches / Wins / Losses</div><div><?php echo htmlspecialchars((string)($res->TotalMatchesPlayed ?? 0)); ?> / <?php echo htmlspecialchars((string)($res->TotalWins ?? 0)); ?> / <?php echo htmlspecialchars((string)($res->TotalLosses ?? 0)); ?></div></div>
+                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Best Batsman / Bowler</div><div><?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> / <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div></div>
+                        <?php if ($res->ManName): ?><div style="grid-column:1/-1;margin-top:8px;font-size:13px;"><strong>Man of Tournament:</strong> <?php echo htmlspecialchars($res->ManName); ?></div><?php endif; ?>
                 </div>
                 <?php endif; ?>
             </div>
