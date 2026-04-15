@@ -4,8 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainContent = document.querySelector('.main-content');
     const playerSearch = document.getElementById('playerSearch');
     const playerStatusFilter = document.getElementById('playerStatusFilter');
+    const playerAgeGroupFilter = document.getElementById('playerAgeGroupFilter');
     const resetPlayerFiltersBtn = document.getElementById('resetPlayerFiltersBtn');
     const playersTable = document.getElementById('playersTable');
+    const playerCountLabel = document.getElementById('playerCountLabel');
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
@@ -35,15 +37,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const searchValue = (playerSearch ? playerSearch.value : '').trim().toLowerCase();
         const statusValue = playerStatusFilter ? playerStatusFilter.value : 'all';
+        const ageGroupValue = playerAgeGroupFilter ? playerAgeGroupFilter.value : 'all';
         const rows = playersTable.querySelectorAll('tbody tr[data-player-search]');
+        let visibleCount = 0;
 
         rows.forEach(function(row) {
             const rowSearch = (row.getAttribute('data-player-search') || '').toLowerCase();
             const rowStatus = (row.getAttribute('data-player-status') || '').toLowerCase();
+            const rowAgeGroups = (row.getAttribute('data-player-age-groups') || '').toLowerCase().split(',').map(function(item) {
+                return item.trim();
+            }).filter(Boolean);
             const matchesSearch = searchValue === '' || rowSearch.indexOf(searchValue) !== -1;
             const matchesStatus = statusValue === 'all' || rowStatus === statusValue;
-            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            const matchesAgeGroup = ageGroupValue === 'all' || rowAgeGroups.indexOf(ageGroupValue) !== -1;
+            const isVisible = matchesSearch && matchesStatus && matchesAgeGroup;
+
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) {
+                visibleCount++;
+            }
         });
+
+        if (playerCountLabel) {
+            playerCountLabel.textContent = 'Showing ' + visibleCount + ' player(s) assigned to you';
+        }
     };
 
     if (playerSearch) {
@@ -54,6 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
         playerStatusFilter.addEventListener('change', applyPlayerFilters);
     }
 
+    if (playerAgeGroupFilter) {
+        playerAgeGroupFilter.addEventListener('change', applyPlayerFilters);
+    }
+
     if (resetPlayerFiltersBtn) {
         resetPlayerFiltersBtn.addEventListener('click', function() {
             if (playerSearch) {
@@ -61,6 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (playerStatusFilter) {
                 playerStatusFilter.value = 'all';
+            }
+            if (playerAgeGroupFilter) {
+                playerAgeGroupFilter.value = 'all';
             }
             applyPlayerFilters();
         });

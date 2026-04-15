@@ -93,7 +93,7 @@
                         <i class="fas fa-star"></i>
                         Tournament Recommendations
                     </h1>
-                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">Recommend your players for upcoming tournaments</p>
+                    <p class="coach-recommendations-subtitle">Recommend your players for upcoming tournaments</p>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="newRecommendationBtn">
@@ -106,8 +106,8 @@
         <!-- Statistics Cards -->
         <div class="stats-row">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #e3f2fd;">
-                    <i class="fas fa-hourglass-half" style="color: #2196F3;"></i>
+                <div class="stat-icon stat-icon--pending">
+                    <i class="fas fa-hourglass-half"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-number"><?php echo $data['stats']['pending'] ?? 0; ?></div>
@@ -116,8 +116,8 @@
             </div>
             
             <div class="stat-card">
-                <div class="stat-icon" style="background: #e8f5e9;">
-                    <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                <div class="stat-icon stat-icon--approved">
+                    <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-number"><?php echo $data['stats']['approved'] ?? 0; ?></div>
@@ -126,8 +126,8 @@
             </div>
             
             <div class="stat-card">
-                <div class="stat-icon" style="background: #ffebee;">
-                    <i class="fas fa-times-circle" style="color: #f44336;"></i>
+                <div class="stat-icon stat-icon--rejected">
+                    <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-number"><?php echo $data['stats']['rejected'] ?? 0; ?></div>
@@ -136,8 +136,8 @@
             </div>
             
             <div class="stat-card">
-                <div class="stat-icon" style="background: #fff3e0;">
-                    <i class="fas fa-list" style="color: #FF9800;"></i>
+                <div class="stat-icon stat-icon--total">
+                    <i class="fas fa-list"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-number"><?php echo count($data['recommendations'] ?? []) ?? 0; ?></div>
@@ -361,31 +361,7 @@
 <script>
 window.APP_URLROOT = <?php echo json_encode(URLROOT); ?>;
 </script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/coach/tournament-recommendations.js"></script>
-
-<script>
-// Sidebar Toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.querySelector('.main-content');
-    
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('fa-angle-left');
-                icon.classList.add('fa-angle-right');
-                mainContent.style.marginLeft = '80px';
-            } else {
-                icon.classList.remove('fa-angle-right');
-                icon.classList.add('fa-angle-left');
-                mainContent.style.marginLeft = '280px';
-            }
-        });
-    }
-});
-</script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
