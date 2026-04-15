@@ -862,6 +862,12 @@ class Player extends Controller {
         $nameParts = explode(' ', trim($playerData['name']), 2);
 
         $_SESSION['payhere_pending_order'] = $orderId;
+        $_SESSION['payhere_pending_shop_payment'] = [
+            'order_id' => $orderId,
+            'amount'   => $amount,
+            'currency' => $currency,
+            'items'    => $itemsLabel,
+        ];
         $_SESSION['payhere_nonce']         = bin2hex(random_bytes(16));
 
         $data = [
@@ -932,6 +938,7 @@ class Player extends Controller {
         $orderId    = 'ELITE-FAC-' . $playerId . '-' . $occurrenceId . '-' . time();
 
         $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
         $_SESSION['payhere_pending_facility_booking'] = [
             'order_id'      => $orderId,
             'occurrence_id'  => $occurrenceId,
@@ -1012,7 +1019,28 @@ class Player extends Controller {
             }
 
             unset($_SESSION['payhere_pending_facility_booking']);
+            unset($_SESSION['payhere_pending_shop_payment']);
             unset($_SESSION['payhere_pending_order']);
+        } else {
+            $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
+            if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
+                $shopOrderId = (string)$pendingShopPayment['order_id'];
+                if ($orderId === '' || $orderId === $shopOrderId) {
+                    $orderId = $shopOrderId;
+                    $emailSent = $this->sendShopPaymentSuccessEmail(
+                        $shopOrderId,
+                        (string)($pendingShopPayment['amount'] ?? '0.00'),
+                        (string)($pendingShopPayment['currency'] ?? 'LKR')
+                    );
+
+                    if (!$emailSent) {
+                        error_log("Shop payment success email failed on return for order $shopOrderId");
+                    }
+
+                    unset($_SESSION['payhere_pending_shop_payment']);
+                    unset($_SESSION['payhere_pending_order']);
+                }
+            }
         }
 
         $data = [
@@ -1031,6 +1059,7 @@ class Player extends Controller {
     /** GET /player/payhere_cancel — PayHere browser redirect when user cancels */
     public function payhere_cancel() {
         unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_shop_payment']);
         unset($_SESSION['payhere_pending_order']);
 
         $data = [
@@ -1078,6 +1107,8 @@ class Player extends Controller {
     }
 
     private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
+        require_once APPROOT . '/libraries/Mailer.php';
+
         $playerId = $this->getPlayerIdFromShopOrderId($orderId);
         if ($playerId <= 0) {
             error_log("Payment email skipped: could not parse player ID from order $orderId");
