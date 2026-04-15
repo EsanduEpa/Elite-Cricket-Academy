@@ -1869,6 +1869,7 @@ class M_Users {
                         u.UserID,
                         u.Email,
                         u.PhoneNumber,
+                                                u.DateOfBirth,
                         u.Status,
                                                 COALESCE(p.BattingStyle, 'N/A') AS BattingStyle,
                                                 COALESCE(p.BowlingStyle, 'N/A') AS BowlingStyle,
@@ -1882,7 +1883,7 @@ class M_Users {
                                         JOIN user u ON psca.PlayerID = u.UserID
                     WHERE psca.CoachID = :coachId
                       AND u.Status = 'active'
-                                        GROUP BY psca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, u.Status
+                                                                                GROUP BY psca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, u.DateOfBirth, u.Status
                     ORDER BY u.FirstName ASC, u.LastName ASC"
                 );
                 $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);
@@ -1897,6 +1898,7 @@ class M_Users {
                     u.UserID,
                     u.Email,
                     u.PhoneNumber,
+                                        u.DateOfBirth,
                     u.Status,
                     COALESCE(p.BattingStyle, 'N/A') AS BattingStyle,
                     COALESCE(p.BowlingStyle, 'N/A') AS BowlingStyle,
@@ -1911,7 +1913,7 @@ class M_Users {
                 WHERE pca.CoachID = :coachId
                   AND pca.Status = 'active'
                   AND u.Status = 'active'
-                                GROUP BY pca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, pca.Status
+                                                                GROUP BY pca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, u.DateOfBirth, pca.Status
                 ORDER BY u.FirstName ASC, u.LastName ASC"
             );
             $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);

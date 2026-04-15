@@ -140,7 +140,7 @@
                     <i class="fas fa-list"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-number"><?php echo count($data['recommendations'] ?? []) ?? 0; ?></div>
+                    <div class="stat-number"><?php echo $data['stats']['total'] ?? count($data['recommendations'] ?? []); ?></div>
                     <div class="stat-label">Total</div>
                 </div>
             </div>
@@ -360,6 +360,10 @@
 
 <script>
 window.APP_URLROOT = <?php echo json_encode(URLROOT); ?>;
+window.__COACH_RECOMMENDATION_DATA = <?php echo json_encode([
+    'players' => $data['players'] ?? [],
+    'tournaments' => $data['tournaments'] ?? []
+], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
 </script>
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/coach/tournament-recommendations.js"></script>

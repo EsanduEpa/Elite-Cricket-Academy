@@ -1289,11 +1289,15 @@ class Coach extends Controller {
      */
     public function tournament_recommendations() {
         $coachId = $_SESSION['user_id'];
+        $userModel = $this->model('M_Users');
+        $tournamentModel = $this->model('M_Tournament');
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
         
         try {
             // Get all recommendations for this coach
             $recommendations = $recommendationModel->getRecommendationsByCoach($coachId);
+            $players = $this->getCoachAssignedRecommendationPlayers($coachId);
+            $tournaments = $this->getCoachEligibleTournaments($coachId);
             
             // Get statistics
             $stats = $recommendationModel->getRecommendationStats($coachId);
@@ -1305,6 +1309,8 @@ class Coach extends Controller {
                 'title' => 'Tournament Recommendations - Coach Dashboard',
                 'coachId' => $coachId,
                 'recommendations' => $recommendations,
+                'players' => $players,
+                'tournaments' => $tournaments,
                 'stats' => $stats,
                 'pendingCount' => $pendingCount
             ];
@@ -1314,6 +1320,61 @@ class Coach extends Controller {
             error_log('Error in tournament_recommendations: ' . $e->getMessage());
             redirect('coach/tournaments');
         }
+    }
+
+    private function getCoachAssignedRecommendationPlayers(int $coachId): array {
+        $userModel = $this->model('M_Users');
+        $players = $userModel->getCoachAssignedPlayers($coachId);
+
+        $filteredPlayers = [];
+        foreach ($players as $player) {
+            if ((int)($player->UserID ?? 0) <= 0 || strtolower((string)($player->Status ?? '')) !== 'active') {
+                continue;
+            }
+
+            $playerAgeGroup = $userModel->getAgeGroupForDateOfBirth((string)($player->DateOfBirth ?? ''));
+            $player->PlayerAgeGroup = $playerAgeGroup;
+            $filteredPlayers[] = $player;
+        }
+
+        return $filteredPlayers;
+    }
+
+    private function getCoachEligibleTournaments(int $coachId): array {
+        $userModel = $this->model('M_Users');
+        $tournamentModel = $this->model('M_Tournament');
+
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $eligibleAgeGroups = [];
+        foreach ($coachAssignments as $assignment) {
+            if ((int)($assignment->CoachID ?? 0) !== $coachId) {
+                continue;
+            }
+
+            $ageGroups = array_filter(array_map('trim', explode(',', (string)($assignment->AgeGroups ?? ''))));
+            foreach ($ageGroups as $ageGroup) {
+                $eligibleAgeGroups[strtolower($ageGroup)] = true;
+            }
+        }
+
+        if (empty($eligibleAgeGroups)) {
+            return [];
+        }
+
+        $tournaments = $tournamentModel->getPublicTournaments();
+        return array_values(array_filter($tournaments, function($tournament) use ($eligibleAgeGroups) {
+            $status = strtolower((string)($tournament->Status ?? ''));
+            if (in_array($status, ['completed', 'cancelled'], true)) {
+                return false;
+            }
+
+            $tournamentAgeGroup = strtolower(trim((string)($tournament->AgeGroup ?? '')));
+            if ($tournamentAgeGroup === '') {
+                return false;
+            }
+
+            return isset($eligibleAgeGroups[$tournamentAgeGroup]) || isset($eligibleAgeGroups['open']);
+        }));
     }
 
     /**
@@ -1366,6 +1427,18 @@ class Coach extends Controller {
 
         $formBack    = 'coach/recommend_players/' . $tournamentId;
         $detailPage  = 'coach/tournament_detail/' . $tournamentId;
+
+        $eligibility = $this->validateCoachRecommendationEligibility($coachId, $tournamentId, $playerId);
+        if (!$eligibility['success']) {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => $eligibility['message']]);
+                return;
+            }
+            $_SESSION['error'] = $eligibility['message'];
+            redirect('coach/tournament-recommendations');
+            return;
+        }
 
         if (!$tournamentId || !$playerId || empty($recommendedRole) || empty($reason)) {
             if ($isJsonRequest) {
@@ -1467,7 +1540,7 @@ class Coach extends Controller {
             echo json_encode(['success' => false, 'message' => 'Role is required']);
             return;
         }
-        
+
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
         
         try {
@@ -1485,6 +1558,12 @@ class Coach extends Controller {
             
             if ($recommendation->Status !== 'pending') {
                 echo json_encode(['success' => false, 'message' => 'Can only edit pending recommendations']);
+                return;
+            }
+
+            $eligibility = $this->validateCoachRecommendationEligibility($coachId, (int)$recommendation->TournamentID, (int)$recommendation->PlayerID);
+            if (!$eligibility['success']) {
+                echo json_encode(['success' => false, 'message' => $eligibility['message']]);
                 return;
             }
             
@@ -1515,6 +1594,55 @@ class Coach extends Controller {
                 'message' => 'Error: ' . $e->getMessage()
             ]);
         }
+    }
+
+    private function validateCoachRecommendationEligibility(int $coachId, int $tournamentId, int $playerId, bool $allowRecommendationIdPlayerLookup = false): array {
+        $userModel = $this->model('M_Users');
+        $tournamentModel = $this->model('M_Tournament');
+
+        $tournament = $tournamentModel->getTournamentById($tournamentId);
+        if (!$tournament) {
+            return ['success' => false, 'message' => 'Tournament not found'];
+        }
+
+        $playerAssignments = $userModel->getCoachAssignedPlayers($coachId);
+        $playerAssigned = false;
+        $playerAgeGroup = null;
+        foreach ($playerAssignments as $assignment) {
+            if ((int)($assignment->PlayerID ?? 0) === $playerId || (int)($assignment->UserID ?? 0) === $playerId) {
+                $playerAssigned = true;
+                $playerAgeGroup = (string)($assignment->PlayerAgeGroup ?? $userModel->getAgeGroupForDateOfBirth((string)($assignment->DateOfBirth ?? '')));
+                break;
+            }
+        }
+
+        if (!$playerAssigned) {
+            return ['success' => false, 'message' => 'You can only recommend players currently assigned to you'];
+        }
+
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $eligibleAgeGroups = [];
+        foreach ($coachAssignments as $assignment) {
+            if ((int)($assignment->CoachID ?? 0) !== $coachId) {
+                continue;
+            }
+
+            foreach (array_filter(array_map('trim', explode(',', (string)($assignment->AgeGroups ?? '')))) as $ageGroup) {
+                $eligibleAgeGroups[strtolower($ageGroup)] = true;
+            }
+        }
+
+        $tournamentAgeGroup = strtolower(trim((string)($tournament->AgeGroup ?? '')));
+        if ($tournamentAgeGroup === '' || (!isset($eligibleAgeGroups[$tournamentAgeGroup]) && !isset($eligibleAgeGroups['open']))) {
+            return ['success' => false, 'message' => 'You can only recommend for tournaments in your assigned age groups'];
+        }
+
+        $playerAgeGroup = strtolower(trim((string)$playerAgeGroup));
+        if ($playerAgeGroup !== '' && $playerAgeGroup !== 'open' && $tournamentAgeGroup !== 'open' && $playerAgeGroup !== $tournamentAgeGroup) {
+            return ['success' => false, 'message' => 'You can only recommend players who match the selected tournament age group'];
+        }
+
+        return ['success' => true];
     }
 
     /**
