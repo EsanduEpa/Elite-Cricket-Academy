@@ -1115,14 +1115,34 @@ class Player extends Controller {
             return false;
         }
 
-        $emailModel = $this->model('M_Email');
-        if ($emailModel->hasPaymentConfirmationBeenSent($orderId)) {
+        $emailModel = null;
+        try {
+            $emailModel = $this->model('M_Email');
+        } catch (Exception $e) {
+            error_log('Payment email log model unavailable: ' . $e->getMessage());
+        }
+
+        if ($emailModel && $emailModel->hasPaymentConfirmationBeenSent($orderId)) {
             return true;
         }
 
         $player = $this->userModel->getUserById($playerId);
         if (!$player || empty($player->Email)) {
             error_log("Payment email skipped: player not found for order $orderId");
+            return false;
+        }
+
+        if (!filter_var((string)$player->Email, FILTER_VALIDATE_EMAIL)) {
+            error_log("Payment email skipped: invalid email for order $orderId");
+            if ($emailModel) {
+                $emailModel->logPaymentConfirmation(
+                    $playerId,
+                    (string)$player->Email,
+                    "Payment Confirmation - $orderId",
+                    false,
+                    'Skipped because player email is missing or invalid.'
+                );
+            }
             return false;
         }
 
@@ -1157,14 +1177,22 @@ class Player extends Controller {
                 <p style="margin-top: 24px;">Regards,<br>Elite Cricket Academy</p>
             </div>';
 
-        $sent = Mailer::send((string)$player->Email, $subject, $htmlBody, $playerName);
-        $emailModel->logPaymentConfirmation(
-            $playerId,
-            (string)$player->Email,
-            $subject,
-            $sent,
-            $sent ? null : 'SMTP send failed. Check PHP error log for Mailer details.'
-        );
+        try {
+            $sent = Mailer::send((string)$player->Email, $subject, $htmlBody, $playerName);
+        } catch (Throwable $e) {
+            error_log('Payment email unexpected failure: ' . $e->getMessage());
+            $sent = false;
+        }
+
+        if ($emailModel) {
+            $emailModel->logPaymentConfirmation(
+                $playerId,
+                (string)$player->Email,
+                $subject,
+                $sent,
+                $sent ? null : 'SMTP send failed or recipient mailbox was unavailable. Check PHP error log for Mailer details.'
+            );
+        }
 
         return $sent;
     }
