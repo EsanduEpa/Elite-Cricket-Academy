@@ -393,6 +393,51 @@ class M_SlotPlayer {
         return $this->db->resultSet();
     }
 
+    public function getPlayerBookingsDueForReminder(int $windowStartMinutes = 55, int $windowEndMinutes = 65): array {
+        $windowStartMinutes = max(0, $windowStartMinutes);
+        $windowEndMinutes = max($windowStartMinutes, $windowEndMinutes);
+
+        $this->db->query(
+            'SELECT sb.BookingID, sb.PlayerID, sb.Status, sb.BookingSource,
+                    u.Email AS PlayerEmail,
+                    TRIM(CONCAT_WS(" ", u.FirstName, u.LastName)) AS PlayerName,
+                    so.OccurrenceID, so.OccurrenceDate,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    COALESCE(st.TemplateName, "Session") AS TemplateName,
+                    COALESCE(st.SlotType, "private") AS SlotType,
+                    COALESCE(f.Name, "Academy") AS FacilityName,
+                    IF(
+                        EXISTS (
+                            SELECT 1 FROM slot_occurrence_staff_override ov0
+                            WHERE ov0.OccurrenceID = so.OccurrenceID
+                        ),
+                        (SELECT GROUP_CONCAT(CONCAT(staff.FirstName, " ", staff.LastName) ORDER BY staff.FirstName SEPARATOR ", ")
+                         FROM slot_occurrence_staff_override ov
+                         JOIN user staff ON staff.UserID = ov.UserID
+                         WHERE ov.OccurrenceID = so.OccurrenceID),
+                        (SELECT GROUP_CONCAT(CONCAT(staff.FirstName, " ", staff.LastName) ORDER BY staff.FirstName SEPARATOR ", ")
+                         FROM slot_template_staff ts
+                         JOIN user staff ON staff.UserID = ts.UserID
+                         WHERE ts.TemplateID = so.TemplateID)
+                    ) AS StaffNames
+             FROM slot_booking sb
+             JOIN user u ON u.UserID = sb.PlayerID
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             WHERE sb.Status = "confirmed"
+               AND so.Status IN ("scheduled", "active")
+               AND TIMESTAMP(so.OccurrenceDate, tb.StartTime)
+                   BETWEEN DATE_ADD(NOW(), INTERVAL :window_start MINUTE)
+                   AND DATE_ADD(NOW(), INTERVAL :window_end MINUTE)
+             ORDER BY so.OccurrenceDate ASC, tb.StartTime ASC, sb.BookingID ASC'
+        );
+        $this->db->bind(':window_start', $windowStartMinutes, PDO::PARAM_INT);
+        $this->db->bind(':window_end', $windowEndMinutes, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     public function getAssignedProgramBookings(int $playerId, ?string $fromDate = null): array {
         $sql =
                 'SELECT sb.BookingID, sb.Status, sb.BookingSource, sb.ParticipantCount,
