@@ -12,10 +12,14 @@ class M_TournamentResult
     public function getResult($tournamentId)
     {
         $this->db->query(
-            'SELECT tr.*,
-                    CONCAT(u.FirstName, \' \', u.LastName) AS ManName
+            'SELECT tr.*, 
+                    CONCAT(u.FirstName, \' \', u.LastName) AS ManName,
+                    CONCAT(b.FirstName, \' \', b.LastName) AS BestBatsmanName,
+                    CONCAT(w.FirstName, \' \', w.LastName) AS BestBowlerName
              FROM tournament_result tr
              LEFT JOIN user u ON u.UserID = tr.ManOfTournament
+             LEFT JOIN user b ON b.UserID = tr.BestBatsman
+             LEFT JOIN user w ON w.UserID = tr.BestBowler
              WHERE tr.TournamentID = :tid'
         );
         $this->db->bind(':tid', $tournamentId);
@@ -27,24 +31,28 @@ class M_TournamentResult
     {
         $this->db->query(
             'INSERT INTO tournament_result
-             (TournamentID, Position, OpponentInFinal, MatchFormat, WonBy, ManOfTournament, SummaryNotes, EnteredBy)
-             VALUES (:tid, :position, :opponent, :format, :wonby, :man, :notes, :enteredby)
+                         (TournamentID, Position, TotalMatchesPlayed, TotalWins, TotalLosses, ManOfTournament, BestBatsman, BestBowler, SummaryNotes, EnteredBy)
+                         VALUES (:tid, :position, :matches, :wins, :losses, :man, :batsman, :bowler, :notes, :enteredby)
              ON DUPLICATE KEY UPDATE
                Position = :position,
-               OpponentInFinal = :opponent,
-               MatchFormat = :format,
-               WonBy = :wonby,
+                             TotalMatchesPlayed = :matches,
+                             TotalWins = :wins,
+                             TotalLosses = :losses,
                ManOfTournament = :man,
+                             BestBatsman = :batsman,
+                             BestBowler = :bowler,
                SummaryNotes = :notes,
                EnteredBy = :enteredby,
                UpdatedAt = NOW()'
         );
         $this->db->bind(':tid',       $data['tournament_id']);
         $this->db->bind(':position',  $data['position']);
-        $this->db->bind(':opponent',  $data['opponent_in_final'] ?? null);
-        $this->db->bind(':format',    $data['match_format'] ?? null);
-        $this->db->bind(':wonby',     $data['won_by'] ?? null);
+                $this->db->bind(':matches',   $data['total_matches_played'] ?? 0);
+                $this->db->bind(':wins',      $data['total_wins'] ?? 0);
+                $this->db->bind(':losses',    $data['total_losses'] ?? 0);
         $this->db->bind(':man',       $data['man_of_tournament'] ?? null);
+                $this->db->bind(':batsman',   $data['best_batsman'] ?? null);
+                $this->db->bind(':bowler',    $data['best_bowler'] ?? null);
         $this->db->bind(':notes',     $data['summary_notes'] ?? null);
         $this->db->bind(':enteredby', $data['entered_by']);
         return $this->db->execute();

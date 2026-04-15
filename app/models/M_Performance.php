@@ -161,7 +161,9 @@ class M_Performance {
     // Get match history for a player
     public function getMatchHistory($playerId, $limit = 20) {
         $this->db->query('SELECT pmp.*, cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, 
-            cm.OurScore, cm.OpponentScore, t.Name AS TournamentName
+            cm.Name AS MatchName, cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets,
+            cm.OpponentRuns, cm.OpponentWickets, cm.IsDLS, cm.SummaryNotes,
+            cm.OurRuns AS OurScore, cm.OpponentRuns AS OpponentScore, t.Name AS TournamentName
             FROM playermatchperformance pmp 
             JOIN crimatch cm ON pmp.MatchID = cm.MatchID 
             JOIN tournament t ON cm.TournamentID = t.TournamentID 
@@ -415,7 +417,9 @@ class M_Performance {
             'WHERE pmp.PlayerID = :player_id AND pmp.VerifiedStatus = "verified"';
         
         $this->db->query("SELECT pmp.*, 
-            cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.OurScore, cm.OpponentScore,
+            cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.Name AS MatchName,
+            cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets,
+            cm.IsDLS, cm.SummaryNotes, cm.OurRuns AS OurScore, cm.OpponentRuns AS OpponentScore,
             t.Name AS TournamentName,
             CONCAT(u1.FirstName, ' ', u1.LastName) AS AddedByName,
             CONCAT(u2.FirstName, ' ', u2.LastName) AS VerifiedByName,
@@ -437,7 +441,9 @@ class M_Performance {
     public function getPendingPerformanceStatistics($playerId = null) {
         if ($playerId) {
             $this->db->query('SELECT pmp.*, 
-                cm.Date, cm.Venue, cm.OpponentTeam, cm.Result,
+                cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.Name AS MatchName,
+                cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets,
+                cm.IsDLS, cm.SummaryNotes,
                 t.Name AS TournamentName,
                 CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
                 CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName
@@ -452,7 +458,9 @@ class M_Performance {
         } else {
             // For coaches/admins to see all pending performance records
             $this->db->query('SELECT pmp.*, 
-                cm.Date, cm.Venue, cm.OpponentTeam, cm.Result,
+                cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.Name AS MatchName,
+                cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets,
+                cm.IsDLS, cm.SummaryNotes,
                 t.Name AS TournamentName,
                 CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName,
                 CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName
@@ -504,8 +512,9 @@ public function updatePerformanceVerification($performanceId, $status, $verified
 
     // Get available matches (for dropdown when adding performance)
     public function getAvailableMatches($limit = 50) {
-        $this->db->query('SELECT cm.MatchID, cm.Date, cm.Venue, cm.OpponentTeam, 
-            t.Name AS TournamentName, cm.Result, cm.OurScore, cm.OpponentScore
+        $this->db->query('SELECT cm.MatchID, cm.Name AS MatchName, cm.Date, cm.Venue, cm.OpponentTeam, 
+            t.Name AS TournamentName, cm.Result, cm.MarginValue, cm.MarginType,
+            cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets, cm.IsDLS, cm.SummaryNotes
             FROM crimatch cm 
             JOIN tournament t ON cm.TournamentID = t.TournamentID 
             ORDER BY cm.Date DESC 
@@ -517,7 +526,9 @@ public function updatePerformanceVerification($performanceId, $status, $verified
     // Get single performance record by ID
     public function getPerformanceById($performanceId) {
         $this->db->query('SELECT pmp.*, 
-            cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.OurScore, cm.OpponentScore,
+            cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.Name AS MatchName,
+            cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets,
+            cm.IsDLS, cm.SummaryNotes, cm.OurRuns AS OurScore, cm.OpponentRuns AS OpponentScore,
             t.Name AS TournamentName, t.TournamentID,
             CONCAT(u1.FirstName, \' \', u1.LastName) AS AddedByName,
             CONCAT(u2.FirstName, \' \', u2.LastName) AS VerifiedByName

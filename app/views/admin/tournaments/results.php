@@ -78,27 +78,22 @@
                             <label>Position / Standing</label>
                             <select name="position" required>
                                 <option value="">— Select —</option>
-                                <?php foreach (['1st','2nd','3rd','Finalist','Group Stage','DNS'] as $pos): ?>
+                                <?php foreach (['super 8','super 16','3rd runners up','2nd runners up','1st runners up','champions'] as $pos): ?>
                                     <option value="<?php echo $pos; ?>" <?php echo ($res && $res->Position === $pos) ? 'selected' : ''; ?>><?php echo $pos; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Match Format</label>
-                            <select name="match_format">
-                                <option value="">— None —</option>
-                                <?php foreach (['T20','ODI','Test','Other'] as $fmt): ?>
-                                    <option value="<?php echo $fmt; ?>" <?php echo ($res && $res->MatchFormat === $fmt) ? 'selected' : ''; ?>><?php echo $fmt; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label>Total Matches Played</label>
+                            <input type="number" name="total_matches_played" min="0" value="<?php echo htmlspecialchars($res->TotalMatchesPlayed ?? '0'); ?>">
                         </div>
                         <div class="form-group">
-                            <label>Opponent in Final</label>
-                            <input type="text" name="opponent_in_final" placeholder="Opponent team name" value="<?php echo htmlspecialchars($res->OpponentInFinal ?? ''); ?>">
+                            <label>Total Wins</label>
+                            <input type="number" name="total_wins" min="0" value="<?php echo htmlspecialchars($res->TotalWins ?? '0'); ?>">
                         </div>
                         <div class="form-group">
-                            <label>Won By (margin/method)</label>
-                            <input type="text" name="won_by" placeholder="e.g. 45 runs, 5 wickets" value="<?php echo htmlspecialchars($res->WonBy ?? ''); ?>">
+                            <label>Total Losses</label>
+                            <input type="number" name="total_losses" min="0" value="<?php echo htmlspecialchars($res->TotalLosses ?? '0'); ?>">
                         </div>
                         <div class="form-group">
                             <label>Man of the Tournament</label>
@@ -106,6 +101,28 @@
                                 <option value="">— None —</option>
                                 <?php foreach ($team as $p): ?>
                                     <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->ManOfTournament == $p->PlayerID) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($p->Name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Best Batsman</label>
+                            <select name="best_batsman">
+                                <option value="">— None —</option>
+                                <?php foreach ($team as $p): ?>
+                                    <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->BestBatsman == $p->PlayerID) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($p->Name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Best Bowler</label>
+                            <select name="best_bowler">
+                                <option value="">— None —</option>
+                                <?php foreach ($team as $p): ?>
+                                    <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->BestBowler == $p->PlayerID) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($p->Name); ?>
                                     </option>
                                 <?php endforeach; ?>

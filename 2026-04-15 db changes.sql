@@ -466,3 +466,170 @@ SELECT 'Open Cancelled Cup', 'Open', 'T20', 'Open age-group cancelled tournament
 FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
   AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Open Cancelled Cup')
 LIMIT 1;
+
+-- Under 21
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Created Cup', 'Under 21', 'T20', 'Under 21 tournament in created state.', '2026-07-29', '2026-07-24', 22, 'Elite Ground 2', 0.00, u.UserID, 'created', 0, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Created Cup')
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Registration Open Cup', 'Under 21', 'T20', 'Under 21 tournament with registration open.', '2026-07-30', '2026-07-25', 22, 'Elite Ground 2', 0.00, u.UserID, 'registration_open', 0, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Registration Open Cup')
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Registration Closed Cup', 'Under 21', 'T20', 'Under 21 tournament with registration closed.', '2026-07-31', '2026-07-26', 22, 'Elite Ground 2', 0.00, u.UserID, 'registration_closed', 0, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Registration Closed Cup')
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Squad Announced Cup', 'Under 21', 'T20', 'Under 21 tournament with team announced.', '2026-08-01', '2026-07-27', 22, 'Elite Ground 2', 12000.00, u.UserID, 'team_announced', 1, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Squad Announced Cup')
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Ongoing Cup', 'Under 21', 'T20', 'Under 21 tournament currently ongoing.', '2026-08-02', '2026-07-28', 22, 'Elite Ground 2', 12000.00, u.UserID, 'ongoing', 1, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Ongoing Cup')
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Completed Cup', 'Under 21', 'T20', 'Under 21 completed tournament.', '2026-08-03', '2026-07-29', 22, 'Elite Ground 2', 25000.00, u.UserID, 'completed', 1, NULL
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Completed Cup')
+LIMIT 1;
+
+INSERT INTO crimatch (TournamentID, Name, Date, Venue, OpponentTeam, Result, MarginValue, MarginType, OurRuns, OurWickets, OpponentRuns, OpponentWickets, IsDLS, SummaryNotes)
+SELECT t.TournamentID, 'League Match 1', '2026-08-02', 'Elite Ground 2', 'Young Titans', 'win', 8, 'runs', 194, 6, 186, 9, 0, 'Completed Under 21 tournament league match.'
+FROM tournament t
+WHERE t.Name = 'Under 21 Completed Cup' AND t.Status = 'completed'
+  AND NOT EXISTS (
+    SELECT 1 FROM crimatch m
+    WHERE m.TournamentID = t.TournamentID AND m.Name = 'League Match 1' AND m.Date = '2026-08-02' AND m.Venue = 'Elite Ground 2'
+  )
+LIMIT 1;
+
+INSERT INTO crimatch (TournamentID, Name, Date, Venue, OpponentTeam, Result, MarginValue, MarginType, OurRuns, OurWickets, OpponentRuns, OpponentWickets, IsDLS, SummaryNotes)
+SELECT t.TournamentID, 'Final', '2026-08-03', 'Elite Ground 2', 'Young Titans', 'win', 3, 'wickets', 187, 7, 186, 9, 0, 'Completed Under 21 tournament final.'
+FROM tournament t
+WHERE t.Name = 'Under 21 Completed Cup' AND t.Status = 'completed'
+  AND NOT EXISTS (
+    SELECT 1 FROM crimatch m
+    WHERE m.TournamentID = t.TournamentID AND m.Name = 'Final' AND m.Date = '2026-08-03' AND m.Venue = 'Elite Ground 2'
+  )
+LIMIT 1;
+
+-- Cleanup malformed match row from the Open completed tournament import.
+DELETE FROM crimatch
+WHERE TournamentID = (
+    SELECT TournamentID
+    FROM tournament
+    WHERE Name = 'Open Completed Cup'
+    LIMIT 1
+)
+  AND (Name IS NULL OR Name = '')
+  AND Date = '0000-00-00';
+
+-- Completed tournament results
+INSERT INTO tournament_result (TournamentID, Position, TotalMatchesPlayed, TotalWins, TotalLosses, ManOfTournament, BestBatsman, BestBowler, SummaryNotes, EnteredBy)
+SELECT t.TournamentID, '1st runners up', 2, 0, 0, NULL, NULL, NULL, 'Open Completed Cup result summary.', u.UserID
+FROM tournament t
+JOIN user u ON u.Role = 'Admin' AND u.Status = 'active'
+WHERE t.Name = 'Open Completed Cup' AND t.Status = 'completed'
+  AND NOT EXISTS (SELECT 1 FROM tournament_result tr WHERE tr.TournamentID = t.TournamentID)
+LIMIT 1;
+
+INSERT INTO tournament_result (TournamentID, Position, TotalMatchesPlayed, TotalWins, TotalLosses, ManOfTournament, BestBatsman, BestBowler, SummaryNotes, EnteredBy)
+SELECT t.TournamentID, 'champions', 1, 1, 0, NULL, NULL, NULL, 'Under 21 Completed Cup result summary.', u.UserID
+FROM tournament t
+JOIN user u ON u.Role = 'Admin' AND u.Status = 'active'
+WHERE t.Name = 'Under 21 Completed Cup' AND t.Status = 'completed'
+  AND NOT EXISTS (SELECT 1 FROM tournament_result tr WHERE tr.TournamentID = t.TournamentID)
+LIMIT 1;
+
+INSERT INTO tournament (Name, AgeGroup, Format, Description, tdate, RegistrationDeadline, MaxPlayers, Location, PrizePool, CreatedBy, Status, IsTeamAnnounced, CancelReason)
+SELECT 'Under 21 Cancelled Cup', 'Under 21', 'T20', 'Under 21 cancelled tournament.', '2026-08-04', '2026-07-30', 22, 'Elite Ground 2', 0.00, u.UserID, 'cancelled', 0, 'Weather disruption'
+FROM user u WHERE u.Role = 'Admin' AND u.Status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM tournament t WHERE t.Name = 'Under 21 Cancelled Cup')
+LIMIT 1;
+
+-- Player performance data for completed tournaments
+-- Open Completed Cup (players in the Open age group)
+INSERT INTO playermatchperformance
+(MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy, VerifiedBy, VerifiedAt)
+SELECT m.MatchID, s.PlayerID, s.RunsScored, s.BallsFaced, s.WicketsTaken, s.OversBowled, s.RunsConceded, s.Catches, s.Stumpings, s.Rating,
+       'verified', u.UserID, u.UserID, NOW()
+FROM crimatch m
+JOIN tournament t ON t.TournamentID = m.TournamentID
+JOIN (
+    SELECT 16 AS PlayerID, 42 AS RunsScored, 31 AS BallsFaced, 0 AS WicketsTaken, 0.0 AS OversBowled, 0 AS RunsConceded, 1 AS Catches, 0 AS Stumpings, 8.5 AS Rating
+    UNION ALL
+    SELECT 18, 18, 22, 1, 4.0, 24, 0, 0, 7.8
+    UNION ALL
+    SELECT 20, 9, 12, 2, 4.0, 19, 0, 0, 8.9
+) s
+JOIN user u ON u.UserID = s.PlayerID
+WHERE m.MatchID = 25
+  AND t.Status = 'completed'
+  AND TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) >= 21
+  AND NOT EXISTS (
+      SELECT 1
+      FROM playermatchperformance p
+      WHERE p.MatchID = m.MatchID AND p.PlayerID = s.PlayerID
+  )
+LIMIT 3;
+
+INSERT INTO playermatchperformance
+(MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy, VerifiedBy, VerifiedAt)
+SELECT m.MatchID, s.PlayerID, s.RunsScored, s.BallsFaced, s.WicketsTaken, s.OversBowled, s.RunsConceded, s.Catches, s.Stumpings, s.Rating,
+       'verified', u.UserID, u.UserID, NOW()
+FROM crimatch m
+JOIN tournament t ON t.TournamentID = m.TournamentID
+JOIN (
+    SELECT 21 AS PlayerID, 55 AS RunsScored, 38 AS BallsFaced, 0 AS WicketsTaken, 0.0 AS OversBowled, 0 AS RunsConceded, 1 AS Catches, 0 AS Stumpings, 8.7 AS Rating
+    UNION ALL
+    SELECT 22, 24, 20, 1, 4.0, 21, 1, 0, 8.0
+    UNION ALL
+    SELECT 25, 17, 16, 1, 4.0, 18, 0, 0, 7.6
+) s
+JOIN user u ON u.UserID = s.PlayerID
+WHERE m.MatchID = 26
+  AND t.Status = 'completed'
+  AND TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) >= 21
+  AND NOT EXISTS (
+      SELECT 1
+      FROM playermatchperformance p
+      WHERE p.MatchID = m.MatchID AND p.PlayerID = s.PlayerID
+  )
+LIMIT 3;
+
+-- Under 21 Completed Cup (players in the Under 21 age group)
+INSERT INTO playermatchperformance
+(MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled, RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy, VerifiedBy, VerifiedAt)
+SELECT m.MatchID, s.PlayerID, s.RunsScored, s.BallsFaced, s.WicketsTaken, s.OversBowled, s.RunsConceded, s.Catches, s.Stumpings, s.Rating,
+       'verified', u.UserID, u.UserID, NOW()
+FROM crimatch m
+JOIN tournament t ON t.TournamentID = m.TournamentID
+JOIN (
+    SELECT 52 AS PlayerID, 61 AS RunsScored, 44 AS BallsFaced, 0 AS WicketsTaken, 0.0 AS OversBowled, 0 AS RunsConceded, 1 AS Catches, 0 AS Stumpings, 9.1 AS Rating
+    UNION ALL
+    SELECT 53, 15, 18, 2, 4.0, 17, 1, 0, 8.3
+    UNION ALL
+    SELECT 54, 34, 29, 1, 3.0, 22, 0, 0, 8.0
+) s
+JOIN user u ON u.UserID = s.PlayerID
+WHERE m.MatchID = 24
+  AND t.Status = 'completed'
+  AND TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) >= 19
+  AND TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 21
+  AND NOT EXISTS (
+      SELECT 1
+      FROM playermatchperformance p
+      WHERE p.MatchID = m.MatchID AND p.PlayerID = s.PlayerID
+  )
+LIMIT 3;
