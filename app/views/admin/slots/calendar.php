@@ -13,6 +13,21 @@
 .cal-mismatch  { background:#f8d7da; color:#721c24; border-left:3px solid #c0392b; }
 </style>
 
+<?php
+$getOccurrenceDisplayCount = static function($occ) {
+    return ($occ->SlotType ?? '') === 'program'
+        ? (int) ($occ->EligiblePlayerCount ?? 0)
+        : (int) ($occ->BookingCount ?? 0);
+};
+
+$getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount) {
+    $count = $getOccurrenceDisplayCount($occ);
+    return ($occ->SlotType ?? '') === 'program'
+        ? $count . ' eligible player(s)'
+        : $count . ' booked';
+};
+?>
+
 <div class="admin-layout">
     <!-- Sidebar -->
     <div class="admin-sidebar" id="adminSidebar">
@@ -169,7 +184,7 @@
                                                 </div>
                                             <?php endif; ?>
                                             <div style="margin-top:3px;">
-                                                <i class="fas fa-users" style="font-size:10px;"></i> <?= (int)$occ->BookingCount ?> booked
+                                                <i class="fas fa-users" style="font-size:10px;"></i> <?= htmlspecialchars($getOccurrenceCountLabel($occ)) ?>
                                             </div>
                                         </div>
                                     </a>

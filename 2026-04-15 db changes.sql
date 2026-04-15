@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `slot_occurrence_attendance` (
   `AttendanceID` INT(11) NOT NULL AUTO_INCREMENT,
   `OccurrenceID` INT(11) NOT NULL,
   `PlayerID` INT(11) NOT NULL,
-  `AttendanceStatus` ENUM('present','absent') NOT NULL DEFAULT 'absent',
+  `AttendanceStatus` ENUM('present','absent') NOT NULL DEFAULT 'agitbsent',
   `MarkedBy` INT(11) DEFAULT NULL,
   `MarkedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`AttendanceID`),

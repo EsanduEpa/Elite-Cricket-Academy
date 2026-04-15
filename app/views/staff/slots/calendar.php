@@ -118,7 +118,7 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/staffslots/private_session"
                        style="padding:9px 18px;border-radius:8px;background:#2e7d32;color:#fff;text-decoration:none;font-size:14px;font-weight:600;">
-                        <i class="fas fa-plus"></i> Add Private Session
+                        <i class="fas fa-paper-plane"></i> Request Private Session
                     </a>
                 </div>
             </div>
@@ -133,11 +133,13 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                 <i class="fas fa-chart-line"></i> Attendance
             </a>
             <a href="<?php echo URLROOT; ?>/staffslots/private_session" class="subnav-link">
-                <i class="fas fa-plus-circle"></i> Add Private Session
+                <i class="fas fa-paper-plane"></i> Request Private Session
             </a>
         </div>
 
         <div style="padding:0 25px 40px;">
+
+            <?php flash('session_message'); ?>
 
             <!-- Week navigation -->
             <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">

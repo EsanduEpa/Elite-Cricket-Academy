@@ -253,19 +253,20 @@ class Staffslots extends Controller {
                 $result = $model->createPrivateSession($_POST, $this->userId, $this->staffType);
 
                 if (is_int($result) && $result > 0) {
-                    redirect('staffslots/occurrence/' . $result);
+                    flash('session_message', 'Private session request submitted successfully. An admin will review availability and approve it if the facility is free.', 'alert alert-success');
+                    redirect('staffslots/calendar');
                 } elseif ($result === 'time_conflict') {
                     $error = 'You are already assigned to another session in that time band on that date.';
                 } elseif ($result === 'duplicate') {
-                    $error = 'This facility is already booked for that time band on that date.';
+                    $error = 'You already have a pending request for that date, time band, and facility.';
                 } else {
-                    $error = 'Could not create the session. Please try again.';
+                    $error = 'Could not submit the request. Please try again.';
                 }
             }
         }
 
         $data = [
-            'title'      => 'Add Private Session',
+            'title'      => 'Request Private Session',
             'role'       => $this->role,
             'timeBands'  => $model->getActiveTimeBands(),
             'facilities' => $model->getFacilities(),

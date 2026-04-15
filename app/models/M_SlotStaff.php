@@ -1,6 +1,5 @@
 <?php
 class M_SlotStaff {
-
     private $db;
 
     public function __construct() {
@@ -18,6 +17,15 @@ class M_SlotStaff {
     // =========================================================
     // MY OCCURRENCES — sessions this staff member is assigned to
     // =========================================================
+
+    /**
+     * Submit a private session request for admin approval.
+     *
+     * Returns new RequestID (int > 0) or a string error code:
+     *   'time_conflict' — this staff member is already booked at this time
+     *   'duplicate'     — same staff/date/time/facility request already exists
+     *   'error'         — unexpected DB failure
+     */
 
     /**
      * All occurrences where $userId is the assigned staff (coach or trainer),
@@ -390,18 +398,35 @@ class M_SlotStaff {
         }
 
         $this->db->query(
-            "INSERT INTO slot_occurrence
-             (TemplateID, SlotID, OccurrenceDate, FacilityID, Status, MaxParticipants, Notes, GeneratedBy)
-             VALUES (NULL, :slotid, :date, :fid, 'scheduled', :max, :notes, :gen)"
+            'SELECT RequestID
+             FROM slot_private_session_request
+             WHERE RequesterUserID = :uid
+               AND RequestedDate   = :date
+               AND SlotID          = :slotid
+               AND COALESCE(FacilityID, 0) = COALESCE(:fid, 0)
+               AND Status = \'pending\'
+             LIMIT 1'
         );
-        $this->db->bind(':slotid', (int) $d['SlotID'],        PDO::PARAM_INT);
-        $this->db->bind(':date',   $d['OccurrenceDate']);
-        $this->db->bind(':fid',    isset($d['FacilityID']) && $d['FacilityID'] !== ''
-                                   ? (int) $d['FacilityID'] : null);
-        $this->db->bind(':max',    isset($d['MaxParticipants']) && $d['MaxParticipants'] !== ''
-                                   ? (int) $d['MaxParticipants'] : 10, PDO::PARAM_INT);
-        $this->db->bind(':notes',  $d['Notes'] ?? null);
-        $this->db->bind(':gen',    $userId, PDO::PARAM_INT);
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':date', $d['OccurrenceDate']);
+        $this->db->bind(':slotid', (int) $d['SlotID'], PDO::PARAM_INT);
+        $this->db->bind(':fid', isset($d['FacilityID']) && $d['FacilityID'] !== '' ? (int) $d['FacilityID'] : null);
+        if ($this->db->single()) {
+            return 'duplicate';
+        }
+
+        $this->db->query(
+            "INSERT INTO slot_private_session_request
+             (RequesterUserID, StaffType, SlotID, RequestedDate, FacilityID, MaxParticipants, Notes, Status)
+             VALUES (:uid, :stype, :slotid, :date, :fid, :max, :notes, 'pending')"
+        );
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':stype', $staffType);
+        $this->db->bind(':slotid', (int) $d['SlotID'], PDO::PARAM_INT);
+        $this->db->bind(':date', $d['OccurrenceDate']);
+        $this->db->bind(':fid', isset($d['FacilityID']) && $d['FacilityID'] !== '' ? (int) $d['FacilityID'] : null);
+        $this->db->bind(':max', isset($d['MaxParticipants']) && $d['MaxParticipants'] !== '' ? (int) $d['MaxParticipants'] : 10, PDO::PARAM_INT);
+        $this->db->bind(':notes', $d['Notes'] ?? null);
 
         try {
             $ok = $this->db->execute();
@@ -419,21 +444,8 @@ class M_SlotStaff {
         $newId = (int) $this->db->lastInsertId();
         if ($newId <= 0) return 'error';
 
-        // Self-assign as lead staff for this occurrence
-        $this->db->query(
-            "INSERT INTO slot_occurrence_staff_override
-             (OccurrenceID, UserID, StaffType, StaffRole, OverridesUserID, OverrideReason)
-             VALUES (:oid, :uid, :type, 'lead', NULL, 'Private session created by staff')"
-        );
-        $this->db->bind(':oid',  $newId,     PDO::PARAM_INT);
-        $this->db->bind(':uid',  $userId,    PDO::PARAM_INT);
-        $this->db->bind(':type', $staffType);
-        $this->db->execute();
-
-        $this->_auditLog('occurrence', $newId, 'create', null, null, 'scheduled',
-                         'Private session created by staff UserID=' . $userId, $userId);
-        $this->_activityLog($userId, 'create_private_session',
-                            "Staff created private session #{$newId} on {$d['OccurrenceDate']}");
+        $this->_activityLog($userId, 'create_private_session_request',
+                            "Staff requested private session #{$newId} on {$d['OccurrenceDate']}");
 
         return $newId;
     }

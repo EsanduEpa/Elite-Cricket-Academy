@@ -148,7 +148,7 @@ $manualStatusOptions = [
             </a>
             <a href="<?php echo URLROOT; ?>/staffslots/private_session"
                style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
-                <i class="fas fa-plus-circle"></i> Add Private Session
+                <i class="fas fa-paper-plane"></i> Request Private Session
             </a>
         </div>
 

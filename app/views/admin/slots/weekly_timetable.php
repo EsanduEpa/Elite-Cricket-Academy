@@ -23,6 +23,20 @@
 .tt-badge { display:inline-block;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2;background:rgba(255,255,255,.55); }
 </style>
 
+<?php
+$getOccurrenceDisplayCount = static function($occurrence) {
+    return ($occurrence->SlotType ?? '') === 'program'
+        ? (int) ($occurrence->EligiblePlayerCount ?? 0)
+        : (int) ($occurrence->BookingCount ?? 0);
+};
+
+$getOccurrenceCountLabel = static function($occurrence) use ($getOccurrenceDisplayCount) {
+    return ($occurrence->SlotType ?? '') === 'program'
+        ? 'Eligible players: ' . $getOccurrenceDisplayCount($occurrence)
+        : 'Bookings: ' . $getOccurrenceDisplayCount($occurrence);
+};
+?>
+
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-header">
@@ -138,7 +152,7 @@
                                                         <span class="tt-badge"><?= htmlspecialchars($statusLabel) ?></span>
                                                     </div>
                                                     <div class="tt-meta"><strong>Facility:</strong> <?= htmlspecialchars($occurrence->FacilityName ?? 'Not assigned') ?></div>
-                                                    <div class="tt-meta"><strong>Bookings:</strong> <?= (int)($occurrence->BookingCount ?? 0) ?></div>
+                                                    <div class="tt-meta"><strong><?= htmlspecialchars($getOccurrenceCountLabel($occurrence)) ?></strong></div>
                                                     <?php if (!empty($occurrence->StaffNames)): ?>
                                                         <div class="tt-meta"><strong>Staff:</strong> <?= htmlspecialchars($occurrence->StaffNames) ?></div>
                                                     <?php endif; ?>

@@ -1,9 +1,21 @@
 <?php
+require_once APPROOT . '/libraries/SlotBookingService.php';
+
 class M_SlotAdmin {
     private $db;
 
     public function __construct() {
         $this->db = new Database();
+    }
+
+    private function annotateProgramEligibleCounts(array $rows): array {
+        foreach ($rows as $row) {
+            if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+                $row->EligiblePlayerCount = SlotBookingService::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
+            }
+        }
+
+        return $rows;
     }
 
     // =========================================================
@@ -314,7 +326,8 @@ class M_SlotAdmin {
 
     public function getOccurrencesForTemplate(int $templateId): array {
         $this->db->query(
-            'SELECT so.OccurrenceID, so.OccurrenceDate, so.Status, so.CancelReason,
+            'SELECT so.OccurrenceID, so.TemplateID, so.OccurrenceDate, so.Status, so.CancelReason,
+                    st.SlotType,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
                     (SELECT COUNT(*)
@@ -322,13 +335,14 @@ class M_SlotAdmin {
                      WHERE sb.OccurrenceID = so.OccurrenceID
                        AND sb.Status != \'cancelled\') AS BookingCount
              FROM slot_occurrence so
+             LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
              LEFT JOIN slot_time_band tb ON tb.SlotID = so.SlotID
              LEFT JOIN facility f ON f.FacilityID = so.FacilityID
              WHERE so.TemplateID = :template_id
              ORDER BY so.OccurrenceDate DESC, tb.StartTime DESC'
         );
         $this->db->bind(':template_id', $templateId, PDO::PARAM_INT);
-        return $this->db->resultSet();
+        return $this->annotateProgramEligibleCounts($this->db->resultSet());
     }
 
     /**
@@ -514,7 +528,7 @@ class M_SlotAdmin {
         );
         $this->db->bind(':from', $from);
         $this->db->bind(':to',   $to);
-        return $this->db->resultSet();
+        return $this->annotateProgramEligibleCounts($this->db->resultSet());
     }
 
     public function getOccurrenceById(int $id): ?object {
@@ -535,7 +549,309 @@ class M_SlotAdmin {
         );
         $this->db->bind(':id', $id, PDO::PARAM_INT);
         $row = $this->db->single();
+        if ($row && ($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+            $row->EligiblePlayerCount = SlotBookingService::getEligiblePlayerCountForTemplate((int) $row->TemplateID);
+        }
+
         return $row ?: null;
+    }
+
+    public function getPrivateSessionRequests(?string $status = 'pending'): array {
+        $sql = 'SELECT r.RequestID, r.RequestedDate, r.MaxParticipants, r.Notes, r.Status,
+                       r.ReviewNotes, r.ReviewedAt, r.ApprovedOccurrenceID, r.CreatedAt,
+                       r.StaffType, r.SlotID, r.FacilityID,
+                       CONCAT(u.FirstName, " ", u.LastName) AS RequesterName,
+                       u.Role AS RequesterRole,
+                       tb.SlotLabel,
+                       f.Name AS FacilityName,
+                       ru.FirstName AS ReviewedFirstName,
+                       ru.LastName AS ReviewedLastName,
+                       CASE
+                           WHEN EXISTS (
+                               SELECT 1
+                               FROM slot_occurrence so
+                               WHERE so.OccurrenceDate = r.RequestedDate
+                                 AND so.SlotID = r.SlotID
+                                 AND so.Status != \'cancelled\'
+                                 AND (
+                                     EXISTS (
+                                         SELECT 1
+                                         FROM slot_template_staff ts
+                                         JOIN slot_template st ON st.TemplateID = ts.TemplateID
+                                         WHERE st.SlotType = \'private\'
+                                           AND ts.UserID = r.RequesterUserID
+                                           AND st.SlotID = r.SlotID
+                                     )
+                                     OR EXISTS (
+                                         SELECT 1
+                                         FROM slot_occurrence_staff_override ov
+                                         WHERE ov.OccurrenceID = so.OccurrenceID
+                                           AND ov.UserID = r.RequesterUserID
+                                     )
+                                 )
+                           ) THEN 0
+                           ELSE 1
+                       END AS CoachFree,
+                       CASE
+                           WHEN EXISTS (
+                               SELECT 1
+                               FROM slot_occurrence so2
+                               WHERE so2.OccurrenceDate = r.RequestedDate
+                                 AND so2.SlotID = r.SlotID
+                                 AND so2.Status != \'cancelled\'
+                                 AND COALESCE(so2.FacilityID, 0) = COALESCE(r.FacilityID, 0)
+                           ) THEN 0
+                           ELSE 1
+                       END AS FacilityFree,
+                       CASE
+                           WHEN EXISTS (
+                               SELECT 1
+                               FROM slot_occurrence so
+                               WHERE so.OccurrenceDate = r.RequestedDate
+                                 AND so.SlotID = r.SlotID
+                                 AND so.Status != \'cancelled\'
+                                 AND (
+                                     EXISTS (
+                                         SELECT 1
+                                         FROM slot_template_staff ts
+                                         JOIN slot_template st ON st.TemplateID = ts.TemplateID
+                                         WHERE st.SlotType = \'private\'
+                                           AND ts.UserID = r.RequesterUserID
+                                           AND st.SlotID = r.SlotID
+                                     )
+                                     OR EXISTS (
+                                         SELECT 1
+                                         FROM slot_occurrence_staff_override ov
+                                         WHERE ov.OccurrenceID = so.OccurrenceID
+                                           AND ov.UserID = r.RequesterUserID
+                                     )
+                                 )
+                           ) OR EXISTS (
+                               SELECT 1
+                               FROM slot_occurrence so2
+                               WHERE so2.OccurrenceDate = r.RequestedDate
+                                 AND so2.SlotID = r.SlotID
+                                 AND so2.Status != \'cancelled\'
+                                 AND COALESCE(so2.FacilityID, 0) = COALESCE(r.FacilityID, 0)
+                           ) THEN \'blocked\'
+                           ELSE \'available\'
+                       END AS AvailabilityStatus
+                FROM slot_private_session_request r
+                JOIN `user` u ON u.UserID = r.RequesterUserID
+                LEFT JOIN slot_time_band tb ON tb.SlotID = r.SlotID
+                LEFT JOIN facility f ON f.FacilityID = r.FacilityID
+                LEFT JOIN `user` ru ON ru.UserID = r.ReviewedBy';
+
+        if ($status) {
+            $sql .= ' WHERE r.Status = :status';
+        }
+
+        $sql .= ' ORDER BY r.CreatedAt DESC';
+
+        $this->db->query($sql);
+        if ($status) {
+            $this->db->bind(':status', $status);
+        }
+        return $this->db->resultSet();
+    }
+
+    public function getPrivateSessionRequestById(int $requestId): ?object {
+        $this->db->query(
+            'SELECT r.RequestID, r.RequesterUserID, r.StaffType, r.SlotID, r.RequestedDate,
+                    r.FacilityID, r.MaxParticipants, r.Notes, r.Status, r.ReviewNotes,
+                    r.ReviewedBy, r.ReviewedAt, r.ApprovedOccurrenceID, r.CreatedAt, r.UpdatedAt,
+                    CONCAT(u.FirstName, " ", u.LastName) AS RequesterName,
+                    u.Email AS RequesterEmail,
+                    u.Role AS RequesterRole,
+                    tb.SlotLabel,
+                    f.Name AS FacilityName,
+                    ru.FirstName AS ReviewedFirstName,
+                    ru.LastName AS ReviewedLastName,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM slot_occurrence so
+                            WHERE so.OccurrenceDate = r.RequestedDate
+                              AND so.SlotID = r.SlotID
+                              AND so.Status != \'cancelled\'
+                              AND (
+                                  EXISTS (
+                                      SELECT 1
+                                      FROM slot_template_staff ts
+                                      JOIN slot_template st ON st.TemplateID = ts.TemplateID
+                                      WHERE st.SlotType = \'private\'
+                                        AND ts.UserID = r.RequesterUserID
+                                        AND st.SlotID = r.SlotID
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1
+                                      FROM slot_occurrence_staff_override ov
+                                      WHERE ov.OccurrenceID = so.OccurrenceID
+                                        AND ov.UserID = r.RequesterUserID
+                                  )
+                              )
+                        ) THEN 0
+                        ELSE 1
+                    END AS CoachFree,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM slot_occurrence so2
+                            WHERE so2.OccurrenceDate = r.RequestedDate
+                              AND so2.SlotID = r.SlotID
+                              AND so2.Status != \'cancelled\'
+                              AND COALESCE(so2.FacilityID, 0) = COALESCE(r.FacilityID, 0)
+                        ) THEN 0
+                        ELSE 1
+                    END AS FacilityFree,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM slot_occurrence so
+                            WHERE so.OccurrenceDate = r.RequestedDate
+                              AND so.SlotID = r.SlotID
+                              AND so.Status != \'cancelled\'
+                              AND (
+                                  EXISTS (
+                                      SELECT 1
+                                      FROM slot_template_staff ts
+                                      JOIN slot_template st ON st.TemplateID = ts.TemplateID
+                                      WHERE st.SlotType = \'private\'
+                                        AND ts.UserID = r.RequesterUserID
+                                        AND st.SlotID = r.SlotID
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1
+                                      FROM slot_occurrence_staff_override ov
+                                      WHERE ov.OccurrenceID = so.OccurrenceID
+                                        AND ov.UserID = r.RequesterUserID
+                                  )
+                              )
+                        ) OR EXISTS (
+                            SELECT 1
+                            FROM slot_occurrence so2
+                            WHERE so2.OccurrenceDate = r.RequestedDate
+                              AND so2.SlotID = r.SlotID
+                              AND so2.Status != \'cancelled\'
+                              AND COALESCE(so2.FacilityID, 0) = COALESCE(r.FacilityID, 0)
+                        ) THEN \'blocked\'
+                        ELSE \'available\'
+                    END AS AvailabilityStatus
+             FROM slot_private_session_request r
+             JOIN `user` u ON u.UserID = r.RequesterUserID
+             LEFT JOIN slot_time_band tb ON tb.SlotID = r.SlotID
+             LEFT JOIN facility f ON f.FacilityID = r.FacilityID
+             LEFT JOIN `user` ru ON ru.UserID = r.ReviewedBy
+             WHERE r.RequestID = :id'
+        );
+        $this->db->bind(':id', $requestId, PDO::PARAM_INT);
+        $row = $this->db->single();
+        return $row ?: null;
+    }
+
+    private function isFacilityFreeForRequest(object $request): bool {
+        $this->db->query(
+            'SELECT COUNT(*) AS cnt
+             FROM slot_occurrence so
+             WHERE so.OccurrenceDate = :date
+               AND so.SlotID = :slotid
+               AND so.Status != \'cancelled\'
+               AND COALESCE(so.FacilityID, 0) = COALESCE(:fid, 0)'
+        );
+        $this->db->bind(':date', $request->RequestedDate);
+        $this->db->bind(':slotid', (int) $request->SlotID, PDO::PARAM_INT);
+        $this->db->bind(':fid', isset($request->FacilityID) ? (int) $request->FacilityID : null);
+        $row = $this->db->single();
+        return $row && (int) $row->cnt === 0;
+    }
+
+    public function reviewPrivateSessionRequest(int $requestId, string $status, int $reviewedBy, ?string $reviewNotes = null): int|string {
+        $status = strtolower(trim($status));
+        if (!in_array($status, ['approved', 'rejected'], true)) {
+            return 'invalid_status';
+        }
+
+        $request = $this->getPrivateSessionRequestById($requestId);
+        if (!$request) {
+            return 'not_found';
+        }
+
+        if ($request->Status !== 'pending') {
+            return 'already_reviewed';
+        }
+
+        if ($status === 'approved' && !$this->isFacilityFreeForRequest($request)) {
+            return 'time_conflict';
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $approvedOccurrenceId = null;
+
+            if ($status === 'approved') {
+                $this->db->query(
+                    'INSERT INTO slot_occurrence
+                     (TemplateID, SlotID, OccurrenceDate, FacilityID, Status, MaxParticipants, Notes, GeneratedBy)
+                     VALUES (NULL, :slotid, :date, :fid, \'scheduled\', :max, :notes, :gen)'
+                );
+                $this->db->bind(':slotid', (int) $request->SlotID, PDO::PARAM_INT);
+                $this->db->bind(':date', $request->RequestedDate);
+                $this->db->bind(':fid', isset($request->FacilityID) ? (int) $request->FacilityID : null);
+                $this->db->bind(':max', isset($request->MaxParticipants) ? (int) $request->MaxParticipants : 10, PDO::PARAM_INT);
+                $this->db->bind(':notes', trim((string) $request->Notes) !== '' ? $request->Notes : 'Approved private session request');
+                $this->db->bind(':gen', $reviewedBy, PDO::PARAM_INT);
+                if (!$this->db->execute()) {
+                    throw new RuntimeException('Unable to create occurrence');
+                }
+
+                $approvedOccurrenceId = (int) $this->db->lastInsertId();
+
+                $this->db->query(
+                    'INSERT INTO slot_occurrence_staff_override
+                     (OccurrenceID, UserID, StaffType, StaffRole, OverridesUserID, OverrideReason)
+                     VALUES (:oid, :uid, :stype, \'lead\', NULL, :reason)'
+                );
+                $this->db->bind(':oid', $approvedOccurrenceId, PDO::PARAM_INT);
+                $this->db->bind(':uid', (int) $request->RequesterUserID, PDO::PARAM_INT);
+                $this->db->bind(':stype', $request->StaffType);
+                $this->db->bind(':reason', 'Approved from private session request #' . $requestId);
+                if (!$this->db->execute()) {
+                    throw new RuntimeException('Unable to assign staff');
+                }
+            }
+
+            $this->db->query(
+                'UPDATE slot_private_session_request
+                 SET Status = :status,
+                     ReviewNotes = :notes,
+                     ReviewedBy = :reviewedby,
+                     ReviewedAt = NOW(),
+                     ApprovedOccurrenceID = :occid
+                 WHERE RequestID = :id'
+            );
+            $this->db->bind(':status', $status);
+            $this->db->bind(':notes', $reviewNotes);
+            $this->db->bind(':reviewedby', $reviewedBy, PDO::PARAM_INT);
+            $this->db->bind(':occid', $approvedOccurrenceId, $approvedOccurrenceId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+            $this->db->bind(':id', $requestId, PDO::PARAM_INT);
+            if (!$this->db->execute()) {
+                throw new RuntimeException('Unable to update request');
+            }
+
+            $this->db->commit();
+
+            $this->_activityLog(
+                $reviewedBy,
+                'private_session_request_' . $status,
+                "Reviewed private session request #{$requestId} as {$status}" . ($approvedOccurrenceId ? " and created occurrence #{$approvedOccurrenceId}" : '')
+            );
+
+            return $approvedOccurrenceId ?: true;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            error_log('Private session request review failed: ' . $e->getMessage());
+            return 'error';
+        }
     }
 
     /**

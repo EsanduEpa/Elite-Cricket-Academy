@@ -26,6 +26,11 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
 $occDay = (int) date('N', strtotime($occ->OccurrenceDate));
 $templateDay = (int) ($occ->TemplateDayOfWeek ?? 0);
 $dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
+$occurrenceCount = ($occ->SlotType ?? '') === 'program'
+    ? (int) ($occ->EligiblePlayerCount ?? 0)
+    : (int) ($occ->BookingCount ?? 0);
+$occurrenceCountLabel = ($occ->SlotType ?? '') === 'program' ? 'Eligible Players' : 'Bookings';
+$occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player(s)' : 'player(s) booked';
 ?>
 
 <div class="admin-layout">
@@ -130,8 +135,8 @@ $dayMismatch = $occ->TemplateID && $templateDay > 0 && $occDay !== $templateDay;
                         <div class="detail-value"><?= $occ->SlotType ? ucfirst(str_replace('_', ' ', $occ->SlotType)) : '—' ?></div>
                     </div>
                     <div>
-                        <div class="detail-label">Bookings</div>
-                        <div class="detail-value"><?= (int)$occ->BookingCount ?> player(s) booked</div>
+                        <div class="detail-label"><?= htmlspecialchars($occurrenceCountLabel) ?></div>
+                        <div class="detail-value"><?= $occurrenceCount ?> <?= htmlspecialchars($occurrenceCountSuffix) ?></div>
                     </div>
                     <div>
                         <div class="detail-label">Max Participants</div>
