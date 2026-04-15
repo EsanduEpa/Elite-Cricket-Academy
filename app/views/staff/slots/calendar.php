@@ -23,12 +23,36 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
 ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/<?= $cssFile ?>.css">
 <style>
-.cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:120px; width:14.28%; padding:8px; background:#fff; }
-.cal-today     { background:#fffde7; }
+.cal-calendar-shell {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(255,255,255,0.45);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    overflow: hidden;
+}
+.cal-calendar-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(255,255,255,0.92);
+}
+.cal-calendar-table thead tr {
+    background: #f8f9fa;
+}
+.cal-calendar-table th {
+    border-bottom: 2px solid #dee2e6;
+}
+.cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:120px; width:14.28%; padding:8px; background:rgba(255,255,255,0.96); }
+.cal-today     { background:rgba(255,253,231,0.96); }
 .cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:5px; font-size:12px; cursor:pointer; text-decoration:none; display:block; }
 .cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
 .cal-private   { background:#e8f5e9; color:#1b5e20; border-left:3px solid #2e7d32; }
 .cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through !important; }
+.cal-status-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+.cal-status-scheduled { background:#e3f2fd; color:#1565c0; }
+.cal-status-active { background:#d4edda; color:#155724; }
+.cal-status-completed { background:#e2d9f3; color:#4a1e8c; }
+.cal-status-cancelled { background:#f8d7da; color:#721c24; }
 .subnav-link   { padding:7px 16px; border-radius:6px; background:#ecf0f1; color:#333; text-decoration:none; font-size:13px; }
 .subnav-active { background:#2e7d32; color:#fff; font-weight:600; }
 </style>
@@ -105,6 +129,9 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
             <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="subnav-link subnav-active">
                 <i class="fas fa-calendar-alt"></i> Calendar
             </a>
+            <a href="#attendance" class="subnav-link nav-anchor">
+                <i class="fas fa-chart-line"></i> Attendance
+            </a>
             <a href="<?php echo URLROOT; ?>/staffslots/private_session" class="subnav-link">
                 <i class="fas fa-plus-circle"></i> Add Private Session
             </a>
@@ -163,10 +190,10 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
             </div>
 
             <!-- Calendar grid -->
-            <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;">
-                <table style="width:100%;border-collapse:collapse;">
+            <div class="cal-calendar-shell">
+                <table class="cal-calendar-table">
                     <thead>
-                        <tr style="background:#f8f9fa;">
+                        <tr>
                             <?php
                             $dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                             for ($i = 0; $i < 7; $i++):
@@ -194,6 +221,8 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                                     <div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">—</div>
                                 <?php else:
                                     foreach ($occs as $occ):
+                                        $statusKey = strtolower((string) ($occ->Status ?? 'scheduled'));
+                                        $statusLabel = ucfirst(str_replace('_', ' ', $statusKey));
                                         if ($occ->Status === 'cancelled') {
                                             $cls = 'cal-cancelled';
                                         } elseif ($occ->SlotType === 'private' || $occ->SessionName === 'Private Session') {
@@ -211,9 +240,12 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                                         <?php if ($occ->FacilityName): ?>
                                             <div style="opacity:.8;"><?= htmlspecialchars($occ->FacilityName) ?></div>
                                         <?php endif; ?>
-                                        <div style="margin-top:3px;">
-                                            <i class="fas fa-users" style="font-size:10px;"></i>
-                                            <?= htmlspecialchars($getOccurrenceCountLabel($occ)) ?>
+                                        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+                                            <div style="font-size:11px;">
+                                                <i class="fas fa-users" style="font-size:10px;"></i>
+                                                <?= htmlspecialchars($getOccurrenceCountLabel($occ)) ?>
+                                            </div>
+                                            <span class="cal-status-badge cal-status-<?= htmlspecialchars($statusKey) ?>"><?= htmlspecialchars($statusLabel) ?></span>
                                         </div>
                                     </a>
                                 <?php endforeach; endif; ?>
@@ -224,9 +256,31 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                 </table>
             </div>
 
+            <!-- Attendance Overview -->
+            <div id="attendance" style="margin-top:28px;background:rgba(255,255,255,0.9);border:1px solid rgba(255,255,255,0.45);border-radius:18px;padding:24px;box-shadow:0 8px 32px rgba(31,38,135,0.18);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+                    <div>
+                        <h2 style="margin:0;font-size:20px;color:#2c3e50;"><i class="fas fa-chart-area" style="color:#4A90E2;margin-right:8px;"></i>Attendance & Session Participation</h2>
+                        <p style="margin-top:6px;color:#666;font-size:13px;">Weekly session totals for the schedule shown above.</p>
+                    </div>
+                    <div class="controls" style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <select id="attendanceTeamSelect" style="padding:10px 14px;border:1px solid #d9dee7;border-radius:10px;background:#fff;min-width:220px;"></select>
+                    </div>
+                </div>
+                <div style="height:320px;">
+                    <canvas id="attendanceChart" aria-label="Attendance per session"></canvas>
+                </div>
+                <div style="margin-top:14px;color:#7a7a7a;font-size:13px;">Use the selector to switch between all sessions, program sessions, and private sessions.</div>
+            </div>
+
         </div>
     </main>
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script>
+window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data['attendanceChartData'] ?? new stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

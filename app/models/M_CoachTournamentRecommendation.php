@@ -565,16 +565,20 @@ class M_CoachTournamentRecommendation
             $results = $this->db->resultSet();
             
             // Format results
-            $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0];
+            $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0, 'total' => 0];
             foreach ($results as $row) {
-                $stats[$row->Status] = $row->count;
+                $statusKey = strtolower((string)($row->Status ?? ''));
+                if ($statusKey !== '') {
+                    $stats[$statusKey] = (int)$row->count;
+                    $stats['total'] += (int)$row->count;
+                }
             }
 
             return $stats;
 
         } catch (Exception $e) {
             error_log('Error in getRecommendationStats: ' . $e->getMessage());
-            return ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0];
+            return ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0, 'total' => 0];
         }
     }
 

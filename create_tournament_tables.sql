@@ -135,24 +135,34 @@ CREATE TABLE IF NOT EXISTS tournamentplayer (
 --    Final result entered by admin after the tournament ends.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tournament_result (
-    ResultID        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    TournamentID    INT UNSIGNED NOT NULL,
-    Position        VARCHAR(50)  DEFAULT NULL COMMENT 'e.g. Champions, Runners-Up',
-    OpponentInFinal VARCHAR(200) DEFAULT NULL,
-    MatchFormat     VARCHAR(50)  DEFAULT NULL,
-    WonBy           VARCHAR(100) DEFAULT NULL COMMENT 'e.g. 6 wickets / 45 runs',
-    ManOfTournament INT UNSIGNED DEFAULT NULL COMMENT 'FK → user.UserID',
-    SummaryNotes    TEXT         DEFAULT NULL,
-    EnteredBy       INT UNSIGNED DEFAULT NULL COMMENT 'FK → user.UserID (admin)',
-    CreatedAt       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ResultID            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    TournamentID        INT(11) NOT NULL,
+    
+    -- Overall Achievement
+    Position            ENUM('champions', '1st runners up', '2nd runners up', '3rd runners up', 'super 8', 'super 16', 'group stage') NOT NULL,
+    
+    -- Performance Summary (Aggregates)
+    TotalMatchesPlayed  TINYINT UNSIGNED DEFAULT 0,
+    TotalWins           TINYINT UNSIGNED DEFAULT 0,
+    TotalLosses          TINYINT UNSIGNED DEFAULT 0,
+    
+    -- Awards (Linking to your User table)
+    ManOfTournament     INT(11) DEFAULT NULL COMMENT 'FK → user.UserID',
+    BestBatsman         INT(11) DEFAULT NULL COMMENT 'FK → user.UserID',
+    BestBowler          INT(11) DEFAULT NULL COMMENT 'FK → user.UserID',
+    
+    -- The "Final Chapter"
+    SummaryNotes        TEXT DEFAULT NULL COMMENT 'E.g. "Historical run to the final, lost in a thriller."',
+    
+    EnteredBy           INT(11) NOT NULL,
+    CreatedAt           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_result_tournament (TournamentID),
-    CONSTRAINT fk_tr_tournament FOREIGN KEY (TournamentID)    REFERENCES tournament (TournamentID) ON DELETE CASCADE,
+    CONSTRAINT fk_tr_tournament FOREIGN KEY (TournamentID) REFERENCES tournament (TournamentID) ON DELETE CASCADE,
     CONSTRAINT fk_tr_man        FOREIGN KEY (ManOfTournament) REFERENCES user (UserID),
-    CONSTRAINT fk_tr_entered    FOREIGN KEY (EnteredBy)       REFERENCES user (UserID)
+    CONSTRAINT fk_tr_batsman    FOREIGN KEY (BestBatsman)     REFERENCES user (UserID),
+    CONSTRAINT fk_tr_bowler     FOREIGN KEY (BestBowler)      REFERENCES user (UserID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- -----------------------------------------------------------------------------
 -- 7. playertournamentstats
 --    Individual player statistics per tournament.
@@ -174,3 +184,24 @@ CREATE TABLE IF NOT EXISTS playertournamentstats (
     CONSTRAINT fk_pts_tournament FOREIGN KEY (TournamentID) REFERENCES tournament (TournamentID) ON DELETE CASCADE,
     CONSTRAINT fk_pts_player     FOREIGN KEY (PlayerID)     REFERENCES user (UserID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+ALTER TABLE crimatch
+  CHANGE COLUMN `name` `Name` VARCHAR(100) NOT NULL COMMENT 'e.g. Semi-Final 1 or League Match 5',
+  MODIFY COLUMN `Result` ENUM('win', 'loss', 'tie', 'draw', 'no-result', 'abandoned', 'pending') DEFAULT 'pending',
+  ADD COLUMN `MarginValue` INT UNSIGNED DEFAULT NULL COMMENT 'The number part: e.g. 5' AFTER `Result`,
+  ADD COLUMN `MarginType` ENUM('runs', 'wickets', 'super over', 'DLS', 'boundaries', 'forfeit') DEFAULT NULL AFTER `MarginValue`,
+  ADD COLUMN `OurRuns` SMALLINT UNSIGNED DEFAULT NULL AFTER `MarginType`,
+  ADD COLUMN `OurWickets` TINYINT UNSIGNED DEFAULT NULL AFTER `OurRuns`,
+  ADD COLUMN `OpponentRuns` SMALLINT UNSIGNED DEFAULT NULL AFTER `OurWickets`,
+  ADD COLUMN `OpponentWickets` TINYINT UNSIGNED DEFAULT NULL AFTER `OpponentRuns`,
+  ADD COLUMN `IsDLS` TINYINT(1) DEFAULT 0 COMMENT '1 if Duckworth-Lewis was applied' AFTER `OpponentWickets`,
+  ADD COLUMN `SummaryNotes` TEXT DEFAULT NULL AFTER `IsDLS`,
+  ADD COLUMN `CreatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER `SummaryNotes`,
+  ADD COLUMN `UpdatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `CreatedAt`;
+
+  ALTER TABLE crimatch
+  DROP COLUMN `OurScore`,
+  DROP COLUMN `OpponentScore`;
+
+  do the system changes according to the db change, forms , controllers, views and models that refer to the tournament result and cri match

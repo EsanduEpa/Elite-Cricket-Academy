@@ -2,6 +2,8 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-reports.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/reports.js"></script>
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
@@ -115,7 +117,7 @@
                             <i class="fas fa-chart-bar"></i>
                             Reports & Analytics
                         </h1>
-                        <p style="margin: 0; opacity: 0.9; font-size: 14px;">Performance insights and data visualization</p>
+                        <p class="coach-reports-subtitle">Performance insights and data visualization</p>
                     </div>
                     <div class="header-actions">
                         <select id="reportPeriod" class="period-select">
@@ -137,7 +139,7 @@
                 <!-- Summary Cards -->
                 <div class="summary-cards">
                     <div class="summary-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-icon card-icon--players">
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="card-info">
@@ -147,7 +149,7 @@
                     </div>
 
                     <div class="summary-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="card-icon card-icon--sessions">
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="card-info">
@@ -157,7 +159,7 @@
                     </div>
 
                     <div class="summary-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="card-icon card-icon--attendance">
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="card-info">
@@ -167,7 +169,7 @@
                     </div>
 
                     <div class="summary-card">
-                        <div class="card-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="card-icon card-icon--medical">
                             <i class="fas fa-heartbeat"></i>
                         </div>
                         <div class="card-info">
@@ -231,7 +233,7 @@
                                             $statusColors = ['active' => '#10b981', 'completed' => '#4A90E2', 'cancelled' => '#ef4444'];
                                             $color = $statusColors[$session->Status] ?? '#666';
                                             ?>
-                                            <span style="color: <?php echo $color; ?>; font-weight: 600; text-transform: capitalize;">
+                                            <span class="coach-report-status" style="color: <?php echo $color; ?>;">
                                                 <?php echo $session->Status; ?>
                                             </span>
                                         </td>
@@ -321,87 +323,13 @@
     </div>
 
 <script>
-// Session Type Chart (Pie)
-const typeCtx = document.getElementById('performanceChart');
-if (typeCtx) {
-    new Chart(typeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Private', 'Group'],
-            datasets: [{
-                data: [<?php echo $data['privateSessions']; ?>, <?php echo $data['groupSessions']; ?>],
-                backgroundColor: ['#8b5cf6', '#4A90E2'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-// Session Status Chart (Bar)
-const statusCtx = document.getElementById('attendanceChart');
-if (statusCtx) {
-    new Chart(statusCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Active', 'Completed', 'Cancelled'],
-            datasets: [{
-                label: 'Sessions',
-                data: [
-                    <?php echo $data['activeSessions']; ?>,
-                    <?php echo $data['completedSessions']; ?>,
-                    <?php echo $data['totalSessions'] - $data['activeSessions'] - $data['completedSessions']; ?>
-                ],
-                backgroundColor: ['#10b981', '#4A90E2', '#ef4444'],
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
-        }
-    });
-}
-</script>
-
-<script>
-// Sidebar Toggle Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.querySelector('.main-content');
-    
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            
-            // Update toggle icon
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('fa-angle-left');
-                icon.classList.add('fa-angle-right');
-                mainContent.style.marginLeft = '80px';
-            } else {
-                icon.classList.remove('fa-angle-right');
-                icon.classList.add('fa-angle-left');
-                mainContent.style.marginLeft = '280px';
-            }
-        });
-    }
-});
+window.coachReportsData = <?php echo json_encode([
+    'privateSessions' => (int) $data['privateSessions'],
+    'groupSessions' => (int) $data['groupSessions'],
+    'activeSessions' => (int) $data['activeSessions'],
+    'completedSessions' => (int) $data['completedSessions'],
+    'totalSessions' => (int) $data['totalSessions']
+]); ?>;
 </script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
