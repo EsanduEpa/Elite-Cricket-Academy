@@ -376,6 +376,9 @@
                         <option value="protective">Protective</option>
                         <option value="training">Training</option>
                     </select>
+                    <button class="btn btn-primary" onclick="exportEquipmentInventory()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
                 </div>
             </div>
             
@@ -886,6 +889,11 @@ function viewDetails(equipmentId) {
 function exportRentals() {
     console.log('Exporting rentals');
     showNotification('Rental data exported successfully', 'success');
+}
+
+function exportEquipmentInventory() {
+    console.log('Exporting equipment inventory');
+    showNotification('Equipment inventory exported successfully', 'success');
 }
 
 // Form submissions
