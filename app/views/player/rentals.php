@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/rentals.css">
     
-<div class="player-layout">
+<div class="player-layout" id="rentalsPage" data-urlroot="<?php echo URLROOT; ?>">
     <!-- Sidebar -->
     <div class="player-sidebar" id="playerSidebar">
         <div class="sidebar-header">
@@ -105,7 +105,14 @@
             </div>
         </div>
 
-       
+        <?php flash('rental_message'); ?>
+
+        <div class="rental-toolbar">
+            <div class="rental-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="search" id="rental-search" placeholder="Search equipment by name or description">
+            </div>
+        </div>
 
         <!-- Rental Navigation -->
         <div class="page-navigation">
@@ -210,7 +217,7 @@
                                 <?php endif; ?>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
+                                <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" data-stock="<?php echo (int)$stock; ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
                                     Rent Now
                                 </button>
                             </div>
@@ -220,6 +227,48 @@
             <?php else : ?>
                 <div class="payment-card payment-card-fullspan">
                     <p>No equipment found in the database.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="info-section my-rentals-section">
+            <h3>My Rentals</h3>
+            <?php $myRentals = $data['myRentals'] ?? []; ?>
+            <?php if (!empty($myRentals)) : ?>
+                <div class="rental-history-table-wrap">
+                    <table class="rental-history-table">
+                        <thead>
+                            <tr>
+                                <th>Rental ID</th>
+                                <th>Equipment</th>
+                                <th>Start</th>
+                                <th>Return By</th>
+                                <th>Status</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($myRentals as $rental) : ?>
+                                <tr>
+                                    <td>#<?php echo (int)($rental->RentalID ?? 0); ?></td>
+                                    <td><?php echo $escape($rental->EquipmentName ?? 'Equipment'); ?></td>
+                                    <td><?php echo !empty($rental->StartTime) ? date('M j, Y', strtotime($rental->StartTime)) : '-'; ?></td>
+                                    <td><?php echo !empty($rental->EndTime) ? date('M j, Y', strtotime($rental->EndTime)) : '-'; ?></td>
+                                    <td>
+                                        <span class="rental-status rental-status-<?php echo $escape(strtolower((string)($rental->Status ?? 'active'))); ?>">
+                                            <?php echo $escape(ucfirst((string)($rental->Status ?? 'active'))); ?>
+                                        </span>
+                                    </td>
+                                    <td>LKR <?php echo number_format((float)($rental->TotalCost ?? 0), 2); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else : ?>
+                <div class="rental-empty-state">
+                    <i class="fas fa-tools"></i>
+                    <p>You do not have any equipment rentals yet.</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -259,8 +308,6 @@
         </div>
     </div>
 </div>
-
-<script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
 
 <script src="<?php echo URLROOT; ?>/js/player/rentals.js"></script>
 
