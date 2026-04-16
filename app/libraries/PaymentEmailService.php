@@ -81,7 +81,7 @@ class PaymentEmailService
             $recipientEmail,
             $orderId,
             $sent,
-            $sent ? null : 'SMTP send failed or recipient mailbox was unavailable. Check PHP error log for Mailer details.'
+            $sent ? null : (Mailer::getLastError() ?: 'SMTP send failed or recipient mailbox was unavailable. Check PHP error log for Mailer details.')
         );
 
         return $sent;

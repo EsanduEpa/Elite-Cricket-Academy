@@ -1002,6 +1002,9 @@ class Player extends Controller {
             'amount'   => $amount,
             'currency' => $currency,
             'items'    => $itemsLabel,
+            'player_id' => (int)($playerData['id'] ?? 0),
+            'recipient_email' => (string)($playerData['email'] ?? ''),
+            'recipient_name' => (string)($playerData['name'] ?? 'Player'),
         ];
         $_SESSION['payhere_nonce']         = bin2hex(random_bytes(16));
 
@@ -1016,8 +1019,8 @@ class Player extends Controller {
                 'currency'    => $currency,
                 'items'       => $itemsLabel,
                 'hash'        => PayHere::buildHash($orderId, $amount, $currency),
-                'return_url'  => URLROOT . '/player/payhere_return',
-                'cancel_url'  => URLROOT . '/player/payhere_cancel',
+                'return_url'  => URLROOT . '/player/payhere_return?payment_type=shop',
+                'cancel_url'  => URLROOT . '/player/payhere_cancel?payment_type=shop',
                 'notify_url'  => URLROOT . '/player/payhere_notify',
                 'first_name'  => $nameParts[0] ?? 'Player',
                 'last_name'   => $nameParts[1] ?? '',
@@ -1161,6 +1164,8 @@ class Player extends Controller {
             'amount' => $amount,
             'currency' => $currency,
             'plan_name' => (string)($payment->PlanName ?? 'Membership'),
+            'recipient_email' => (string)($payment->PlayerEmail ?? ($playerData['email'] ?? '')),
+            'recipient_name' => (string)($payment->PlayerName ?? ($playerData['name'] ?? 'Player')),
         ];
 
         $data = [
@@ -1174,8 +1179,8 @@ class Player extends Controller {
                 'currency' => $currency,
                 'items' => $itemsLabel,
                 'hash' => PayHere::buildHash($orderId, $amount, $currency),
-                'return_url' => URLROOT . '/player/payhere_return',
-                'cancel_url' => URLROOT . '/player/payhere_cancel',
+                'return_url' => URLROOT . '/player/payhere_return?payment_type=subscription',
+                'cancel_url' => URLROOT . '/player/payhere_cancel?payment_type=subscription',
                 'notify_url' => URLROOT . '/player/payhere_notify',
                 'first_name' => $nameParts[0] ?? 'Player',
                 'last_name' => $nameParts[1] ?? '',
@@ -1207,6 +1212,17 @@ class Player extends Controller {
             $secondaryUrl = URLROOT . '/player/shopping';
             $secondaryLabel = 'Back to Shop';
             $message = 'Your rental payment was successful.';
+        } elseif ($paymentType === 'subscription') {
+            $primaryUrl = URLROOT . '/player/payments';
+            $primaryLabel = 'View Payments';
+            $secondaryUrl = URLROOT . '/player';
+            $secondaryLabel = 'Dashboard';
+            $message = 'Your membership payment was successful.';
+        } elseif ($paymentType === 'shop') {
+            $primaryUrl = URLROOT . '/player/shopping';
+            $primaryLabel = 'Continue Shopping';
+            $secondaryUrl = URLROOT . '/player/cart';
+            $secondaryLabel = 'Back to Cart';
         }
 
         $pendingFacilityBooking = $_SESSION['payhere_pending_facility_booking'] ?? null;
@@ -1256,7 +1272,7 @@ class Player extends Controller {
             $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
             if (is_array($pendingSubscriptionPayment) && !empty($pendingSubscriptionPayment['order_id'])) {
                 $subscriptionOrderId = (string)$pendingSubscriptionPayment['order_id'];
-                if ($orderId === '' || $orderId === $subscriptionOrderId) {
+                if ($orderId === '' || $orderId === $subscriptionOrderId || $paymentType === 'subscription') {
                     $orderId = $subscriptionOrderId;
                     $primaryUrl = URLROOT . '/player/payments';
                     $primaryLabel = 'View Payments';
@@ -1304,13 +1320,9 @@ class Player extends Controller {
                     $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
                     if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
                     $shopOrderId = (string)$pendingShopPayment['order_id'];
-                    if ($orderId === '' || $orderId === $shopOrderId) {
+                    if ($orderId === '' || $orderId === $shopOrderId || $paymentType === 'shop') {
                         $orderId = $shopOrderId;
-                        $emailSent = $this->sendShopPaymentSuccessEmail(
-                            $shopOrderId,
-                            (string)($pendingShopPayment['amount'] ?? '0.00'),
-                            (string)($pendingShopPayment['currency'] ?? 'LKR')
-                        );
+                        $emailSent = $this->sendPendingShopPaymentSuccessEmail($pendingShopPayment);
 
                         if (!$emailSent) {
                             error_log("Shop payment success email failed on return for order $shopOrderId");
@@ -1351,7 +1363,7 @@ class Player extends Controller {
         unset($_SESSION['payhere_pending_rental_payment']);
         unset($_SESSION['payhere_pending_order']);
 
-        if (is_array($pendingSubscriptionPayment)) {
+        if (is_array($pendingSubscriptionPayment) || $paymentType === 'subscription') {
             $_SESSION['payment_error'] = 'Payment was cancelled. You can try the subscription payment again.';
             redirect('player/payments');
         }
@@ -1366,7 +1378,7 @@ class Player extends Controller {
             redirect('player/rentals');
         }
 
-        if (is_array($pendingShopPayment)) {
+        if (is_array($pendingShopPayment) || $paymentType === 'shop') {
             $_SESSION['cart_error'] = 'Payment was cancelled. Please try again from the shop.';
             redirect('player/shopping');
         }
@@ -1474,6 +1486,8 @@ class Player extends Controller {
             return false;
         }
 
+        $payment = $paymentModel->getSubscriptionPaymentByGatewayOrderId($orderId) ?: $payment;
+
         require_once APPROOT . '/libraries/PaymentEmailService.php';
         PaymentEmailService::sendSuccessEmail(
             $playerId,
@@ -1512,6 +1526,37 @@ class Player extends Controller {
             $currency,
             $paymentTitle,
             $paymentDescription
+        );
+    }
+
+    private function sendPendingShopPaymentSuccessEmail(array $pendingShopPayment): bool {
+        $orderId = (string)($pendingShopPayment['order_id'] ?? '');
+        if ($orderId === '') {
+            return false;
+        }
+
+        $playerId = (int)($pendingShopPayment['player_id'] ?? $this->getPlayerIdFromShopOrderId($orderId));
+        $recipientEmail = (string)($pendingShopPayment['recipient_email'] ?? '');
+        $recipientName = (string)($pendingShopPayment['recipient_name'] ?? 'Player');
+
+        if ($recipientEmail === '') {
+            return $this->sendShopPaymentSuccessEmail(
+                $orderId,
+                (string)($pendingShopPayment['amount'] ?? '0.00'),
+                (string)($pendingShopPayment['currency'] ?? 'LKR')
+            );
+        }
+
+        require_once APPROOT . '/libraries/PaymentEmailService.php';
+        return PaymentEmailService::sendSuccessEmail(
+            $playerId > 0 ? $playerId : null,
+            $recipientEmail,
+            $recipientName,
+            $orderId,
+            (string)($pendingShopPayment['amount'] ?? '0.00'),
+            (string)($pendingShopPayment['currency'] ?? 'LKR'),
+            'Shop Product Payment',
+            'Shop product payment received successfully.'
         );
     }
 
