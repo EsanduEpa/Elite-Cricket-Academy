@@ -982,6 +982,81 @@ class Player extends Controller {
         $this->view('player/payhere_gateway', $data);
     }
 
+    /** POST /player/subscription_payhere_checkout — pay pending membership fee */
+    public function subscription_payhere_checkout() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/payments');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        $paymentId = (int)($_POST['payment_id'] ?? 0);
+
+        if ($playerId <= 0 || $paymentId <= 0) {
+            $_SESSION['payment_error'] = 'Invalid payment selected. Please try again.';
+            redirect('player/payments');
+        }
+
+        $paymentModel = $this->model('M_Payment');
+        $payment = $paymentModel->getPendingSubscriptionPaymentForPlayer($paymentId, $playerId);
+
+        if (!$payment) {
+            $_SESSION['payment_error'] = 'This payment is not available or has already been completed.';
+            redirect('player/payments');
+        }
+
+        $amount = number_format((float)($payment->Amount ?? 0), 2, '.', '');
+        if ((float)$amount <= 0) {
+            $_SESSION['payment_error'] = 'Invalid subscription payment amount. Please contact admin.';
+            redirect('player/payments');
+        }
+
+        $currency = 'LKR';
+        $orderId = 'ELITE-SUB-' . $playerId . '-' . $paymentId . '-' . time();
+        $itemsLabel = ucfirst((string)($payment->PlanName ?? 'Membership')) . ' Membership Fee';
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
+        unset($_SESSION['payhere_pending_facility_booking']);
+        $_SESSION['payhere_pending_subscription_payment'] = [
+            'order_id' => $orderId,
+            'payment_id' => $paymentId,
+            'player_id' => $playerId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'plan_name' => (string)($payment->PlanName ?? 'Membership'),
+        ];
+
+        $data = [
+            'title' => 'Redirecting to PayHere...',
+            'player' => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'currency' => $currency,
+                'items' => $itemsLabel,
+                'hash' => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url' => URLROOT . '/player/payhere_return',
+                'cancel_url' => URLROOT . '/player/payhere_cancel',
+                'notify_url' => URLROOT . '/player/payhere_notify',
+                'first_name' => $nameParts[0] ?? 'Player',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $playerData['email'],
+                'phone' => $playerData['phone'] ?: '0000000000',
+                'address' => $playerData['address'] ?: 'N/A',
+                'city' => 'Colombo',
+                'country' => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+
     /** GET /player/payhere_return — PayHere browser redirect on payment success */
     public function payhere_return() {
         $playerData = $this->getPlayerData();
@@ -1017,6 +1092,14 @@ class Player extends Controller {
                     $primaryLabel = 'View My Bookings';
                     $secondaryUrl = URLROOT . '/playerslots/facilities';
                     $secondaryLabel = 'Back to Facilities';
+                    $this->sendPaymentSuccessEmailForUser(
+                        (int)$playerData['id'],
+                        (string)$pendingFacilityBooking['order_id'],
+                        (string)$amount,
+                        'LKR',
+                        'Facility Booking Payment',
+                        'Facility booking confirmed successfully.'
+                    );
                 } else {
                     $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
                 }
@@ -1024,10 +1107,38 @@ class Player extends Controller {
 
             unset($_SESSION['payhere_pending_facility_booking']);
             unset($_SESSION['payhere_pending_shop_payment']);
+            unset($_SESSION['payhere_pending_subscription_payment']);
             unset($_SESSION['payhere_pending_order']);
         } else {
-            $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
-            if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
+            $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
+            if (is_array($pendingSubscriptionPayment) && !empty($pendingSubscriptionPayment['order_id'])) {
+                $subscriptionOrderId = (string)$pendingSubscriptionPayment['order_id'];
+                if ($orderId === '' || $orderId === $subscriptionOrderId) {
+                    $orderId = $subscriptionOrderId;
+                    $paymentCompleted = $this->completeSubscriptionPaymentAndSendEmail(
+                        (int)($pendingSubscriptionPayment['payment_id'] ?? 0),
+                        (int)($pendingSubscriptionPayment['player_id'] ?? 0),
+                        $subscriptionOrderId,
+                        null,
+                        (string)$subscriptionOrderId
+                    );
+
+                    if ($paymentCompleted) {
+                        $message = 'Your membership payment has been completed successfully.';
+                        $primaryUrl = URLROOT . '/player/payments';
+                        $primaryLabel = 'View Payments';
+                        $secondaryUrl = URLROOT . '/player';
+                        $secondaryLabel = 'Dashboard';
+                    } else {
+                        $message = 'Your payment was received, but the membership record could not be updated. Please contact support.';
+                    }
+
+                    unset($_SESSION['payhere_pending_subscription_payment']);
+                    unset($_SESSION['payhere_pending_order']);
+                }
+            } else {
+                $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
+                if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
                 $shopOrderId = (string)$pendingShopPayment['order_id'];
                 if ($orderId === '' || $orderId === $shopOrderId) {
                     $orderId = $shopOrderId;
@@ -1043,6 +1154,7 @@ class Player extends Controller {
 
                     unset($_SESSION['payhere_pending_shop_payment']);
                     unset($_SESSION['payhere_pending_order']);
+                }
                 }
             }
         }
@@ -1064,6 +1176,7 @@ class Player extends Controller {
     public function payhere_cancel() {
         unset($_SESSION['payhere_pending_facility_booking']);
         unset($_SESSION['payhere_pending_shop_payment']);
+        unset($_SESSION['payhere_pending_subscription_payment']);
         unset($_SESSION['payhere_pending_order']);
 
         $data = [
@@ -1089,6 +1202,16 @@ class Player extends Controller {
             if ($this->isShopProductPaymentOrder($orderId)) {
                 $emailSent = $this->sendShopPaymentSuccessEmail($orderId, $amount, $currency);
                 PayHere::log($logFile, 'SHOP_PAYMENT_EMAIL ' . ($emailSent ? 'SENT' : 'FAILED') . " order=$orderId");
+            } elseif ($this->isSubscriptionPaymentOrder($orderId)) {
+                $ids = $this->getSubscriptionPaymentIdsFromOrderId($orderId);
+                $completed = $this->completeSubscriptionPaymentAndSendEmail(
+                    $ids['payment_id'],
+                    $ids['player_id'],
+                    $orderId,
+                    $_POST['payment_id'] ?? ($_POST['payhere_payment_id'] ?? null),
+                    $orderId
+                );
+                PayHere::log($logFile, 'SUBSCRIPTION_PAYMENT ' . ($completed ? 'COMPLETED' : 'FAILED') . " order=$orderId");
             }
         } else {
             PayHere::log($logFile, "UNVERIFIED/FAILED status=$statusCode order=$orderId");
@@ -1110,95 +1233,100 @@ class Player extends Controller {
         return (int)$matches[1];
     }
 
-    private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
-        require_once APPROOT . '/libraries/Mailer.php';
+    private function isSubscriptionPaymentOrder(string $orderId): bool {
+        return preg_match('/^ELITE-SUB-\d+-\d+-\d+$/', $orderId) === 1;
+    }
 
+    private function getSubscriptionPaymentIdsFromOrderId(string $orderId): array {
+        if (preg_match('/^ELITE-SUB-(\d+)-(\d+)-\d+$/', $orderId, $matches) !== 1) {
+            return ['player_id' => 0, 'payment_id' => 0];
+        }
+
+        return [
+            'player_id' => (int)$matches[1],
+            'payment_id' => (int)$matches[2],
+        ];
+    }
+
+    private function completeSubscriptionPaymentAndSendEmail(
+        int $paymentId,
+        int $playerId,
+        string $orderId,
+        ?string $gatewayPaymentId = null,
+        ?string $reference = null
+    ): bool {
+        if ($paymentId <= 0 || $playerId <= 0) {
+            return false;
+        }
+
+        $paymentModel = $this->model('M_Payment');
+        $payment = $paymentModel->getPendingSubscriptionPaymentForPlayer($paymentId, $playerId)
+            ?: $paymentModel->getSubscriptionPaymentByGatewayOrderId($orderId);
+
+        if (!$payment) {
+            return false;
+        }
+
+        $updated = $paymentModel->markSubscriptionPaymentCompleted($paymentId, $orderId, $gatewayPaymentId, $reference);
+        if (!$updated) {
+            return false;
+        }
+
+        require_once APPROOT . '/libraries/PaymentEmailService.php';
+        PaymentEmailService::sendSuccessEmail(
+            $playerId,
+            (string)($payment->PlayerEmail ?? ''),
+            (string)($payment->PlayerName ?? 'Player'),
+            $orderId,
+            (string)($payment->Amount ?? '0.00'),
+            'LKR',
+            'Membership Payment',
+            ucfirst((string)($payment->PlanName ?? 'Membership')) . ' membership fee paid successfully.'
+        );
+
+        return true;
+    }
+
+    private function sendPaymentSuccessEmailForUser(
+        int $playerId,
+        string $orderId,
+        string $amount,
+        string $currency,
+        string $paymentTitle,
+        string $paymentDescription
+    ): bool {
+        $player = $this->userModel->getUserById($playerId);
+        if (!$player) {
+            return false;
+        }
+
+        require_once APPROOT . '/libraries/PaymentEmailService.php';
+        return PaymentEmailService::sendSuccessEmail(
+            $playerId,
+            (string)($player->Email ?? ''),
+            trim((string)($player->Name ?? ($player->FirstName ?? 'Player'))),
+            $orderId,
+            $amount,
+            $currency,
+            $paymentTitle,
+            $paymentDescription
+        );
+    }
+
+    private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
         $playerId = $this->getPlayerIdFromShopOrderId($orderId);
         if ($playerId <= 0) {
             error_log("Payment email skipped: could not parse player ID from order $orderId");
             return false;
         }
-
-        $emailModel = null;
-        try {
-            $emailModel = $this->model('M_Email');
-        } catch (Exception $e) {
-            error_log('Payment email log model unavailable: ' . $e->getMessage());
-        }
-
-        if ($emailModel && $emailModel->hasPaymentConfirmationBeenSent($orderId)) {
-            return true;
-        }
-
-        $player = $this->userModel->getUserById($playerId);
-        if (!$player || empty($player->Email)) {
-            error_log("Payment email skipped: player not found for order $orderId");
-            return false;
-        }
-
-        if (!filter_var((string)$player->Email, FILTER_VALIDATE_EMAIL)) {
-            error_log("Payment email skipped: invalid email for order $orderId");
-            if ($emailModel) {
-                $emailModel->logPaymentConfirmation(
-                    $playerId,
-                    (string)$player->Email,
-                    "Payment Confirmation - $orderId",
-                    false,
-                    'Skipped because player email is missing or invalid.'
-                );
-            }
-            return false;
-        }
-
-        $playerName = trim((string)($player->Name ?? ($player->FirstName ?? 'Player')));
-        $safeName = htmlspecialchars($playerName !== '' ? $playerName : 'Player', ENT_QUOTES, 'UTF-8');
-        $safeOrderId = htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8');
-        $safeAmount = htmlspecialchars(number_format((float)$amount, 2), ENT_QUOTES, 'UTF-8');
-        $safeCurrency = htmlspecialchars($currency ?: 'LKR', ENT_QUOTES, 'UTF-8');
-        $paidAt = date('Y-m-d H:i:s');
-
-        $subject = "Payment Confirmation - $orderId";
-        $htmlBody = '
-            <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
-                <h2 style="color: #0f766e; margin-bottom: 8px;">Payment Successful</h2>
-                <p>Hi ' . $safeName . ',</p>
-                <p>Your shop product payment has been successfully received by Elite Cricket Academy.</p>
-                <table style="border-collapse: collapse; margin: 16px 0; width: 100%; max-width: 520px;">
-                    <tr>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Order ID</td>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . $safeOrderId . '</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Amount</td>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . $safeCurrency . ' ' . $safeAmount . '</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px; font-weight: bold;">Paid At</td>
-                        <td style="border: 1px solid #e5e7eb; padding: 10px;">' . htmlspecialchars($paidAt, ENT_QUOTES, 'UTF-8') . '</td>
-                    </tr>
-                </table>
-                <p>Thank you for shopping with Elite Cricket Academy.</p>
-                <p style="margin-top: 24px;">Regards,<br>Elite Cricket Academy</p>
-            </div>';
-
-        try {
-            $sent = Mailer::send((string)$player->Email, $subject, $htmlBody, $playerName);
-        } catch (Throwable $e) {
-            error_log('Payment email unexpected failure: ' . $e->getMessage());
-            $sent = false;
-        }
-
-        if ($emailModel) {
-            $emailModel->logPaymentConfirmation(
-                $playerId,
-                (string)$player->Email,
-                $subject,
-                $sent,
-                $sent ? null : 'SMTP send failed or recipient mailbox was unavailable. Check PHP error log for Mailer details.'
-            );
-        }
-
-        return $sent;
+        return $this->sendPaymentSuccessEmailForUser(
+            $playerId,
+            $orderId,
+            $amount,
+            $currency,
+            'Shop Product Payment',
+            'Shop product payment received successfully.'
+        );
     }
 
     // Backwards-compatible route for older links
@@ -1475,6 +1603,7 @@ class Player extends Controller {
 
         foreach ($payments as $payment) {
             $upcomingPayments[] = [
+                'payment_id' => (int)($payment->PaymentID ?? 0),
                 'due_date' => $payment->DueDate ?? date('Y-m-d'),
                 'description' => 'Membership Pending',
                 'details' => !empty($payment->Notes)

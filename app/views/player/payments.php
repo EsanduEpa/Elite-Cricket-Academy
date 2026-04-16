@@ -207,15 +207,16 @@
                                         </td>
                                         <td>
                                             <div class="payment-actions">
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-pay"
-                                                    data-pay-url="<?php echo URLROOT; ?>/player/payhere_checkout"
-                                                    data-payment-item="Membership Pending"
-                                                    data-payment-amount="<?= htmlspecialchars(number_format((float)($payment['amount'] ?? 0), 2, '.', ''), ENT_QUOTES) ?>"
-                                                >
-                                                    Pay Now
-                                                </button>
+                                                <form method="POST" action="<?php echo URLROOT; ?>/player/subscription_payhere_checkout" style="display:inline;">
+                                                    <input type="hidden" name="payment_id" value="<?= (int)($payment['payment_id'] ?? 0) ?>">
+                                                    <button
+                                                        type="submit"
+                                                        class="btn"
+                                                        style="background:#27ae60;color:white;border:none;cursor:pointer;"
+                                                    >
+                                                        Pay Now
+                                                    </button>
+                                                </form>
                                                 <button type="button" class="btn btn-view">Details</button>
                                             </div>
                                         </td>
@@ -285,42 +286,5 @@
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/payments.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.btn-pay').forEach(function (button) {
-                button.addEventListener('click', function (event) {
-                    event.preventDefault();
-
-                    const payUrl = button.dataset.payUrl;
-                    const paymentItem = button.dataset.paymentItem || 'Membership Payment';
-                    const paymentAmount = parseFloat(button.dataset.paymentAmount || '0');
-
-                    if (!payUrl || !paymentAmount || paymentAmount <= 0) {
-                        return;
-                    }
-
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = payUrl;
-                    form.style.display = 'none';
-
-                    const amountInput = document.createElement('input');
-                    amountInput.type = 'hidden';
-                    amountInput.name = 'cart_total';
-                    amountInput.value = paymentAmount.toFixed(2);
-
-                    const itemsInput = document.createElement('input');
-                    itemsInput.type = 'hidden';
-                    itemsInput.name = 'cart_items';
-                    itemsInput.value = JSON.stringify([{ name: paymentItem, quantity: 1 }]);
-
-                    form.appendChild(amountInput);
-                    form.appendChild(itemsInput);
-                    document.body.appendChild(form);
-                    form.submit();
-                });
-            });
-        });
-    </script>
 </body>
 </html>
