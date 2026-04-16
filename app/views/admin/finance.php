@@ -22,7 +22,7 @@
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
                             <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard Overview</span>
+                            <span>Dashboard </span>
                         </a>
                     </li>
                     
@@ -40,50 +40,40 @@
                         </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/events" class="nav-link">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Events & Tournaments</span>
-                        </a>
-                    </li>
+                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link">
+                    <i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
+
                     
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
-                            <i class="fas fa-comments"></i>
-                            <span>Feedback Monitoring</span>
-                            <span class="badge">12</span>
+                        <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            <span>Slot Management</span>
                         </a>
                     </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Reports</span>
-                        </a>
-                    </li>
-                    
+
                     <li class="nav-item active">
                         <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
-                            <span>Finance Management</span>
+                            <span>Finances</span>
                         </a>
                     </li>
                 </ul>
             </nav>
             
             <!-- Admin Profile -->
-            <div class="admin-profile">
-                <div class="profile-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="profile-info">
-                    <span class="admin-name">Admin User</span>
-                    <span class="admin-role">Super Administrator</span>
-                </div>
-                <div class="logout-btn">
-                    <a href="<?php echo URLROOT; ?>/login/logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
+            <div class="profile-section">
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                    <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                        <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                        <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

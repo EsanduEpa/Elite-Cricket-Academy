@@ -186,7 +186,7 @@ class Adminslots extends Controller {
                 (int)$templateId,
                 (int)$_POST['user_id'],
                 $_POST['staff_type'],
-                $_POST['staff_role'],
+                'lead',  // Default to 'lead' role (removed from form as per UI changes)
                 (int)$_SESSION['user_id']
             );
 
@@ -308,12 +308,41 @@ class Adminslots extends Controller {
             } elseif ($from > $to) {
                 $error = 'Start date must be on or before end date.';
             } else {
-                $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
-                if (!empty($result['error'])) {
-                    $error = $result['error'];
+                // Get template to check day of week
+                $templates = $model->getActiveTemplates();
+                $template = null;
+                foreach ($templates as $t) {
+                    if ($t->TemplateID == $templateId) {
+                        $template = $t;
+                        break;
+                    }
                 }
-                if (!empty($result['inserted']) && $result['inserted'] > 0) {
-                    redirect('adminslots/calendar?generated=1&count=' . $result['inserted']);
+
+                if (!$template) {
+                    $error = 'Template not found.';
+                } else {
+                    // Validate dates match template's day of week (if specific day required)
+                    if ($template->DayOfWeek > 0) {
+                        $dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        $fromDay = (int) date('N', strtotime($from)); // 1=Monday, 7=Sunday
+                        $toDay = (int) date('N', strtotime($to));
+
+                        if ($fromDay !== (int)$template->DayOfWeek) {
+                            $error = "From date must be a {$dayNames[(int)$template->DayOfWeek]} (template's scheduled day). '{$from}' is a {$dayNames[$fromDay]}.";
+                        } elseif ($toDay !== (int)$template->DayOfWeek) {
+                            $error = "To date must be a {$dayNames[(int)$template->DayOfWeek]} (template's scheduled day). '{$to}' is a {$dayNames[$toDay]}.";
+                        }
+                    }
+
+                    if (!$error) {
+                        $result = $model->generateOccurrences($templateId, $from, $to, (int) $_SESSION['user_id']);
+                        if (!empty($result['error'])) {
+                            $error = $result['error'];
+                        }
+                        if (!empty($result['inserted']) && $result['inserted'] > 0) {
+                            redirect('adminslots/calendar?generated=1&count=' . $result['inserted']);
+                        }
+                    }
                 }
             }
         }
@@ -482,6 +511,7 @@ class Adminslots extends Controller {
 
         $error   = null;
         $success = null;
+        $canCancelError = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -492,15 +522,20 @@ class Adminslots extends Controller {
                 } elseif ($occurrence->Status === 'cancelled') {
                     $error = 'This occurrence is already cancelled.';
                 } else {
-                    $model->cancelOccurrence((int) $id, $reason, (int) $_SESSION['user_id']);
-                    $success    = 'Occurrence cancelled successfully.';
-                    $occurrence = $model->getOccurrenceById((int) $id);
+                    // Check cancellation eligibility
+                    $canCancel = $this->canCancelOccurrence($occurrence);
+                    if ($canCancel !== true) {
+                        $error = $canCancel;
+                    } else {
+                        $model->cancelOccurrence((int) $id, $reason, (int) $_SESSION['user_id']);
+                        $success    = 'Occurrence cancelled successfully.';
+                        $occurrence = $model->getOccurrenceById((int) $id);
+                    }
                 }
 
             } elseif (isset($_POST['action_substitute'])) {
                 $subUserId  = (int) ($_POST['sub_user_id']      ?? 0);
                 $subType    =        $_POST['sub_staff_type']   ?? '';
-                $subRole    =        $_POST['sub_staff_role']   ?? 'substitute';
                 $replacesId = (int) ($_POST['replaces_user_id'] ?? 0);
                 $reason     = trim( $_POST['sub_reason']        ?? '');
 
@@ -508,7 +543,7 @@ class Adminslots extends Controller {
                     $error = 'Substitute user, staff type, and reason are all required.';
                 } else {
                     $ok = $model->substituteStaff(
-                        (int) $id, $subUserId, $subType, $subRole,
+                        (int) $id, $subUserId, $subType,
                         $replacesId, $reason, (int) $_SESSION['user_id']
                     );
                     if ($ok) {
@@ -520,22 +555,56 @@ class Adminslots extends Controller {
             }
         }
 
+        // Check cancellation eligibility for display
+        if ($occurrence->Status !== 'cancelled') {
+            $canCancelError = $this->canCancelOccurrence($occurrence);
+            if ($canCancelError === true) {
+                $canCancelError = null;
+            }
+        }
+
         $staff = $model->getStaffForOccurrence(
             (int) $id,
             $occurrence->TemplateID ? (int) $occurrence->TemplateID : null
         );
 
         $data = [
-            'title'      => 'Occurrence Detail',
-            'occurrence' => $occurrence,
-            'staff'      => $staff,
-            'bookings'   => $model->getBookingsForOccurrence((int) $id),
-            'coaches'    => $model->getAvailableCoaches(),
-            'trainers'   => $model->getAvailableTrainers(),
-            'error'      => $error,
-            'success'    => $success,
+            'title'           => 'Occurrence Detail',
+            'occurrence'      => $occurrence,
+            'staff'           => $staff,
+            'bookings'        => $model->getBookingsForOccurrence((int) $id),
+            'coaches'         => $model->getAvailableCoaches(),
+            'trainers'        => $model->getAvailableTrainers(),
+            'error'           => $error,
+            'success'         => $success,
+            'canCancelError'  => $canCancelError,
         ];
         $this->view('admin/slots/occurrence', $data);
+    }
+
+    private function canCancelOccurrence($occurrence): bool|string {
+        $occDateTime = new DateTime($occurrence->OccurrenceDate . ' ' . $occurrence->StartTime, new DateTimeZone('UTC'));
+        $now = new DateTime('now', new DateTimeZone('UTC'));
+        $timeUntilOcc = $now->diff($occDateTime);
+
+        // Check 48-hour rule for program sessions
+        if (($occurrence->SlotType ?? '') === 'program') {
+            if ($timeUntilOcc->invert === 1) {
+                // Already happened
+                return 'Cannot cancel a past occurrence.';
+            }
+            $hoursRemaining = $timeUntilOcc->h + ($timeUntilOcc->days * 24);
+            if ($hoursRemaining < 48) {
+                return 'Cannot cancel within 48 hours of the scheduled time.';
+            }
+        } elseif (($occurrence->SlotType ?? '') === 'private' || ($occurrence->SlotType ?? '') === 'facility_only') {
+            // For private or facility-only, can cancel if no bookings
+            if (($occurrence->BookingCount ?? 0) > 0) {
+                return 'Cannot cancel: this occurrence has bookings. Contact affected players first.';
+            }
+        }
+
+        return true;
     }
 
     // =========================================================

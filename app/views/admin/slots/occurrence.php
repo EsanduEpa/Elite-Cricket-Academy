@@ -42,19 +42,28 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events &amp; Tournaments</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -76,14 +85,7 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
         </div>
 
         <!-- Sub-nav -->
-        <div style="padding:0 25px 20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
-            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
-        </div>
+      
 
         <div style="padding:0 25px 40px; max-width:900px;">
 
@@ -135,6 +137,10 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
                         <div class="detail-value"><?= $occ->SlotType ? ucfirst(str_replace('_', ' ', $occ->SlotType)) : '—' ?></div>
                     </div>
                     <div>
+                        <div class="detail-label">Age Group</div>
+                        <div class="detail-value"><?= htmlspecialchars($occ->AgeGroup ?? '—') ?></div>
+                    </div>
+                    <div>
                         <div class="detail-label"><?= htmlspecialchars($occurrenceCountLabel) ?></div>
                         <div class="detail-value"><?= $occurrenceCount ?> <?= htmlspecialchars($occurrenceCountSuffix) ?></div>
                     </div>
@@ -169,7 +175,6 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
                         <thead>
                             <tr style="background:#f8f9fa;">
                                 <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Name</th>
-                                <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Role</th>
                                 <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Type</th>
                                 <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Source</th>
                                 <th style="padding:10px 14px;text-align:left;font-size:12px;color:#555;border-bottom:1px solid #dee2e6;">Note</th>
@@ -179,9 +184,6 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
                             <?php foreach ($staff as $s): ?>
                             <tr style="border-bottom:1px solid #f0f0f0;">
                                 <td style="padding:10px 14px;font-weight:600;"><?= htmlspecialchars($s->UserName) ?></td>
-                                <td style="padding:10px 14px;">
-                                    <span class="badge-<?= $s->StaffRole ?>"><?= ucfirst($s->StaffRole) ?></span>
-                                </td>
                                 <td style="padding:10px 14px;font-size:13px;"><?= ucfirst($s->StaffType) ?></td>
                                 <td style="padding:10px 14px;font-size:12px;color:#888;"><?= ucfirst($s->Source) ?></td>
                                 <td style="padding:10px 14px;font-size:12px;color:#888;">
@@ -197,7 +199,13 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
             <!-- ── Bookings ── -->
             <div class="detail-card">
                 <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;"><i class="fas fa-ticket-alt"></i> Bookings
-                    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;"><?= count($data['bookings']) ?> total</span>
+                    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px;">
+                        <?php if (($occ->SlotType ?? '') === 'program'): ?>
+                            <?= (int)$occ->EligiblePlayerCount ?> eligible
+                        <?php else: ?>
+                            <?= count($data['bookings']) ?> total
+                        <?php endif; ?>
+                    </span>
                 </h3>
                 <?php if (empty($data['bookings'])): ?>
                     <p style="color:#888;font-size:13px;margin:0;">No players have booked this occurrence yet.</p>
@@ -264,25 +272,32 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
 
             <!-- ── Cancel Occurrence ── -->
             <?php if ($occ->Status !== 'cancelled'): ?>
-            <div class="detail-card" style="border-left:4px solid #e74c3c;">
-                <h3 style="margin:0 0 4px;font-size:15px;color:#e74c3c;"><i class="fas fa-ban"></i> Cancel This Occurrence</h3>
+            <div class="detail-card" style="border-left:4px solid <?= $data['canCancelError'] ? '#f39c12' : '#e74c3c' ?>;">
+                <h3 style="margin:0 0 4px;font-size:15px;color:<?= $data['canCancelError'] ? '#e67e22' : '#e74c3c' ?>;"><i class="fas fa-ban"></i> Cancel This Occurrence</h3>
                 <p style="color:#888;font-size:13px;margin:0 0 16px;">
                     This cancels only this date — the template and all other occurrences are unaffected.
                     <?php if ($occ->BookingCount > 0): ?>
                         <strong style="color:#e74c3c;"><?= (int)$occ->BookingCount ?> player(s) are booked — Phase 7 will send them notifications.</strong>
                     <?php endif; ?>
                 </p>
-                <form method="POST">
+                <?php if ($data['canCancelError']): ?>
+                    <div style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                        <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($data['canCancelError']) ?>
+                    </div>
+                <?php endif; ?>
+                <form method="POST" <?= $data['canCancelError'] ? 'style="opacity:0.6;pointer-events:none;"' : '' ?>>
                     <input type="hidden" name="action_cancel" value="1">
                     <div style="display:flex;gap:12px;align-items:flex-end;">
                         <div style="flex:1;">
                             <label style="display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;">Reason <span style="color:#e74c3c;">*</span></label>
                             <input type="text" name="cancel_reason" required placeholder="e.g. School holiday, Facility maintenance…"
-                                   style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;box-sizing:border-box;">
+                                   style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;box-sizing:border-box;"
+                                   <?= $data['canCancelError'] ? 'disabled' : '' ?>>
                         </div>
                         <button type="submit"
                                 onclick="return confirm('Cancel this occurrence? This cannot be undone without admin DB access.')"
-                                style="padding:9px 20px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                                style="padding:9px 20px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;"
+                                <?= $data['canCancelError'] ? 'disabled' : '' ?>>
                             <i class="fas fa-ban"></i> Cancel Occurrence
                         </button>
                     </div>
@@ -294,7 +309,7 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
             </div>
             <?php endif; ?>
 
-            <!-- ── Substitute Staff ── -->
+            <!-- ── Substitute Staff ──
             <div class="detail-card" style="border-left:4px solid #f39c12;">
                 <h3 style="margin:0 0 4px;font-size:15px;color:#e67e22;"><i class="fas fa-user-edit"></i> Substitute Staff (This Date Only)</h3>
                 <p style="color:#888;font-size:13px;margin:0 0 16px;">
@@ -358,7 +373,7 @@ $occurrenceCountSuffix = ($occ->SlotType ?? '') === 'program' ? 'eligible player
                     </button>
                 </form>
             </div>
-
+ -->
         </div>
     </div>
 </div>

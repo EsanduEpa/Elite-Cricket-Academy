@@ -28,19 +28,28 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events &amp; Tournaments</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -57,11 +66,14 @@
             </div>
         </div>
 
-        <div style="padding:0 25px 20px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div style="padding:0 25px 20px; display:flex; gap:10px;">
+            <a href="<?php echo URLROOT; ?>/adminslots/timeslots" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
             <a href="<?php echo URLROOT; ?>/adminslots/private_requests" style="padding:7px 16px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Private Requests</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px;">
@@ -71,25 +83,27 @@
             <?php endif; ?>
 
             <div class="req-card">
-                <?php if (empty($requests)): ?>
-                    <div style="color:#6c757d;">No private session requests are waiting for review.</div>
-                <?php else: ?>
-                    <div style="overflow-x:auto;">
-                        <table class="req-table">
-                            <thead>
+                <div style="overflow-x:auto;">
+                    <table class="req-table">
+                        <thead>
+                            <tr>
+                                <th>Requester</th>
+                                <th>Date</th>
+                                <th>Time Band</th>
+                                <th>Facility</th>
+                                <th>Capacity</th>
+                                <th>Availability</th>
+                                <th>Notes</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($requests)): ?>
                                 <tr>
-                                    <th>Requester</th>
-                                    <th>Date</th>
-                                    <th>Time Band</th>
-                                    <th>Facility</th>
-                                    <th>Capacity</th>
-                                    <th>Availability</th>
-                                    <th>Notes</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <td colspan="9" style="text-align:center;padding:24px;color:#6c757d;">No private session requests.</td>
                                 </tr>
-                            </thead>
-                            <tbody>
+                            <?php else: ?>
                                 <?php foreach ($requests as $request): ?>
                                     <tr>
                                         <td>
@@ -128,15 +142,15 @@
                                                     <button type="submit" name="request_action" value="reject" class="req-btn req-reject">Reject</button>
                                                 </form>
                                             <?php else: ?>
-                                                <span style="color:#6c757d;">Reviewed</span>
+                                                <span style="color:#6c757d;font-size:12px;">Reviewed</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

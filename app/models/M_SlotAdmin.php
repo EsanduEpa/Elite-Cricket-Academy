@@ -535,7 +535,7 @@ class M_SlotAdmin {
         $this->db->query(
             'SELECT so.*,
                     st.TemplateName, st.temp_code AS TemplateCode, st.SlotType, st.StaffType, st.DayOfWeek AS TemplateDayOfWeek,
-                    st.MaxParticipants AS TemplateMaxParticipants,
+                    st.MaxParticipants AS TemplateMaxParticipants, st.AgeGroup,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
                     (SELECT COUNT(*) FROM slot_booking sb
@@ -789,11 +789,39 @@ class M_SlotAdmin {
             $approvedOccurrenceId = null;
 
             if ($status === 'approved') {
+                // First, create a template for this private session request
+                $templateCode = 'PRIV-' . $requestId . '-' . date('Ymd');
+                $templateName = (!empty($request->RequesterName) ? $request->RequesterName . ' — ' : '') . 
+                                ($request->SlotLabel ?? 'Private Session');
+                
+                $this->db->query(
+                    'INSERT INTO slot_template
+                     (TemplateName, temp_code, SlotID, SlotType, StaffType, MaxParticipants, 
+                      FacilityID, Status, Notes, CreatedBy, CreatedAt)
+                     VALUES (:name, :code, :slotid, \'private\', :stafftype, :max, 
+                             :fid, \'active\', :notes, :createdby, NOW())'
+                );
+                $this->db->bind(':name', $templateName);
+                $this->db->bind(':code', $templateCode);
+                $this->db->bind(':slotid', (int) $request->SlotID, PDO::PARAM_INT);
+                $this->db->bind(':stafftype', $request->StaffType);
+                $this->db->bind(':max', isset($request->MaxParticipants) ? (int) $request->MaxParticipants : 10, PDO::PARAM_INT);
+                $this->db->bind(':fid', isset($request->FacilityID) ? (int) $request->FacilityID : null);
+                $this->db->bind(':notes', 'Approved from private session request #' . $requestId);
+                $this->db->bind(':createdby', $reviewedBy, PDO::PARAM_INT);
+                if (!$this->db->execute()) {
+                    throw new RuntimeException('Unable to create template');
+                }
+
+                $approvedTemplateId = (int) $this->db->lastInsertId();
+
+                // Now create the occurrence linked to this template
                 $this->db->query(
                     'INSERT INTO slot_occurrence
                      (TemplateID, SlotID, OccurrenceDate, FacilityID, Status, MaxParticipants, Notes, GeneratedBy)
-                     VALUES (NULL, :slotid, :date, :fid, \'scheduled\', :max, :notes, :gen)'
+                     VALUES (:templateid, :slotid, :date, :fid, \'scheduled\', :max, :notes, :gen)'
                 );
+                $this->db->bind(':templateid', $approvedTemplateId, PDO::PARAM_INT);
                 $this->db->bind(':slotid', (int) $request->SlotID, PDO::PARAM_INT);
                 $this->db->bind(':date', $request->RequestedDate);
                 $this->db->bind(':fid', isset($request->FacilityID) ? (int) $request->FacilityID : null);
@@ -806,17 +834,18 @@ class M_SlotAdmin {
 
                 $approvedOccurrenceId = (int) $this->db->lastInsertId();
 
+                // Assign the requesting staff to this template
                 $this->db->query(
-                    'INSERT INTO slot_occurrence_staff_override
-                     (OccurrenceID, UserID, StaffType, StaffRole, OverridesUserID, OverrideReason)
-                     VALUES (:oid, :uid, :stype, \'lead\', NULL, :reason)'
+                    'INSERT INTO slot_template_staff
+                     (TemplateID, UserID, StaffType)
+                     VALUES (:templateid, :uid, :stype)
+                     ON DUPLICATE KEY UPDATE StaffType = :stype'
                 );
-                $this->db->bind(':oid', $approvedOccurrenceId, PDO::PARAM_INT);
+                $this->db->bind(':templateid', $approvedTemplateId, PDO::PARAM_INT);
                 $this->db->bind(':uid', (int) $request->RequesterUserID, PDO::PARAM_INT);
                 $this->db->bind(':stype', $request->StaffType);
-                $this->db->bind(':reason', 'Approved from private session request #' . $requestId);
                 if (!$this->db->execute()) {
-                    throw new RuntimeException('Unable to assign staff');
+                    throw new RuntimeException('Unable to assign staff to template');
                 }
             }
 
@@ -843,7 +872,7 @@ class M_SlotAdmin {
             $this->_activityLog(
                 $reviewedBy,
                 'private_session_request_' . $status,
-                "Reviewed private session request #{$requestId} as {$status}" . ($approvedOccurrenceId ? " and created occurrence #{$approvedOccurrenceId}" : '')
+                "Reviewed private session request #{$requestId} as {$status}" . ($approvedOccurrenceId ? " and created template & occurrence #{$approvedOccurrenceId}" : '')
             );
 
             return $approvedOccurrenceId ?: true;
@@ -867,7 +896,7 @@ class M_SlotAdmin {
 
         if ($row && (int) $row->cnt > 0) {
             $this->db->query(
-                'SELECT ov.ID, ov.UserID, ov.StaffType, ov.StaffRole,
+                'SELECT ov.ID, ov.UserID, ov.StaffType,
                         ov.OverridesUserID, ov.OverrideReason,
                         CONCAT(u.FirstName, " ", u.LastName) AS UserName, u.Role AS UserRole,
                         \'override\' AS Source
@@ -910,18 +939,17 @@ class M_SlotAdmin {
     }
 
     public function substituteStaff(
-        int $occurrenceId, int $userId, string $type, string $role,
+        int $occurrenceId, int $userId, string $type,
         int $replacesId, string $reason, int $adminId
     ): bool {
         $this->db->query(
             'INSERT INTO slot_occurrence_staff_override
-             (OccurrenceID, UserID, StaffType, StaffRole, OverridesUserID, OverrideReason)
-             VALUES (:oid, :uid, :type, :role, :replaces, :reason)'
+             (OccurrenceID, UserID, StaffType, OverridesUserID, OverrideReason)
+             VALUES (:oid, :uid, :type, :replaces, :reason)'
         );
         $this->db->bind(':oid',     $occurrenceId,              PDO::PARAM_INT);
         $this->db->bind(':uid',     $userId,                    PDO::PARAM_INT);
         $this->db->bind(':type',    $type);
-        $this->db->bind(':role',    $role);
         $this->db->bind(':replaces', $replacesId > 0 ? $replacesId : null);
         $this->db->bind(':reason',  $reason);
         $ok = $this->db->execute();
