@@ -84,7 +84,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="cartPage" data-urlroot="<?php echo URLROOT; ?>">
+    <div class="main-content" id="cartPage" data-urlroot="<?php echo URLROOT; ?>" data-cart-count="<?php echo (int)($data['cartItemCount'] ?? 0); ?>">
         <!-- Cart Header -->
         <div class="cart-header">
             <div class="header-content">
@@ -374,6 +374,9 @@
 <script type="application/json" id="cartData"><?php echo json_encode([
     'promoDiscounts' => $data['promoDiscounts'] ?? null,
     'recommendedProducts' => $data['recommendedProducts'] ?? null,
+    'cartItems' => $data['cartItems'] ?? [],
+    'cartItemCount' => (int)($data['cartItemCount'] ?? 0),
+    'cartTotal' => (float)($data['cartTotal'] ?? 0),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?></script>
 
 <script src="<?php echo URLROOT; ?>/js/player/cart.js"></script>

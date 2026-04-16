@@ -84,7 +84,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="checkoutPage" data-urlroot="<?php echo URLROOT; ?>">
+    <div class="main-content" id="checkoutPage" data-urlroot="<?php echo URLROOT; ?>" data-cart-count="<?php echo (int)($data['cartItemCount'] ?? 0); ?>">
         <!-- Payment Header -->
         <div class="shopping-header">
             <div class="header-content">
@@ -276,6 +276,11 @@
         </div>
     </div>
 </div>
+<script type="application/json" id="checkoutData"><?php echo json_encode([
+    'cartItems' => $data['cartItems'] ?? [],
+    'cartTotal' => (float)($data['cartTotal'] ?? 0),
+    'cartItemCount' => (int)($data['cartItemCount'] ?? 0),
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?></script>
 <script src="<?php echo URLROOT; ?>/js/player/checkout.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
