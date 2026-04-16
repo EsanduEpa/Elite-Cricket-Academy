@@ -227,6 +227,60 @@ class Adminslots extends Controller {
     }
 
     // =========================================================
+    // PRIVATE SESSION REQUESTS  —  /adminslots/private_requests
+    // =========================================================
+    public function private_requests() {
+        $model = $this->model('M_SlotAdmin');
+        $error = null;
+        $success = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $requestId = (int) ($_POST['request_id'] ?? 0);
+            $action = strtolower(trim((string) ($_POST['request_action'] ?? '')));
+            $reviewNotes = trim((string) ($_POST['review_notes'] ?? ''));
+
+            if ($requestId <= 0 || !in_array($action, ['approve', 'reject'], true)) {
+                $error = 'Please choose a valid request action.';
+            } else {
+                $result = $model->reviewPrivateSessionRequest(
+                    $requestId,
+                    $action === 'approve' ? 'approved' : 'rejected',
+                    (int) $_SESSION['user_id'],
+                    $reviewNotes !== '' ? $reviewNotes : null
+                );
+
+                if ($result === true || (is_int($result) && $result > 0)) {
+                    if ($action === 'approve') {
+                        $message = is_int($result)
+                            ? 'Private session request approved and occurrence #' . $result . ' created.'
+                            : 'Private session request approved successfully.';
+                    } else {
+                        $message = 'Private session request rejected successfully.';
+                    }
+                    flash('private_session_request', $message, 'alert alert-success');
+                    redirect('adminslots/private_requests');
+                } elseif ($result === 'time_conflict') {
+                    $error = 'The requested facility is already occupied for that date and time.';
+                } elseif ($result === 'already_reviewed') {
+                    $error = 'This request has already been reviewed.';
+                } elseif ($result === 'not_found') {
+                    $error = 'The selected request could not be found.';
+                } else {
+                    $error = 'Could not process the request. Please try again.';
+                }
+            }
+        }
+
+        $data = [
+            'title' => 'Private Session Requests',
+            'requests' => $model->getPrivateSessionRequests(),
+            'error' => $error,
+            'success' => $success,
+        ];
+        $this->view('admin/slots/private_requests', $data);
+    }
+
+    // =========================================================
     // GENERATE OCCURRENCES  —  /adminslots/generate
     // =========================================================
     public function generate() {

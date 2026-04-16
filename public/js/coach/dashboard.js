@@ -1,20 +1,38 @@
 /* Coach Dashboard JS: charts and interactivity using Chart.js */
 document.addEventListener('DOMContentLoaded', function(){
-	const data = window.__COACH_DASHBOARD_DATA || {};
+	const data = window.__COACH_DASHBOARD_DATA || window.__STAFF_SLOTS_DATA || {};
+	const endpoints = window.__COACH_DASHBOARD_ENDPOINTS || {};
 
 	// Helper: populate selects
 	function populatePlayerSelect() {
 		const sel = document.getElementById('performancePlayerSelect');
 		const teamSel = document.getElementById('attendanceTeamSelect');
 		const players = (data.playerProfiles || []).map(p => ({id:p.id, name:p.name}));
-		sel.innerHTML = '';
-		teamSel.innerHTML = '';
-		const allOpt = document.createElement('option'); allOpt.value='all'; allOpt.text='All Players'; sel.appendChild(allOpt);
-		const teamAll = document.createElement('option'); teamAll.value='all'; teamAll.text='All Teams'; teamSel.appendChild(teamAll);
-		players.forEach(p=>{
-			const o = document.createElement('option'); o.value = p.id; o.text = p.name; sel.appendChild(o);
-			const o2 = o.cloneNode(true); teamSel.appendChild(o2);
-		});
+		if (sel) {
+			sel.innerHTML = '';
+			const allOpt = document.createElement('option'); allOpt.value='all'; allOpt.text='All Players'; sel.appendChild(allOpt);
+			players.forEach(p=>{
+				const o = document.createElement('option'); o.value = p.id; o.text = p.name; sel.appendChild(o);
+			});
+		}
+		if (teamSel) {
+			teamSel.innerHTML = '';
+			const attendanceData = data.attendanceData || data.attendanceChartData || {};
+			const datasets = attendanceData.datasets || {};
+			if (datasets.all) {
+				const options = [
+					{ value: 'all', text: 'All Sessions' },
+					{ value: 'program', text: 'Program Sessions' },
+					{ value: 'private', text: 'Private Sessions' },
+				];
+				options.forEach(({ value, text }) => {
+					const option = document.createElement('option');
+					option.value = value;
+					option.text = text;
+					teamSel.appendChild(option);
+				});
+			}
+		}
 	}
 
 	// Build performance dataset from server data or fallback
@@ -34,6 +52,121 @@ document.addEventListener('DOMContentLoaded', function(){
 	let attendanceChart = null;
 	let healthChart = null;
 	let performanceIsLine = true;
+	let activeAttendanceSessionId = null;
+
+	const attendanceModal = document.getElementById('attendanceModal');
+	const attendanceSessionIdInput = document.getElementById('attendanceSessionId');
+	const attendanceRosterList = document.getElementById('attendanceRosterList');
+	const attendanceModalTitle = document.getElementById('attendanceModalTitle');
+	const attendanceModalSubtitle = document.getElementById('attendanceModalSubtitle');
+	const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
+
+	function escapeHtml(value) {
+		return String(value ?? '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	function openAttendanceModal(sessionId, sessionName) {
+		if (!attendanceModal || !attendanceRosterList) {
+			return;
+		}
+
+		activeAttendanceSessionId = sessionId;
+		attendanceSessionIdInput.value = String(sessionId);
+		attendanceModalTitle.textContent = sessionName || 'Eligible Players';
+		attendanceModalSubtitle.textContent = 'Select the players who attended this session.';
+		attendanceRosterList.innerHTML = '<div style="padding:18px;color:#666;font-size:13px;">Loading eligible players...</div>';
+		attendanceModal.classList.add('is-open');
+		attendanceModal.setAttribute('aria-hidden', 'false');
+
+		fetch((endpoints.roster || '') + encodeURIComponent(sessionId), {
+			headers: { 'X-Requested-With': 'XMLHttpRequest' }
+		})
+			.then(response => response.json())
+			.then(payload => {
+				if (!payload || !payload.success) {
+					throw new Error(payload && payload.message ? payload.message : 'Failed to load roster');
+				}
+
+				const players = Array.isArray(payload.players) ? payload.players : [];
+				if (!players.length) {
+					attendanceRosterList.innerHTML = '<div style="padding:18px;color:#666;font-size:13px;">No eligible players found for this session.</div>';
+					return;
+				}
+
+				attendanceRosterList.innerHTML = players.map(player => {
+					const checked = String(player.AttendanceStatus || '').toLowerCase() === 'present' ? 'checked' : '';
+					return `
+						<label class="attendance-roster-item">
+							<div>
+								<div class="attendance-roster-name">${escapeHtml(player.PlayerName)}</div>
+								<div class="attendance-roster-meta">${player.AttendanceStatus === 'present' ? 'Present' : 'Absent'}</div>
+							</div>
+							<input class="attendance-roster-toggle" type="checkbox" value="${escapeHtml(player.PlayerID)}" ${checked} />
+						</label>
+					`;
+				}).join('');
+			})
+			.catch(error => {
+				attendanceRosterList.innerHTML = `<div style="padding:18px;color:#b91c1c;font-size:13px;">${error.message}</div>`;
+			});
+	}
+
+	function closeAttendanceModal() {
+		if (!attendanceModal) {
+			return;
+		}
+
+		attendanceModal.classList.remove('is-open');
+		attendanceModal.setAttribute('aria-hidden', 'true');
+		activeAttendanceSessionId = null;
+		if (attendanceRosterList) {
+			attendanceRosterList.innerHTML = '';
+		}
+	}
+
+	function saveAttendanceRoster() {
+		if (!activeAttendanceSessionId || !attendanceRosterList) {
+			return;
+		}
+
+		const checkedPlayers = Array.from(attendanceRosterList.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+		const payload = new FormData();
+		payload.append('session_id', String(activeAttendanceSessionId));
+		checkedPlayers.forEach(playerId => payload.append('attendance_present[]', playerId));
+
+		if (saveAttendanceBtn) {
+			saveAttendanceBtn.disabled = true;
+			saveAttendanceBtn.textContent = 'Saving...';
+		}
+
+		fetch(endpoints.saveAttendance || '', {
+			method: 'POST',
+			body: payload,
+			headers: { 'X-Requested-With': 'XMLHttpRequest' }
+		})
+			.then(response => response.json())
+			.then(result => {
+				if (!result || !result.success) {
+					throw new Error(result && result.message ? result.message : 'Failed to save attendance');
+				}
+				closeAttendanceModal();
+				window.location.reload();
+			})
+			.catch(error => {
+				alert(error.message);
+			})
+			.finally(() => {
+				if (saveAttendanceBtn) {
+					saveAttendanceBtn.disabled = false;
+					saveAttendanceBtn.textContent = 'Save Attendance';
+				}
+			});
+	}
 
 	function renderPerformance(playerId){
 		const ctx = document.getElementById('performanceChart').getContext('2d');
@@ -63,12 +196,21 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	function renderAttendance(){
-		const ctx = document.getElementById('attendanceChart').getContext('2d');
-		const labels = ['Week 1','Week 2','Week 3','Week 4'];
-		const values = window.__COACH_DASHBOARD_DATA?.attendanceData || [0,0,0,0];
+		const canvas = document.getElementById('attendanceChart');
+		if (!canvas || typeof Chart === 'undefined') {
+			return;
+		}
+		const ctx = canvas.getContext('2d');
+		const attendanceData = data.attendanceData || data.attendanceChartData || {};
+		const labels = Array.isArray(attendanceData.labels) ? attendanceData.labels : ['Week 1','Week 2','Week 3','Week 4'];
+		const datasets = attendanceData.datasets || {};
+		const teamSel = document.getElementById('attendanceTeamSelect');
+		const selectedType = teamSel && datasets[teamSel.value] ? teamSel.value : 'all';
+		const dataset = datasets[selectedType] || { label: 'Attendance', values: Array.isArray(attendanceData.values) ? attendanceData.values : (Array.isArray(attendanceData) ? attendanceData : [0,0,0,0]) };
+		const values = Array.isArray(dataset.values) ? dataset.values : [0,0,0,0];
 		const cfg = {
 			type: 'bar',
-			data: { labels, datasets:[{ label:'Attendance', data:values, backgroundColor:'rgba(14,165,164,0.7)' }] },
+			data: { labels, datasets:[{ label: dataset.label || 'Attendance', data:values, backgroundColor:'rgba(14,165,164,0.7)' }] },
 			options: { responsive:true, plugins:{ legend:{display:false} } }
 		};
 		if(attendanceChart){ attendanceChart.destroy(); }
@@ -76,9 +218,13 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	function renderHealth(){
-		const ctx = document.getElementById('healthChart').getContext('2d');
+		const canvas = document.getElementById('healthChart');
+		if (!canvas || typeof Chart === 'undefined') {
+			return;
+		}
+		const ctx = canvas.getContext('2d');
 		const labels = ['Fit','Under Observation','Injured'];
-		const values = window.__COACH_DASHBOARD_DATA?.healthData || [0,0,0];
+		const values = data.healthData || [0,0,0];
 		const cfg = {
 			type: 'pie',
 			data: { labels, datasets:[{ data: values, backgroundColor:['#10b981','#f59e0b','#ef4444'] }] },
@@ -109,12 +255,29 @@ document.addEventListener('DOMContentLoaded', function(){
 	const healthFilter = document.getElementById('healthFilterSelect');
 	if (healthFilter) healthFilter.addEventListener('change', renderHealth);
 
-	// Nav anchors smooth scroll
-	document.querySelectorAll('.nav-anchor').forEach(a=>{
-		a.addEventListener('click', function(e){
-			e.preventDefault(); const target = document.querySelector(this.getAttribute('href'));
-			if(target) target.scrollIntoView({behavior:'smooth', block:'center'});
+	document.querySelectorAll('.attendance-list-btn').forEach(button => {
+		button.addEventListener('click', function() {
+			openAttendanceModal(this.dataset.sessionId, this.dataset.sessionName);
 		});
+	});
+
+	if (attendanceModal) {
+		attendanceModal.addEventListener('click', function(event) {
+			const actionTarget = event.target.closest('[data-action="close-attendance"]');
+			if (actionTarget) {
+				closeAttendanceModal();
+			}
+		});
+	}
+
+	if (saveAttendanceBtn) {
+		saveAttendanceBtn.addEventListener('click', saveAttendanceRoster);
+	}
+
+	document.addEventListener('keydown', function(event) {
+		if (event.key === 'Escape') {
+			closeAttendanceModal();
+		}
 	});
 
 	// Initialize
@@ -123,6 +286,10 @@ document.addEventListener('DOMContentLoaded', function(){
 	if (document.getElementById('performanceChart')) {
 		renderPerformance('all');
 	}
-	renderAttendance();
-	renderHealth();
+	if (document.getElementById('attendanceChart')) {
+		renderAttendance();
+	}
+	if (document.getElementById('healthChart')) {
+		renderHealth();
+	}
 });

@@ -321,17 +321,18 @@
 .coach-avatar,
 .trainer-avatar,
 .shop-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4A90E2, #5BA0F2);
+    width: 100%;
+    min-height: 46px;
+    border-radius: 14px;
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.18);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    color: white;
+    font-size: 20px;
+    color: #4A90E2;
     margin-bottom: 8px;
-    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    box-shadow: none;
     transition: all 0.3s ease;
 }
 
@@ -341,8 +342,8 @@
 .coach-avatar:hover,
 .trainer-avatar:hover,
 .shop-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.14);
 }
 
 .profile-name,

@@ -2247,14 +2247,22 @@ class Admin extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resultData = [
                 'tournament_id'    => $tournamentId,
-                'position'         => $_POST['position'] ?? 'DNS',
-                'opponent_in_final'=> trim($_POST['opponent_in_final'] ?? ''),
-                'match_format'     => $_POST['match_format'] ?? null,
-                'won_by'           => trim($_POST['won_by'] ?? ''),
+                'position'         => trim($_POST['position'] ?? ''),
+                'total_matches_played' => (int)($_POST['total_matches_played'] ?? 0),
+                'total_wins'       => (int)($_POST['total_wins'] ?? 0),
+                'total_losses'     => (int)($_POST['total_losses'] ?? 0),
                 'man_of_tournament'=> !empty($_POST['man_of_tournament']) ? (int)$_POST['man_of_tournament'] : null,
+                'best_batsman'     => !empty($_POST['best_batsman']) ? (int)$_POST['best_batsman'] : null,
+                'best_bowler'      => !empty($_POST['best_bowler']) ? (int)$_POST['best_bowler'] : null,
                 'summary_notes'    => trim($_POST['summary_notes'] ?? ''),
                 'entered_by'       => $_SESSION['user_id'],
             ];
+
+            if ($resultData['position'] === '') {
+                $_SESSION['error'] = 'Please select a tournament position.';
+                redirect('admin/enter_results/' . $tournamentId);
+                return;
+            }
             $M_Result->saveResult($resultData);
 
             // Save per-player stats if submitted

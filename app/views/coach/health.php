@@ -145,6 +145,24 @@
             </div>
         </div>
 
+        <div class="analytics-card" id="healthOverview" style="margin-bottom:2rem;">
+            <div class="card-header">
+                <h3>Health & Injury Overview</h3>
+                <div class="controls">
+                    <select id="healthFilterSelect">
+                        <option value="all">All Players</option>
+                        <option value="fit">Fit</option>
+                        <option value="under_observation">Under Observation</option>
+                        <option value="injured">Injured</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body chart-container" style="min-height:320px;">
+                <canvas id="healthChart" aria-label="Health status distribution"></canvas>
+            </div>
+            <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
+        </div>
+
         <!-- Injury Reports Table -->
         <div class="health-card">
             <div class="card-header">
@@ -242,6 +260,12 @@
         </div>
     </div>
 </div>
+
+<script>
+window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data['healthChartData'] ?? new stdClass(), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
 
 <!-- Injury Details Modal -->
 <div class="modal" id="injuryModal" style="display: none;">

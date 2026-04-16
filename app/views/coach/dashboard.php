@@ -178,10 +178,33 @@
                                         <p class="participants"><i class="fas fa-users"></i> <?php echo htmlspecialchars($session['player_name']); ?></p>
                                         <div class="session-meta">
                                             <span class="type-badge <?php echo $session['session_type']; ?>">
-                                                <?php echo ucfirst($session['session_type']); ?>
+                                                <?php echo ($session['session_type'] === 'private') ? 'Private' : 'Group'; ?>
+                                            </span>
+                                            <?php $todayStatusMeta = $session['status_meta'] ?? ['key' => 'scheduled', 'label' => 'Scheduled']; ?>
+                                            <span class="status-badge <?php echo htmlspecialchars($todayStatusMeta['key']); ?>">
+                                                <i class="fas fa-info-circle"></i>
+                                                <?php echo htmlspecialchars($todayStatusMeta['label']); ?>
                                             </span>
                                             <span class="facility"><?php echo htmlspecialchars($session['facility'] ?? 'TBA'); ?></span>
                                         </div>
+                                        <?php if (!empty($session['attendance_enabled'])): ?>
+                                        <div class="attendance-action-row">
+                                            <button type="button"
+                                                    class="attendance-list-btn"
+                                                    data-session-id="<?php echo (int) $session['id']; ?>"
+                                                    data-session-name="<?php echo htmlspecialchars($session['session_name'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <i class="fas fa-clipboard-list"></i>
+                                                <?php echo htmlspecialchars($session['attendance_label']); ?>
+                                            </button>
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="attendance-action-row">
+                                            <button type="button" class="attendance-list-btn" disabled style="opacity:.55;cursor:not-allowed;">
+                                                <i class="fas fa-lock"></i>
+                                                <?php echo htmlspecialchars($session['attendance_note'] ?? 'Available after session ends'); ?>
+                                            </button>
+                                        </div>
+                                        <?php endif; ?>
                                         <?php if (!empty($session['equipment'])): ?>
                                         <div class="equipment-list">
                                             <i class="fas fa-tools"></i> <?php echo htmlspecialchars($session['equipment']); ?>
@@ -226,7 +249,12 @@
                                         <div class="session-info">
                                             <span class="session-type <?php echo $booking['session_type']; ?>">
                                                 <i class="fas <?php echo $booking['session_type'] === 'private' ? 'fa-user' : 'fa-users'; ?>"></i>
-                                                <?php echo ucfirst($booking['session_type']); ?>
+                                                <?php echo ($booking['session_type'] === 'private') ? 'Private' : 'Group'; ?>
+                                            </span>
+                                            <?php $bookingStatusMeta = $booking['status_meta'] ?? ['key' => 'scheduled', 'label' => 'Scheduled']; ?>
+                                            <span class="status-badge <?php echo htmlspecialchars($bookingStatusMeta['key']); ?>">
+                                                <i class="fas fa-info-circle"></i>
+                                                <?php echo htmlspecialchars($bookingStatusMeta['label']); ?>
                                             </span>
                                             <span class="duration">
                                                 <i class="fas fa-clock"></i> <?php echo $booking['duration']; ?>
@@ -264,56 +292,6 @@
                 </div>
             </div> <!-- end top-row -->
 
-            <!-- Charts & Analytics Section -->
-            <div class="analytics-section">
-                <div class="section-header full-width">
-                    <h2><i class="fas fa-chart-area"></i> Analytics & Player Insights</h2>
-                    <p class="muted">Interactive, data-driven charts help you monitor player progress, attendance trends, and health status. Use the filters to focus on specific players, date ranges, or teams.</p>
-                </div>
-
-                <div class="analytics-grid">
-                    <!-- Player Performance card removed per request -->
-
-                    <!-- Attendance Chart -->
-                    <div class="analytics-card" id="sessions">
-                        <div class="card-header">
-                            <h3>Attendance & Session Participation</h3>
-                            <div class="controls">
-                                <select id="attendanceTeamSelect"></select>
-                                <select id="attendanceRangeSelect">
-                                    <option value="30">Last 30 days</option>
-                                    <option value="90">Last 90 days</option>
-                                    <option value="365">Last 12 months</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="card-body chart-container">
-                            <canvas id="attendanceChart" aria-label="Attendance per session"></canvas>
-                        </div>
-                        <div class="card-footer muted">Monthly totals shown as bars. Use filters to compare squads or individuals.</div>
-                    </div>
-
-                    <!-- Health Status Pie Chart -->
-                    <div class="analytics-card" id="health">
-                        <div class="card-header">
-                            <h3>Health & Injury Overview</h3>
-                            <div class="controls">
-                                <select id="healthFilterSelect">
-                                    <option value="all">All Players</option>
-                                    <option value="fit">Fit</option>
-                                    <option value="under_observation">Under Observation</option>
-                                    <option value="injured">Injured</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="card-body chart-container">
-                            <canvas id="healthChart" aria-label="Health status distribution"></canvas>
-                        </div>
-                        <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Quick Actions & Recent Activity -->
             <div class="bottom-section">
                 <div class="quick-actions-card">
@@ -321,88 +299,68 @@
                         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                     </div>
                     <div class="actions-grid">
-                        <button class="action-btn primary" onclick="scheduleSession()">
+                        <button class="action-btn primary" type="button" data-action="schedule-session">
                             <i class="fas fa-calendar-plus"></i>
                             <span>Schedule Session</span>
                         </button>
-                        <button class="action-btn secondary" onclick="viewPlayers()">
+                        <button class="action-btn secondary" type="button" data-action="view-players">
                             <i class="fas fa-users"></i>
                             <span>View Players</span>
                         </button>
-                        <button class="action-btn success" onclick="addRecommendation()">
+                        <button class="action-btn success" type="button" data-action="add-recommendation">
                             <i class="fas fa-lightbulb"></i>
                             <span>Add Recommendation</span>
                         </button>
-                        <button class="action-btn warning" onclick="checkMedical()">
+                        <button class="action-btn warning" type="button" data-action="check-medical">
                             <i class="fas fa-heartbeat"></i>
                             <span>Medical Check</span>
                         </button>
-                    </div>
-                </div>
-
-                <div class="player-summary-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-chart-bar"></i> Weekly Schedule</h3>
-                    </div>
-                    <div class="player-stats">
-                        <?php if (!empty($data['weeklySchedule'])): ?>
-                            <?php foreach (array_slice($data['weeklySchedule'], 0, 5) as $day): ?>
-                                <div class="player-stat-item">
-                                    <div class="player-avatar" style="background: linear-gradient(135deg, #4A90E2, #357ABD);">
-                                        <i class="fas fa-calendar-day"></i>
-                                    </div>
-                                    <div class="player-info">
-                                        <h4><?php echo htmlspecialchars($day['day']); ?></h4>
-                                        <span class="position"><?php echo count($day['sessions']); ?> session(s)</span>
-                                    </div>
-                                    <div class="performance-rating">
-                                        <div class="rating-circle">
-                                            <span style="font-size: 12px;"><?php echo $day['sessions'][0]['time'] ?? ''; ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div style="text-align: center; padding: 20px; color: #999;">
-                                <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 10px; opacity: 0.5;"></i>
-                                <p>No sessions scheduled this week</p>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <div class="attendance-modal" id="attendanceModal" aria-hidden="true">
+        <div class="attendance-modal__backdrop" data-action="close-attendance"></div>
+        <div class="attendance-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="attendanceModalTitle">
+            <div class="attendance-modal__header">
+                <div>
+                    <h3 id="attendanceModalTitle">Eligible Players</h3>
+                    <p id="attendanceModalSubtitle">Select the players who attended the session.</p>
+                </div>
+                <button type="button" class="attendance-modal__close" data-action="close-attendance" aria-label="Close attendance panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="attendance-modal__body">
+                <input type="hidden" id="attendanceSessionId" value="">
+                <div id="attendanceRosterList" class="attendance-roster-list"></div>
+            </div>
+            <div class="attendance-modal__footer">
+                <div class="attendance-modal__hint">Checked players are marked as present. Unchecked players are saved as absent.</div>
+                <div class="attendance-modal__actions">
+                    <button type="button" class="attendance-modal__secondary" data-action="close-attendance">Cancel</button>
+                    <button type="button" class="attendance-modal__primary" id="saveAttendanceBtn">Save Attendance</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Include Footer -->
-    <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
-
     <script>
-        // Expose server-side dashboard data to client-side scripts
         window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
-
-        // Session filter for upcoming bookings
-        function filterSessions() {
-            const filter = document.getElementById('sessionFilter').value;
-            const bookingItems = document.querySelectorAll('.booking-item');
-            
-            bookingItems.forEach(item => {
-                if (filter === 'all') {
-                    item.style.display = '';
-                } else if (filter === 'private' && item.classList.contains('private-session')) {
-                    item.style.display = '';
-                } else if (filter === 'normal' && item.classList.contains('normal-session')) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
+        window.__COACH_DASHBOARD_ENDPOINTS = {
+            roster: '<?php echo URLROOT; ?>/coach/get_session_roster/',
+            saveAttendance: '<?php echo URLROOT; ?>/coach/save_session_attendance'
+        };
+        window.__COACH_BASE_URL = '<?php echo URLROOT; ?>';
     </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Coach Dashboard JavaScript -->
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
+        <script src="<?php echo URLROOT; ?>/js/coach/dashboard-ui.js"></script>
 </body>
 </html>

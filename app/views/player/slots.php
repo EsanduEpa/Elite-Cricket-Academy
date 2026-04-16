@@ -98,6 +98,7 @@
                 'full'            => ['icon' => 'fa-users-slash',        'text' => 'Session full'],
                 'no_subscription' => ['icon' => 'fa-lock',               'text' => 'Subscription required'],
                 'plan_mismatch'   => ['icon' => 'fa-lock',               'text' => 'Not included in your plan'],
+                'assigned_program'=> ['icon' => 'fa-user-tie',           'text' => 'Assigned coach session'],
             ];
             ?>
             <div class="slots-grid">
@@ -155,6 +156,11 @@
                             <i class="fas <?php echo $label['icon']; ?>"></i>
                             <?php echo $label['text']; ?>
                         </div>
+                        <?php if ($reason === 'assigned_program'): ?>
+                            <div style="margin-top:10px;color:#6c757d;font-size:13px;">
+                                This session is already assigned to you in your age-group schedule.
+                            </div>
+                        <?php endif; ?>
                     <?php else: ?>
                         <form method="POST" action="<?php echo URLROOT; ?>/playerslots/book" class="slot-book-form">
                             <input type="hidden" name="occurrence_id" value="<?php echo (int)$occ->OccurrenceID; ?>">

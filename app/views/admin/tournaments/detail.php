@@ -280,9 +280,9 @@
                     <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                         <?php $res = $data['result']; ?>
                         <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Position</div><div style="font-size:18px;font-weight:800;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Opponent (Final)</div><div><?php echo htmlspecialchars($res->OpponentInFinal ?? '—'); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Won By</div><div><?php echo htmlspecialchars($res->WonBy ?? '—'); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Man of Tournament</div><div><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div></div>
+                            <div style="font-size:13px;color:#64748b;">Matches: <?php echo htmlspecialchars((string)($res->TotalMatchesPlayed ?? 0)); ?>, Wins: <?php echo htmlspecialchars((string)($res->TotalWins ?? 0)); ?>, Losses: <?php echo htmlspecialchars((string)($res->TotalLosses ?? 0)); ?></div>
+                            <div style="font-size:13px;color:#64748b;margin-top:6px;">Best Batsman: <?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> | Best Bowler: <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div>
+                            <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Man of Tournament</div><div><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div></div>
                         <?php if ($res->SummaryNotes): ?>
                         <div style="grid-column:1/-1;"><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Notes</div><div style="font-size:13px;color:#64748b;"><?php echo htmlspecialchars($res->SummaryNotes); ?></div></div>
                         <?php endif; ?>

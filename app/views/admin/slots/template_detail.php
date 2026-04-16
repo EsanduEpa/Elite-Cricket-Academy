@@ -21,6 +21,11 @@ $template = $data['template'];
 $staff = $data['staff'];
 $occurrences = $data['occurrences'];
 $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+$getOccurrenceDisplayCount = static function($occurrence) {
+    return ($occurrence->SlotType ?? '') === 'program'
+        ? (int) ($occurrence->EligiblePlayerCount ?? 0)
+        : (int) ($occurrence->BookingCount ?? 0);
+};
 ?>
 
 <div class="admin-layout">
@@ -161,7 +166,7 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Date</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Time Band</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Facility</th>
-                                    <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Bookings</th>
+                                    <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Count</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Status</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Action</th>
                                 </tr>
@@ -172,7 +177,7 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                                         <td style="padding:10px 12px;"><?= htmlspecialchars(date('d M Y', strtotime($occurrence->OccurrenceDate))) ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars($occurrence->SlotLabel ?? '—') ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars($occurrence->FacilityName ?? '—') ?></td>
-                                        <td style="padding:10px 12px;"><?= (int)($occurrence->BookingCount ?? 0) ?></td>
+                                        <td style="padding:10px 12px;"><?= $getOccurrenceDisplayCount($occurrence) ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars(ucfirst((string)($occurrence->Status ?? 'scheduled'))) ?></td>
                                         <td style="padding:10px 12px;"><a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= (int)$occurrence->OccurrenceID ?>">View</a></td>
                                     </tr>
