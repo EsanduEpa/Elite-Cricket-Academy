@@ -1,4 +1,4 @@
-/* global document, window, localStorage */
+/* global document, window */
 
 (function () {
     'use strict';
@@ -22,6 +22,11 @@
         return (page && page.dataset && page.dataset.urlroot) ? page.dataset.urlroot : '';
     }
 
+    function getCheckoutEndpoint(path) {
+        const root = getCheckoutUrlRoot();
+        return root ? `${root}/player/${path}` : `/player/${path}`;
+    }
+
     function safeJsonParse(value) {
         try {
             return JSON.parse(value);
@@ -32,10 +37,36 @@
 
     let checkoutData = null;
 
-    function initCheckoutPage() {
-        checkoutData = safeJsonParse(localStorage.getItem('checkoutData'));
+    function getCheckoutDataFromDom() {
+        const dataEl = document.getElementById('checkoutData');
+        return dataEl ? safeJsonParse(dataEl.textContent || '{}') : null;
+    }
 
-        if (!checkoutData) {
+    function getItemQuantity(item) {
+        return Number(item && (item.Quantity ?? item.quantity ?? 1)) || 1;
+    }
+
+    function getSelectedProductIds() {
+        if (!checkoutData || !Array.isArray(checkoutData.items)) return [];
+        return checkoutData.items
+            .map((item) => Number(item.ProductID ?? item.product_id ?? item.id ?? 0))
+            .filter((id) => id > 0);
+    }
+
+    async function initCheckoutPage() {
+        checkoutData = getCheckoutDataFromDom();
+
+        if (!checkoutData || !Array.isArray(checkoutData.items)) {
+            try {
+                const response = await fetch(getCheckoutEndpoint('cartItems'), { credentials: 'same-origin' });
+                const payload = await response.json();
+                checkoutData = payload && payload.success ? { items: payload.items || [], total: 0 } : null;
+            } catch (_error) {
+                checkoutData = null;
+            }
+        }
+
+        if (!checkoutData || !Array.isArray(checkoutData.items) || checkoutData.items.length === 0) {
             window.location.href = getCheckoutUrlRoot() + '/player/cart';
             return;
         }
@@ -56,7 +87,7 @@
 
         checkoutData.items.forEach((item) => {
             const name = item && (item.Name || item.name) ? (item.Name || item.name) : 'Item';
-            const quantity = Number(item && item.quantity ? item.quantity : 0);
+            const quantity = getItemQuantity(item);
             const unitPrice = Number(item && (item.Price ?? item.price) ? (item.Price ?? item.price) : 0);
 
             const itemElement = document.createElement('div');
@@ -75,7 +106,7 @@
             itemsList.appendChild(itemElement);
         });
 
-        const total = Number(checkoutData.total || 0).toFixed(2);
+        const total = Number(checkoutData.total || checkoutData.cartTotal || 0).toFixed(2);
         totalSpan.innerHTML = `<strong>₹${total}</strong>`;
         finalAmountSpan.textContent = `₹${total}`;
     }
@@ -159,7 +190,7 @@
         return methods[method] || 'Credit Card';
     }
 
-    function processPayment() {
+    async function processPayment() {
         const checked = document.querySelector('input[name="payment_method"]:checked');
         const selectedMethod = checked ? checked.value : 'card';
 
@@ -206,42 +237,47 @@
         paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         paymentBtn.disabled = true;
 
-        window.setTimeout(() => {
-            const orderId = 'ECA-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-
-            document.getElementById('order-id').textContent = orderId;
-            document.getElementById('paid-amount').textContent = `₹${Number(checkoutData?.total || 0).toFixed(2)}`;
-            document.getElementById('payment-method-used').textContent = getPaymentMethodName(selectedMethod);
-
-            let cart = safeJsonParse(localStorage.getItem('shoppingCart')) || [];
-
-            if (checkoutData?.type === 'multiple') {
-                (checkoutData.items || []).forEach((checkoutItem) => {
-                    cart = cart.filter((cartItem) => String(cartItem.ProductID) !== String(checkoutItem.ProductID));
+        window.setTimeout(async () => {
+            try {
+                const response = await fetch(getCheckoutEndpoint('finalizeShopOrder'), {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: new URLSearchParams({
+                        selected_product_ids: JSON.stringify(getSelectedProductIds())
+                    }).toString()
                 });
-            } else {
-                const firstId = checkoutData?.items?.[0]?.ProductID;
-                cart = cart.filter((cartItem) => String(cartItem.ProductID) !== String(firstId));
-            }
+                const payload = await response.json();
 
-            localStorage.setItem('shoppingCart', JSON.stringify(cart));
-            localStorage.removeItem('checkoutData');
-
-            const modal = document.getElementById('paymentSuccessModal');
-            if (modal) {
-                showCheckoutModal(modal);
-            }
-
-            paymentBtn.innerHTML = originalText;
-            paymentBtn.disabled = false;
-
-            window.setTimeout(() => {
-                if (modal) {
-                    hideCheckoutModal(modal);
+                if (!payload || !payload.success) {
+                    throw new Error((payload && payload.message) ? payload.message : 'Failed to finalize order');
                 }
 
-                window.location.href = getCheckoutUrlRoot() + '/player/shopping';
-            }, 2500);
+                document.getElementById('order-id').textContent = String(payload.order_id || 'N/A');
+                document.getElementById('paid-amount').textContent = `₹${Number(payload.total_amount || checkoutData?.total || 0).toFixed(2)}`;
+                document.getElementById('payment-method-used').textContent = getPaymentMethodName(selectedMethod);
+
+                const modal = document.getElementById('paymentSuccessModal');
+                if (modal) {
+                    showCheckoutModal(modal);
+                }
+
+                window.setTimeout(() => {
+                    if (modal) {
+                        hideCheckoutModal(modal);
+                    }
+
+                    window.location.href = getCheckoutUrlRoot() + '/player/shopping';
+                }, 2500);
+            } catch (error) {
+                console.error('Failed to finalize order', error);
+                alert(error.message || 'Failed to finalize order');
+            } finally {
+                paymentBtn.innerHTML = originalText;
+                paymentBtn.disabled = false;
+            }
         }, 1200);
     }
 

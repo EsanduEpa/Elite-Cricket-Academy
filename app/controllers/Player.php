@@ -5,6 +5,7 @@ class Player extends Controller {
     private $medicalModel;
     private $achievementModel;
     private $productModel;
+    private $shopModel;
     private $trainerModel;
     private $slotPlayerModel;
     
@@ -21,6 +22,7 @@ class Player extends Controller {
         // $this->medicalModel = $this->model('M_Medical');
         $this->achievementModel = $this->model('M_Achievement');
         $this->productModel = $this->model('M_Product');
+        $this->shopModel = $this->model('M_Shop');
         $this->trainerModel = $this->model('M_Trainer');
         $this->slotPlayerModel = $this->model('M_SlotPlayer');
         require_once APPROOT . '/libraries/SlotBookingService.php';
@@ -798,36 +800,170 @@ class Player extends Controller {
 
     // Shopping and Rental Info
     public function shopping() {
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
         $data = [
             'title' => 'Shopping & Rentals',
             'player' => $this->getPlayerData(),
             'products' => $this->getAvailableProducts(),
             'rentals' => $this->getRentalEquipment(),
-            'myRentals' => $this->getMyRentals()
+            'myRentals' => $this->getMyRentals(),
+            'cartItemCount' => $playerId > 0 ? $this->shopModel->getCartItemCount($playerId) : 0,
         ];
         $this->view('player/shopping', $data);
     }
 
     // Shopping Cart
     public function cart() {
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
         // Generate a nonce for cart → PayHere POST anti-CSRF
         if (empty($_SESSION['payhere_nonce'])) {
             $_SESSION['payhere_nonce'] = bin2hex(random_bytes(16));
         }
+
+        $cartItems = $playerId > 0 ? $this->shopModel->getCartItems($playerId) : [];
+        $cartTotal = $playerId > 0 ? $this->shopModel->getCartTotal($playerId) : 0.0;
         $data = [
             'title'  => 'Shopping Cart',
             'player' => $this->getPlayerData(),
+            'cartItems' => $cartItems,
+            'cartItemCount' => $playerId > 0 ? $this->shopModel->getCartItemCount($playerId) : 0,
+            'cartTotal' => $cartTotal,
         ];
         $this->view('player/cart', $data);
     }
 
     // Checkout (formerly payment page)
     public function checkout() {
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
         $data = [
             'title' => 'Checkout',
-            'player' => $this->getPlayerData()
+            'player' => $this->getPlayerData(),
+            'cartItems' => $playerId > 0 ? $this->shopModel->getCartItems($playerId) : [],
+            'cartItemCount' => $playerId > 0 ? $this->shopModel->getCartItemCount($playerId) : 0,
+            'cartTotal' => $playerId > 0 ? $this->shopModel->getCartTotal($playerId) : 0.0,
         ];
         $this->view('player/checkout', $data);
+    }
+
+    public function cartSummary() {
+        header('Content-Type: application/json');
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $items = $playerId > 0 ? $this->shopModel->getCartItems($playerId) : [];
+        $total = 0.0;
+        foreach ($items as $item) {
+            $total += ((float)($item->Price ?? 0)) * ((int)($item->Quantity ?? 0));
+        }
+
+        echo json_encode([
+            'success' => true,
+            'cart_count' => $playerId > 0 ? $this->shopModel->getCartItemCount($playerId) : 0,
+            'cart_total' => $total,
+        ]);
+        exit;
+    }
+
+    public function cartItems() {
+        header('Content-Type: application/json');
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        echo json_encode([
+            'success' => true,
+            'items' => $playerId > 0 ? $this->shopModel->getCartItems($playerId) : [],
+            'cart_count' => $playerId > 0 ? $this->shopModel->getCartItemCount($playerId) : 0,
+        ]);
+        exit;
+    }
+
+    public function addToCart() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $quantity = (int)($_POST['quantity'] ?? 1);
+        $result = $playerId > 0 ? $this->shopModel->addToCart($playerId, $productId, $quantity) : ['success' => false, 'message' => 'Player not found.'];
+
+        echo json_encode($result);
+        exit;
+    }
+
+    public function updateCartItem() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $quantity = (int)($_POST['quantity'] ?? 0);
+        $result = $playerId > 0 ? $this->shopModel->updateCartQuantity($playerId, $productId, $quantity) : ['success' => false, 'message' => 'Player not found.'];
+
+        echo json_encode($result);
+        exit;
+    }
+
+    public function removeCartItem() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $result = $playerId > 0 ? $this->shopModel->removeFromCart($playerId, $productId) : ['success' => false, 'message' => 'Player not found.'];
+
+        echo json_encode($result);
+        exit;
+    }
+
+    public function clearCart() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $result = $playerId > 0 ? $this->shopModel->clearCart($playerId) : ['success' => false, 'message' => 'Player not found.', 'cart_count' => 0];
+
+        echo json_encode($result);
+        exit;
+    }
+
+    public function finalizeShopOrder() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $selectedProductIds = [];
+        $rawSelected = $_POST['selected_product_ids'] ?? '';
+        if (is_string($rawSelected) && trim($rawSelected) !== '') {
+            $decoded = json_decode($rawSelected, true);
+            if (is_array($decoded)) {
+                $selectedProductIds = array_values(array_filter(array_map('intval', $decoded)));
+            }
+        }
+
+        $result = $playerId > 0
+            ? $this->shopModel->createOrderFromCart($playerId, $selectedProductIds, 'card', null, null, null, 'completed')
+            : ['success' => false, 'message' => 'Player not found.'];
+
+        echo json_encode($result);
+        exit;
     }
 
     // ── PayHere integration ────────────────────────────────
@@ -841,10 +977,31 @@ class Player extends Controller {
         require_once APPROOT . '/libraries/PayHere.php';
 
         $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        $selectedProductIds = [];
+        $selectedProductsRaw = $_POST['selected_product_ids'] ?? '';
+        if (is_string($selectedProductsRaw) && trim($selectedProductsRaw) !== '') {
+            $decoded = json_decode($selectedProductsRaw, true);
+            if (is_array($decoded)) {
+                $selectedProductIds = array_values(array_filter(array_map('intval', $decoded)));
+            } else {
+                $selectedProductIds = array_values(array_filter(array_map('intval', preg_split('/\s*,\s*/', $selectedProductsRaw) ?: [])));
+            }
+        }
+
+        $cartItems = $playerId > 0 ? $this->shopModel->getCartItems($playerId, $selectedProductIds) : [];
+        if (!$cartItems) {
+            $_SESSION['cart_error'] = 'Your cart is empty. Please add products before checking out.';
+            redirect('player/cart');
+        }
 
         $orderId  = 'ELITE-' . $playerData['id'] . '-' . time();
         $currency = 'LKR';
-        $amount   = number_format((float)($_POST['cart_total'] ?? 0), 2, '.', '');
+        $amountValue = 0.0;
+        foreach ($cartItems as $item) {
+            $amountValue += ((float)($item->Price ?? 0)) * ((int)($item->Quantity ?? 0));
+        }
+        $amount = number_format($amountValue, 2, '.', '');
 
         if ((float)$amount <= 0) {
             $_SESSION['cart_error'] = 'Invalid cart total. Please try again.';
@@ -852,14 +1009,11 @@ class Player extends Controller {
         }
 
         // Summarise items for the PayHere "items" field
-        $rawItems  = [];
-        $decoded   = json_decode($_POST['cart_items'] ?? '[]', true);
-        if (is_array($decoded)) {
-            foreach ($decoded as $it) {
-                $name = htmlspecialchars($it['Name'] ?? $it['name'] ?? 'Item', ENT_QUOTES);
-                $qty  = (int)($it['quantity'] ?? 1);
-                $rawItems[] = "{$name} x{$qty}";
-            }
+        $rawItems = [];
+        foreach ($cartItems as $item) {
+            $name = htmlspecialchars((string)($item->Name ?? 'Item'), ENT_QUOTES);
+            $qty = (int)($item->Quantity ?? 1);
+            $rawItems[] = "{$name} x{$qty}";
         }
         $itemsLabel = $rawItems ? implode(', ', $rawItems) : 'Cricket Academy Purchase';
 
@@ -871,6 +1025,9 @@ class Player extends Controller {
             'amount'   => $amount,
             'currency' => $currency,
             'items'    => $itemsLabel,
+            'product_ids' => $selectedProductIds ?: array_map(static function ($item) {
+                return (int)($item->ProductID ?? 0);
+            }, $cartItems),
         ];
         $_SESSION['payhere_nonce']         = bin2hex(random_bytes(16));
 
@@ -1030,12 +1187,26 @@ class Player extends Controller {
             if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
                 $shopOrderId = (string)$pendingShopPayment['order_id'];
                 if ($orderId === '' || $orderId === $shopOrderId) {
-                    $orderId = $shopOrderId;
-                    $emailSent = $this->sendShopPaymentSuccessEmail(
-                        $shopOrderId,
-                        (string)($pendingShopPayment['amount'] ?? '0.00'),
-                        (string)($pendingShopPayment['currency'] ?? 'LKR')
+                    $orderResult = $this->shopModel->createOrderFromCart(
+                        (int)($playerData['id'] ?? 0),
+                        (array)($pendingShopPayment['product_ids'] ?? []),
+                        'online',
+                        null,
+                        null,
+                        null,
+                        'completed'
                     );
+
+                    $orderId = $shopOrderId;
+                    if (!empty($orderResult['success'])) {
+                        $emailSent = $this->sendShopPaymentSuccessEmail(
+                            $shopOrderId,
+                            (string)($pendingShopPayment['amount'] ?? '0.00'),
+                            (string)($pendingShopPayment['currency'] ?? 'LKR')
+                        );
+                    } else {
+                        error_log('Shop order finalization failed for ' . $shopOrderId . ': ' . ($orderResult['message'] ?? 'Unknown error'));
+                    }
 
                     if (!$emailSent) {
                         error_log("Shop payment success email failed on return for order $shopOrderId");
@@ -1578,18 +1749,13 @@ class Player extends Controller {
     }
 
     private function getCartItems() {
-        return isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        return $playerId > 0 ? $this->shopModel->getCartItems($playerId) : [];
     }
 
     private function getCartTotal() {
-        $items = $this->getCartItems();
-        $subtotal = 0;
-        foreach ($items as $item) {
-            $price = $item['price'] ?? 0;
-            $discount = $item['discount'] ?? 0;
-            $qty = $item['quantity'] ?? 1;
-            $subtotal += ($price * (1 - $discount / 100)) * $qty;
-        }
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $subtotal = $playerId > 0 ? $this->shopModel->getCartTotal($playerId) : 0;
         $memberDiscount = $subtotal * 0.05;
         return ['subtotal' => $subtotal, 'member_discount' => $memberDiscount, 'total' => $subtotal - $memberDiscount];
     }
