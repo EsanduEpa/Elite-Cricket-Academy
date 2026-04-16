@@ -235,11 +235,23 @@ class Register extends Controller {
 
                         if ($subscriptionId) {
                             if ($this->userModel->planUsesRecurringBilling($selectedPlan)) {
-                                $pendingPaymentCreated = $this->userModel->createPendingSubscriptionPayment(
-                                    (int)$subscriptionId,
-                                    (float)$selectedPlan->MonthlyFee,
-                                    'Membership is pending. Pay to experience the whole academy services.'
-                                );
+                                $paidRegistrationOrderId = (string)($_SESSION['register_payment_completed_order_id'] ?? '');
+                                $paidRegistrationPlanId = (int)($_SESSION['register_payment_completed_plan_id'] ?? 0);
+
+                                if ($paidRegistrationOrderId !== '' && $paidRegistrationPlanId === (int)$data['membershipPlan']) {
+                                    $pendingPaymentCreated = $this->userModel->createCompletedSubscriptionPayment(
+                                        (int)$subscriptionId,
+                                        (float)$selectedPlan->MonthlyFee,
+                                        $paidRegistrationOrderId,
+                                        'Initial membership payment completed through PayHere during registration.'
+                                    );
+                                } else {
+                                    $pendingPaymentCreated = $this->userModel->createPendingSubscriptionPayment(
+                                        (int)$subscriptionId,
+                                        (float)$selectedPlan->MonthlyFee,
+                                        'Membership is pending. Pay to experience the whole academy services.'
+                                    );
+                                }
 
                                 if (!$pendingPaymentCreated) {
                                     error_log('Initial pending membership payment could not be created for subscription #' . $subscriptionId);
@@ -279,6 +291,8 @@ class Register extends Controller {
                     // STEP 9: REDIRECT TO LOGIN PAGE
                     // flash() stores a one-time message in session to display after redirect
                     // This implements the Post-Redirect-Get (PRG) pattern
+                    unset($_SESSION['register_payment_completed_order_id']);
+                    unset($_SESSION['register_payment_completed_plan_id']);
                     flash('register_success', 'Registration successful! Welcome to Elite Cricket Academy.');
                     redirect('login');
                 } else {
@@ -415,6 +429,15 @@ class Register extends Controller {
 
         $_SESSION['register_payment_plan_id'] = (int)$selectedPlan->PlanID;
         $_SESSION['register_payment_order_id'] = $orderId;
+        $_SESSION['register_pending_payment'] = [
+            'order_id' => $orderId,
+            'plan_id' => (int)$selectedPlan->PlanID,
+            'plan_name' => (string)$selectedPlan->PlanName,
+            'amount' => $amount,
+            'currency' => 'LKR',
+            'email' => $email,
+            'name' => trim($firstName . ' ' . $lastName),
+        ];
 
         $data = [
             'title' => 'Redirecting to PayHere...',
@@ -443,11 +466,21 @@ class Register extends Controller {
     }
 
     public function payhere_return() {
+        $pendingPayment = $_SESSION['register_pending_payment'] ?? null;
+        if (is_array($pendingPayment) && !empty($pendingPayment['order_id'])) {
+            $orderId = (string)$pendingPayment['order_id'];
+            $this->sendRegistrationPaymentSuccessEmail($pendingPayment);
+            $_SESSION['register_payment_completed_order_id'] = $orderId;
+            $_SESSION['register_payment_completed_plan_id'] = (int)($pendingPayment['plan_id'] ?? 0);
+            unset($_SESSION['register_pending_payment']);
+        }
+
         flash('register_payment', 'Payment completed. You can now finish creating your account.', 'alert alert-success');
         redirect('register');
     }
 
     public function payhere_cancel() {
+        unset($_SESSION['register_pending_payment']);
         flash('register_payment', 'Payment was cancelled. You can select a plan and try again.', 'alert alert-warning');
         redirect('register');
     }
@@ -471,6 +504,21 @@ class Register extends Controller {
         PayHere::log($logFile, "REGISTER PAYMENT FAILED order={$orderId} status={$statusCode}");
         http_response_code(400);
         echo 'INVALID';
+    }
+
+    private function sendRegistrationPaymentSuccessEmail(array $payment): bool {
+        require_once APPROOT . '/libraries/PaymentEmailService.php';
+
+        return PaymentEmailService::sendSuccessEmail(
+            null,
+            (string)($payment['email'] ?? ''),
+            (string)($payment['name'] ?? 'Player'),
+            (string)($payment['order_id'] ?? ''),
+            (string)($payment['amount'] ?? '0.00'),
+            (string)($payment['currency'] ?? 'LKR'),
+            'Registration Membership Payment',
+            ucfirst((string)($payment['plan_name'] ?? 'Membership')) . ' membership plan paid successfully. Please complete your account registration.'
+        );
     }
 
     private function storeRegistrationDraft(array $source): void {
@@ -550,4 +598,4 @@ class Register extends Controller {
         return true;
     }
 }
-?> 
+?>

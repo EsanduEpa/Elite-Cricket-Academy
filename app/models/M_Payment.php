@@ -78,7 +78,8 @@ class M_Payment {
 
     // Get upcoming/pending payments for a player
     public function getUpcomingPayments($playerId) {
-        $this->db->query('SELECT sp.PaymentID, sp.DueDate, sp.Amount, sp.Status, sp.PaymentMethod, sp.Notes, mp.PlanName
+        $this->db->query('SELECT sp.PaymentID, sp.SubscriptionID, sp.DueDate, sp.Amount, sp.Status, sp.PaymentMethod,
+            sp.Notes, sp.PaymentReference, sp.Gateway, sp.GatewayOrderId, sp.GatewayPaymentId, mp.PlanName
             FROM subscriptionpayment sp 
             JOIN playersubscription ps ON sp.SubscriptionID = ps.SubscriptionID 
             JOIN membershipplan mp ON ps.PlanID = mp.PlanID 
@@ -86,6 +87,66 @@ class M_Payment {
             ORDER BY sp.DueDate ASC');
         $this->db->bind(':player_id', $playerId);
         return $this->db->resultSet();
+    }
+
+    public function getPendingSubscriptionPaymentForPlayer(int $paymentId, int $playerId): object|false {
+        $this->db->query('SELECT sp.PaymentID, sp.SubscriptionID, sp.DueDate, sp.Amount, sp.Status,
+            sp.PaymentMethod, sp.Notes, sp.PaymentReference, sp.Gateway, sp.GatewayOrderId,
+            sp.GatewayPaymentId, mp.PlanName, ps.PlayerID,
+            TRIM(CONCAT_WS(" ", u.FirstName, u.LastName)) AS PlayerName,
+            u.Email AS PlayerEmail
+            FROM subscriptionpayment sp
+            JOIN playersubscription ps ON sp.SubscriptionID = ps.SubscriptionID
+            JOIN membershipplan mp ON ps.PlanID = mp.PlanID
+            JOIN user u ON u.UserID = ps.PlayerID
+            WHERE sp.PaymentID = :payment_id
+              AND ps.PlayerID = :player_id
+              AND sp.Status = "pending"
+            LIMIT 1');
+        $this->db->bind(':payment_id', $paymentId, PDO::PARAM_INT);
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    public function getSubscriptionPaymentByGatewayOrderId(string $orderId): object|false {
+        $this->db->query('SELECT sp.PaymentID, sp.SubscriptionID, sp.DueDate, sp.Amount, sp.Status,
+            sp.PaymentMethod, sp.Notes, sp.PaymentReference, sp.Gateway, sp.GatewayOrderId,
+            sp.GatewayPaymentId, mp.PlanName, ps.PlayerID,
+            TRIM(CONCAT_WS(" ", u.FirstName, u.LastName)) AS PlayerName,
+            u.Email AS PlayerEmail
+            FROM subscriptionpayment sp
+            JOIN playersubscription ps ON sp.SubscriptionID = ps.SubscriptionID
+            JOIN membershipplan mp ON ps.PlanID = mp.PlanID
+            JOIN user u ON u.UserID = ps.PlayerID
+            WHERE sp.GatewayOrderId = :order_id
+            LIMIT 1');
+        $this->db->bind(':order_id', $orderId);
+        return $this->db->single();
+    }
+
+    public function markSubscriptionPaymentCompleted(
+        int $paymentId,
+        string $orderId,
+        ?string $gatewayPaymentId = null,
+        ?string $reference = null
+    ): bool {
+        $this->db->query('UPDATE subscriptionpayment
+            SET Status = "completed",
+                PaymentDate = CURDATE(),
+                PaymentMethod = "online",
+                Gateway = "payhere",
+                GatewayOrderId = :order_id,
+                GatewayPaymentId = :gateway_payment_id,
+                PaymentReference = :payment_reference,
+                PaidAt = NOW(),
+                FailedAt = NULL
+            WHERE PaymentID = :payment_id
+              AND Status IN ("pending", "completed")');
+        $this->db->bind(':order_id', $orderId);
+        $this->db->bind(':gateway_payment_id', $gatewayPaymentId);
+        $this->db->bind(':payment_reference', $reference ?: $orderId);
+        $this->db->bind(':payment_id', $paymentId, PDO::PARAM_INT);
+        return $this->db->execute();
     }
 
     // Get active subscription for a player
