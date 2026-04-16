@@ -627,6 +627,29 @@ class M_Users {
         return $this->db->execute();
     }
 
+    public function createCompletedSubscriptionPayment(
+        int $subscriptionId,
+        $amount,
+        string $orderId,
+        ?string $notes = null
+    ): bool {
+        $this->db->query('INSERT INTO subscriptionpayment
+            (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, PaymentReference,
+             Gateway, GatewayOrderId, DueDate, Notes, PaidAt)
+            VALUES (:subscription_id, CURDATE(), :amount, :payment_method, :status, :payment_reference,
+             :gateway, :gateway_order_id, CURDATE(), :notes, NOW())');
+        $this->db->bind(':subscription_id', $subscriptionId, PDO::PARAM_INT);
+        $this->db->bind(':amount', number_format((float)$amount, 2, '.', ''), PDO::PARAM_STR);
+        $this->db->bind(':payment_method', 'online', PDO::PARAM_STR);
+        $this->db->bind(':status', 'completed', PDO::PARAM_STR);
+        $this->db->bind(':payment_reference', $orderId);
+        $this->db->bind(':gateway', 'payhere', PDO::PARAM_STR);
+        $this->db->bind(':gateway_order_id', $orderId);
+        $this->db->bind(':notes', $notes, PDO::PARAM_STR);
+
+        return $this->db->execute();
+    }
+
     public function getActiveSubscriptionForPlayer(int $playerId): ?object {
         $this->db->query(
             'SELECT SubscriptionID, PlanID, Status, StartDate, EndDate
@@ -2135,4 +2158,4 @@ class M_Users {
         return $this->db->resultSet();
     }
 }
-?> 
+?>

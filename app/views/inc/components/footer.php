@@ -20,5 +20,12 @@
     </div>
 </footer>
 
+<?php if (function_exists('isLoggedIn') && isLoggedIn()): ?>
+<script>
+    window.ELITE_REMINDER_HEARTBEAT_URL = '<?php echo URLROOT; ?>/remindertasks/player_session_reminders';
+</script>
+<script src="<?php echo URLROOT; ?>/js/reminder-heartbeat.js?v=<?php echo time(); ?>"></script>
+<?php endif; ?>
+
 </body>
 </html>
