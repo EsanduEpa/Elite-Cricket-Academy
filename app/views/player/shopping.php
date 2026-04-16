@@ -83,7 +83,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="shoppingPage" data-urlroot="<?php echo URLROOT; ?>">
+    <div class="main-content" id="shoppingPage" data-urlroot="<?php echo URLROOT; ?>" data-cart-count="<?php echo (int)($data['cartItemCount'] ?? 0); ?>">
         <!-- Shopping Header -->
         <div class="page-header">
             <div class="header-content">
@@ -100,7 +100,7 @@
                     <a href="<?php echo URLROOT; ?>/player/cart" class="btn btn-cart" id="cart-btn">
                         <i class="fas fa-shopping-cart"></i>
                         Cart
-                        <span class="cart-count" id="cart-count">0</span>
+                        <span class="cart-count" id="cart-count"><?php echo (int)($data['cartItemCount'] ?? 0); ?></span>
                     </a>
                 </div>
             </div>
