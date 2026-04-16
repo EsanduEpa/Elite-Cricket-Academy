@@ -61,6 +61,111 @@
     grid-column: 1 / -1;
 }
 
+.rental-toolbar {
+    margin: 0 0 1.25rem;
+}
+
+.rental-search-wrap {
+    position: relative;
+    max-width: 460px;
+}
+
+.rental-search-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+}
+
+.rental-search-wrap input {
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 2.6rem;
+    border: 1px solid #dbe3ea;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+}
+
+.rental-history-table-wrap {
+    overflow-x: auto;
+}
+
+.rental-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.rental-history-table th,
+.rental-history-table td {
+    padding: 0.9rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.rental-history-table th {
+    color: #34495e;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.rental-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: #eef2f7;
+    color: #34495e;
+}
+
+.rental-status-active {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1f8f53;
+}
+
+.rental-status-overdue {
+    background: rgba(231, 76, 60, 0.12);
+    color: #c0392b;
+}
+
+.rental-status-returned {
+    background: rgba(52, 152, 219, 0.12);
+    color: #2474a6;
+}
+
+.rental-empty-state {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1rem;
+    border: 1px dashed #dbe3ea;
+    border-radius: 14px;
+    color: #7f8c8d;
+    background: #fbfdff;
+}
+
+#msg-flash {
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+#msg-flash.alert-success {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1f8f53;
+}
+
+#msg-flash.alert-danger {
+    background: rgba(231, 76, 60, 0.12);
+    color: #c0392b;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .page-header h1 {

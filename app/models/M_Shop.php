@@ -452,6 +452,135 @@ class M_Shop {
         return $this->db->resultSet();
     }
 
+    public function getEquipmentById($equipmentId) {
+        $this->db->query('SELECT * FROM equipment WHERE EquipmentID = :equipment_id LIMIT 1');
+        $this->db->bind(':equipment_id', (int)$equipmentId, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    public function calculateRentalTotal($dailyRate, $durationDays, $quantity, $pickupMethod) {
+        $total = max(0, (float)$dailyRate) * max(1, (int)$durationDays) * max(1, (int)$quantity);
+
+        if ($pickupMethod === 'delivery') {
+            $total += 5;
+        }
+
+        if ((int)$durationDays >= 14) {
+            $total *= 0.90;
+        } elseif ((int)$durationDays >= 7) {
+            $total *= 0.95;
+        }
+
+        return round($total, 2);
+    }
+
+    public function createAutoConfirmedRental(array $data) {
+        $equipmentId = (int)($data['equipment_id'] ?? 0);
+        $playerId = (int)($data['player_id'] ?? 0);
+        $durationDays = (int)($data['duration_days'] ?? 0);
+        $quantity = (int)($data['quantity'] ?? 0);
+        $processedBy = (int)($data['processed_by'] ?? 5);
+        $pickupMethod = (string)($data['pickup_method'] ?? 'pickup');
+        $startDate = (string)($data['start_date'] ?? '');
+
+        if ($equipmentId <= 0 || $playerId <= 0 || $durationDays <= 0 || $quantity <= 0 || $processedBy <= 0) {
+            return ['success' => false, 'message' => 'Invalid rental details. Please try again.'];
+        }
+
+        try {
+            $start = new DateTime($startDate);
+            $end = (clone $start)->modify('+' . $durationDays . ' days');
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Invalid start date. Please choose a valid date.'];
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->query('SELECT * FROM equipment WHERE EquipmentID = :equipment_id FOR UPDATE');
+            $this->db->bind(':equipment_id', $equipmentId, PDO::PARAM_INT);
+            $equipment = $this->db->single();
+
+            if (!$equipment) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'Selected equipment was not found.'];
+            }
+
+            $availableStock = (int)($equipment->Stock ?? 0);
+            $availability = strtolower((string)($equipment->AvailabilityStatus ?? ''));
+            if ($availability !== 'available' || $availableStock < $quantity) {
+                $this->db->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Only ' . max(0, $availableStock) . ' item(s) are available now.'
+                ];
+            }
+
+            $totalCost = $this->calculateRentalTotal(
+                (float)($equipment->RentalPrice ?? 0),
+                $durationDays,
+                $quantity,
+                $pickupMethod
+            );
+            $perItemCost = round($totalCost / $quantity, 2);
+            $rentalIds = [];
+
+            for ($i = 0; $i < $quantity; $i++) {
+                $this->db->query('INSERT INTO equipmentrental
+                    (EquipmentID, PlayerID, RentalDate, StartTime, EndTime, Status, TotalCost, ProcessedBy, LateFee, ReturnNotes)
+                    VALUES
+                    (:equipment_id, :player_id, :rental_date, :start_time, :end_time, "active", :total_cost, :processed_by, 0.00, :return_notes)');
+                $this->db->bind(':equipment_id', $equipmentId, PDO::PARAM_INT);
+                $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+                $this->db->bind(':rental_date', $start->format('Y-m-d'));
+                $this->db->bind(':start_time', $start->format('Y-m-d 00:00:00'));
+                $this->db->bind(':end_time', $end->format('Y-m-d 23:59:59'));
+                $this->db->bind(':total_cost', $perItemCost);
+                $this->db->bind(':processed_by', $processedBy, PDO::PARAM_INT);
+                $this->db->bind(':return_notes', 'Pickup method: ' . ($pickupMethod === 'delivery' ? 'Home delivery' : 'Academy pickup'));
+
+                if (!$this->db->execute()) {
+                    $this->db->rollBack();
+                    return ['success' => false, 'message' => 'Could not create the rental. Please try again.'];
+                }
+
+                $rentalIds[] = (int)$this->db->lastInsertId();
+            }
+
+            $remainingStock = $availableStock - $quantity;
+            $newStatus = $remainingStock > 0 ? 'available' : 'rented';
+            $this->db->query('UPDATE equipment
+                SET Stock = :stock, AvailabilityStatus = :status
+                WHERE EquipmentID = :equipment_id');
+            $this->db->bind(':stock', $remainingStock, PDO::PARAM_INT);
+            $this->db->bind(':status', $newStatus);
+            $this->db->bind(':equipment_id', $equipmentId, PDO::PARAM_INT);
+
+            if (!$this->db->execute()) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'Could not update equipment stock. Please try again.'];
+            }
+
+            $this->db->commit();
+
+            return [
+                'success' => true,
+                'message' => 'Rental confirmed successfully.',
+                'equipment' => $equipment,
+                'rental_ids' => $rentalIds,
+                'total_cost' => $totalCost,
+                'start_time' => $start->format('Y-m-d 00:00:00'),
+                'end_time' => $end->format('Y-m-d 23:59:59'),
+                'quantity' => $quantity,
+                'pickup_method' => $pickupMethod,
+            ];
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log('Auto-confirm rental failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Something went wrong while confirming the rental. Please try again.'];
+        }
+    }
+
     // Get player's current and past rentals
     public function getPlayerRentals($playerId) {
         $this->db->query('SELECT er.*, e.Name as EquipmentName, e.Category, e.RentalPrice, e.EqCondition
