@@ -221,6 +221,20 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
 }
 
+/* Keep Product Management action cards and icons static */
+.main-content#mainContent .action-card,
+.main-content#mainContent .action-card .action-icon,
+.main-content#mainContent .action-card .action-icon i {
+    transition: none !important;
+    animation: none !important;
+}
+
+.main-content#mainContent .action-card:hover,
+.main-content#mainContent .action-card:hover .action-icon,
+.main-content#mainContent .action-card:hover .action-icon i {
+    transform: none !important;
+}
+
 @media (max-width: 768px) {
     .data-table .table-header {
         align-items: flex-start;
