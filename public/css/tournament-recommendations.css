@@ -1,6 +1,12 @@
 /* Tournament Recommendations Page Styles */
 
 /* Statistics Cards */
+.coach-recommendations-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
 .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -32,6 +38,30 @@
     align-items: center;
     justify-content: center;
     font-size: 28px;
+}
+
+.stat-icon i {
+    color: inherit;
+}
+
+.stat-icon--pending {
+    background: #e3f2fd;
+    color: #2196F3;
+}
+
+.stat-icon--approved {
+    background: #e8f5e9;
+    color: #4CAF50;
+}
+
+.stat-icon--rejected {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.stat-icon--total {
+    background: #fff3e0;
+    color: #FF9800;
 }
 
 .stat-content {

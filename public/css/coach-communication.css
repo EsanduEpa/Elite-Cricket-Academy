@@ -1,7 +1,155 @@
 /* Communication Page Styles */
 
+.coach-communication-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
 .communication-content {
     padding: 20px;
+}
+
+.communication-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.communication-card__header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.communication-card__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.communication-card__title i {
+    color: #f59e0b;
+    margin-right: 10px;
+}
+
+.communication-card__subtitle {
+    margin: 8px 0 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.communication-feedback-item {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: background-color 0.3s;
+}
+
+.communication-feedback-item:hover {
+    background-color: rgba(74,144,226,0.03);
+}
+
+.communication-feedback-item__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+    gap: 12px;
+}
+
+.communication-feedback-item__author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.communication-avatar {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+.communication-author-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.communication-author-email {
+    font-size: 12px;
+    color: #999;
+}
+
+.communication-feedback-item__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.communication-rating {
+    color: #f59e0b;
+}
+
+.communication-rating .is-empty {
+    color: #ddd;
+}
+
+.communication-status-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.communication-feedback-item__message {
+    margin: 0;
+    color: #555;
+    line-height: 1.6;
+    padding-left: 57px;
+}
+
+.communication-feedback-item__footer {
+    padding-left: 57px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+}
+
+.communication-feedback-item__footer i {
+    margin-right: 4px;
+}
+
+.communication-feedback-item__separator {
+    margin: 0 8px;
+}
+
+.communication-empty-state {
+    padding: 60px;
+    text-align: center;
+    color: #999;
+}
+
+.communication-empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+.communication-empty-state h3 {
+    margin: 0 0 8px 0;
+    color: #666;
+}
+
+.communication-empty-state p {
+    margin: 0;
 }
 
 .communication-layout {

@@ -23,21 +23,28 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard Overview</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback Monitoring</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link"><i class="fas fa-file-alt"></i><span>Reports</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin User</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -78,27 +85,22 @@
                             <label>Position / Standing</label>
                             <select name="position" required>
                                 <option value="">— Select —</option>
-                                <?php foreach (['1st','2nd','3rd','Finalist','Group Stage','DNS'] as $pos): ?>
+                                <?php foreach (['super 8','super 16','3rd runners up','2nd runners up','1st runners up','champions'] as $pos): ?>
                                     <option value="<?php echo $pos; ?>" <?php echo ($res && $res->Position === $pos) ? 'selected' : ''; ?>><?php echo $pos; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Match Format</label>
-                            <select name="match_format">
-                                <option value="">— None —</option>
-                                <?php foreach (['T20','ODI','Test','Other'] as $fmt): ?>
-                                    <option value="<?php echo $fmt; ?>" <?php echo ($res && $res->MatchFormat === $fmt) ? 'selected' : ''; ?>><?php echo $fmt; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label>Total Matches Played</label>
+                            <input type="number" name="total_matches_played" min="0" value="<?php echo htmlspecialchars($res->TotalMatchesPlayed ?? '0'); ?>">
                         </div>
                         <div class="form-group">
-                            <label>Opponent in Final</label>
-                            <input type="text" name="opponent_in_final" placeholder="Opponent team name" value="<?php echo htmlspecialchars($res->OpponentInFinal ?? ''); ?>">
+                            <label>Total Wins</label>
+                            <input type="number" name="total_wins" min="0" value="<?php echo htmlspecialchars($res->TotalWins ?? '0'); ?>">
                         </div>
                         <div class="form-group">
-                            <label>Won By (margin/method)</label>
-                            <input type="text" name="won_by" placeholder="e.g. 45 runs, 5 wickets" value="<?php echo htmlspecialchars($res->WonBy ?? ''); ?>">
+                            <label>Total Losses</label>
+                            <input type="number" name="total_losses" min="0" value="<?php echo htmlspecialchars($res->TotalLosses ?? '0'); ?>">
                         </div>
                         <div class="form-group">
                             <label>Man of the Tournament</label>
@@ -106,6 +108,28 @@
                                 <option value="">— None —</option>
                                 <?php foreach ($team as $p): ?>
                                     <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->ManOfTournament == $p->PlayerID) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($p->Name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Best Batsman</label>
+                            <select name="best_batsman">
+                                <option value="">— None —</option>
+                                <?php foreach ($team as $p): ?>
+                                    <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->BestBatsman == $p->PlayerID) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($p->Name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Best Bowler</label>
+                            <select name="best_bowler">
+                                <option value="">— None —</option>
+                                <?php foreach ($team as $p): ?>
+                                    <option value="<?php echo $p->PlayerID; ?>" <?php echo ($res && $res->BestBowler == $p->PlayerID) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($p->Name); ?>
                                     </option>
                                 <?php endforeach; ?>

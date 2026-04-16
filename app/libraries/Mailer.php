@@ -5,12 +5,15 @@
  */
 class Mailer
 {
+    private static string $lastError = '';
+
     public static function send(string $toEmail, string $subject, string $htmlBody, string $toName = ''): bool
     {
+        self::$lastError = '';
         self::loadConfig();
 
         if (defined('SMTP_ENABLED') && SMTP_ENABLED === false) {
-            error_log('Mailer: SMTP is disabled.');
+            self::setError('Mailer: SMTP is disabled.');
             return false;
         }
 
@@ -22,13 +25,13 @@ class Mailer
         $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Elite Cricket Academy';
 
         if ($host === '' || $user === '' || $pass === '' || !filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
-            error_log('Mailer: missing SMTP settings or invalid recipient.');
+            self::setError('Mailer: missing SMTP settings or invalid recipient.');
             return false;
         }
 
         $sock = fsockopen($host, $port, $errno, $errstr, 15);
         if (!$sock) {
-            error_log("Mailer: connect failed - $errstr ($errno)");
+            self::setError("Mailer: connect failed - $errstr ($errno)");
             return false;
         }
 
@@ -70,11 +73,22 @@ class Mailer
             self::cmd($sock, 'QUIT');
             return true;
         } catch (RuntimeException $e) {
-            error_log('Mailer error: ' . $e->getMessage());
+            self::setError('Mailer error: ' . $e->getMessage());
             return false;
         } finally {
             fclose($sock);
         }
+    }
+
+    public static function getLastError(): string
+    {
+        return self::$lastError;
+    }
+
+    private static function setError(string $message): void
+    {
+        self::$lastError = $message;
+        error_log($message);
     }
 
     private static function loadConfig(): void

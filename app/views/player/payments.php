@@ -207,8 +207,17 @@
                                         </td>
                                         <td>
                                             <div class="payment-actions">
-                                                <button class="btn btn-pay">Pay Now</button>
-                                                <button class="btn btn-view">Details</button>
+                                                <form method="POST" action="<?php echo URLROOT; ?>/player/subscription_payhere_checkout" style="display:inline;">
+                                                    <input type="hidden" name="payment_id" value="<?= (int)($payment['payment_id'] ?? 0) ?>">
+                                                    <button
+                                                        type="submit"
+                                                        class="btn"
+                                                        style="background:#27ae60;color:white;border:none;cursor:pointer;"
+                                                    >
+                                                        Pay Now
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-view">Details</button>
                                             </div>
                                         </td>
                                     </tr>

@@ -627,6 +627,29 @@ class M_Users {
         return $this->db->execute();
     }
 
+    public function createCompletedSubscriptionPayment(
+        int $subscriptionId,
+        $amount,
+        string $orderId,
+        ?string $notes = null
+    ): bool {
+        $this->db->query('INSERT INTO subscriptionpayment
+            (SubscriptionID, PaymentDate, Amount, PaymentMethod, Status, PaymentReference,
+             Gateway, GatewayOrderId, DueDate, Notes, PaidAt)
+            VALUES (:subscription_id, CURDATE(), :amount, :payment_method, :status, :payment_reference,
+             :gateway, :gateway_order_id, CURDATE(), :notes, NOW())');
+        $this->db->bind(':subscription_id', $subscriptionId, PDO::PARAM_INT);
+        $this->db->bind(':amount', number_format((float)$amount, 2, '.', ''), PDO::PARAM_STR);
+        $this->db->bind(':payment_method', 'online', PDO::PARAM_STR);
+        $this->db->bind(':status', 'completed', PDO::PARAM_STR);
+        $this->db->bind(':payment_reference', $orderId);
+        $this->db->bind(':gateway', 'payhere', PDO::PARAM_STR);
+        $this->db->bind(':gateway_order_id', $orderId);
+        $this->db->bind(':notes', $notes, PDO::PARAM_STR);
+
+        return $this->db->execute();
+    }
+
     public function getActiveSubscriptionForPlayer(int $playerId): ?object {
         $this->db->query(
             'SELECT SubscriptionID, PlanID, Status, StartDate, EndDate
@@ -1863,20 +1886,28 @@ class M_Users {
             if ((int)($assignmentCount->count ?? 0) > 0) {
                 $this->db->query(
                     "SELECT 
-                        p.PlayerID,
+                        COALESCE(p.PlayerID, psca.PlayerID) AS PlayerID,
+                        TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as Name,
                         TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as PlayerName,
                         u.UserID,
-                        p.BattingStyle,
-                        p.BowlingStyle,
-                        psca.CoachingType as AssignmentType,
+                        u.Email,
+                        u.PhoneNumber,
+                                                u.DateOfBirth,
+                        u.Status,
+                                                COALESCE(p.BattingStyle, 'N/A') AS BattingStyle,
+                                                COALESCE(p.BowlingStyle, 'N/A') AS BowlingStyle,
+                        GROUP_CONCAT(DISTINCT psca.CoachingType ORDER BY FIELD(psca.CoachingType, 'batting', 'bowling', 'fielding') SEPARATOR ', ') as AssignmentType,
+                        GROUP_CONCAT(DISTINCT psca.AgeGroup ORDER BY psca.AgeGroup SEPARATOR ', ') as AssignmentAgeGroups,
+                        COUNT(DISTINCT psca.CoachingType) as AssignmentCount,
                         'active' as AssignmentStatus,
-                        (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
+                        (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = COALESCE(p.PlayerID, psca.PlayerID)) as TournamentCount
                     FROM player_skill_coach_assignment psca
-                    JOIN playerprofile p ON psca.PlayerID = p.PlayerID
-                                        JOIN user u ON p.PlayerID = u.UserID
+                                        LEFT JOIN playerprofile p ON psca.PlayerID = p.PlayerID
+                                        JOIN user u ON psca.PlayerID = u.UserID
                     WHERE psca.CoachID = :coachId
                       AND u.Status = 'active'
-                                        ORDER BY u.FirstName ASC, u.LastName ASC, psca.CoachingType ASC"
+                                                                                GROUP BY psca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, u.DateOfBirth, u.Status
+                    ORDER BY u.FirstName ASC, u.LastName ASC"
                 );
                 $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);
                 return $this->db->resultSet();
@@ -1884,21 +1915,29 @@ class M_Users {
 
             $this->db->query(
                 "SELECT 
-                    p.PlayerID,
+                    COALESCE(p.PlayerID, pca.PlayerID) AS PlayerID,
+                    TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as Name,
                     TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as PlayerName,
                     u.UserID,
-                    p.BattingStyle,
-                    p.BowlingStyle,
-                    pca.AssignmentType,
+                    u.Email,
+                    u.PhoneNumber,
+                                        u.DateOfBirth,
+                    u.Status,
+                    COALESCE(p.BattingStyle, 'N/A') AS BattingStyle,
+                    COALESCE(p.BowlingStyle, 'N/A') AS BowlingStyle,
+                    GROUP_CONCAT(DISTINCT pca.AssignmentType ORDER BY pca.AssignmentType SEPARATOR ', ') as AssignmentType,
+                    NULL as AssignmentAgeGroups,
+                    COUNT(DISTINCT pca.AssignmentType) as AssignmentCount,
                     pca.Status as AssignmentStatus,
-                    (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = p.PlayerID) as TournamentCount
+                    (SELECT COUNT(*) FROM playertournamentstats WHERE PlayerID = COALESCE(p.PlayerID, pca.PlayerID)) as TournamentCount
                 FROM playercoachassignment pca
-                JOIN playerprofile p ON pca.PlayerID = p.PlayerID
-                                JOIN user u ON p.PlayerID = u.UserID
+                LEFT JOIN playerprofile p ON pca.PlayerID = p.PlayerID
+                                JOIN user u ON pca.PlayerID = u.UserID
                 WHERE pca.CoachID = :coachId
                   AND pca.Status = 'active'
                   AND u.Status = 'active'
-                                ORDER BY u.FirstName ASC, u.LastName ASC"
+                                                                GROUP BY pca.PlayerID, p.PlayerID, u.UserID, u.FirstName, u.LastName, p.BattingStyle, p.BowlingStyle, u.DateOfBirth, pca.Status
+                ORDER BY u.FirstName ASC, u.LastName ASC"
             );
             $this->db->bind(':coachId', $coachId, PDO::PARAM_INT);
             return $this->db->resultSet();
@@ -2119,4 +2158,4 @@ class M_Users {
         return $this->db->resultSet();
     }
 }
-?> 
+?>

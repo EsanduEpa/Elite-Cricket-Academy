@@ -11,6 +11,7 @@ function initializeRentalsPage() {
     initRentalModals();
     initRentalImageFallbacks();
     initRentalCart();
+    initRentalSearch();
     setMinimumDates();
     
     console.log('Rentals page initialization complete');
@@ -97,8 +98,9 @@ function initRentalModals() {
             return;
         }
 
-        if (e.target.classList.contains('rent-equipment')) {
-            const rentalData = e.target.dataset;
+        const rentButton = e.target.closest('.rent-equipment');
+        if (rentButton) {
+            const rentalData = rentButton.dataset;
             openRentalModal(rentalData);
         }
         
@@ -121,6 +123,7 @@ function openRentalModal(rentalData) {
     
     // Populate rental details
     populateRentalDetails(rentalData);
+    populateRentalForm(rentalData);
     
     // Set up price calculation
     setupRentalPriceCalculation(rentalData);
@@ -155,6 +158,7 @@ function closeRentalModal() {
 }
 
 function createRentalModal() {
+    const urlRoot = getRentalsUrlRoot();
     const modal = document.createElement('div');
     modal.id = 'rentalModal';
     modal.className = 'modal-overlay';
@@ -168,14 +172,15 @@ function createRentalModal() {
             </div>
             <div class="modal-body">
                 <div id="rental-details"></div>
-                <form id="rental-form">
+                <form id="rental-form" method="POST" action="${urlRoot}/player/confirm_rental">
+                    <input type="hidden" id="rental-equipment-id" name="equipment_id" value="">
                     <div class="form-group">
                         <label for="rental-start-date">Start Date:</label>
-                        <input type="date" id="rental-start-date" required>
+                        <input type="date" id="rental-start-date" name="start_date" required>
                     </div>
                     <div class="form-group">
                         <label for="rental-duration">Rental Duration:</label>
-                        <select id="rental-duration" required>
+                        <select id="rental-duration" name="duration" required>
                             <option value="1">1 Day</option>
                             <option value="3">3 Days</option>
                             <option value="7">1 Week</option>
@@ -185,17 +190,13 @@ function createRentalModal() {
                     </div>
                     <div class="form-group">
                         <label for="rental-quantity">Quantity:</label>
-                        <select id="rental-quantity" required>
+                        <select id="rental-quantity" name="quantity" required>
                             <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="rental-pickup">Pickup Method:</label>
-                        <select id="rental-pickup" required>
+                        <select id="rental-pickup" name="pickup_method" required>
                             <option value="pickup">Pickup from Academy</option>
                             <option value="delivery">Home Delivery (+Rs. 5)</option>
                         </select>
@@ -225,6 +226,11 @@ function createRentalModal() {
     }
 }
 
+function getRentalsUrlRoot() {
+    const page = document.getElementById('rentalsPage');
+    return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
+}
+
 function populateRentalDetails(rentalData) {
     const detailsDiv = document.getElementById('rental-details');
     if (!detailsDiv) return;
@@ -238,6 +244,34 @@ function populateRentalDetails(rentalData) {
             <p><strong>Rate:</strong> Rs. ${Number.isFinite(dailyRate) ? dailyRate.toFixed(2) : '0.00'} / day</p>
         </div>
     `;
+}
+
+function populateRentalForm(rentalData) {
+    const equipmentIdInput = document.getElementById('rental-equipment-id');
+    const quantitySelect = document.getElementById('rental-quantity');
+    const startDateInput = document.getElementById('rental-start-date');
+
+    if (equipmentIdInput) {
+        equipmentIdInput.value = rentalData.equipmentId || '';
+    }
+
+    if (quantitySelect) {
+        const stock = Math.max(1, parseInt(rentalData.stock || '1', 10) || 1);
+        const maxQty = Math.min(stock, 10);
+        quantitySelect.innerHTML = '';
+        for (let qty = 1; qty <= maxQty; qty++) {
+            const option = document.createElement('option');
+            option.value = String(qty);
+            option.textContent = String(qty);
+            quantitySelect.appendChild(option);
+        }
+    }
+
+    if (startDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.min = today;
+        startDateInput.value = today;
+    }
 }
 
 function setupRentalPriceCalculation(rentalData) {
@@ -290,46 +324,17 @@ function confirmRental() {
     
     // Validate form
     if (!form.checkValidity()) {
-        alert('Please fill in all required fields');
+        form.reportValidity();
         return;
     }
-    
-    // Get form data
-    const startDate = document.getElementById('rental-start-date').value;
-    const duration = document.getElementById('rental-duration').value;
-    const quantity = document.getElementById('rental-quantity').value;
-    const pickup = document.getElementById('rental-pickup').value;
-    const total = document.getElementById('rental-total-amount').textContent;
-    
-    // Show confirmation
-    showRentalConfirmation({
-        startDate,
-        duration,
-        quantity,
-        pickup,
-        total
-    });
-    
-    closeRentalModal();
-}
 
-function showRentalConfirmation(rentalDetails) {
-    const pickupText = rentalDetails.pickup === 'delivery' ? 'Home Delivery' : 'Academy Pickup';
-    const durationText = rentalDetails.duration === '1' ? '1 Day' : 
-                        rentalDetails.duration === '7' ? '1 Week' :
-                        rentalDetails.duration === '14' ? '2 Weeks' :
-                        rentalDetails.duration === '30' ? '1 Month' :
-                        `${rentalDetails.duration} Days`;
-    
-    alert(`Equipment Rental Confirmed!
-    
-Start Date: ${rentalDetails.startDate}
-Duration: ${durationText}
-Quantity: ${rentalDetails.quantity}
-Pickup: ${pickupText}
-Total: Rs. ${rentalDetails.total}
+    const confirmButton = document.querySelector('.js-rental-confirm');
+    if (confirmButton) {
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Confirming...';
+    }
 
-You will receive a confirmation email shortly with pickup/delivery details.`);
+    form.submit();
 }
 
 // Rental Cart Functions
@@ -438,8 +443,10 @@ function initRentalSearch() {
         const rentalCards = document.querySelectorAll('.product-card');
         
         rentalCards.forEach(card => {
-            const name = card.querySelector('h3').textContent.toLowerCase();
-            const description = card.querySelector('p').textContent.toLowerCase();
+            const nameEl = card.querySelector('h3');
+            const descriptionEl = card.querySelector('.card-description');
+            const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+            const description = descriptionEl ? descriptionEl.textContent.toLowerCase() : '';
             
             if (name.includes(searchTerm) || description.includes(searchTerm)) {
                 card.style.display = 'block';

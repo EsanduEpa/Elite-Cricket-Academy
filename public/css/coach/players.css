@@ -1,0 +1,119 @@
+.coach-assignment-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+.coach-assignment-banner__header {
+    margin-bottom: 0;
+    flex: 0 0 260px;
+}
+
+.coach-assignment-banner__header > div {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.coach-assignment-banner__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.coach-assignment-banner__subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.coach-assignment-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1 1 0;
+}
+
+.coach-assignment-card {
+    min-width: 180px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+    box-shadow: none;
+}
+
+.coach-assignment-label {
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.coach-age-group-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.coach-age-group-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(74, 144, 226, 0.08);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.coach-player-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.coach-player-meta__name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.coach-player-meta__email {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .coach-assignment-banner {
+        flex-direction: column;
+    }
+
+    .coach-assignment-banner__header {
+        flex-basis: auto;
+    }
+}
+
+.coach-table-scroll--players {
+    max-height: 680px;
+    overflow-y: auto;
+}
+
+.coach-table-scroll--players .coach-data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
+}

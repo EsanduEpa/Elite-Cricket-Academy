@@ -1,15 +1,31 @@
 <?php
 class M_SlotStaff {
-
     private $db;
 
     public function __construct() {
         $this->db = new Database();
     }
 
+    private function resolveEligiblePlayerCount(int $templateId): int {
+        if (!class_exists('SlotBookingService')) {
+            require_once APPROOT . '/libraries/SlotBookingService.php';
+        }
+
+        return SlotBookingService::getEligiblePlayerCountForTemplate($templateId);
+    }
+
     // =========================================================
     // MY OCCURRENCES — sessions this staff member is assigned to
     // =========================================================
+
+    /**
+     * Submit a private session request for admin approval.
+     *
+     * Returns new RequestID (int > 0) or a string error code:
+     *   'time_conflict' — this staff member is already booked at this time
+     *   'duplicate'     — same staff/date/time/facility request already exists
+     *   'error'         — unexpected DB failure
+     */
 
     /**
      * All occurrences where $userId is the assigned staff (coach or trainer),
@@ -52,7 +68,15 @@ class M_SlotStaff {
             );
             $this->db->bind(':from', $from);
             $this->db->bind(':to',   $to);
-            return $this->db->resultSet();
+                $rows = $this->db->resultSet();
+
+                foreach ($rows as $row) {
+                    if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+                        $row->EligiblePlayerCount = $this->resolveEligiblePlayerCount((int) $row->TemplateID);
+                    }
+                }
+
+                return $rows;
         }
 
         $this->db->query(
@@ -98,7 +122,15 @@ class M_SlotStaff {
         $this->db->bind(':to',   $to);
         $this->db->bind(':uid1', $userId, PDO::PARAM_INT);
         $this->db->bind(':uid2', $userId, PDO::PARAM_INT);
-        return $this->db->resultSet();
+        $rows = $this->db->resultSet();
+
+        foreach ($rows as $row) {
+            if (($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+                $row->EligiblePlayerCount = $this->resolveEligiblePlayerCount((int) $row->TemplateID);
+            }
+        }
+
+        return $rows;
     }
 
     // =========================================================
@@ -164,6 +196,11 @@ class M_SlotStaff {
             $this->db->bind(':uid2', $userId, PDO::PARAM_INT);
         }
         $row = $this->db->single();
+
+        if ($row && ($row->SlotType ?? '') === 'program' && !empty($row->TemplateID)) {
+            $row->EligiblePlayerCount = $this->resolveEligiblePlayerCount((int) $row->TemplateID);
+        }
+
         return $row ?: null;
     }
 
@@ -174,12 +211,94 @@ class M_SlotStaff {
     public function getBookingsForOccurrence(int $occId): array {
         $this->db->query(
             'SELECT sb.BookingID, sb.Status, sb.CreatedAt,
-                    u.UserID AS PlayerID,
-                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
+                    sb.PlayerID,
+                    COALESCE(
+                        NULLIF(TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)), \'\'),
+                        CONCAT(\'Player #\', sb.PlayerID)
+                    ) AS PlayerName,
+                    u.Email AS PlayerEmail
              FROM slot_booking sb
-             JOIN user u ON u.UserID = sb.PlayerID
+             LEFT JOIN user u ON u.UserID = sb.PlayerID
              WHERE sb.OccurrenceID = :oid
+               AND sb.Status != \'cancelled\'
              ORDER BY sb.CreatedAt'
+        );
+        $this->db->bind(':oid', $occId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function getGroupParticipantsForOccurrence(int $occId): array {
+        $this->db->query(
+            'SELECT DISTINCT
+                    u.UserID AS PlayerID,
+                    COALESCE(
+                        NULLIF(TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)), \'\'),
+                        CONCAT(\'Player #\', u.UserID)
+                    ) AS PlayerName,
+                    COALESCE(pp.SubscriptionType, \'basic\') AS SubscriptionType,
+                    COALESCE(st.AgeGroup, \'Open\') AS AgeGroup
+             FROM slot_occurrence so
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             JOIN user u ON u.Role = \'Player\' AND u.Status = \'active\'
+             LEFT JOIN playerprofile pp ON pp.PlayerID = u.UserID
+             WHERE so.OccurrenceID = :oid
+               AND COALESCE(pp.SubscriptionType, \'basic\') <> \'private_only\'
+               AND (
+                    st.AgeGroup IS NULL
+                    OR st.AgeGroup = \'\'
+                    OR st.AgeGroup = \'Open\'
+                    OR CASE
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 11 THEN \'Under 11\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 13 THEN \'Under 13\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 15 THEN \'Under 15\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 17 THEN \'Under 17\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 19 THEN \'Under 19\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 21 THEN \'Under 21\'
+                        ELSE \'Open\'
+                    END = st.AgeGroup
+               )
+             ORDER BY u.FirstName, u.LastName'
+        );
+        $this->db->bind(':oid', $occId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function getAttendanceRosterForOccurrence(int $occId): array {
+        $this->db->query(
+            'SELECT
+                    u.UserID AS PlayerID,
+                    COALESCE(
+                        NULLIF(TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)), \'\'),
+                        CONCAT(\'Player #\', u.UserID)
+                    ) AS PlayerName,
+                    COALESCE(pp.SubscriptionType, \'basic\') AS SubscriptionType,
+                    COALESCE(att.AttendanceStatus, \'absent\') AS AttendanceStatus,
+                    att.MarkedAt,
+                    att.MarkedBy
+             FROM slot_occurrence so
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             JOIN user u ON u.Role = \'Player\' AND u.Status = \'active\'
+             LEFT JOIN playerprofile pp ON pp.PlayerID = u.UserID
+             LEFT JOIN slot_occurrence_attendance att
+                    ON att.OccurrenceID = so.OccurrenceID
+                   AND att.PlayerID = u.UserID
+             WHERE so.OccurrenceID = :oid
+               AND COALESCE(pp.SubscriptionType, \'basic\') <> \'private_only\'
+               AND (
+                    st.AgeGroup IS NULL
+                    OR st.AgeGroup = \'\'
+                    OR st.AgeGroup = \'Open\'
+                    OR CASE
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 11 THEN \'Under 11\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 13 THEN \'Under 13\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 15 THEN \'Under 15\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 17 THEN \'Under 17\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 19 THEN \'Under 19\'
+                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 21 THEN \'Under 21\'
+                        ELSE \'Open\'
+                    END = st.AgeGroup
+               )
+             ORDER BY u.FirstName, u.LastName'
         );
         $this->db->bind(':oid', $occId, PDO::PARAM_INT);
         return $this->db->resultSet();
@@ -279,18 +398,35 @@ class M_SlotStaff {
         }
 
         $this->db->query(
-            "INSERT INTO slot_occurrence
-             (TemplateID, SlotID, OccurrenceDate, FacilityID, Status, MaxParticipants, Notes, GeneratedBy)
-             VALUES (NULL, :slotid, :date, :fid, 'scheduled', :max, :notes, :gen)"
+            'SELECT RequestID
+             FROM slot_private_session_request
+             WHERE RequesterUserID = :uid
+               AND RequestedDate   = :date
+               AND SlotID          = :slotid
+               AND COALESCE(FacilityID, 0) = COALESCE(:fid, 0)
+               AND Status = \'pending\'
+             LIMIT 1'
         );
-        $this->db->bind(':slotid', (int) $d['SlotID'],        PDO::PARAM_INT);
-        $this->db->bind(':date',   $d['OccurrenceDate']);
-        $this->db->bind(':fid',    isset($d['FacilityID']) && $d['FacilityID'] !== ''
-                                   ? (int) $d['FacilityID'] : null);
-        $this->db->bind(':max',    isset($d['MaxParticipants']) && $d['MaxParticipants'] !== ''
-                                   ? (int) $d['MaxParticipants'] : 10, PDO::PARAM_INT);
-        $this->db->bind(':notes',  $d['Notes'] ?? null);
-        $this->db->bind(':gen',    $userId, PDO::PARAM_INT);
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':date', $d['OccurrenceDate']);
+        $this->db->bind(':slotid', (int) $d['SlotID'], PDO::PARAM_INT);
+        $this->db->bind(':fid', isset($d['FacilityID']) && $d['FacilityID'] !== '' ? (int) $d['FacilityID'] : null);
+        if ($this->db->single()) {
+            return 'duplicate';
+        }
+
+        $this->db->query(
+            "INSERT INTO slot_private_session_request
+             (RequesterUserID, StaffType, SlotID, RequestedDate, FacilityID, MaxParticipants, Notes, Status)
+             VALUES (:uid, :stype, :slotid, :date, :fid, :max, :notes, 'pending')"
+        );
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':stype', $staffType);
+        $this->db->bind(':slotid', (int) $d['SlotID'], PDO::PARAM_INT);
+        $this->db->bind(':date', $d['OccurrenceDate']);
+        $this->db->bind(':fid', isset($d['FacilityID']) && $d['FacilityID'] !== '' ? (int) $d['FacilityID'] : null);
+        $this->db->bind(':max', isset($d['MaxParticipants']) && $d['MaxParticipants'] !== '' ? (int) $d['MaxParticipants'] : 10, PDO::PARAM_INT);
+        $this->db->bind(':notes', $d['Notes'] ?? null);
 
         try {
             $ok = $this->db->execute();
@@ -308,21 +444,8 @@ class M_SlotStaff {
         $newId = (int) $this->db->lastInsertId();
         if ($newId <= 0) return 'error';
 
-        // Self-assign as lead staff for this occurrence
-        $this->db->query(
-            "INSERT INTO slot_occurrence_staff_override
-             (OccurrenceID, UserID, StaffType, StaffRole, OverridesUserID, OverrideReason)
-             VALUES (:oid, :uid, :type, 'lead', NULL, 'Private session created by staff')"
-        );
-        $this->db->bind(':oid',  $newId,     PDO::PARAM_INT);
-        $this->db->bind(':uid',  $userId,    PDO::PARAM_INT);
-        $this->db->bind(':type', $staffType);
-        $this->db->execute();
-
-        $this->_auditLog('occurrence', $newId, 'create', null, null, 'scheduled',
-                         'Private session created by staff UserID=' . $userId, $userId);
-        $this->_activityLog($userId, 'create_private_session',
-                            "Staff created private session #{$newId} on {$d['OccurrenceDate']}");
+        $this->_activityLog($userId, 'create_private_session_request',
+                            "Staff requested private session #{$newId} on {$d['OccurrenceDate']}");
 
         return $newId;
     }
@@ -390,6 +513,72 @@ class M_SlotStaff {
                          'Booking status updated by staff', $staffId);
         $this->_activityLog($staffId, 'update_booking_status',
                             "Updated booking #{$bookingId} status to {$normalizedStatus}");
+        return true;
+    }
+
+    public function saveAttendanceRoster(int $occId, array $presentPlayerIds, int $staffId): bool|string {
+        $occurrence = $this->getOccurrenceDetail($occId, $staffId);
+        if (!$occurrence) {
+            return 'not_assigned';
+        }
+
+        if (($occurrence->SlotType ?? '') !== 'program') {
+            return 'invalid_session_type';
+        }
+
+        $roster = $this->getAttendanceRosterForOccurrence($occId);
+        if (empty($roster)) {
+            return 'not_found';
+        }
+
+        $presentLookup = array_fill_keys(array_map('intval', $presentPlayerIds), true);
+        $startedTransaction = false;
+
+        if (method_exists($this->db, 'beginTransaction') && method_exists($this->db, 'inTransaction') && !$this->db->inTransaction()) {
+            $this->db->beginTransaction();
+            $startedTransaction = true;
+        }
+
+        try {
+            foreach ($roster as $player) {
+                $playerId = (int) ($player->PlayerID ?? 0);
+                if ($playerId <= 0) {
+                    continue;
+                }
+
+                $attendanceStatus = isset($presentLookup[$playerId]) ? 'present' : 'absent';
+
+                $this->db->query(
+                    'INSERT INTO slot_occurrence_attendance
+                     (OccurrenceID, PlayerID, AttendanceStatus, MarkedBy, MarkedAt)
+                     VALUES (:oid, :pid, :status, :marked_by, NOW())
+                     ON DUPLICATE KEY UPDATE
+                        AttendanceStatus = VALUES(AttendanceStatus),
+                        MarkedBy = VALUES(MarkedBy),
+                        MarkedAt = NOW()'
+                );
+                $this->db->bind(':oid', $occId, PDO::PARAM_INT);
+                $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+                $this->db->bind(':status', $attendanceStatus);
+                $this->db->bind(':marked_by', $staffId, PDO::PARAM_INT);
+                $ok = $this->db->execute();
+                if (!$ok) {
+                    throw new RuntimeException('attendance_save_failed');
+                }
+            }
+
+            if ($startedTransaction && method_exists($this->db, 'commit')) {
+                $this->db->commit();
+            }
+        } catch (Throwable $e) {
+            if ($startedTransaction && method_exists($this->db, 'rollBack')) {
+                $this->db->rollBack();
+            }
+            return 'error';
+        }
+
+        $this->_auditLog('occurrence', $occId, 'update', 'Attendance', null, 'saved', 'Attendance roster updated', $staffId);
+        $this->_activityLog($staffId, 'save_occurrence_attendance', "Saved attendance roster for occurrence #{$occId}");
         return true;
     }
 

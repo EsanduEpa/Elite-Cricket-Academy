@@ -26,6 +26,24 @@ function getUrlRoot() {
     return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
 }
 
+function getCartEndpoint(path) {
+    const root = getUrlRoot();
+    return root ? `${root}/player/${path}` : `/player/${path}`;
+}
+
+async function postCartAction(path, data) {
+    const response = await fetch(getCartEndpoint(path), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        },
+        body: new URLSearchParams(data).toString()
+    });
+
+    return response.json();
+}
+
 function initPlayerShoppingProducts() {
     // View Details buttons
     document.querySelectorAll('.js-view-product').forEach(btn => {
@@ -527,7 +545,7 @@ function addToCartFromDetails() {
     const quantity = quantityInput ? parseInt(quantityInput.value || '1', 10) : 1;
     const qty = !isNaN(quantity) && quantity > 0 ? quantity : 1;
 
-    addToCartNew(
+    return addToCartNew(
         currentProduct.ProductID,
         currentProduct.Name,
         currentProduct.Price,
@@ -536,8 +554,8 @@ function addToCartFromDetails() {
     );
 }
 
-function buyNowFromDetails() {
-    addToCartFromDetails();
+async function buyNowFromDetails() {
+    await addToCartFromDetails();
     closeProductDetails();
 
     const urlRoot = getUrlRoot();
@@ -744,43 +762,59 @@ function initSectionNavigation() {
 }
 
 // Shopping Cart Functionality
-let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+// Shopping Cart Functionality
+let cart = [];
+let cartCountState = parseInt((document.getElementById('shoppingPage') || {}).dataset?.cartCount || '0', 10) || 0;
 
 function initShoppingCart() {
     updateCartCount();
 }
 
 // Renamed to avoid conflict with legacy addToCart calls
-function addToCartNew(productId, productName, price, imageUrl, quantity = 1) {
+async function addToCartNew(productId, productName, price, imageUrl, quantity = 1) {
     const id = String(productId);
     const qty = parseInt(quantity || 1, 10);
     const safeQty = !isNaN(qty) && qty > 0 ? qty : 1;
 
-    const existingItem = cart.find(item => item.id === id);
-    
-    if (existingItem) {
-        existingItem.quantity += safeQty;
-    } else {
-        cart.push({
-            id: id,
-            name: productName,
-            price: price,
-            image: imageUrl,
-            quantity: safeQty
+    try {
+        const result = await postCartAction('addToCart', {
+            product_id: id,
+            quantity: String(safeQty)
         });
+
+        if (result && result.success) {
+            cartCountState = Number(result.cart_count || (cartCountState + safeQty));
+            updateCartCount();
+            showCartNotification(productName + ' added to cart!');
+            return result;
+        }
+
+        showCartNotification((result && result.message) ? result.message : 'Failed to add item to cart');
+        return result;
+    } catch (error) {
+        console.error('Failed to add product to cart', error);
+        showCartNotification('Failed to add item to cart');
+        return null;
     }
-    
-    localStorage.setItem('shoppingCart', JSON.stringify(cart));
-    updateCartCount();
-    showCartNotification(productName + ' added to cart!');
 }
 
-function updateCartCount() {
-    const cartCount = document.querySelector('.cart-count');
-    if (cartCount) {
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        cartCount.textContent = totalItems;
+async function updateCartCount() {
+    const cartCountNodes = document.querySelectorAll('.cart-count, #cartCount');
+    if (!cartCountNodes.length) return;
+
+    try {
+        const response = await fetch(getCartEndpoint('cartSummary'), { credentials: 'same-origin' });
+        const payload = await response.json();
+        if (payload && payload.success) {
+            cartCountState = Number(payload.cart_count || 0);
+        }
+    } catch (error) {
+        console.error('Failed to load cart count', error);
     }
+
+    cartCountNodes.forEach((node) => {
+        node.textContent = String(cartCountState);
+    });
 }
 
 function showCartNotification(message) {
@@ -797,7 +831,8 @@ function showCartNotification(message) {
 }
 
 function viewCart() {
-    alert('Cart functionality: ' + cart.length + ' items in cart. Full cart view coming soon!');
+    const urlRoot = getUrlRoot();
+    window.location.href = urlRoot ? `${urlRoot}/player/cart` : '/player/cart';
 }
 
 // Rental Functionality
@@ -1082,23 +1117,7 @@ function addToCart(productIdOrObject, productName, price, imageUrl) {
 
 // Internal function that actually handles cart operations
 function addToCartInternal(productId, productName, price, imageUrl) {
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({
-            id: productId,
-            name: productName,
-            price: price,
-            image: imageUrl,
-            quantity: 1
-        });
-    }
-    
-    localStorage.setItem('shoppingCart', JSON.stringify(cart));
-    updateCartCount();
-    showCartNotification(productName + ' added to cart!');
+    addToCartNew(productId, productName, price, imageUrl, 1);
 }
 
 // Add CSS for modals and animations

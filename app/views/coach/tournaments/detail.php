@@ -1,22 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; }
-.status-created{background:#e2e8f0;color:#475569;} .status-registration_open{background:#dcfce7;color:#166534;}
-.status-registration_closed{background:#fef9c3;color:#854d0e;} .status-team_announced{background:#dbeafe;color:#1e40af;}
-.status-ongoing{background:#fde68a;color:#92400e;} .status-completed{background:#d1fae5;color:#065f46;} .status-cancelled{background:#fee2e2;color:#991b1b;}
-.panel-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:16px; overflow:hidden; }
-.panel-hdr { padding:14px 18px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
-.panel-hdr h3 { margin:0; font-size:14px; color:#1e293b; font-weight:700; }
-.data-table { width:100%; border-collapse:collapse; font-size:13px; }
-.data-table th { padding:9px 14px; text-align:left; color:#64748b; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-weight:600; font-size:12px; }
-.data-table td { padding:9px 14px; border-bottom:1px solid #f8fafc; color:#374151; vertical-align:middle; }
-.data-table tr:last-child td { border-bottom:none; }
-.badge-pending{background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-approved{background:#dcfce7;color:#166534;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-rejected{background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-.badge-confirmed{background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:700;}
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -30,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link"><i class="fas fa-calendar"></i><span>Events</span></a></li>
@@ -47,20 +30,27 @@
 
     <main class="main-content" id="mainContent">
         <?php $t = $data['tournament']; ?>
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-trophy"></i> <?php echo htmlspecialchars($t->Name); ?></h1>
-                <p>
-                    <span class="tournament-status status-<?php echo $t->Status; ?>"><?php echo str_replace('_',' ',$t->Status); ?></span>
-                    &nbsp; <?php echo htmlspecialchars($t->Format ?? ''); ?> &nbsp;·&nbsp; <?php echo htmlspecialchars($t->AgeGroup ?? ''); ?> &nbsp;·&nbsp; <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : ''; ?>
-                </p>
+        <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
+            <div class="header-content" style="flex:1;">
+                <div>
+                    <h1><i class="fas fa-trophy"></i> <?php echo htmlspecialchars($t->Name); ?></h1>
+                    <p>
+                        <span class="tournament-status status-<?php echo $t->Status; ?>"><?php echo str_replace('_',' ',$t->Status); ?></span>
+                        &nbsp; <?php echo htmlspecialchars($t->Format ?? ''); ?> &nbsp;·&nbsp; <?php echo htmlspecialchars($t->AgeGroup ?? ''); ?> &nbsp;·&nbsp; <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : ''; ?>
+                    </p>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournaments" style="background:#64748b;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+            <div class="header-actions" style="position:relative;z-index:2;display:flex;gap:8px;flex-shrink:0;">
+                <a href="<?php echo URLROOT; ?>/coach/tournaments" id="coachTournamentBackBtn" class="page-action-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Tournaments
+                </a>
                 <?php if ($data['is_head_coach'] && in_array($t->Status, ['registration_open','registration_closed'])): ?>
-                    <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" style="background:#16a34a;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-users-cog"></i> Finalize Squad</a>
+                    <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" class="page-action-btn" style="color:#16a34a;">
+                        <i class="fas fa-users-cog"></i>
+                        Finalize Squad
+                    </a>
                 <?php endif; ?>
-                <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" style="background:#3b82f6;color:#fff;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-star"></i> Recommend Players</a>
             </div>
         </div>
 
@@ -96,20 +86,21 @@
                 <?php if ($data['result']): ?>
                 <div class="panel-card" style="padding:18px;">
                     <?php $res = $data['result']; ?>
-                    <div style="font-weight:800;font-size:15px;color:#065f46;margin-bottom:10px;"><i class="fas fa-medal"></i> Result</div>
-                    <div style="margin-bottom:8px;"><div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Position</div><div style="font-size:20px;font-weight:900;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
-                    <?php if ($res->OpponentInFinal): ?><div style="font-size:13px;color:#64748b;">vs <?php echo htmlspecialchars($res->OpponentInFinal); ?></div><?php endif; ?>
-                    <?php if ($res->ManName): ?><div style="margin-top:8px;font-size:13px;"><strong>Man of Tournament:</strong> <?php echo htmlspecialchars($res->ManName); ?></div><?php endif; ?>
+                        <div style="font-weight:800;font-size:15px;color:#065f46;margin-bottom:10px;"><i class="fas fa-medal"></i> Result</div>
+                        <div style="margin-bottom:8px;"><div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Position</div><div style="font-size:20px;font-weight:900;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
+                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Matches / Wins / Losses</div><div><?php echo htmlspecialchars((string)($res->TotalMatchesPlayed ?? 0)); ?> / <?php echo htmlspecialchars((string)($res->TotalWins ?? 0)); ?> / <?php echo htmlspecialchars((string)($res->TotalLosses ?? 0)); ?></div></div>
+                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Best Batsman / Bowler</div><div><?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> / <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div></div>
+                        <?php if ($res->ManName): ?><div style="grid-column:1/-1;margin-top:8px;font-size:13px;"><strong>Man of Tournament:</strong> <?php echo htmlspecialchars($res->ManName); ?></div><?php endif; ?>
                 </div>
                 <?php endif; ?>
             </div>
 
             <!-- Right panels -->
             <div>
-                <!-- My recommendations -->
+go to                 <!-- My recommendations -->
                 <div class="panel-card">
                     <div class="panel-hdr">
-                        <h3><i class="fas fa-star" style="color:#f59e0b;"></i> My Recommendations for this Tournament</h3>
+                        <h3><i class="fas fa-star" style="color:#f59e0b;"></i> Recommendations for this Tournament</h3>
                         <a href="<?php echo URLROOT; ?>/coach/recommend_players/<?php echo $t->TournamentID; ?>" style="background:#3b82f6;color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">+ Add</a>
                     </div>
                     <?php if (empty($data['my_recs'])): ?>
@@ -137,14 +128,24 @@
                         <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No join requests yet.</p>
                     <?php else: ?>
                     <table class="data-table">
-                        <thead><tr><th>Player</th><th>Status</th><th>Coach Recs</th><th>Trainer Recs</th></tr></thead>
+                        <thead><tr><th>Player</th><th>Status</th><th>Coach Recs</th><th>Trainer Recs</th><th>Action</th></tr></thead>
                         <tbody>
                         <?php foreach ($data['join_requests'] as $r): ?>
+                        <?php $hasCoachRec = (int)($r->CoachRecs ?? 0) > 0; ?>
                         <tr>
                             <td><?php echo htmlspecialchars($r->Name); ?></td>
                             <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             <td><?php echo $r->CoachRecs; ?></td>
                             <td><?php echo $r->TrainerRecs; ?></td>
+                            <td>
+                                <?php if ($hasCoachRec): ?>
+                                    <span class="page-action-btn page-action-btn--disabled" aria-disabled="true" title="Coach recommendation already exists">Recommended</span>
+                                <?php else: ?>
+                                    <a href="<?php echo URLROOT; ?>/coach/recommend_players/<?php echo $t->TournamentID; ?>?playerId=<?php echo (int)$r->PlayerID; ?>" class="page-action-btn">
+                                        <i class="fas fa-plus"></i> Add
+                                    </a>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                         </tbody>

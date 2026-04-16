@@ -878,20 +878,20 @@ CREATE TABLE `equipment` (
 --
 
 INSERT INTO `equipment` (`EquipmentID`, `Name`, `Description`, `Category`, `AvailabilityStatus`, `RentalPrice`, `PurchasePrice`, `Stock`, `EqCondition`, `equipmentImage`) VALUES
-(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'rented', 25.00, 150.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'rented', 5.00, 15.00, 10, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'rented', 15.00, 80.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
-(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
-(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 150.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 15.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 80.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
-(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
-(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
-(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 25.00, 150.00, 0, '', NULL),
-(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 20.00, 100.00, 0, 'good', NULL),
-(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 22.00, 80.00, 0, '', NULL),
-(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 18.00, 75.00, 0, 'good', NULL);
+(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'rented', 55.00, 150.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'rented', 35.00, 15.00, 10, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'rented', 45.00, 80.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 50.00, 100.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
+(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 48.00, 90.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
+(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 55.00, 150.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 35.00, 15.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 45.00, 80.00, 0, 'new', 'uploads/shop_product/product_9_1761119174.png'),
+(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 50.00, 100.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
+(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 48.00, 90.00, 0, 'good', 'uploads/shop_product/product_9_1761119174.png'),
+(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 55.00, 150.00, 0, '', NULL),
+(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 50.00, 100.00, 0, 'good', NULL),
+(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 52.00, 80.00, 0, '', NULL),
+(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 48.00, 75.00, 0, 'good', NULL);
 
 -- --------------------------------------------------------
 

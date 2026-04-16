@@ -21,7 +21,7 @@
                     <li class="nav-item active">
                         <a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link">
                             <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard Overview</span>
+                            <span>Dashboard </span>
                         </a>
                     </li>
                     
@@ -39,25 +39,9 @@
                         </a>
                     </li>
                     
-                                   <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
+                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link">
+                    <i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
 
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link">
-                            <i class="fas fa-comments"></i>
-                            <span>Feedback Monitoring</span>
-                            <?php if($data['totalPendingFeedback'] > 0): ?>
-                            <span class="badge"><?php echo $data['totalPendingFeedback']; ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Reports</span>
-                        </a>
-                    </li>
                     
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link">
@@ -69,7 +53,7 @@
                     <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link">
                             <i class="fas fa-chart-line"></i>
-                            <span>Finance Management</span>
+                            <span>Finances</span>
                         </a>
                     </li>
                 </ul>
@@ -77,17 +61,19 @@
             
             <!-- Admin Profile -->
             <div class="profile-section">
-                <div class="profile-avatar">
-                    <i class="fas fa-user-circle"></i>
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                    <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                        <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                        <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
                 </div>
-                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?></div>
-                <div class="profile-role">Super Administrator</div>
-                <a href="<?php echo URLROOT; ?>/admin/profile" class="action-btn" style="margin-top: 10px;">
-                    <i class="fas fa-user-cog"></i> Profile
-                </a>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
             </div>
         </div>
         
@@ -97,12 +83,9 @@
             <div class="dashboard-header">
                 <div class="header-content">
                     <h1><i class="fas fa-tachometer-alt"></i> Elite Cricket Academy - Admin Dashboard</h1>
-                    <p>Comprehensive management system for academy operations</p>
                 </div>
                 <div class="header-actions">
-                    <button class="refresh-btn" onclick="refreshDashboard()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
+                   
                     <div class="current-time" id="currentTime"></div>
                 </div>
             </div>
@@ -169,34 +152,51 @@
                 </div>
             </div>
 
-            <!-- Academy Calendar -->
+            <!-- Academy Calendar - Weekly View -->
             <div class="calendar-section" style="margin-top:30px;">
                 <style>
-                    .slot-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:160px; width:14.28%; padding:8px; background:#fff; }
-                    .slot-cal-outside   { background:#fafafa; color:#999; }
-                    .slot-cal-today     { background:#fffde7; }
-                    .slot-cal-day-num   { display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:8px; }
-                    .slot-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:6px; font-size:12px; cursor:pointer; text-decoration:none; display:block; }
-                    .slot-cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
-                    .slot-cal-private   { background:#fff3cd; color:#856404; border-left:3px solid #856404; }
-                    .slot-cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
-                    .slot-cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
-                    .slot-cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
-                    .slot-cal-tournament { background:#fff1d6; color:#8a4b00; border-left:3px solid #e67e22; }
+                    .week-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:200px; width:14.28%; padding:10px; background:#fff; }
+                    .week-cal-today     { background:#fffde7; border:2px solid #ffc107; }
+                    .week-cal-day-hdr   { display:flex; flex-direction:column; align-items:center; margin-bottom:10px; }
+                    .week-cal-day-name  { font-weight:700; font-size:13px; color:#333; }
+                    .week-cal-day-date  { font-size:11px; color:#666; margin-top:2px; }
+                    .week-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:6px; font-size:11px; cursor:pointer; text-decoration:none; display:block; overflow:hidden; }
+                    .week-cal-card-title { font-weight:600; margin-bottom:2px; }
+                    .week-cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
+                    .week-cal-private   { background:#fff3cd; color:#856404; border-left:3px solid #856404; }
+                    .week-cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
+                    .week-cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
+                    .week-cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
+                    .week-cal-tournament { background:#fff1d6; color:#8a4b00; border-left:3px solid #e67e22; }
                 </style>
                 <div class="calendar-header">
-                    <h3><i class="fas fa-calendar-alt"></i> Academy Calendar</h3>
+                    <h3><i class="fas fa-calendar-alt"></i> Academy Calendar - Weekly View</h3>
                     <div class="calendar-controls">
                         <div class="calendar-nav">
-                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_month=<?= $data['slotPrevMonth'] ?>"
-                               class="calendar-btn" title="Previous Month"><i class="fas fa-chevron-left"></i></a>
-                            <span style="font-weight:700;font-size:14px;color:#2c3e50;">
-                                <?= date('F Y', $data['slotMonthTs']) ?>
+                            <?php
+                            // Calculate current week
+                            $today = time();
+                            $currentDow = (int) date('N', $today);
+                            $weekStartTs = strtotime('-' . ($currentDow - 1) . ' days', $today);
+                            $weekEndTs = strtotime('+6 days', $weekStartTs);
+                            
+                            // Check for week offset from query parameter
+                            $weekOffset = isset($_GET['week_offset']) ? (int)$_GET['week_offset'] : 0;
+                            $displayStartTs = strtotime("+{$weekOffset} weeks", $weekStartTs);
+                            $displayEndTs = strtotime("+{$weekOffset} weeks", $weekEndTs);
+                            
+                            $prevWeekOffset = $weekOffset - 1;
+                            $nextWeekOffset = $weekOffset + 1;
+                            ?>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?week_offset=<?= $prevWeekOffset ?>"
+                               class="calendar-btn" title="Previous Week"><i class="fas fa-chevron-left"></i></a>
+                            <span style="font-weight:700;font-size:14px;color:#2c3e50;min-width:200px;text-align:center;">
+                                <?= date('d M', $displayStartTs) ?> - <?= date('d M Y', $displayEndTs) ?>
                             </span>
-                            <a href="<?php echo URLROOT; ?>/admin/dashboard?slot_month=<?= $data['slotNextMonth'] ?>"
-                               class="calendar-btn" title="Next Month"><i class="fas fa-chevron-right"></i></a>
+                            <a href="<?php echo URLROOT; ?>/admin/dashboard?week_offset=<?= $nextWeekOffset ?>"
+                               class="calendar-btn" title="Next Week"><i class="fas fa-chevron-right"></i></a>
                             <a href="<?php echo URLROOT; ?>/admin/dashboard"
-                               class="calendar-btn today-btn" title="Current Month" style="margin-left:8px;"><i class="fas fa-calendar-check"></i></a>
+                               class="calendar-btn today-btn" title="This Week" style="margin-left:8px;"><i class="fas fa-calendar-check"></i></a>
                         </div>
                     </div>
                 </div>
@@ -210,90 +210,71 @@
                     <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
                 </div>
 
-                <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;">
+                <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;max-height:600px;overflow-y:auto;">
                     <table style="width:100%;border-collapse:collapse;">
-                        <thead>
+                        <thead style="position:sticky;top:0;background:#f8f9fa;z-index:10;">
                             <tr style="background:#f8f9fa;">
-                                <?php foreach (['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $slotDayName): ?>
-                                <th style="padding:10px 8px;text-align:center;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">
-                                    <div style="font-weight:700;"><?= $slotDayName ?></div>
+                                <?php foreach (['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $dayIdx => $dayName): ?>
+                                <th style="padding:12px 8px;text-align:center;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">
+                                    <div style="font-weight:700;"><?= $dayName ?></div>
                                 </th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            $slotMonthStartTs = strtotime($data['slotMonthFrom']);
-                            $slotMonthEndTs = strtotime($data['slotMonthTo']);
-                            $slotMonthStartDow = (int) date('N', $slotMonthStartTs);
-                            $slotGridStartTs = strtotime('-' . ($slotMonthStartDow - 1) . ' days', $slotMonthStartTs);
-                            $slotGridEndDow = (int) date('N', $slotMonthEndTs);
-                            $slotGridEndTs = strtotime('+' . (7 - $slotGridEndDow) . ' days', $slotMonthEndTs);
-
-                            for ($weekTs = $slotGridStartTs; $weekTs <= $slotGridEndTs; $weekTs = strtotime('+7 days', $weekTs)):
-                            ?>
                             <tr>
-                                <?php for ($si = 0; $si < 7; $si++):
-                                    $dayTs = strtotime("+{$si} days", $weekTs);
+                                <?php for ($dayIdx = 0; $dayIdx < 7; $dayIdx++):
+                                    $dayTs = strtotime("+{$dayIdx} days", $displayStartTs);
                                     $dayKey = date('Y-m-d', $dayTs);
                                     $isToday = ($dayKey === date('Y-m-d'));
-                                    $isCurrentMonth = (date('Y-m', $dayTs) === date('Y-m', $slotMonthStartTs));
                                     $soccs = $data['slotByDate'][$dayKey] ?? [];
                                     $tournaments = $data['tournamentsByDate'][$dayKey] ?? [];
                                 ?>
-                                <td class="slot-cal-cell<?= $isToday ? ' slot-cal-today' : '' ?><?= $isCurrentMonth ? '' : ' slot-cal-outside' ?>">
-                                    <div class="slot-cal-day-num">
-                                        <span><?= date('j', $dayTs) ?></span>
-                                        <?php if (!$isCurrentMonth): ?>
-                                            <span style="font-weight:600;font-size:10px;opacity:.65;"><?= date('M', $dayTs) ?></span>
-                                        <?php endif; ?>
+                                <td class="week-cal-cell<?= $isToday ? ' week-cal-today' : '' ?>">
+                                    <div class="week-cal-day-hdr">
+                                        <div class="week-cal-day-name"><?= date('d', $dayTs) ?></div>
+                                        <div class="week-cal-day-date"><?= date('M', $dayTs) ?></div>
                                     </div>
 
                                     <?php if (empty($soccs) && empty($tournaments)): ?>
-                                        <div style="color:#ccc;font-size:11px;text-align:center;padding-top:16px;">&mdash;</div>
+                                        <div style="color:#ccc;font-size:12px;text-align:center;padding-top:30px;">&mdash; No events &mdash;</div>
                                     <?php else: ?>
                                         <?php foreach ($soccs as $socc):
                                             if ($socc->Status === 'cancelled') {
-                                                $scls = 'slot-cal-cancelled';
+                                                $scls = 'week-cal-cancelled';
                                             } elseif ($socc->TemplateID === null) {
-                                                $scls = 'slot-cal-adhoc';
+                                                $scls = 'week-cal-adhoc';
                                             } else {
-                                                $smap = ['program'=>'slot-cal-program','private'=>'slot-cal-private','facility_only'=>'slot-cal-facility'];
-                                                $scls = $smap[$socc->SlotType] ?? 'slot-cal-program';
+                                                $smap = ['program'=>'week-cal-program','private'=>'week-cal-private','facility_only'=>'week-cal-facility'];
+                                                $scls = $smap[$socc->SlotType] ?? 'week-cal-program';
                                             }
                                         ?>
-                                        <a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= $socc->OccurrenceID ?>" class="slot-cal-card <?= $scls ?>">
-                                            <div style="font-weight:600;"><?= htmlspecialchars($socc->TemplateName ?? 'Ad-hoc') ?></div>
-                                            <div><?= htmlspecialchars($socc->SlotLabel ?? '') ?></div>
+                                        <a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= $socc->OccurrenceID ?>" class="week-cal-card <?= $scls ?>" title="<?= htmlspecialchars($socc->TemplateName ?? 'Ad-hoc') ?>">
+                                            <div class="week-cal-card-title"><?= htmlspecialchars(substr($socc->TemplateName ?? 'Ad-hoc', 0, 20)) ?></div>
+                                            <?php if (!empty($socc->SlotLabel)): ?>
+                                                <div style="font-size:10px;opacity:.8;"><?= htmlspecialchars(substr($socc->SlotLabel, 0, 18)) ?></div>
+                                            <?php endif; ?>
                                             <?php if (!empty($socc->FacilityName)): ?>
-                                                <div><i class="fas fa-map-marker-alt" style="font-size:10px;"></i> <?= htmlspecialchars($socc->FacilityName) ?></div>
+                                                <div style="font-size:10px;margin-top:2px;"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars(substr($socc->FacilityName, 0, 15)) ?></div>
                                             <?php endif; ?>
-                                            <?php if (!empty($socc->StaffNames)): ?>
-                                                <div><i class="fas fa-user-tie" style="font-size:10px;"></i> <?= htmlspecialchars($socc->StaffNames) ?></div>
-                                            <?php endif; ?>
-                                            <div style="margin-top:3px;">
-                                                <i class="fas fa-users" style="font-size:10px;"></i> <?= (int)$socc->BookingCount ?> booked
+                                            <div style="font-size:10px;margin-top:2px;">
+                                                <i class="fas fa-users"></i> <?= (int)$socc->BookingCount ?> booked
                                             </div>
                                         </a>
                                         <?php endforeach; ?>
 
                                         <?php foreach ($tournaments as $tournament): ?>
-                                        <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?= (int)$tournament->TournamentID ?>" class="slot-cal-card slot-cal-tournament">
-                                            <div style="font-weight:600;"><i class="fas fa-trophy"></i> <?= htmlspecialchars($tournament->Name) ?></div>
-                                            <div><?= htmlspecialchars(trim(($tournament->AgeGroup ?? '') . (!empty($tournament->Format) ? ' · ' . $tournament->Format : ''))) ?></div>
-                                            <?php if (!empty($tournament->Location)): ?>
-                                                <div><i class="fas fa-map-marker-alt" style="font-size:10px;"></i> <?= htmlspecialchars($tournament->Location) ?></div>
+                                        <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?= (int)$tournament->TournamentID ?>" class="week-cal-card week-cal-tournament" title="<?= htmlspecialchars($tournament->Name) ?>">
+                                            <div class="week-cal-card-title"><i class="fas fa-trophy"></i> <?= htmlspecialchars(substr($tournament->Name, 0, 16)) ?></div>
+                                            <?php if (!empty($tournament->AgeGroup) || !empty($tournament->Format)): ?>
+                                                <div style="font-size:10px;opacity:.8;"><?= htmlspecialchars(substr(trim(($tournament->AgeGroup ?? '') . (!empty($tournament->Format) ? ' · ' . $tournament->Format : '')), 0, 18)) ?></div>
                                             <?php endif; ?>
-                                            <div style="margin-top:3px;">
-                                                <i class="fas fa-info-circle" style="font-size:10px;"></i> <?= htmlspecialchars($tournament->Status ?? 'created') ?>
-                                            </div>
                                         </a>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
                                 </td>
                                 <?php endfor; ?>
                             </tr>
-                            <?php endfor; ?>
                         </tbody>
                     </table>
                 </div>
@@ -324,9 +305,9 @@
                         </button>
                     </div>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height:500px;overflow-y:auto;border-radius:8px;border:1px solid #e0e0e0;">
                     <table class="activity-table">
-                        <thead>
+                        <thead style="position:sticky;top:0;background:#f8f9fa;z-index:10;">
                             <tr>
                                 <th>Activity Type</th>
                                 <th>Description</th>

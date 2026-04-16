@@ -26,7 +26,7 @@ class M_Email
     }
 
     public function logPaymentConfirmation(
-        int $userId,
+        ?int $userId,
         string $recipientEmail,
         string $subject,
         bool $sent,
@@ -36,7 +36,7 @@ class M_Email
             $this->db->query("INSERT INTO emaillog
                 (UserID, RecipientEmail, Subject, EmailType, Status, SentAt, ErrorMessage)
                 VALUES (:user_id, :recipient_email, :subject, 'notification', :status, :sent_at, :error_message)");
-            $this->db->bind(':user_id', $userId, PDO::PARAM_INT);
+            $this->db->bind(':user_id', $userId, $userId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
             $this->db->bind(':recipient_email', $recipientEmail);
             $this->db->bind(':subject', $subject);
             $this->db->bind(':status', $sent ? 'sent' : 'failed');
