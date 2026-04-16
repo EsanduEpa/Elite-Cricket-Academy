@@ -24,6 +24,35 @@
     font-size: 1rem;
 }
 
+/* Disable all motion effects on Shop Dashboard page */
+.admin-layout *,
+.admin-layout *::before,
+.admin-layout *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.admin-layout *:hover,
+.admin-layout *:focus,
+.admin-layout *:active {
+    transform: none !important;
+}
+
+/* Keep dashboard quick-action icons fully static */
+.main-content#mainContent .quick-action-card .action-icon,
+.main-content#mainContent .quick-action-card .action-icon i,
+.main-content#mainContent .quick-action-card:hover .action-icon,
+.main-content#mainContent .quick-action-card:hover .action-icon i {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.main-content#mainContent .quick-action-card::before,
+.main-content#mainContent .quick-action-card:hover::before {
+    transform: none !important;
+}
+
 /* Any dashboard-specific component styles can be added here */
 
 @media (max-width: 768px) {
