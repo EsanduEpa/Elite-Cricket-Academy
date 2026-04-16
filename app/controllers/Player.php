@@ -763,6 +763,10 @@ class Player extends Controller {
                 'booking_id' => $id,
                 'total_cost' => 'Rs. ' . number_format($totalCost, 2),
             ]);
+        } elseif ($id === 'time_conflict') {
+            echo json_encode(['success' => false, 'message' => 'You already have another booking at the same date and time.']);
+        } elseif ($id === 'weekly_facility_limit') {
+            echo json_encode(['success' => false, 'message' => 'You can book facilities at most 6 times per week.']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Booking failed. Please try again.']);
         }

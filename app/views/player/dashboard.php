@@ -4,6 +4,7 @@
 $todaySchedule = $data['todaySchedule'] ?? [];
 $upcomingBookings = $data['upcomingBookings'] ?? [];
 $todayDate = date('Y-m-d');
+$upcomingCutoffDate = date('Y-m-d', strtotime('+7 days'));
 
 $dashboardFormatDuration = static function ($startTime, $endTime) {
     if (empty($startTime) || empty($endTime)) {
@@ -91,8 +92,8 @@ $dashboardStatusLabel = static function ($status, $date = null, $startTime = nul
     return ucwords(str_replace('_', ' ', $normalizedStatus));
 };
 
-$futureBookings = array_values(array_filter($upcomingBookings, static function ($booking) use ($todayDate) {
-    return !empty($booking->date) && $booking->date > $todayDate;
+$futureBookings = array_values(array_filter($upcomingBookings, static function ($booking) use ($todayDate, $upcomingCutoffDate) {
+    return !empty($booking->date) && $booking->date > $todayDate && $booking->date <= $upcomingCutoffDate;
 }));
 ?>
 

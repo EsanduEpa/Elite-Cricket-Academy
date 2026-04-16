@@ -1,19 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; }
-.status-created { background:#e2e8f0; color:#475569; }
-.status-registration_open { background:#dcfce7; color:#166534; }
-.status-registration_closed { background:#fef9c3; color:#854d0e; }
-.status-team_announced { background:#dbeafe; color:#1e40af; }
-.status-ongoing { background:#fde68a; color:#92400e; }
-.status-completed { background:#d1fae5; color:#065f46; }
-.status-cancelled { background:#fee2e2; color:#991b1b; }
-.t-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; display:flex; justify-content:space-between; align-items:flex-start; border-left:4px solid #3b82f6; margin-bottom:12px; }
-.t-card.cancelled { border-left-color:#ef4444; opacity:.75; }
-.t-card.completed { border-left-color:#10b981; }
-.t-card.ongoing { border-left-color:#f59e0b; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -27,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health &amp; Injury"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events"><i class="fas fa-calendar"></i><span>Events</span></a></li>
@@ -43,10 +29,23 @@
     </div>
 
     <main class="main-content" id="mainContent">
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-trophy"></i> Tournaments</h1>
-                <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+        <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
+            <div class="header-content" style="flex:1;">
+                <div>
+                    <h1><i class="fas fa-trophy"></i> Tournaments</h1>
+                    <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+                </div>
+            </div>
+            <div class="header-actions" style="position:relative;z-index:2;flex-shrink:0;">
+                <a
+                    href="<?php echo URLROOT; ?>/coach/tournament-recommendations"
+                    id="coachTournamentRecommendationsBtn"
+                    class="page-action-btn"
+                    aria-label="Open tournament recommendations"
+                >
+                    <i class="fas fa-star"></i>
+                    Recommendations
+                </a>
             </div>
         </div>
 
