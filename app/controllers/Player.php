@@ -1456,7 +1456,7 @@ class Player extends Controller {
                 $pendingRentalPayment = $_SESSION['payhere_pending_rental_payment'] ?? null;
                 if (is_array($pendingRentalPayment) && !empty($pendingRentalPayment['order_id'])) {
                     $rentalOrderId = (string)$pendingRentalPayment['order_id'];
-                    if ($orderId === '' || $orderId === $rentalOrderId) {
+                    if ($orderId === '' || $orderId === $rentalOrderId || $paymentType === 'rental') {
                         $orderId = $rentalOrderId;
                         $primaryUrl = URLROOT . '/player/rentals';
                         $primaryLabel = 'View Rentals';
@@ -1472,49 +1472,35 @@ class Player extends Controller {
 
                         unset($_SESSION['payhere_pending_rental_payment']);
                         unset($_SESSION['payhere_pending_order']);
-                $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
-                if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
-                $shopOrderId = (string)$pendingShopPayment['order_id'];
-                if ($orderId === '' || $orderId === $shopOrderId) {
-                    $orderResult = $this->shopModel->createOrderFromCart(
-                        (int)($playerData['id'] ?? 0),
-                        (array)($pendingShopPayment['product_ids'] ?? []),
-                        'online',
-                        null,
-                        null,
-                        null,
-                        'completed'
-                    );
-
-                    $orderId = $shopOrderId;
-                    if (!empty($orderResult['success'])) {
-                        $emailSent = $this->sendShopPaymentSuccessEmail(
-                            $shopOrderId,
-                            (string)($pendingShopPayment['amount'] ?? '0.00'),
-                            (string)($pendingShopPayment['currency'] ?? 'LKR')
-                        );
-                    } else {
-                        error_log('Shop order finalization failed for ' . $shopOrderId . ': ' . ($orderResult['message'] ?? 'Unknown error'));
-                    }
-
-                    if (!$emailSent) {
-                        error_log("Shop payment success email failed on return for order $shopOrderId");
                     }
                 } else {
                     $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
                     if (is_array($pendingShopPayment) && !empty($pendingShopPayment['order_id'])) {
-                    $shopOrderId = (string)$pendingShopPayment['order_id'];
-                    if ($orderId === '' || $orderId === $shopOrderId || $paymentType === 'shop') {
-                        $orderId = $shopOrderId;
-                        $emailSent = $this->sendPendingShopPaymentSuccessEmail($pendingShopPayment);
+                        $shopOrderId = (string)$pendingShopPayment['order_id'];
+                        if ($orderId === '' || $orderId === $shopOrderId || $paymentType === 'shop') {
+                            $orderId = $shopOrderId;
+                            $orderResult = $this->shopModel->createOrderFromCart(
+                                (int)($playerData['id'] ?? 0),
+                                (array)($pendingShopPayment['product_ids'] ?? []),
+                                'online',
+                                null,
+                                null,
+                                null,
+                                'completed'
+                            );
 
-                        if (!$emailSent) {
-                            error_log("Shop payment success email failed on return for order $shopOrderId");
+                            if (empty($orderResult['success'])) {
+                                error_log('Shop order finalization failed for ' . $shopOrderId . ': ' . ($orderResult['message'] ?? 'Unknown error'));
+                            }
+
+                            $emailSent = $this->sendPendingShopPaymentSuccessEmail($pendingShopPayment);
+                            if (!$emailSent) {
+                                error_log("Shop payment success email failed on return for order $shopOrderId");
+                            }
+
+                            unset($_SESSION['payhere_pending_shop_payment']);
+                            unset($_SESSION['payhere_pending_order']);
                         }
-
-                        unset($_SESSION['payhere_pending_shop_payment']);
-                        unset($_SESSION['payhere_pending_order']);
-                    }
                     }
                 }
             }
