@@ -227,6 +227,38 @@ class M_SlotStaff {
         return $this->db->resultSet();
     }
 
+    public function getPrivateSessionRequestsByStaff(int $userId): array {
+        $this->db->query(
+            'SELECT r.RequestID, r.RequesterUserID, r.StaffType, r.SlotID, r.RequestedDate,
+                    r.FacilityID, r.MaxParticipants, r.Notes, r.Status, r.ReviewNotes,
+                    r.ReviewedBy, r.ReviewedAt, r.ApprovedOccurrenceID, r.CreatedAt, r.UpdatedAt,
+                    CONCAT(u.FirstName, " ", u.LastName) AS RequesterName,
+                    tb.SlotLabel,
+                    f.Name AS FacilityName,
+                    CONCAT(ru.FirstName, " ", ru.LastName) AS ReviewedByName,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM slot_occurrence so
+                            WHERE so.OccurrenceDate = r.RequestedDate
+                              AND so.SlotID = r.SlotID
+                              AND so.Status != \'cancelled\'
+                              AND COALESCE(so.FacilityID, 0) = COALESCE(r.FacilityID, 0)
+                        ) THEN \'blocked\'
+                        ELSE \'available\'
+                    END AS AvailabilityStatus
+             FROM slot_private_session_request r
+             JOIN `user` u ON u.UserID = r.RequesterUserID
+             LEFT JOIN slot_time_band tb ON tb.SlotID = r.SlotID
+             LEFT JOIN facility f ON f.FacilityID = r.FacilityID
+             LEFT JOIN `user` ru ON ru.UserID = r.ReviewedBy
+             WHERE r.RequesterUserID = :uid
+             ORDER BY r.CreatedAt DESC'
+        );
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     public function getGroupParticipantsForOccurrence(int $occId): array {
         $this->db->query(
             'SELECT DISTINCT
@@ -345,6 +377,53 @@ class M_SlotStaff {
             $this->_auditLog('occurrence', $occId, 'cancel', 'Status', 'scheduled', 'cancelled', $reason, $userId);
             $this->_activityLog($userId, 'cancel_occurrence', "Staff cancelled occurrence #{$occId}: {$reason}");
         }
+        return $ok ? true : 'error';
+    }
+
+    public function updateOccurrenceStatus(int $occId, string $status, int $userId, string $reason = ''): bool|string {
+        $normalizedStatus = strtolower(trim($status));
+        $allowedStatuses = ['completed', 'cancelled'];
+
+        if (!in_array($normalizedStatus, $allowedStatuses, true)) {
+            return 'invalid_status';
+        }
+
+        $occurrence = $this->getOccurrenceDetail($occId, $userId);
+        if (!$occurrence) {
+            return 'not_assigned';
+        }
+
+        $date = trim((string) ($occurrence->OccurrenceDate ?? ''));
+        $endTime = trim((string) ($occurrence->EndTime ?? ''));
+        $endTimestamp = ($date !== '' && $endTime !== '') ? strtotime($date . ' ' . $endTime) : false;
+
+        if ($endTimestamp === false || $endTimestamp > time()) {
+            return 'not_past';
+        }
+
+        if ($normalizedStatus === 'cancelled' && $reason === '') {
+            return 'reason_required';
+        }
+
+        $oldStatus = strtolower((string) ($occurrence->Status ?? 'scheduled'));
+
+        $this->db->query(
+            'UPDATE slot_occurrence
+             SET Status = :status,
+                 CancelReason = :cancel_reason
+             WHERE OccurrenceID = :oid'
+        );
+        $this->db->bind(':status', $normalizedStatus);
+        $this->db->bind(':cancel_reason', $normalizedStatus === 'cancelled' ? $reason : null);
+        $this->db->bind(':oid', $occId, PDO::PARAM_INT);
+        $ok = $this->db->execute();
+
+        if ($ok) {
+            $note = $normalizedStatus === 'cancelled' && $reason !== '' ? $reason : 'Occurrence status updated by staff';
+            $this->_auditLog('occurrence', $occId, 'update', 'Status', $oldStatus, $normalizedStatus, $note, $userId);
+            $this->_activityLog($userId, 'update_occurrence_status', "Updated occurrence #{$occId} status to {$normalizedStatus}");
+        }
+
         return $ok ? true : 'error';
     }
 

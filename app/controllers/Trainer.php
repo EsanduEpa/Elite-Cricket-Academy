@@ -93,11 +93,14 @@ class Trainer extends Controller {
             redirect('trainer/tournaments');
         }
 
+        $showTeam = in_array(strtolower((string)($tournament->Status ?? '')), ['team_announced', 'ongoing', 'completed'], true)
+            || !empty($tournament->IsTeamAnnounced);
+
         $trainerId = $_SESSION['user_id'];
         $data = [
             'title'      => $tournament->Name,
             'tournament' => $tournament,
-            'team'       => $M_Tournament->getTeam($id),
+            'team'       => $showTeam ? $M_Tournament->getTeam($id) : [],
             'my_recs'    => $M_TTR->getRecommendationsByTrainer($trainerId),
         ];
         // Filter my_recs to this tournament only

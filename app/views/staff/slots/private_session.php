@@ -67,11 +67,19 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
         </nav>
 
         <div class="profile-section">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <div class="profile-name"><?= htmlspecialchars($_SESSION['user_name'] ?? $data['role']) ?></div>
-            <div class="profile-role"><?= $data['role'] ?></div>
-            <a href="<?php echo URLROOT; ?>/<?= strtolower($data['role']) ?>/profile" class="action-btn" style="margin-top:10px;"><i class="fas fa-user-cog"></i> Profile</a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($data['role'] ?? 'Staff'); ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/<?php echo strtolower($data['role'] ?? 'coach'); ?>/profile" class="profile-avatar" aria-label="Open profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -97,6 +105,10 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
             <a href="<?php echo URLROOT; ?>/staffslots/calendar"
                style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
                 <i class="fas fa-calendar-alt"></i> Calendar
+            </a>
+            <a href="<?php echo URLROOT; ?>/staffslots/past_requests"
+               style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
+                <i class="fas fa-history"></i> Past Requests
             </a>
             <a href="<?php echo URLROOT; ?>/staffslots/private_session"
                style="padding:7px 16px;border-radius:6px;background:#2e7d32;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">
