@@ -1381,16 +1381,55 @@ class Coach extends Controller {
         $tournamentModel  = $this->model('M_Tournament');
         $joinRequestModel = $this->model('M_TournamentJoinRequest');
         $coachRecModel    = $this->model('M_CoachTournamentRecommendation');
+        $performanceModel = $this->model('M_Performance');
 
         $tournament = $tournamentModel->getTournamentById($tournamentId);
         if (!$tournament) { redirect('coach/tournaments'); return; }
 
         $data['tournament']   = $tournament;
+        $data['selected_player_id'] = isset($_GET['playerId']) ? (int)$_GET['playerId'] : null;
         $data['players']      = $joinRequestModel->getRequestsByTournament($tournamentId);
         $data['my_recs']      = $coachRecModel->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $tournamentId]);
         $data['is_head_coach'] = $this->_isHeadCoach();
 
+        foreach ($data['players'] as $player) {
+            $playerId = (int)($player->PlayerID ?? 0);
+            $player->PerformanceSummary = $this->buildTournamentRecommendationPerformanceSummary($performanceModel, $playerId);
+            $player->PerformanceMatches = $this->buildTournamentRecommendationPerformanceMatches($performanceModel, $playerId);
+        }
+
         $this->view('coach/tournaments/recommend', $data);
+    }
+
+    private function buildTournamentRecommendationPerformanceSummary($performanceModel, int $playerId): array {
+        if ($playerId <= 0) {
+            return [
+                'overall' => null,
+                'latest_match' => null,
+            ];
+        }
+
+        $overall = $performanceModel->getStoredOverallStats($playerId);
+        $matchRecords = $performanceModel->getPerformanceStatistics($playerId, false);
+        $latestMatch = !empty($matchRecords) ? $matchRecords[0] : null;
+
+        return [
+            'overall' => $overall,
+            'latest_match' => $latestMatch,
+        ];
+    }
+
+    private function buildTournamentRecommendationPerformanceMatches($performanceModel, int $playerId): array {
+        if ($playerId <= 0) {
+            return [];
+        }
+
+        $matches = $performanceModel->getPerformanceStatistics($playerId, true);
+        if (empty($matches)) {
+            return [];
+        }
+
+        return array_slice($matches, 0, 5);
     }
 
     /**
@@ -1816,7 +1855,7 @@ class Coach extends Controller {
         $data['tournament']    = $tournament;
         $data['team']          = $M_Tournament->getTeam($id);
         $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
-        $data['my_recs']       = $M_CoachRec->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $id]);
+        $data['my_recs']       = $M_CoachRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
         $data['is_head_coach'] = $this->_isHeadCoach();
 

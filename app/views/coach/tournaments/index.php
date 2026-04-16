@@ -29,13 +29,20 @@
     </div>
 
     <main class="main-content" id="mainContent">
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-trophy"></i> Tournaments</h1>
-                <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+        <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
+            <div class="header-content" style="flex:1;">
+                <div>
+                    <h1><i class="fas fa-trophy"></i> Tournaments</h1>
+                    <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;padding:0 20px;align-items:flex-start;">
-                <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="page-action-btn">
+            <div class="header-actions" style="position:relative;z-index:2;flex-shrink:0;">
+                <a
+                    href="<?php echo URLROOT; ?>/coach/tournament-recommendations"
+                    id="coachTournamentRecommendationsBtn"
+                    class="page-action-btn"
+                    aria-label="Open tournament recommendations"
+                >
                     <i class="fas fa-star"></i>
                     Recommendations
                 </a>

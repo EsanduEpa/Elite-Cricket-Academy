@@ -210,4 +210,4 @@
 </div><!-- /.player-layout -->
 
 <script src="<?php echo URLROOT; ?>/js/player/player_slot_bookings.js?v=<?php echo time(); ?>"></script>
-<?php require_once APPROOT . '/views/inc/footer.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

@@ -36,8 +36,8 @@
                 <h1><i class="fas fa-users-cog"></i> Finalize Squad — <?php echo htmlspecialchars($t->Name); ?></h1>
                 <p>Select players and assign roles. Save as draft or confirm the final squad.</p>
             </div>
-            <div style="padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" class="page-action-btn" style="background:#64748b;color:#fff;">
+            <div class="header-actions" style="padding:0 20px;">
+                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" id="coachTournamentBackBtn" class="page-action-btn" style="background:#64748b;color:#fff;">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             </div>

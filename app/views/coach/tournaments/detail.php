@@ -30,16 +30,18 @@
 
     <main class="main-content" id="mainContent">
         <?php $t = $data['tournament']; ?>
-        <div class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-trophy"></i> <?php echo htmlspecialchars($t->Name); ?></h1>
-                <p>
-                    <span class="tournament-status status-<?php echo $t->Status; ?>"><?php echo str_replace('_',' ',$t->Status); ?></span>
-                    &nbsp; <?php echo htmlspecialchars($t->Format ?? ''); ?> &nbsp;·&nbsp; <?php echo htmlspecialchars($t->AgeGroup ?? ''); ?> &nbsp;·&nbsp; <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : ''; ?>
-                </p>
+        <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
+            <div class="header-content" style="flex:1;">
+                <div>
+                    <h1><i class="fas fa-trophy"></i> <?php echo htmlspecialchars($t->Name); ?></h1>
+                    <p>
+                        <span class="tournament-status status-<?php echo $t->Status; ?>"><?php echo str_replace('_',' ',$t->Status); ?></span>
+                        &nbsp; <?php echo htmlspecialchars($t->Format ?? ''); ?> &nbsp;·&nbsp; <?php echo htmlspecialchars($t->AgeGroup ?? ''); ?> &nbsp;·&nbsp; <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : ''; ?>
+                    </p>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournaments" class="page-action-btn">
+            <div class="header-actions" style="position:relative;z-index:2;display:flex;gap:8px;flex-shrink:0;">
+                <a href="<?php echo URLROOT; ?>/coach/tournaments" id="coachTournamentBackBtn" class="page-action-btn">
                     <i class="fas fa-arrow-left"></i>
                     Back to Tournaments
                 </a>
@@ -95,10 +97,10 @@
 
             <!-- Right panels -->
             <div>
-                <!-- My recommendations -->
+go to                 <!-- My recommendations -->
                 <div class="panel-card">
                     <div class="panel-hdr">
-                        <h3><i class="fas fa-star" style="color:#f59e0b;"></i> My Recommendations for this Tournament</h3>
+                        <h3><i class="fas fa-star" style="color:#f59e0b;"></i> Recommendations for this Tournament</h3>
                         <a href="<?php echo URLROOT; ?>/coach/recommend_players/<?php echo $t->TournamentID; ?>" style="background:#3b82f6;color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">+ Add</a>
                     </div>
                     <?php if (empty($data['my_recs'])): ?>
@@ -126,14 +128,24 @@
                         <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No join requests yet.</p>
                     <?php else: ?>
                     <table class="data-table">
-                        <thead><tr><th>Player</th><th>Status</th><th>Coach Recs</th><th>Trainer Recs</th></tr></thead>
+                        <thead><tr><th>Player</th><th>Status</th><th>Coach Recs</th><th>Trainer Recs</th><th>Action</th></tr></thead>
                         <tbody>
                         <?php foreach ($data['join_requests'] as $r): ?>
+                        <?php $hasCoachRec = (int)($r->CoachRecs ?? 0) > 0; ?>
                         <tr>
                             <td><?php echo htmlspecialchars($r->Name); ?></td>
                             <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             <td><?php echo $r->CoachRecs; ?></td>
                             <td><?php echo $r->TrainerRecs; ?></td>
+                            <td>
+                                <?php if ($hasCoachRec): ?>
+                                    <span class="page-action-btn page-action-btn--disabled" aria-disabled="true" title="Coach recommendation already exists">Recommended</span>
+                                <?php else: ?>
+                                    <a href="<?php echo URLROOT; ?>/coach/recommend_players/<?php echo $t->TournamentID; ?>?playerId=<?php echo (int)$r->PlayerID; ?>" class="page-action-btn">
+                                        <i class="fas fa-plus"></i> Add
+                                    </a>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                         </tbody>

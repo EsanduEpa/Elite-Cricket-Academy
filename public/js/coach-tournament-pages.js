@@ -39,9 +39,31 @@ function bindSelectionCheckboxes() {
     });
 }
 
+function bindPerformanceToggles() {
+    document.querySelectorAll('[data-performance-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-performance-toggle');
+            const target = document.getElementById(targetId);
+            if (!target) {
+                return;
+            }
+
+            const isHidden = target.hasAttribute('hidden');
+            if (isHidden) {
+                target.removeAttribute('hidden');
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                target.setAttribute('hidden', 'hidden');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     bindConfirmButtons();
     bindSelectionCheckboxes();
+    bindPerformanceToggles();
     updateCount();
 });
 
