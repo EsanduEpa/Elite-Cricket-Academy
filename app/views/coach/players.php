@@ -48,13 +48,6 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
-                        <i class="fas fa-star"></i>
-                        <span>Recommendations</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                         <i class="fas fa-heartbeat"></i>
                         <span>Health & Injury</span>

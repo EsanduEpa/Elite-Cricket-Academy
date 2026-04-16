@@ -29,6 +29,13 @@ class M_Performance {
         return $stats;
     }
 
+    // Get the stored overall stats row without recalculating from match history.
+    public function getStoredOverallStats($playerId) {
+        $this->db->query('SELECT * FROM playeroverallstats WHERE PlayerID = :player_id');
+        $this->db->bind(':player_id', $playerId);
+        return $this->db->single();
+    }
+
     private function hasAnyRelevantPerformanceRecords($playerId) {
         $this->db->query('SELECT COUNT(*) AS cnt
             FROM playermatchperformance

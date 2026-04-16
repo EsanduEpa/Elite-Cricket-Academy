@@ -136,6 +136,16 @@
                     <div class="slot-meta">
                         <i class="fas fa-clipboard-list"></i> <?php echo htmlspecialchars($occ->TemplateName); ?>
                     </div>
+                    <?php if (!empty($occ->CoachName)): ?>
+                    <div class="slot-meta">
+                        <i class="fas fa-user-tie"></i> <?php echo htmlspecialchars($occ->CoachName); ?>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($occ->SessionMode)): ?>
+                    <div class="slot-meta">
+                        <i class="fas fa-layer-group"></i> <?php echo htmlspecialchars($occ->SessionMode); ?> Session
+                    </div>
+                    <?php endif; ?>
                     <?php if (!empty($occ->FacilityName)): ?>
                     <div class="slot-meta">
                         <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($occ->FacilityName); ?>
@@ -177,4 +187,4 @@
     </div><!-- /.main-content -->
 </div><!-- /.player-layout -->
 
-<?php require_once APPROOT . '/views/inc/footer.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
