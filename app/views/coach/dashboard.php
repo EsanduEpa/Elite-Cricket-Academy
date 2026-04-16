@@ -61,25 +61,16 @@
                         </a>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
-                            <i class="fas fa-calendar"></i>
-                            <span>Events</span>
-                        </a>
-                    </li>
+                   
                 </ul>
             </nav>
             
             <!-- Profile Section -->
             <div class="profile-section">
-                <div class="profile-avatar">
+                <a href="<?php echo URLROOT; ?>/coach/profile" class="profile-avatar" aria-label="Open coach profile">
                     <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?></div>
-                <div class="profile-role">Cricket Coach</div>
-                <a href="<?php echo URLROOT; ?>/coach/profile" class="action-btn" style="margin-top: 10px;">
-                    <i class="fas fa-user-cog"></i> Profile
                 </a>
+                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?></div>
                 <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
