@@ -133,18 +133,24 @@ table.data-table tr:last-child td { border-bottom:none; }
         </div>
 
         <!-- Announced Team -->
-        <?php if ($t->IsTeamAnnounced && !empty($data['team'])): ?>
+        <?php if (in_array(strtolower((string)($t->Status ?? '')), ['team_announced', 'ongoing', 'completed'], true) || $t->IsTeamAnnounced): ?>
         <div class="section-card">
-            <h3><i class="fas fa-users"></i> Announced Squad</h3>
+            <h3><i class="fas fa-users"></i> Squad</h3>
             <table class="data-table">
                 <thead><tr><th>Player</th><th>Role</th></tr></thead>
                 <tbody>
+                    <?php if (!empty($data['team'])): ?>
                     <?php foreach ($data['team'] as $member): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($member->Name ?? $member->PlayerName ?? '—'); ?></td>
                         <td><?php echo htmlspecialchars($member->RoleInTeam ?? '—'); ?></td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php else: ?>
+                    <tr>
+                        <td colspan="2" style="text-align:center;color:#64748b;padding:18px;">The squad is visible for this tournament state, but no players are listed yet.</td>
+                    </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

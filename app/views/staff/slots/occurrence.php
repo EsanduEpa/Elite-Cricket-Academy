@@ -5,6 +5,14 @@ $cssFile  = $isCoach ? 'coach-dashboard' : 'trainer/dashboard';
 $layout   = $isCoach ? 'coach-layout'    : 'trainer-layout';
 $sidebar  = $isCoach ? 'coach-sidebar'   : 'trainer-sidebar';
 $logo     = $isCoach ? 'fa-chalkboard-teacher' : 'fa-user-tie';
+$detailBaseUrl = $isCoach
+    ? URLROOT . '/coach/occurrence/' . (int) ($data['occurrence']->OccurrenceID ?? 0)
+    : URLROOT . '/staffslots/occurrence/' . (int) ($data['occurrence']->OccurrenceID ?? 0);
+$calendarUrl = $isCoach
+    ? URLROOT . '/staffslots/calendar/' . ($data['occurrence']->OccurrenceDate ?? '')
+    : URLROOT . '/staffslots/calendar/' . ($data['occurrence']->OccurrenceDate ?? '');
+$pastRequestsUrl = URLROOT . '/staffslots/past_requests';
+$privateSessionUrl = URLROOT . '/staffslots/private_session';
 $occ      = $data['occurrence'];
 $canCancel = in_array($occ->Status, ['scheduled', 'active']);
 $isProgramSession = ($occ->SlotType ?? '') === 'program';
@@ -16,6 +24,10 @@ $emptyPlayerText = $isProgramSession
     ? 'No eligible players are currently assigned to this program.'
     : 'No players have booked this session yet.';
 $cancellationAudience = $isProgramSession ? 'assigned players' : 'booked players';
+$occurrenceEndTimestamp = (!empty($occ->OccurrenceDate) && !empty($occ->EndTime))
+    ? strtotime($occ->OccurrenceDate . ' ' . $occ->EndTime)
+    : false;
+$canCoachUpdatePastOccurrenceStatus = $isCoach && $occurrenceEndTimestamp !== false && $occurrenceEndTimestamp <= time();
 $bookingStatusMeta = [
     'confirmed' => ['label' => 'Confirmed', 'class' => 'confirmed'],
     'pending' => ['label' => 'Pending', 'class' => 'pending'],
@@ -115,11 +127,19 @@ $manualStatusOptions = [
         </nav>
 
         <div class="profile-section">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <div class="profile-name"><?= htmlspecialchars($_SESSION['user_name'] ?? $data['role']) ?></div>
-            <div class="profile-role"><?= $data['role'] ?></div>
-            <a href="<?php echo URLROOT; ?>/<?= strtolower($data['role']) ?>/profile" class="action-btn" style="margin-top:10px;"><i class="fas fa-user-cog"></i> Profile</a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($data['role'] ?? 'Staff'); ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/<?php echo strtolower($data['role'] ?? 'coach'); ?>/profile" class="profile-avatar" aria-label="Open profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -132,7 +152,7 @@ $manualStatusOptions = [
                     <p><?= htmlspecialchars($occ->SessionName) ?> &mdash; <?= date('l, j F Y', strtotime($occ->OccurrenceDate)) ?></p>
                 </div>
                 <div class="header-actions">
-                    <a href="<?php echo URLROOT; ?>/staffslots/calendar/<?= $occ->OccurrenceDate ?>"
+                    <a href="<?= htmlspecialchars($calendarUrl) ?>"
                        style="padding:9px 18px;border-radius:8px;background:#ecf0f1;color:#333;text-decoration:none;font-size:14px;">
                         <i class="fas fa-arrow-left"></i> Back to Calendar
                     </a>
@@ -142,11 +162,15 @@ $manualStatusOptions = [
 
         <!-- Sub-nav -->
         <div style="padding:0 25px 20px;display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="<?php echo URLROOT; ?>/staffslots/calendar"
+            <a href="<?= htmlspecialchars($calendarUrl) ?>"
                style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
                 <i class="fas fa-calendar-alt"></i> Calendar
             </a>
-            <a href="<?php echo URLROOT; ?>/staffslots/private_session"
+            <a href="<?= htmlspecialchars($pastRequestsUrl) ?>"
+               style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
+                <i class="fas fa-history"></i> Past Requests
+            </a>
+            <a href="<?= htmlspecialchars($privateSessionUrl) ?>"
                style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
                 <i class="fas fa-paper-plane"></i> Request Private Session
             </a>
@@ -224,6 +248,41 @@ $manualStatusOptions = [
             </div>
 
             <!-- ── Attendees ── -->
+            <?php if ($canCoachUpdatePastOccurrenceStatus): ?>
+            <div class="detail-card" style="border-top:3px solid #1f6feb;">
+                <h3 style="margin:0 0 10px;font-size:15px;color:#1f4f9c;"><i class="fas fa-flag-checkered"></i> Update Occurrence Status</h3>
+                <p style="font-size:13px;color:#666;margin:0 0 16px;">
+                    This changes the overall status of this past session occurrence.
+                </p>
+                <form method="POST" action="<?= htmlspecialchars($detailBaseUrl) ?>">
+                    <input type="hidden" name="action_update_occurrence_status" value="1">
+                    <div style="display:grid;grid-template-columns:minmax(220px,280px) 1fr;gap:16px;align-items:end;">
+                        <div>
+                            <label for="occurrence_status" style="display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;">Occurrence Status</label>
+                            <select name="occurrence_status" id="occurrence_status" style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:8px;font-size:13px;">
+                                <option value="completed" <?= strtolower((string) ($occ->Status ?? '')) === 'completed' ? 'selected' : '' ?>>Completed</option>
+                                <option value="cancelled" <?= strtolower((string) ($occ->Status ?? '')) === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="occurrence_status_reason" style="display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;">Reason if cancelled</label>
+                            <input type="text"
+                                   name="occurrence_status_reason"
+                                   id="occurrence_status_reason"
+                                   value="<?= htmlspecialchars((string) ($occ->CancelReason ?? '')) ?>"
+                                   placeholder="Required only when status is cancelled"
+                                   style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <button type="submit" class="booking-status-save" style="padding:10px 18px;">
+                            <i class="fas fa-save"></i> Save Occurrence Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <?php endif; ?>
+
             <div class="detail-card">
                 <h3 style="margin:0 0 16px;font-size:15px;color:#2c3e50;">
                     <i class="fas fa-users"></i> <?= htmlspecialchars($playerListHeading) ?>
@@ -278,7 +337,7 @@ $manualStatusOptions = [
                                     <?php if ($rawBookingStatus === 'cancelled'): ?>
                                         <span class="booking-status-locked">Cancelled booking</span>
                                     <?php else: ?>
-                                        <form method="POST" action="<?php echo URLROOT; ?>/staffslots/occurrence/<?= $occ->OccurrenceID ?>" class="booking-status-form">
+                                        <form method="POST" action="<?= htmlspecialchars($detailBaseUrl) ?>" class="booking-status-form">
                                             <input type="hidden" name="action_update_booking" value="1">
                                             <input type="hidden" name="booking_id" value="<?= (int) $b->BookingID ?>">
                                             <select name="booking_status" class="booking-status-select">
@@ -312,7 +371,7 @@ $manualStatusOptions = [
                         <strong style="color:#856404;"><?= $affectedPlayerCount ?> player(s) currently affected.</strong>
                     <?php endif; ?>
                 </p>
-                <form method="POST" action="<?php echo URLROOT; ?>/staffslots/occurrence/<?= $occ->OccurrenceID ?>"
+                <form method="POST" action="<?= htmlspecialchars($detailBaseUrl) ?>"
                       onsubmit="return confirm('Are you sure you want to cancel this session?');">
                     <input type="hidden" name="action_cancel" value="1">
                     <div class="form-group">

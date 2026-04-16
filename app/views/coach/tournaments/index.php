@@ -1,6 +1,16 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
+<style>
+.filter-section { display:flex; gap:16px; margin:20px; flex-wrap:wrap; align-items:center; }
+.filter-group { display:flex; align-items:center; gap:8px; }
+.filter-group label { font-weight:600; color:#333; font-size:.95rem; }
+.filter-group select { padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:.88rem; background:#fff; cursor:pointer; min-width:150px; }
+.filter-group select:focus { outline:none; border-color:#4A90E2; }
+.btn-reset-filter { padding:8px 14px; background:#f0f0f0; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:.88rem; color:#333; }
+.btn-reset-filter:hover { background:#e0e0e0; }
+.t-card.hidden { display:none; }
+</style>
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -29,23 +39,23 @@
     </div>
 
     <main class="main-content" id="mainContent">
-        <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
-            <div class="header-content" style="flex:1;">
-                <div>
+        <div class="dashboard-header">
+            <div class="header-content">
+                <div class="header-text">
                     <h1><i class="fas fa-trophy"></i> Tournaments</h1>
                     <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
                 </div>
-            </div>
-            <div class="header-actions" style="position:relative;z-index:2;flex-shrink:0;">
-                <a
-                    href="<?php echo URLROOT; ?>/coach/tournament-recommendations"
-                    id="coachTournamentRecommendationsBtn"
-                    class="page-action-btn"
-                    aria-label="Open tournament recommendations"
-                >
-                    <i class="fas fa-star"></i>
-                    Recommendations
-                </a>
+                <div class="header-actions">
+                    <a
+                        href="<?php echo URLROOT; ?>/coach/tournament-recommendations"
+                        id="coachTournamentRecommendationsBtn"
+                        class="page-action-btn"
+                        aria-label="Open tournament recommendations"
+                    >
+                        <i class="fas fa-star"></i>
+                        Recommendations
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -56,6 +66,49 @@
             <div style="margin:0 20px 10px;padding:12px 16px;border-radius:8px;background:#fee2e2;color:#991b1b;"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
+        <!-- Filters -->
+        <?php if (!empty($data['tournaments'])): ?>
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="coachAgeGroupFilter">Age Group:</label>
+                <select id="coachAgeGroupFilter">
+                    <option value="">All Age Groups</option>
+                    <?php 
+                        $ageGroups = [];
+                        foreach ($data['tournaments'] as $t) {
+                            if (!empty($t->AgeGroup) && !in_array($t->AgeGroup, $ageGroups)) {
+                                $ageGroups[] = $t->AgeGroup;
+                            }
+                        }
+                        sort($ageGroups);
+                        foreach ($ageGroups as $ag):
+                    ?>
+                    <option value="<?php echo htmlspecialchars($ag); ?>"><?php echo htmlspecialchars($ag); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="coachStatusFilter">Status:</label>
+                <select id="coachStatusFilter">
+                    <option value="">All Statuses</option>
+                    <?php 
+                        $statuses = [];
+                        foreach ($data['tournaments'] as $t) {
+                            if (!empty($t->Status) && !in_array($t->Status, $statuses)) {
+                                $statuses[] = $t->Status;
+                            }
+                        }
+                        sort($statuses);
+                        foreach ($statuses as $st):
+                    ?>
+                    <option value="<?php echo htmlspecialchars($st); ?>"><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($st))); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button class="btn-reset-filter" onclick="resetCoachFilters()"><i class="fas fa-redo"></i> Reset</button>
+        </div>
+        <?php endif; ?>
+
         <div style="padding:20px;">
             <?php if (empty($data['tournaments'])): ?>
                 <div style="text-align:center;padding:60px;color:#94a3b8;">
@@ -63,8 +116,9 @@
                     <p>No tournaments available yet.</p>
                 </div>
             <?php else: ?>
-                <?php foreach ($data['tournaments'] as $t): ?>
-                <div class="t-card <?php echo $t->Status; ?>">
+                <div id="coachTournamentCards">
+                    <?php foreach ($data['tournaments'] as $t): ?>
+                    <div class="t-card <?php echo $t->Status; ?>" data-age-group="<?php echo htmlspecialchars($t->AgeGroup ?? ''); ?>" data-status="<?php echo htmlspecialchars($t->Status ?? ''); ?>">
                     <div>
                         <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px;"><?php echo htmlspecialchars($t->Name); ?></div>
                         <div style="font-size:13px;color:#64748b;margin-bottom:8px;">
@@ -84,10 +138,45 @@
                     </div>
                 </div>
                 <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
     </main>
 </div>
+
+<script>
+function applyCoachFilters() {
+    const ageGroupFilter = document.getElementById('coachAgeGroupFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('coachStatusFilter').value.toLowerCase();
+    const cards = document.querySelectorAll('.t-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const cardAgeGroup = card.getAttribute('data-age-group').toLowerCase();
+        const cardStatus = card.getAttribute('data-status').toLowerCase();
+        
+        const matchesAgeGroup = !ageGroupFilter || cardAgeGroup === ageGroupFilter;
+        const matchesStatus = !statusFilter || cardStatus === statusFilter;
+        
+        if (matchesAgeGroup && matchesStatus) {
+            card.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
+function resetCoachFilters() {
+    document.getElementById('coachAgeGroupFilter').value = '';
+    document.getElementById('coachStatusFilter').value = '';
+    applyCoachFilters();
+}
+
+// Add event listeners
+document.getElementById('coachAgeGroupFilter').addEventListener('change', applyCoachFilters);
+document.getElementById('coachStatusFilter').addEventListener('change', applyCoachFilters);
+</script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 </body>

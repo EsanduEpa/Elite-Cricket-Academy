@@ -77,6 +77,16 @@ class Coach extends Controller {
             ];
         }
 
+        $pastFrom = date('Y-m-d', strtotime('-30 days'));
+        $pastTo = date('Y-m-d', strtotime('-1 day'));
+        $pastSessions = $this->getCoachSlotSessions($coachId, $pastFrom, $pastTo, true);
+        $pastSessions = array_values(array_filter($pastSessions, function($session) {
+            $status = strtolower((string) ($session->Status ?? ''));
+            $sessionDate = (string) ($session->Date ?? '');
+            return in_array($status, ['completed', 'cancelled'], true) || ($sessionDate !== '' && $sessionDate < date('Y-m-d'));
+        }));
+        $pastSessions = array_reverse($pastSessions);
+
         $todaySessionsCount = count(array_filter($upcomingBookings, function($booking) use ($today) {
             return ($booking['date'] ?? '') === $today;
         }));
@@ -98,6 +108,7 @@ class Coach extends Controller {
             'privateSessions' => $privateSessions,
             'normalSessions' => $groupSessions,
             'upcomingBookings' => array_slice($upcomingBookings, 0, 5),
+            'pastSessions' => array_slice($pastSessions, 0, 8),
             'allSessions' => [],
         ];
         
@@ -657,11 +668,102 @@ class Coach extends Controller {
         ]);
     }
 
+    public function occurrence($id = null) {
+        if (!$id) {
+            redirect('coach/dashboard');
+        }
+
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $coachId = (int) ($_SESSION['user_id'] ?? 0);
+        $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+
+        if (!$occurrence) {
+            redirect('coach/dashboard');
+        }
+
+        $error = null;
+        $success = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['action_cancel'])) {
+                $reason = trim((string) ($_POST['cancel_reason'] ?? ''));
+
+                if ($reason === '') {
+                    $error = 'A cancellation reason is required.';
+                } else {
+                    $result = $slotStaffModel->cancelOccurrence((int) $id, $reason, $coachId);
+
+                    if ($result === true) {
+                        $success = 'Session cancelled successfully.';
+                        $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+                    } elseif ($result === 'already_cancelled') {
+                        $error = 'This session is already cancelled.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You are not assigned to this session.';
+                    } else {
+                        $error = 'Could not cancel the session. Please try again.';
+                    }
+                }
+            } elseif (isset($_POST['action_update_occurrence_status'])) {
+                $status = trim((string) ($_POST['occurrence_status'] ?? ''));
+                $reason = trim((string) ($_POST['occurrence_status_reason'] ?? ''));
+                $result = $slotStaffModel->updateOccurrenceStatus((int) $id, $status, $coachId, $reason);
+
+                if ($result === true) {
+                    $success = 'Session occurrence status updated successfully.';
+                    $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+                } elseif ($result === 'invalid_status') {
+                    $error = 'That occurrence status is not allowed.';
+                } elseif ($result === 'not_past') {
+                    $error = 'Occurrence status can only be updated after the session has ended.';
+                } elseif ($result === 'reason_required') {
+                    $error = 'Please provide a reason when marking a session as cancelled.';
+                } elseif ($result === 'not_assigned') {
+                    $error = 'You are not assigned to this session.';
+                } else {
+                    $error = 'Could not update the occurrence status. Please try again.';
+                }
+            } elseif (isset($_POST['action_update_booking'])) {
+                $bookingId = (int) ($_POST['booking_id'] ?? 0);
+                $status = trim((string) ($_POST['booking_status'] ?? ''));
+
+                if ($bookingId <= 0 || $status === '') {
+                    $error = 'Please choose a valid booking status.';
+                } else {
+                    $result = $slotStaffModel->markAttendance($bookingId, $status, $coachId);
+
+                    if ($result === true) {
+                        $success = 'Booking status updated successfully.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You can only update bookings for your own slot sessions.';
+                    } elseif ($result === 'not_found') {
+                        $error = 'The selected booking could not be found.';
+                    } elseif ($result === 'invalid_status') {
+                        $error = 'That booking status is not allowed.';
+                    } else {
+                        $error = 'Could not update the booking status. Please try again.';
+                    }
+                }
+            }
+        }
+
+        $data = [
+            'title' => 'Coach Session Detail',
+            'role' => 'Coach',
+            'occurrence' => $occurrence,
+            'bookings' => $slotStaffModel->getBookingsForOccurrence((int) $id),
+            'error' => $error,
+            'success' => $success,
+        ];
+
+        $this->view('staff/slots/occurrence', $data);
+    }
+
     // Update Session
     public function edit_session($id = null) {
         $this->respondLegacySessionRedirect(
-            'Legacy coach session editing has been retired. Manage slot sessions from the slot calendar.',
-            $id ? 'staffslots/occurrence/' . (int) $id : 'staffslots/calendar'
+            'Legacy coach session editing has been retired. Manage slot sessions from the session detail page.',
+            $id ? 'coach/occurrence/' . (int) $id : 'coach/dashboard'
         );
     }
 
@@ -1840,6 +1942,37 @@ class Coach extends Controller {
         return $row && $row->IsHeadCoach == 1;
     }
 
+    private function getAvailableTournamentStatuses($tournament)
+    {
+        $transitions = [
+            'created'             => ['registration_open'],
+            'registration_open'   => ['registration_closed'],
+            'registration_closed' => $tournament->IsTeamAnnounced ? ['ongoing'] : ['team_announced', 'ongoing'],
+            'team_announced'      => ['ongoing'],
+            'ongoing'             => ['completed'],
+        ];
+
+        $availableStatuses = [];
+        $queue = $transitions[$tournament->Status] ?? [];
+
+        while (!empty($queue)) {
+            $status = array_shift($queue);
+            if (in_array($status, $availableStatuses, true)) {
+                continue;
+            }
+
+            $availableStatuses[] = $status;
+
+            foreach ($transitions[$status] ?? [] as $nextStatus) {
+                if (!in_array($nextStatus, $availableStatuses, true)) {
+                    $queue[] = $nextStatus;
+                }
+            }
+        }
+
+        return $availableStatuses;
+    }
+
     public function tournament_detail($id = null)
     {
         if (!$id) { redirect('coach/tournaments'); return; }
@@ -1858,8 +1991,47 @@ class Coach extends Controller {
         $data['my_recs']       = $M_CoachRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
         $data['is_head_coach'] = $this->_isHeadCoach();
+        $data['status_options'] = $data['is_head_coach'] ? $this->getAvailableTournamentStatuses($tournament) : [];
 
         $this->view('coach/tournaments/detail', $data);
+    }
+
+    public function update_tournament_status($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('coach/tournaments'); return; }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can update tournament status.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('coach/tournaments');
+            return;
+        }
+
+        $allowed = $this->getAvailableTournamentStatuses($tournament);
+        $newStatus = trim($_POST['status'] ?? '');
+
+        if ($newStatus === '' || !in_array($newStatus, $allowed, true)) {
+            $_SESSION['error'] = 'Invalid status selection.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        if ($newStatus === 'team_announced') {
+            $M_Tournament->announceTeam($id);
+            $_SESSION['success'] = 'Team announced successfully.';
+        } else {
+            $M_Tournament->updateStatus($id, $newStatus);
+            $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        }
+
+        redirect('coach/tournament_detail/' . $id);
     }
 
     public function finalize_team($id = null)

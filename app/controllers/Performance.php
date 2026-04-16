@@ -15,6 +15,9 @@ class Performance extends Controller {
     
     // Main performance dashboard
     public function index() {
+        $perfModel = $this->model('M_Performance');
+        $playerId = $_SESSION['user_id'] ?? 6;
+        
         $data = [
             'title' => 'Performance History',
             'player' => $this->getPlayerData(),
@@ -25,6 +28,8 @@ class Performance extends Controller {
             'battingStats' => $this->getBattingStats(),
             'bowlingStats' => $this->getBowlingStats(),
             'achievements' => $this->getPlayerAchievements(),
+            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
+            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId),
         ];
         $this->view('player/performance', $data);
     }

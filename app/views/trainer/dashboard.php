@@ -81,21 +81,19 @@
         </nav>
         
         <!-- Trainer Profile Section -->
-        <div class="trainer-profile">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="profile-info">
-                <div class="trainer-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
-                <div class="trainer-role">Physical Trainer</div>
-            </div>
-            <div class="profile-actions">
-                <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
-                    <i class="fas fa-user-cog"></i>
-                </a>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-avatar" aria-label="Open trainer profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
             </div>
         </div>
         

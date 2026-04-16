@@ -144,6 +144,25 @@ class Staffslots extends Controller {
                         $error = 'Could not cancel the session. Please try again.';
                     }
                 }
+            } elseif (isset($_POST['action_update_occurrence_status'])) {
+                $status = trim((string) ($_POST['occurrence_status'] ?? ''));
+                $reason = trim((string) ($_POST['occurrence_status_reason'] ?? ''));
+                $result = $model->updateOccurrenceStatus((int) $id, $status, $this->userId, $reason);
+
+                if ($result === true) {
+                    $success = 'Session occurrence status updated successfully.';
+                    $occurrence = $model->getOccurrenceDetail((int) $id, $this->userId);
+                } elseif ($result === 'invalid_status') {
+                    $error = 'That occurrence status is not allowed.';
+                } elseif ($result === 'not_past') {
+                    $error = 'Occurrence status can only be updated after the session has ended.';
+                } elseif ($result === 'reason_required') {
+                    $error = 'Please provide a reason when marking a session as cancelled.';
+                } elseif ($result === 'not_assigned') {
+                    $error = 'You are not assigned to this session.';
+                } else {
+                    $error = 'Could not update the occurrence status. Please try again.';
+                }
             } elseif (isset($_POST['action_update_booking'])) {
                 $bookingId = (int) ($_POST['booking_id'] ?? 0);
                 $status = trim((string) ($_POST['booking_status'] ?? ''));
@@ -274,5 +293,20 @@ class Staffslots extends Controller {
             'post'       => $_POST, // repopulate form on error
         ];
         $this->view('staff/slots/private_session', $data);
+    }
+
+    // =========================================================
+    // PAST REQUESTS  —  /staffslots/past_requests
+    // =========================================================
+    public function past_requests() {
+        $model = $this->model('M_SlotStaff');
+
+        $data = [
+            'title' => 'Past Requests',
+            'role' => $this->role,
+            'requests' => $model->getPrivateSessionRequestsByStaff($this->userId),
+        ];
+
+        $this->view('staff/slots/past_requests', $data);
     }
 }

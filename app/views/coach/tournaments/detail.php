@@ -82,6 +82,28 @@
                     <?php endif; ?>
                 </div>
 
+                <?php if ($data['is_head_coach'] && !in_array($t->Status, ['completed', 'cancelled'], true)): ?>
+                <div class="panel-card" style="padding:18px;">
+                    <div style="font-weight:700;margin-bottom:12px;color:#374151;">Advance Status</div>
+                    <?php if (!empty($data['status_options'])): ?>
+                        <form method="POST" action="<?php echo URLROOT; ?>/coach/update_tournament_status/<?php echo $t->TournamentID; ?>">
+                            <select name="status" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;background:#fff;color:#374151;margin-bottom:8px;">
+                                <option value="">Select status</option>
+                                <?php foreach ($data['status_options'] as $statusOption): ?>
+                                    <option value="<?php echo htmlspecialchars($statusOption); ?>"><?php echo ucwords(str_replace('_', ' ', $statusOption)); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div style="font-size:12px;color:#64748b;margin-bottom:8px;">Only forward status changes are available from the current state.</div>
+                            <button type="submit" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+                                Apply Status
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <div style="font-size:13px;color:#64748b;">No further status changes are available right now.</div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
                 <!-- Result block -->
                 <?php if ($data['result']): ?>
                 <div class="panel-card" style="padding:18px;">
@@ -97,7 +119,7 @@
 
             <!-- Right panels -->
             <div>
-go to                 <!-- My recommendations -->
+                <!-- My recommendations -->
                 <div class="panel-card">
                     <div class="panel-hdr">
                         <h3><i class="fas fa-star" style="color:#f59e0b;"></i> Recommendations for this Tournament</h3>

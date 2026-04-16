@@ -545,11 +545,14 @@ class Player extends Controller {
             redirect('player/tournaments');
         }
 
+        $showTeam = in_array(strtolower((string)($tournament->Status ?? '')), ['team_announced', 'ongoing', 'completed'], true)
+            || !empty($tournament->IsTeamAnnounced);
+
         $data = [
             'title'      => $tournament->Name,
             'player'     => $playerData,
             'tournament' => $tournament,
-            'team'       => $tournament->IsTeamAnnounced ? $M_Tournament->getTeam($id) : [],
+            'team'       => $showTeam ? $M_Tournament->getTeam($id) : [],
             'my_request' => $M_JoinRequest->getRequestByPlayer($id, $playerId),
             'eligibility'=> $this->getTournamentEligibility($playerData, $tournament),
         ];

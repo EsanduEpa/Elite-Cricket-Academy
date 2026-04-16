@@ -36,12 +36,14 @@
                             <span>Performance</span>
                         </a>
                     </li>
-                    <li class="nav-item active">                        <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
                             <i class="fas fa-calendar-check"></i>
                             <span>Bookings</span>
                         </a>
                     </li>
-                    <li class="nav-item">                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
                             <i class="fas fa-medal"></i>
                             <span>Tournaments</span>
                         </a>
@@ -69,27 +71,38 @@
 
             <!-- Simple Profile Section -->
             <div class="profile-section">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                    <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                        <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Player'; ?>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                        <a href="<?php echo URLROOT; ?>/player/profile" class="profile-avatar" aria-label="Open player profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
                 </div>
-                <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
-                <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
             </div>
         </div>
 
         <!-- Main Content Area -->
-        <div class="main-content">
-            <!-- Simple Page Header -->
+        <div class="main-content" id="tournamentsPage" data-urlroot="<?php echo URLROOT; ?>">
+            <!-- Page Header -->
             <div class="dashboard-header">
-                <h1><i class="fas fa-medal"></i> Tournaments</h1>
-                <p>Participate in exciting cricket tournaments and championships</p>
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1><i class="fas fa-medal"></i> Tournaments</h1>
+                        <p>Participate in exciting cricket tournaments and championships to showcase your skills</p>
+                    </div>
+                    <div class="header-actions">
+                    </div>
+                </div>
             </div>
 
             <!-- Tournament Stats -->
-            <div class="stats-overview">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fas fa-calendar-plus"></i>
@@ -132,7 +145,7 @@
             </div>
 
             <!-- Available Tournaments and My Enrollments - Two Tables Per Row -->
-            <div class="performance-tables-row">
+            <div class="schedule-row">
                 <!-- Available Tournaments -->
                 <div class="schedule-card upcoming-schedule">
                     <div class="card-header">
@@ -148,12 +161,12 @@
                                 <th>Tournament</th>
                                 <th>Prize</th>
                                 <th>Fee</th>
-                                <th>More Details</th>
+                                <th>Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Sep 25</div>
                                     <div class="table-cell-secondary">Wednesday</div>
                                 </td>
@@ -164,22 +177,22 @@
                                     </div>
                                     <span class="table-badge">Championship</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$5,000</div>
                                     <div class="table-cell-secondary">16 Teams</div>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$150</div>
                                     <div class="table-cell-secondary">2 Days</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn" onclick="showTournamentDetails('tournament_1')">
-                                        <i class="fas fa-info-circle"></i> View Details
+                                <td class="table-cell-center">
+                                    <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                        <i class="fas fa-info-circle"></i>
                                     </button>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Oct 05</div>
                                     <div class="table-cell-secondary">Saturday</div>
                                 </td>
@@ -190,17 +203,17 @@
                                     </div>
                                     <span class="table-badge">Masters</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$10,000</div>
                                     <div class="table-cell-secondary">8 Teams</div>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$250</div>
                                     <div class="table-cell-secondary">3 Days</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn" onclick="showTournamentDetails('tournament_2')">
-                                        <i class="fas fa-info-circle"></i> View Details
+                                <td class="table-cell-center">
+                                    <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                        <i class="fas fa-info-circle"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -224,12 +237,12 @@
                                 <th>Tournament</th>
                                 <th>Status</th>
                                 <th>Prize</th>
-                                <th>More Details</th>
+                                <th>Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Sep 30</div>
                                     <div class="table-cell-secondary">Monday</div>
                                 </td>
@@ -240,16 +253,16 @@
                                     </div>
                                     <span class="table-badge">Youth</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <span class="table-badge status-confirmed">Enrolled</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Medals</div>
                                     <div class="table-cell-secondary">12 Teams</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn" onclick="showTournamentDetails('tournament_3')">
-                                        <i class="fas fa-info-circle"></i> View Details
+                                <td class="table-cell-center">
+                                    <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                        <i class="fas fa-info-circle"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -274,12 +287,12 @@
                                 <th>Tournament</th>
                                 <th>Result</th>
                                 <th>Prize Won</th>
-                                <th>More Details</th>
+                                <th>Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Aug 15</div>
                                     <div class="table-cell-secondary">Thursday</div>
                                 </td>
@@ -290,21 +303,21 @@
                                     </div>
                                     <span class="table-badge">Summer</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <span class="table-badge status-completed">1st Place</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$2,500</div>
                                     <div class="table-cell-secondary">Champion</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn" onclick="showTournamentDetails('tournament_4')">
-                                        <i class="fas fa-info-circle"></i> View Details
+                                <td class="table-cell-center">
+                                    <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">Jul 20</div>
                                     <div class="table-cell-secondary">Saturday</div>
                                 </td>
@@ -315,16 +328,16 @@
                                     </div>
                                     <span class="table-badge">Local</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <span class="table-badge status-pending">3rd Place</span>
                                 </td>
-                                <td style="text-align: center;">
+                                <td class="table-cell-center">
                                     <div class="table-cell-primary">$500</div>
                                     <div class="table-cell-secondary">Bronze</div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <button class="action-btn" onclick="showTournamentDetails('tournament_5')">
-                                        <i class="fas fa-info-circle"></i> View Details
+                                <td class="table-cell-center">
+                                    <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -333,7 +346,6 @@
                 </div>
             </div>
 
-            <!-- Tournament Actions -->
             <!-- Academy Events Table -->
             <div class="schedule-card upcoming-schedule">
                 <div class="card-header">
@@ -357,7 +369,7 @@
                             <?php if (!empty($data['academyEvents'])): ?>
                                 <?php foreach ($data['academyEvents'] as $event): ?>
                                     <tr>
-                                        <td style="text-align: center;">
+                                        <td class="table-cell-center">
                                             <div class="table-cell-primary">
                                                 <?php echo date('M d', strtotime($event['event_date'])); ?>
                                             </div>
@@ -373,47 +385,54 @@
                                                 <?php echo htmlspecialchars($event['description']); ?>
                                             </div>
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td class="table-cell-center">
                                             <span class="table-badge">
                                                 <?php echo htmlspecialchars($event['Type']); ?>
                                             </span>
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td class="table-cell-center">
                                             <?php echo htmlspecialchars($event['location']); ?>
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td class="table-cell-center">
                                             <span class="table-badge status-<?php echo strtolower($event['Status']); ?>">
                                                 <?php echo htmlspecialchars($event['Status']); ?>
                                             </span>
                                         </td>
-                                        <td style="text-align: center;">
-                                            <button class="action-btn" onclick="alert('Event details coming soon!')">
-                                                <i class="fas fa-info-circle"></i> View
+                                        <td class="table-cell-center">
+                                            <button class="action-btn action-btn-xs" type="button" title="View Details">
+                                                <i class="fas fa-info-circle"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" style="text-align:center; color:#888;">No upcoming academy events found.</td>
+                                    <td colspan="6" class="table-empty-panel-cell">
+                                        <div class="table-empty-panel">
+                                            <i class="fas fa-calendar table-empty-panel-icon"></i>
+                                            <h3 class="table-empty-panel-title">No Upcoming Events</h3>
+                                            <p>No academy events scheduled at the moment.</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+
             <!-- Tournament Actions -->
             <div class="quick-actions">
-                <h3>Tournament Actions</h3>
+                <h3>Quick Actions</h3>
                 <div class="action-buttons">
-                    <a href="#" class="action-btn" onclick="alert('Browse tournaments feature coming soon!')">
+                    <a href="#" class="action-btn">
                         <i class="fas fa-search"></i> Browse Tournaments
                     </a>
-                    <a href="#" class="action-btn" onclick="alert('Tournament history feature coming soon!')">
+                    <a href="#" class="action-btn">
                         <i class="fas fa-history"></i> My History
                     </a>
-                    <a href="#" class="action-btn" onclick="alert('Tournament rules feature coming soon!')">
-                        <i class="fas fa-book"></i> Tournament Rules
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-book"></i> Rules & Info
                     </a>
                 </div>
             </div>
