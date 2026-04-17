@@ -82,13 +82,15 @@ class Nutrition extends Controller {
     public function index() {
         $model = $this->model('M_NutritionPlan');
         $plans = $model->getAllPlans($_SESSION['user_id']);
+        $templates = $model->getNutritionTemplates(false);
 
         $data = [
             'title' => 'Nutrition Plans',
             'plans' => $plans,
+            'nutrition_templates' => $templates,
         ];
 
-        $this->view('trainer/nutrition_index', $data);
+        $this->view('trainer/nutrition_index_v2', $data);
     }
 
     // ── GET  nutrition/create ────────────────────────────────────────

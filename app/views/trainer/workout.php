@@ -185,7 +185,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <span class="table-badge" style="<?php echo $statusColors[$planStatus] ?? $statusColors['active']; ?>">
+                                            <span class="table-badge status-badge" style="<?php echo $statusColors[$planStatus] ?? $statusColors['active']; ?>">
                                                 <?php echo ucfirst($planStatus); ?>
                                             </span>
                                         </td>
@@ -226,7 +226,7 @@
                                         <td>
                                             <?php if (!empty($plan->VideoLink)): ?>
                                                 <a href="<?php echo htmlspecialchars($plan->VideoLink); ?>" target="_blank" rel="noopener noreferrer"
-                                                   class="table-badge" 
+                                                   class="table-badge video-link" 
                                                    style="background:rgba(255,59,48,0.1);color:#ff3b30;border:1px solid rgba(255,59,48,0.3);text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;">
                                                     <i class="fas fa-video"></i> Watch
                                                 </a>
@@ -234,7 +234,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <button class="table-badge" onclick="viewAssignedPlayers(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')"
+                                            <button class="table-badge assigned-players-btn" onclick="viewAssignedPlayers(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')"
                                                 style="background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;">
                                                 <i class="fas fa-users"></i>
                                                 <?php echo $assignedCount; ?> player<?php echo $assignedCount !== 1 ? 's' : ''; ?>

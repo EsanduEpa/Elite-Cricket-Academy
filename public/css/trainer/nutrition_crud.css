@@ -239,6 +239,109 @@
     letter-spacing: .05em;
 }
 
+/* ─── TEMPLATE PLAN REFERENCE CARDS (index page) ───────────────── */
+.nc-templates-card {
+    margin-top: 1rem;
+}
+
+.nc-template-grid {
+    padding: 1.2rem 1.4rem 1.4rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.nc-template-card {
+    background: linear-gradient(180deg, #ffffff 0%, rgba(74,144,226,.03) 100%);
+    border: 1px solid rgba(74,144,226,.14);
+    border-radius: 14px;
+    padding: 1rem 1rem 0.95rem;
+    box-shadow: 0 10px 26px rgba(74,144,226,.08);
+    transition: transform .14s ease, box-shadow .18s ease;
+}
+
+.nc-template-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(74,144,226,.14);
+}
+
+.nc-template-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .55rem;
+}
+
+.nc-template-title {
+    font-weight: 800;
+    color: #2c3e50;
+    font-size: .95rem;
+    line-height: 1.2;
+}
+
+.nc-template-calories {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: #4A90E2;
+    font-weight: 800;
+    font-size: .82rem;
+    background: rgba(74,144,226,.08);
+    border: 1px solid rgba(74,144,226,.16);
+    border-radius: 999px;
+    padding: .28rem .55rem;
+}
+
+.nc-template-desc {
+    color: #6b7280;
+    font-size: .84rem;
+    line-height: 1.35;
+    margin-bottom: .75rem;
+}
+
+.nc-template-macros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.nc-macro-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: .3rem .55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(74,144,226,.14);
+    background: rgba(74,144,226,.06);
+    color: #2c3e50;
+}
+
+.nc-macro-protein {
+    border-color: rgba(46,204,113,.22);
+    background: rgba(46,204,113,.08);
+}
+
+.nc-macro-carbs {
+    border-color: rgba(255,159,67,.22);
+    background: rgba(255,159,67,.10);
+}
+
+.nc-macro-fat {
+    border-color: rgba(74,144,226,.20);
+    background: rgba(74,144,226,.08);
+}
+
+@media (max-width: 1100px) {
+    .nc-template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+    .nc-template-grid { grid-template-columns: 1fr; padding: 1rem; }
+}
+
 .nc-table tbody tr {
     border-bottom: 1px solid rgba(74,144,226,.07);
     transition: background .13s;
