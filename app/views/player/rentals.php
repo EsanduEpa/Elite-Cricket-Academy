@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/rentals.css">
     
-<div class="player-layout">
+<div class="player-layout" id="rentalsPage" data-urlroot="<?php echo URLROOT; ?>">
     <!-- Sidebar -->
     <div class="player-sidebar" id="playerSidebar">
         <div class="sidebar-header">
@@ -105,7 +105,20 @@
             </div>
         </div>
 
-       
+        <?php flash('rental_message'); ?>
+
+        <div class="rental-toolbar">
+            <div class="rental-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="search" id="rental-search" placeholder="Search equipment by name or description">
+            </div>
+
+            <select id="rental-status-filter" class="filter-select" aria-label="Filter by availability status">
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+            </select>
+        </div>
 
         <!-- Rental Navigation -->
         <div class="page-navigation">
@@ -135,15 +148,106 @@
             </button>
         </div>
 
-        
-        
+        <?php
+            $escape = function ($value) {
+                return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+            };
+        ?>
+
+        <div class="info-section rental-cart-section">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <h3 style="margin:0;">Rental Cart</h3>
+                <?php if (!empty($data['rentalCartItems'])) : ?>
+                    <form method="POST" action="<?php echo URLROOT; ?>/player/clear_rental_cart" style="margin:0;">
+                        <button type="submit" class="btn btn-facilities" style="padding: 0.45rem 0.9rem;">
+                            Clear Cart
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+
+            <?php $rentalCartItems = $data['rentalCartItems'] ?? []; ?>
+
+            <?php if (!empty($rentalCartItems)) : ?>
+                <div class="rental-history-table-wrap" style="margin-top: 1rem;">
+                    <table class="rental-history-table">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Rate</th>
+                                <th>Added</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rentalCartItems as $item) : ?>
+                                <tr>
+                                    <td><?php echo $escape($item->EquipmentName ?? 'Equipment'); ?></td>
+                                    <td>LKR <?php echo number_format((float)($item->RentalPrice ?? 0), 2); ?>/day</td>
+                                    <td><?php echo !empty($item->AddedDate) ? date('M j, Y', strtotime($item->AddedDate)) : '-'; ?></td>
+                                    <td>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/player/remove_rental_cart_item" style="display:inline; margin:0;">
+                                            <input type="hidden" name="cart_id" value="<?php echo (int)($item->CartID ?? 0); ?>">
+                                            <button type="submit" class="btn btn-cart" style="padding: 0.45rem 0.9rem;">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <form method="POST" action="<?php echo URLROOT; ?>/player/checkout_rental_cart" style="margin-top: 1rem;">
+                    <div class="form-group">
+                        <label for="rental-cart-start-date">Start Date:</label>
+                        <input type="date" id="rental-cart-start-date" name="start_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rental-cart-duration">Rental Duration:</label>
+                        <select id="rental-cart-duration" name="duration" required>
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="4">4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="6">6 Days</option>
+                            <option value="7">7 Days</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rental-cart-pickup">Pickup Method:</label>
+                        <select id="rental-cart-pickup" name="pickup_method" required>
+                            <option value="pickup">Pickup from Academy</option>
+                            <option value="delivery">Home Delivery (+Rs. 250)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 0.85rem;">
+                        <label style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" name="agree_terms" value="1" required>
+                            <span>I agree to the rental terms (late fees and damage policy).</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-cart" style="padding: 0.6rem 1.1rem;">
+                        Checkout Cart
+                    </button>
+                </form>
+            <?php else : ?>
+                <div class="rental-empty-state" style="margin-top: 1rem;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your rental cart is empty.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <div class="items-grid" id="rentals-grid">
             <?php
                 $rentals = $data['rentals'] ?? [];
-                $escape = function ($value) {
-                    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-                };
-
                 $categoryKey = function ($category) {
                     $c = strtolower(trim((string)$category));
                     if ($c === 'batting') return 'batting';
@@ -188,7 +292,7 @@
                         $imageFallback = $placeholderUrl($name);
                     ?>
 
-                    <div class="card-item product-card" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>">
+                    <div class="card-item product-card" data-category="<?php echo $escape($categoryFilterKey); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-status="<?php echo $canRent ? 'available' : 'unavailable'; ?>">
                         <!--<div class="condition-badge condition-<?php echo $escape($conditionClass); ?>"><?php echo $escape($conditionLabel); ?></div> -->
                         <div class="card-image">
                             <img src="<?php echo $escape($image); ?>" alt="<?php echo $escape($name); ?>" data-fallback-src="<?php echo $escape($imageFallback); ?>" />
@@ -210,7 +314,7 @@
                                 <?php endif; ?>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
+                                <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" data-stock="<?php echo (int)$stock; ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
                                     Rent Now
                                 </button>
                             </div>
@@ -224,43 +328,171 @@
             <?php endif; ?>
         </div>
 
-        <!-- Rental Information -->
-        <div class="info-section">
-            <h3>Why Rent Equipment From Us?</h3>
-            <div class="info-cards">
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="info-content">
-                        <h4>Flexible Rental Periods</h4>
-                        <p>Rent equipment for as little as 1 day or up to several weeks. Perfect for short practice sessions or extended training camps.</p>
-                    </div>
+        <div class="info-section my-rentals-section">
+            <h3>My Rentals</h3>
+            <?php $myRentals = $data['myRentals'] ?? []; ?>
+            <?php if (!empty($myRentals)) : ?>
+                <div class="rental-history-table-wrap">
+                    <table class="rental-history-table">
+                        <thead>
+                            <tr>
+                                <th>Rental ID</th>
+                                <th>Equipment</th>
+                                <th>Start</th>
+                                <th>Return By</th>
+                                <th>Status</th>
+                                <th>Return Fee</th>
+                                <th>Payment</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($myRentals as $rental) : ?>
+                                <?php
+                                    $statusRaw = strtolower((string)($rental->Status ?? 'active'));
+                                    $endTimeRaw = (string)($rental->EndTime ?? '');
+                                    $isLate = false;
+                                    if ($endTimeRaw !== '' && in_array($statusRaw, ['active','overdue'], true)) {
+                                        try {
+                                            $isLate = (new DateTime($endTimeRaw)) < new DateTime('today');
+                                        } catch (Exception $e) {
+                                            $isLate = false;
+                                        }
+                                    }
+                                    $statusForBadge = $statusRaw;
+                                    if ($statusForBadge === 'active' && $isLate) {
+                                        $statusForBadge = 'overdue';
+                                    }
+
+                                    $returnPay = (float)($rental->ReturnTotalPay ?? 0);
+                                    $returnPaymentStatus = strtolower((string)($rental->ReturnPaymentStatus ?? ''));
+                                    $hasPendingReturnFee = ($returnPay > 0 && $returnPaymentStatus === 'pending' && !empty($rental->ReturnID));
+                                ?>
+                                <tr>
+                                    <td>#<?php echo (int)($rental->RentalID ?? 0); ?></td>
+                                    <td><?php echo $escape($rental->EquipmentName ?? 'Equipment'); ?></td>
+                                    <td><?php echo !empty($rental->StartTime) ? date('M j, Y', strtotime($rental->StartTime)) : '-'; ?></td>
+                                    <td><?php echo !empty($rental->EndTime) ? date('M j, Y', strtotime($rental->EndTime)) : '-'; ?></td>
+                                    <td>
+                                        <span class="rental-status rental-status-<?php echo $escape($statusForBadge); ?>">
+                                            <?php echo $escape(ucfirst($statusForBadge)); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($rental->ReturnID)) : ?>
+                                            LKR <?php echo number_format($returnPay, 2); ?>
+                                        <?php else : ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($hasPendingReturnFee) : ?>
+                                            <form method="POST" action="<?php echo URLROOT; ?>/player/pay_return_fee" style="display:inline;">
+                                                <input type="hidden" name="return_id" value="<?php echo (int)$rental->ReturnID; ?>">
+                                                <button type="submit" class="btn btn-cart" style="padding: 0.45rem 0.9rem;">
+                                                    Pay Now
+                                                </button>
+                                            </form>
+                                        <?php elseif (!empty($rental->ReturnID) && $returnPaymentStatus !== '') : ?>
+                                            <?php echo $escape(ucfirst(str_replace('_', ' ', $returnPaymentStatus))); ?>
+                                        <?php else : ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>LKR <?php echo number_format((float)($rental->TotalCost ?? 0), 2); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <div class="info-content">
-                        <h4>Free Pickup & Delivery</h4>
-                        <p>We offer free pickup and delivery service within 10km of the academy. Convenient scheduling available 7 days a week.</p>
-                    </div>
+            <?php else : ?>
+                <div class="rental-empty-state">
+                    <i class="fas fa-tools"></i>
+                    <p>You do not have any equipment rentals yet.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="info-content">
-                        <h4>Insurance Included</h4>
-                        <p>All rental equipment comes with comprehensive insurance coverage. No need to worry about accidental damage during use.</p>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
-<script src="<?php echo URLROOT; ?>/js/player/shopping.js"></script>
+<!-- Rental Modal (kept in view so form fields exist in markup) -->
+<div id="rentalModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content" style="transition: all 0.2s ease;">
+        <div class="modal-header">
+            <h3>Equipment Rental</h3>
+            <button class="modal-close-btn" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="rental-details"></div>
+
+            <form id="rental-cart-form" method="POST" action="<?php echo URLROOT; ?>/player/add_rental_cart_item">
+                <input type="hidden" id="rental-cart-equipment-id" name="equipment_id" value="">
+            </form>
+
+            <form id="rental-form" method="POST" action="<?php echo URLROOT; ?>/player/confirm_rental">
+                <input type="hidden" id="rental-equipment-id" name="equipment_id" value="">
+
+                <div class="form-group">
+                    <label for="rental-start-date">Start Date:</label>
+                    <input type="date" id="rental-start-date" name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="rental-duration">Rental Duration:</label>
+                    <select id="rental-duration" name="duration" required>
+                        <option value="1">1 Day</option>
+                        <option value="2">2 Days</option>
+                        <option value="3">3 Days</option>
+                        <option value="4">4 Days</option>
+                        <option value="5">5 Days</option>
+                        <option value="6">6 Days</option>
+                        <option value="7">7 Days</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="rental-quantity">Quantity:</label>
+                    <select id="rental-quantity" name="quantity" required>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="rental-pickup">Pickup Method:</label>
+                    <select id="rental-pickup" name="pickup_method" required>
+                        <option value="pickup">Pickup from Academy</option>
+                        <option value="delivery">Home Delivery (+Rs. 250)</option>
+                    </select>
+                </div>
+
+                <div class="total-display">
+                    <strong>Total: Rs. <span id="rental-total-amount">0.00</span></strong>
+                </div>
+
+                <div class="rental-criteria" role="note" aria-label="Rental rules">
+                    <div class="rental-criteria-title">Important</div>
+                    <ul>
+                        <li>Rental duration is limited to a maximum of 7 days.</li>
+                        <li>Late fees apply if returned after the due date (Day 1: Rs. 750, Day 2: Rs. 1,000, Day 3: Rs. 1,500; increases further with each late day).</li>
+                        <li>Damage policy: Slight damage → no fee; Moderate damage → equipment value price × 0.5; High damage → equipment value price × 0.8.</li>
+                    </ul>
+                </div>
+
+                <div class="form-group" style="margin-top: 0.85rem;">
+                    <label style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" name="agree_terms" value="1" required>
+                        <span>I agree to the rental terms (late fees and damage policy).</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal secondary js-rental-cancel" type="button">Cancel</button>
+            <button class="btn-modal secondary" type="submit" form="rental-cart-form">Add to Cart</button>
+            <button class="btn-modal primary js-rental-confirm" type="button">Confirm Rental</button>
+        </div>
+    </div>
+</div>
 
 <script src="<?php echo URLROOT; ?>/js/player/rentals.js"></script>
 

@@ -32,21 +32,28 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard Overview</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback Monitoring</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/reports" class="nav-link"><i class="fas fa-file-alt"></i><span>Reports</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin User</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -280,9 +287,9 @@
                     <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                         <?php $res = $data['result']; ?>
                         <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Position</div><div style="font-size:18px;font-weight:800;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Opponent (Final)</div><div><?php echo htmlspecialchars($res->OpponentInFinal ?? '—'); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Won By</div><div><?php echo htmlspecialchars($res->WonBy ?? '—'); ?></div></div>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Man of Tournament</div><div><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div></div>
+                            <div style="font-size:13px;color:#64748b;">Matches: <?php echo htmlspecialchars((string)($res->TotalMatchesPlayed ?? 0)); ?>, Wins: <?php echo htmlspecialchars((string)($res->TotalWins ?? 0)); ?>, Losses: <?php echo htmlspecialchars((string)($res->TotalLosses ?? 0)); ?></div>
+                            <div style="font-size:13px;color:#64748b;margin-top:6px;">Best Batsman: <?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> | Best Bowler: <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div>
+                            <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Man of Tournament</div><div><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div></div>
                         <?php if ($res->SummaryNotes): ?>
                         <div style="grid-column:1/-1;"><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Notes</div><div style="font-size:13px;color:#64748b;"><?php echo htmlspecialchars($res->SummaryNotes); ?></div></div>
                         <?php endif; ?>

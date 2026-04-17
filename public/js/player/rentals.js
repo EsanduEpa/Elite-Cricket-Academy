@@ -4,50 +4,71 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeRentalsPage();
 });
 
+const rentalFilterState = {
+    category: 'all',
+    status: 'all',
+    search: ''
+};
+
 function initializeRentalsPage() {
     console.log('=== INITIALIZING RENTALS PAGE ===');
     
     initRentalFiltering();
     initRentalModals();
     initRentalImageFallbacks();
-    initRentalCart();
+    initRentalSearch();
     setMinimumDates();
     
     console.log('Rentals page initialization complete');
 }
 
 // Rental Filtering Functions
-function filterRentalsByCategory(category) {
-    console.log('Filtering rentals by category:', category);
-    
+function applyRentalFilters() {
     const rentalsGrid = document.getElementById('rentals-grid');
     if (!rentalsGrid) {
         console.log('Rentals grid not found');
         return;
     }
-    
+
     const rentalCards = rentalsGrid.querySelectorAll('.product-card');
-    
+    const searchTerm = (rentalFilterState.search || '').toLowerCase();
+
     rentalCards.forEach(card => {
-        const cardCategory = card.getAttribute('data-category');
-        
-        if (category === 'all' || cardCategory === category) {
+        const cardCategory = card.getAttribute('data-category') || '';
+        const cardStatus = card.getAttribute('data-status') || '';
+
+        const nameEl = card.querySelector('h3');
+        const descriptionEl = card.querySelector('.card-description');
+        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+        const description = descriptionEl ? descriptionEl.textContent.toLowerCase() : '';
+
+        const matchesCategory = rentalFilterState.category === 'all' || cardCategory === rentalFilterState.category;
+        const matchesStatus = rentalFilterState.status === 'all' || cardStatus === rentalFilterState.status;
+        const matchesSearch = !searchTerm || name.includes(searchTerm) || description.includes(searchTerm);
+
+        if (matchesCategory && matchesStatus && matchesSearch) {
             card.style.display = 'block';
-            // Add smooth animation
             card.style.opacity = '0';
             setTimeout(() => {
                 card.style.opacity = '1';
-            }, 100);
+            }, 50);
         } else {
             card.style.display = 'none';
         }
     });
-    
-    // Update navigation buttons
-    updateRentalNavButtons(category);
-    
-    // Update results count
-    updateRentalResultsCount(category);
+
+    updateRentalNavButtons(rentalFilterState.category);
+    updateRentalResultsCount();
+}
+
+function setRentalCategory(category) {
+    rentalFilterState.category = category || 'all';
+    applyRentalFilters();
+}
+
+function setRentalStatus(status) {
+    rentalFilterState.status = status || 'all';
+    applyRentalFilters();
 }
 
 function updateRentalNavButtons(activeCategory) {
@@ -62,7 +83,7 @@ function updateRentalNavButtons(activeCategory) {
     });
 }
 
-function updateRentalResultsCount(category) {
+function updateRentalResultsCount() {
     const rentalsGrid = document.getElementById('rentals-grid');
     if (!rentalsGrid) return;
     
@@ -80,11 +101,24 @@ function updateRentalResultsCount(category) {
             color: #7f8c8d;
             font-weight: 500;
         `;
-        rentalsGrid.parentNode.insertBefore(resultsIndicator, rentalsGrid);
+    }
+
+    const mainContent = document.querySelector('#rentalsPage .main-content');
+    if (mainContent) {
+        mainContent.appendChild(resultsIndicator);
+    } else {
+        rentalsGrid.parentNode.appendChild(resultsIndicator);
     }
     
-    const categoryText = category === 'all' ? 'All Equipment' : category.charAt(0).toUpperCase() + category.slice(1);
-    resultsIndicator.textContent = `${count} ${categoryText} items available for rental`;
+    const categoryText = rentalFilterState.category === 'all'
+        ? 'All Equipment'
+        : rentalFilterState.category.charAt(0).toUpperCase() + rentalFilterState.category.slice(1);
+
+    const statusText = rentalFilterState.status === 'all'
+        ? ''
+        : ` (${rentalFilterState.status.charAt(0).toUpperCase() + rentalFilterState.status.slice(1)})`;
+
+    resultsIndicator.textContent = `${count} ${categoryText}${statusText} items available for rental`;
 }
 
 // Rental Modal Functions
@@ -93,13 +127,26 @@ function initRentalModals() {
     document.addEventListener('click', function(e) {
         const navButton = e.target.closest('.rental-nav-btn');
         if (navButton) {
-            filterRentalsByCategory(navButton.dataset.category || 'all');
+            setRentalCategory(navButton.dataset.category || 'all');
             return;
         }
 
-        if (e.target.classList.contains('rent-equipment')) {
-            const rentalData = e.target.dataset;
+        const rentButton = e.target.closest('.rent-equipment');
+        if (rentButton) {
+            const rentalData = rentButton.dataset;
             openRentalModal(rentalData);
+        }
+
+        const cancelButton = e.target.closest('.js-rental-cancel');
+        if (cancelButton) {
+            closeRentalModal();
+            return;
+        }
+
+        const confirmButton = e.target.closest('.js-rental-confirm');
+        if (confirmButton) {
+            confirmRental();
+            return;
         }
         
         if (e.target.classList.contains('modal-close-btn')) {
@@ -115,12 +162,13 @@ function initRentalModals() {
 function openRentalModal(rentalData) {
     const modal = document.getElementById('rentalModal');
     if (!modal) {
-        createRentalModal();
-        return openRentalModal(rentalData);
+        console.error('Rental modal not found in view markup');
+        return;
     }
     
     // Populate rental details
     populateRentalDetails(rentalData);
+    populateRentalForm(rentalData);
     
     // Set up price calculation
     setupRentalPriceCalculation(rentalData);
@@ -154,77 +202,6 @@ function closeRentalModal() {
     }, 200);
 }
 
-function createRentalModal() {
-    const modal = document.createElement('div');
-    modal.id = 'rentalModal';
-    modal.className = 'modal-overlay';
-    modal.style.display = 'none';
-
-    modal.innerHTML = `
-        <div class="modal-content" style="transition: all 0.2s ease;">
-            <div class="modal-header">
-                <h3>Equipment Rental</h3>
-                <button class="modal-close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="rental-details"></div>
-                <form id="rental-form">
-                    <div class="form-group">
-                        <label for="rental-start-date">Start Date:</label>
-                        <input type="date" id="rental-start-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="rental-duration">Rental Duration:</label>
-                        <select id="rental-duration" required>
-                            <option value="1">1 Day</option>
-                            <option value="3">3 Days</option>
-                            <option value="7">1 Week</option>
-                            <option value="14">2 Weeks</option>
-                            <option value="30">1 Month</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="rental-quantity">Quantity:</label>
-                        <select id="rental-quantity" required>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="rental-pickup">Pickup Method:</label>
-                        <select id="rental-pickup" required>
-                            <option value="pickup">Pickup from Academy</option>
-                            <option value="delivery">Home Delivery (+Rs. 5)</option>
-                        </select>
-                    </div>
-                </form>
-                <div class="total-display">
-                    <strong>Total: Rs. <span id="rental-total-amount">0.00</span></strong>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-modal secondary js-rental-cancel" type="button">Cancel</button>
-                <button class="btn-modal primary js-rental-confirm" type="button">Confirm Rental</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const cancelButton = modal.querySelector('.js-rental-cancel');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', closeRentalModal);
-    }
-
-    const confirmButton = modal.querySelector('.js-rental-confirm');
-    if (confirmButton) {
-        confirmButton.addEventListener('click', confirmRental);
-    }
-}
-
 function populateRentalDetails(rentalData) {
     const detailsDiv = document.getElementById('rental-details');
     if (!detailsDiv) return;
@@ -238,6 +215,39 @@ function populateRentalDetails(rentalData) {
             <p><strong>Rate:</strong> Rs. ${Number.isFinite(dailyRate) ? dailyRate.toFixed(2) : '0.00'} / day</p>
         </div>
     `;
+}
+
+function populateRentalForm(rentalData) {
+    const equipmentIdInput = document.getElementById('rental-equipment-id');
+    const cartEquipmentIdInput = document.getElementById('rental-cart-equipment-id');
+    const quantitySelect = document.getElementById('rental-quantity');
+    const startDateInput = document.getElementById('rental-start-date');
+
+    if (equipmentIdInput) {
+        equipmentIdInput.value = rentalData.equipmentId || '';
+    }
+
+    if (cartEquipmentIdInput) {
+        cartEquipmentIdInput.value = rentalData.equipmentId || '';
+    }
+
+    if (quantitySelect) {
+        const stock = Math.max(1, parseInt(rentalData.stock || '1', 10) || 1);
+        const maxQty = Math.min(stock, 10);
+        quantitySelect.innerHTML = '';
+        for (let qty = 1; qty <= maxQty; qty++) {
+            const option = document.createElement('option');
+            option.value = String(qty);
+            option.textContent = String(qty);
+            quantitySelect.appendChild(option);
+        }
+    }
+
+    if (startDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.min = today;
+        startDateInput.value = today;
+    }
 }
 
 function setupRentalPriceCalculation(rentalData) {
@@ -271,7 +281,7 @@ function calculateRentalTotal(rentalData) {
     
     // Add delivery fee
     if (pickup === 'delivery') {
-        total += 5;
+        total += 250;
     }
     
     // Apply discounts for longer rentals
@@ -290,46 +300,17 @@ function confirmRental() {
     
     // Validate form
     if (!form.checkValidity()) {
-        alert('Please fill in all required fields');
+        form.reportValidity();
         return;
     }
-    
-    // Get form data
-    const startDate = document.getElementById('rental-start-date').value;
-    const duration = document.getElementById('rental-duration').value;
-    const quantity = document.getElementById('rental-quantity').value;
-    const pickup = document.getElementById('rental-pickup').value;
-    const total = document.getElementById('rental-total-amount').textContent;
-    
-    // Show confirmation
-    showRentalConfirmation({
-        startDate,
-        duration,
-        quantity,
-        pickup,
-        total
-    });
-    
-    closeRentalModal();
-}
 
-function showRentalConfirmation(rentalDetails) {
-    const pickupText = rentalDetails.pickup === 'delivery' ? 'Home Delivery' : 'Academy Pickup';
-    const durationText = rentalDetails.duration === '1' ? '1 Day' : 
-                        rentalDetails.duration === '7' ? '1 Week' :
-                        rentalDetails.duration === '14' ? '2 Weeks' :
-                        rentalDetails.duration === '30' ? '1 Month' :
-                        `${rentalDetails.duration} Days`;
-    
-    alert(`Equipment Rental Confirmed!
-    
-Start Date: ${rentalDetails.startDate}
-Duration: ${durationText}
-Quantity: ${rentalDetails.quantity}
-Pickup: ${pickupText}
-Total: Rs. ${rentalDetails.total}
+    const confirmButton = document.querySelector('.js-rental-confirm');
+    if (confirmButton) {
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Confirming...';
+    }
 
-You will receive a confirmation email shortly with pickup/delivery details.`);
+    form.submit();
 }
 
 // Rental Cart Functions
@@ -407,13 +388,23 @@ function setMinimumDates() {
     
     dateInputs.forEach(input => {
         input.min = today;
+        if (!input.value) {
+            input.value = today;
+        }
     });
 }
 
 function initRentalFiltering() {
+    const statusFilter = document.getElementById('rental-status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function (e) {
+            setRentalStatus(e.target.value || 'all');
+        });
+    }
+
     // Initialize with all equipment showing
     setTimeout(() => {
-        filterRentalsByCategory('all');
+        applyRentalFilters();
     }, 100);
 }
 
@@ -434,19 +425,8 @@ function initRentalSearch() {
     if (!searchInput) return;
     
     searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const rentalCards = document.querySelectorAll('.product-card');
-        
-        rentalCards.forEach(card => {
-            const name = card.querySelector('h3').textContent.toLowerCase();
-            const description = card.querySelector('p').textContent.toLowerCase();
-            
-            if (name.includes(searchTerm) || description.includes(searchTerm)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+        rentalFilterState.search = e.target.value || '';
+        applyRentalFilters();
     });
 }
 

@@ -327,4 +327,4 @@
 <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
 <script src="<?php echo URLROOT; ?>/js/player/player_facility_slots.js?v=<?php echo time(); ?>"></script>
 
-<?php require_once APPROOT . '/views/inc/footer.php'; ?>
+<?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

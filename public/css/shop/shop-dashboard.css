@@ -24,6 +24,83 @@
     font-size: 1rem;
 }
 
+/* Disable all motion effects on Shop Dashboard page */
+.admin-layout *,
+.admin-layout *::before,
+.admin-layout *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.admin-layout *:hover,
+.admin-layout *:focus,
+.admin-layout *:active {
+    transform: none !important;
+}
+
+/* Keep dashboard quick-action icons fully static */
+.main-content#mainContent .quick-action-card .action-icon,
+.main-content#mainContent .quick-action-card .action-icon i,
+.main-content#mainContent .quick-action-card:hover .action-icon,
+.main-content#mainContent .quick-action-card:hover .action-icon i {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.main-content#mainContent .quick-action-card::before,
+.main-content#mainContent .quick-action-card:hover::before {
+    transform: none !important;
+}
+
+/* Make date/time block match refresh button style */
+.main-content#mainContent .dashboard-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.main-content#mainContent .dashboard-header .current-time {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 1;
+    margin-top: 0;
+    backdrop-filter: blur(10px);
+}
+
+.main-content#mainContent .dashboard-header .current-time i {
+    font-size: 0.95rem;
+}
+
+/* Align dashboard card action buttons on the same baseline */
+.main-content#mainContent .content-grid .info-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content#mainContent .content-grid .info-card .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.main-content#mainContent .content-grid .info-card .info-list {
+    flex: 1;
+}
+
+.main-content#mainContent .content-grid .info-card .card-action-btn {
+    margin-top: auto;
+}
+
 /* Any dashboard-specific component styles can be added here */
 
 @media (max-width: 768px) {

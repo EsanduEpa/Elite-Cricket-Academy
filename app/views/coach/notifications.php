@@ -53,13 +53,6 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
-                            <i class="fas fa-star"></i>
-                            <span>Recommendations</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                             <i class="fas fa-heartbeat"></i>
                             <span>Health & Injury</span>
@@ -94,7 +87,7 @@
                             Notifications
                             <span class="notification-count" id="headerNotificationCount">(<?php echo $data['unread_count']; ?>)</span>
                         </h1>
-                        <p style="margin: 0; opacity: 0.9; font-size: 14px;">Stay updated with important alerts and messages</p>
+                        <p class="coach-notifications-subtitle">Stay updated with important alerts and messages</p>
                     </div>
                     <div class="header-actions">
                         <button class="btn-secondary" id="markAllReadBtn">
@@ -233,12 +226,12 @@
                         <!-- Actions Section -->
                         <div class="notification-actions-wrapper">
                             <?php if (!$notification->is_read): ?>
-                            <button class="btn-action btn-mark-read" onclick="markAsRead(<?php echo $notification->id; ?>)" title="Mark as read" aria-label="Mark notification as read">
+                            <button class="btn-action btn-mark-read" type="button" data-action="mark-notification-read" data-notification-id="<?php echo (int) $notification->id; ?>" title="Mark as read" aria-label="Mark notification as read">
                                 <i class="fas fa-check-circle"></i>
                                 <span class="tooltip">Mark Read</span>
                             </button>
                             <?php endif; ?>
-                            <button class="btn-action btn-delete" onclick="deleteNotification(<?php echo $notification->id; ?>)" title="Delete notification" aria-label="Delete notification">
+                            <button class="btn-action btn-delete" type="button" data-action="delete-notification" data-notification-id="<?php echo (int) $notification->id; ?>" title="Delete notification" aria-label="Delete notification">
                                 <i class="fas fa-trash-alt"></i>
                                 <span class="tooltip">Delete</span>
                             </button>
@@ -283,206 +276,10 @@
     </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const notificationsList = document.getElementById('notificationsList');
-    const notificationItems = document.querySelectorAll('.notification-item');
-    const filterTabs = document.querySelectorAll('.filter-tab');
-    const searchInput = document.getElementById('notificationSearch');
-    const sortSelect = document.getElementById('sortSelect');
-    const markAllBtn = document.getElementById('markAllReadBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    const listViewBtn = document.getElementById('listViewBtn');
-    const compactViewBtn = document.getElementById('compactViewBtn');
-
-    // Sidebar Toggle
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.querySelector('.main-content');
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('fa-angle-left');
-                icon.classList.add('fa-angle-right');
-                mainContent.style.marginLeft = '80px';
-            } else {
-                icon.classList.remove('fa-angle-right');
-                icon.classList.add('fa-angle-left');
-                mainContent.style.marginLeft = '280px';
-            }
-        });
-    }
-
-    // Search Functionality
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            notificationItems.forEach(item => {
-                const title = item.querySelector('.notification-title')?.textContent.toLowerCase() || '';
-                const message = item.querySelector('.notification-message')?.textContent.toLowerCase() || '';
-                const matches = title.includes(searchTerm) || message.includes(searchTerm);
-                item.style.display = matches ? 'grid' : 'none';
-            });
-            updateEmptyState();
-        });
-    }
-
-    // Filter tabs
-    filterTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            filterTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const filter = this.getAttribute('data-filter');
-            notificationItems.forEach(item => {
-                if (filter === 'all') {
-                    item.style.display = 'grid';
-                } else if (filter === 'unread') {
-                    item.style.display = item.classList.contains('unread') ? 'grid' : 'none';
-                } else {
-                    const type = item.getAttribute('data-type');
-                    const typeMap = {
-                        'sessions': 'session',
-                        'injuries': 'injury',
-                        'tournaments': 'event',
-                        'messages': 'player'
-                    };
-                    item.style.display = type === typeMap[filter] ? 'grid' : 'none';
-                }
-            });
-            updateEmptyState();
-        });
-    });
-
-    // Mark All Read
-    if (markAllBtn) {
-        markAllBtn.addEventListener('click', function() {
-            fetch('<?php echo URLROOT; ?>/coach/markAllNotificationsRead', { method: 'POST' })
-            .then(() => {
-                notificationItems.forEach(item => {
-                    item.classList.remove('unread');
-                    item.classList.add('read');
-                    const markBtn = item.querySelector('.btn-mark-read');
-                    if (markBtn) markBtn.remove();
-                    const badge = item.querySelector('.badge-unread');
-                    if (badge) badge.remove();
-                });
-                const unreadCount = document.getElementById('unreadCount');
-                if (unreadCount) unreadCount.textContent = '(0)';
-                const headerCount = document.getElementById('headerNotificationCount');
-                if (headerCount) headerCount.textContent = '(0)';
-            });
-        });
-    }
-
-    // Clear All
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', function() {
-            if (confirm('Delete all notifications? This action cannot be undone.')) {
-                notificationItems.forEach(item => {
-                    const id = item.getAttribute('data-id');
-                    fetch('<?php echo URLROOT; ?>/coach/deleteNotification/' + id, { method: 'POST' });
-                    item.remove();
-                });
-                updateEmptyState();
-            }
-        });
-    }
-
-    // View Toggle
-    if (listViewBtn) {
-        listViewBtn.addEventListener('click', function() {
-            listViewBtn.classList.add('active');
-            compactViewBtn?.classList.remove('active');
-            notificationsList.classList.remove('compact-view');
-        });
-    }
-    if (compactViewBtn) {
-        compactViewBtn.addEventListener('click', function() {
-            compactViewBtn.classList.add('active');
-            listViewBtn.classList.remove('active');
-            notificationsList.classList.add('compact-view');
-        });
-    }
-
-    // Sort notifications
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function() {
-            if (!notificationsList) return;
-            const items = Array.from(notificationsList.querySelectorAll('.notification-item'));
-            items.sort((a, b) => {
-                const dateA = a.querySelector('.notification-time')?.textContent || '';
-                const dateB = b.querySelector('.notification-time')?.textContent || '';
-                if (this.value === 'oldest') {
-                    return dateA.localeCompare(dateB);
-                }
-                return dateB.localeCompare(dateA);
-            });
-            items.forEach(item => notificationsList.appendChild(item));
-        });
-    }
-
-    // Update empty state visibility
-    function updateEmptyState() {
-        const visibleItems = Array.from(notificationItems).filter(item => item.style.display !== 'none');
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) {
-            emptyState.style.display = visibleItems.length === 0 ? 'flex' : 'none';
-        }
-    }
-
-    // Keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('notificationDetailsModal');
-            if (modal && modal.style.display === 'block') {
-                document.getElementById('closeNotificationDetailsModal')?.click();
-            }
-        }
-    });
-});
-
-// Mark single notification as read
-function markAsRead(id) {
-    fetch('<?php echo URLROOT; ?>/coach/markNotificationRead/' + id, { method: 'POST' })
-    .then(() => {
-        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
-        if (item) {
-            item.classList.remove('unread');
-            item.classList.add('read');
-            const markBtn = item.querySelector('.btn-mark-read');
-            if (markBtn) {
-                markBtn.style.display = 'none';
-            }
-            const badge = item.querySelector('.badge-unread');
-            if (badge) {
-                badge.style.display = 'none';
-            }
-            // Update unread count
-            const unreadCount = document.getElementById('unreadCount');
-            const currentCount = parseInt(unreadCount?.textContent || 0) - 1;
-            if (unreadCount) unreadCount.textContent = '(' + Math.max(0, currentCount) + ')';
-        }
-    }).catch(err => {
-        console.error('Error marking notification as read:', err);
-    });
-}
-
-// Delete notification
-function deleteNotification(id) {
-    if (!confirm('Delete this notification?')) return;
-    fetch('<?php echo URLROOT; ?>/coach/deleteNotification/' + id, { method: 'POST' })
-    .then(() => {
-        const item = document.querySelector('.notification-item[data-id="' + id + '"]');
-        if (item) {
-            item.style.animation = 'slideOut 0.3s ease forwards';
-            setTimeout(() => item.remove(), 300);
-        }
-    })
-    .catch(err => {
-        console.error('Error deleting notification:', err);
-    });
-}
+<script>
+    window.APP_URLROOT = <?php echo json_encode(URLROOT); ?>;
 </script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/notifications.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

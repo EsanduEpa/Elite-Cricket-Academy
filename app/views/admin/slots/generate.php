@@ -10,19 +10,28 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events &amp; Tournaments</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -38,9 +47,10 @@
         </div>
 
         <!-- Sub-nav -->
-        <div style="padding:0 25px 20px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div style="padding:0 25px 20px; display:flex; gap:10px;">
             <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
             <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/private_requests" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Private Requests</a>
             <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Generate Occurrences</a>
             <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
             <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
@@ -162,18 +172,24 @@
                         <?php endif; ?>
                     </div>
 
+                    <div id="dayOfWeekWarning" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;display:none;">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="dayOfWeekText"></span>
+                    </div>
+
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                         <div>
                             <label style="display:block;font-weight:600;font-size:13px;color:#555;margin-bottom:6px;">From Date <span style="color:#e74c3c;">*</span></label>
-                            <input type="date" name="from_date" required
+                            <input type="date" name="from_date" id="fromDate" required
                                    value="<?= htmlspecialchars($_POST['from_date'] ?? '') ?>"
                                    style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;box-sizing:border-box;">
+                            <div id="fromDateError" style="color:#e74c3c;font-size:12px;margin-top:4px;display:none;"></div>
                         </div>
                         <div>
                             <label style="display:block;font-weight:600;font-size:13px;color:#555;margin-bottom:6px;">To Date <span style="color:#e74c3c;">*</span></label>
-                            <input type="date" name="to_date" required
+                            <input type="date" name="to_date" id="toDate" required
                                    value="<?= htmlspecialchars($_POST['to_date'] ?? '') ?>"
                                    style="width:100%;padding:9px 12px;border:1px solid #ced4da;border-radius:6px;font-size:14px;box-sizing:border-box;">
+                            <div id="toDateError" style="color:#e74c3c;font-size:12px;margin-top:4px;display:none;"></div>
                         </div>
                     </div>
 
@@ -194,22 +210,131 @@
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script>
+// Template day-of-week data
+const templateDayOfWeek = <?php
+    $templates = $data['templates'] ?? [];
+    $dayMap = [];
+    foreach ($templates as $t) {
+        if ($t->TemplateID) {
+            $dayMap[(int)$t->TemplateID] = (int)($t->DayOfWeek ?? 0);
+        }
+    }
+    echo json_encode($dayMap);
+?>;
+
+const dayNames = ['Any Day', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 document.addEventListener('DOMContentLoaded', function() {
     const templateSelect = document.getElementById('templateSelect');
-    if (!templateSelect) {
-        return;
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    const dayOfWeekWarning = document.getElementById('dayOfWeekWarning');
+    const dayOfWeekText = document.getElementById('dayOfWeekText');
+    const fromDateError = document.getElementById('fromDateError');
+    const toDateError = document.getElementById('toDateError');
+
+    function getSelectedTemplateDay() {
+        const templateId = templateSelect.value;
+        return templateDayOfWeek[templateId] !== undefined ? templateDayOfWeek[templateId] : null;
     }
 
-    templateSelect.addEventListener('change', function() {
-        const templateId = templateSelect.value;
-        const url = new URL('<?php echo URLROOT; ?>/adminslots/generate', window.location.origin);
+    function validateDate(dateString, allowAnyDay = false) {
+        if (!dateString) return { valid: true };
+        const selectedDay = getSelectedTemplateDay();
+        if (selectedDay === null || selectedDay === 0) {
+            // Academy event - any day allowed
+            return { valid: true };
+        }
+        const date = new Date(dateString);
+        const dayOfWeek = (date.getDay() + 6) % 7 + 1; // Convert JS day (0=Sun) to PHP day (1=Mon)
+        const isValid = dayOfWeek === selectedDay;
+        return {
+            valid: isValid,
+            dayOfWeek: dayOfWeek,
+            expectedDay: selectedDay,
+            dateStr: date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })
+        };
+    }
 
-        if (templateId) {
-            url.searchParams.set('template_id', templateId);
+    function updateWarningMessage() {
+        const selectedDay = getSelectedTemplateDay();
+        const templateId = templateSelect.value;
+        
+        if (!templateId) {
+            dayOfWeekWarning.style.display = 'none';
+            return;
         }
 
-        window.location.href = url.toString();
-    });
+        if (selectedDay === null || selectedDay === 0) {
+            dayOfWeekWarning.style.display = 'none';
+            return;
+        }
+
+        dayOfWeekWarning.style.display = 'block';
+        dayOfWeekText.innerHTML = `This template is scheduled for <strong>${dayNames[selectedDay]}</strong> only. You can only generate occurrences on dates that fall on ${dayNames[selectedDay]}.`;
+    }
+
+    function validateAllDates() {
+        let hasErrors = false;
+        
+        // Validate from date
+        if (fromDateInput.value) {
+            const validation = validateDate(fromDateInput.value);
+            if (!validation.valid) {
+                fromDateError.textContent = `Invalid date. ${validation.dateStr} is a ${dayNames[validation.dayOfWeek]}, but this template requires ${dayNames[validation.expectedDay]}.`;
+                fromDateError.style.display = 'block';
+                hasErrors = true;
+            } else {
+                fromDateError.style.display = 'none';
+            }
+        }
+
+        // Validate to date
+        if (toDateInput.value) {
+            const validation = validateDate(toDateInput.value);
+            if (!validation.valid) {
+                toDateError.textContent = `Invalid date. ${validation.dateStr} is a ${dayNames[validation.dayOfWeek]}, but this template requires ${dayNames[validation.expectedDay]}.`;
+                toDateError.style.display = 'block';
+                hasErrors = true;
+            } else {
+                toDateError.style.display = 'none';
+            }
+        }
+
+        return !hasErrors;
+    }
+
+    // Template selection change
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+            updateWarningMessage();
+            validateAllDates();
+            
+            const templateId = templateSelect.value;
+            const url = new URL('<?php echo URLROOT; ?>/adminslots/generate', window.location.origin);
+
+            if (templateId) {
+                url.searchParams.set('template_id', templateId);
+            }
+
+            window.location.href = url.toString();
+        });
+    }
+
+    // Date input validation
+    if (fromDateInput) {
+        fromDateInput.addEventListener('change', validateAllDates);
+        fromDateInput.addEventListener('blur', validateAllDates);
+    }
+
+    if (toDateInput) {
+        toDateInput.addEventListener('change', validateAllDates);
+        toDateInput.addEventListener('blur', validateAllDates);
+    }
+
+    // Initialize on page load
+    updateWarningMessage();
+    validateAllDates();
 });
 </script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

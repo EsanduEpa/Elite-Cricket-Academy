@@ -70,17 +70,19 @@
 
         <!-- Simple Profile Section -->
         <div class="profile-section">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Shop Manager'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/shop/profile" class="profile-avatar" aria-label="Open shop profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
             </div>
-            <div class="profile-name"><?php echo isset($data['user_name']) ? $data['user_name'] : 'Shop Manager'; ?></div>
-            <div class="profile-role">Shop Employee</div>
-            <a href="<?php echo URLROOT; ?>/shop/profile" class="action-btn" style="margin-top: 10px;">
-                <i class="fas fa-user-cog"></i> Profile
-            </a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
         </div>
 
     </div>
@@ -155,30 +157,6 @@
             </div>
         </div>
 
-        <!-- Product Categories Filter -->
-        <div class="filter-section">
-            <div class="filter-tabs">
-                <a href="#" class="filter-tab active" data-category="all">
-                    <i class="fas fa-th"></i> All Categories
-                </a>
-                <a href="#" class="filter-tab" data-category="bats">
-                    <i class="fas fa-baseball-bat"></i> Bats
-                </a>
-                <a href="#" class="filter-tab" data-category="protective">
-                    <i class="fas fa-shield-alt"></i> Protective Gear
-                </a>
-                <a href="#" class="filter-tab" data-category="clothing">
-                    <i class="fas fa-tshirt"></i> Clothing
-                </a>
-                <a href="#" class="filter-tab" data-category="accessories">
-                    <i class="fas fa-cog"></i> Accessories
-                </a>
-                <a href="#" class="filter-tab" data-category="balls">
-                    <i class="fas fa-circle"></i> Balls
-                </a>
-            </div>
-        </div>
-
         <!-- Product Actions & Search -->
         <div class="action-section">
             <div class="action-cards">
@@ -219,7 +197,9 @@
         <!-- Products Table -->
         <div class="data-table">
             <div class="table-header">
-                <h3><i class="fas fa-list"></i> Products Catalog</h3>
+                <div class="table-header-main">
+                    <h3><i class="fas fa-list"></i> Products Catalog</h3>
+                </div>
                 <div class="table-actions">
                     <input type="text" class="search-box" placeholder="Search products..." id="productSearch">
                     <select class="filter-dropdown" id="sortFilter">
@@ -232,6 +212,28 @@
                     <button class="btn btn-primary" onclick="exportProducts()">
                         <i class="fas fa-download"></i> Export
                     </button>
+                </div>
+                <div class="filter-section table-filters">
+                    <div class="filter-tabs">
+                        <a href="#" class="filter-tab active" data-category="all">
+                            <i class="fas fa-th"></i> All Categories
+                        </a>
+                        <a href="#" class="filter-tab" data-category="bats">
+                            <i class="fas fa-baseball-bat"></i> Bats
+                        </a>
+                        <a href="#" class="filter-tab" data-category="protective">
+                            <i class="fas fa-shield-alt"></i> Protective Gear
+                        </a>
+                        <a href="#" class="filter-tab" data-category="clothing">
+                            <i class="fas fa-tshirt"></i> Clothing
+                        </a>
+                        <a href="#" class="filter-tab" data-category="accessories">
+                            <i class="fas fa-cog"></i> Accessories
+                        </a>
+                        <a href="#" class="filter-tab" data-category="balls">
+                            <i class="fas fa-circle"></i> Balls
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -593,22 +595,36 @@
 
 /* Filter Tabs Styles */
 .filter-section {
-    margin-bottom: 2rem;
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.table-filters {
+    grid-column: 1 / -1;
+    position: relative;
+    z-index: 2;
 }
 
 .filter-tabs {
     display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    gap: 0.8rem;
+    flex-wrap: nowrap;
+    overflow: visible;
     background: rgba(255, 255, 255, 0.2);
-    padding: 1rem;
+    padding: 0.75rem 0.75rem;
     border-radius: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-tab {
-    padding: 12px 24px;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding: 8px 10px;
     background: rgba(255, 255, 255, 0.3);
     border: 2px solid rgba(74, 144, 226, 0.2);
     border-radius: 25px;
@@ -616,9 +632,11 @@
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-size: 0.87rem;
+    white-space: nowrap;
+    transition: none;
     cursor: pointer;
     backdrop-filter: blur(5px);
 }
@@ -626,8 +644,8 @@
 .filter-tab:hover {
     background: rgba(74, 144, 226, 0.15);
     border-color: #4A90E2;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
+    transform: none;
+    box-shadow: none;
 }
 
 .filter-tab.active {
@@ -644,7 +662,14 @@
 .filter-tab i {
     font-size: 1rem;
     color: #4A90E2;
-    transition: all 0.3s ease;
+    transition: none;
+}
+
+.table-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
 }
 
 /* Read-only field styles */

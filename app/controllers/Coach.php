@@ -14,6 +14,17 @@ class Coach extends Controller {
         $coachId = $_SESSION['user_id'];
         $slotStaffModel = $this->model('M_SlotStaff');
 
+        $getOccurrenceStatusMeta = static function($status): array {
+            $statusKey = strtolower(trim((string) ($status ?? 'scheduled')));
+            $statusKey = $statusKey !== '' ? $statusKey : 'scheduled';
+
+            return [
+                'key' => $statusKey,
+                'label' => ucfirst(str_replace('_', ' ', $statusKey)),
+                'class' => $statusKey,
+            ];
+        };
+
         $today = date('Y-m-d');
         $nextWeek = date('Y-m-d', strtotime('+7 days'));
         $dashboardOccurrences = $slotStaffModel->getMyOccurrences($coachId, 'coach', $today, $nextWeek);
@@ -23,17 +34,29 @@ class Coach extends Controller {
 
         $upcomingBookings = [];
         foreach ($dashboardOccurrences as $occurrence) {
-            $bookings = $slotStaffModel->getBookingsForOccurrence((int)$occurrence->OccurrenceID);
-            $participantNames = array_map(function($booking) {
-                return $booking->PlayerName;
-            }, $bookings);
-
             $slotType = strtolower((string)($occurrence->SlotType ?? 'program'));
             $sessionType = $slotType === 'private' ? 'private' : 'normal';
+            $attendanceAvailable = $sessionType === 'normal' && $this->hasOccurrenceEnded($occurrence);
+
+            if ($sessionType === 'private') {
+                $participants = $slotStaffModel->getBookingsForOccurrence((int)$occurrence->OccurrenceID);
+                $participantNames = array_map(function($booking) {
+                    return $booking->PlayerName;
+                }, $participants);
+                $participantSummary = !empty($participantNames) ? implode(', ', $participantNames) : 'No participants yet';
+                $currentParticipants = count($participants);
+            } else {
+                $participants = $slotStaffModel->getGroupParticipantsForOccurrence((int)$occurrence->OccurrenceID);
+                $participantCount = count($participants);
+                $participantSummary = $participantCount > 0
+                    ? $participantCount . ' eligible players'
+                    : 'No eligible players';
+                $currentParticipants = $participantCount;
+            }
 
             $upcomingBookings[] = [
                 'id' => (int)$occurrence->OccurrenceID,
-                'player_name' => !empty($participantNames) ? implode(', ', $participantNames) : 'No participants yet',
+                'player_name' => $participantSummary,
                 'session_name' => $occurrence->SessionName ?? 'Slot Session',
                 'session_type' => $sessionType,
                 'date' => $occurrence->OccurrenceDate,
@@ -44,10 +67,25 @@ class Coach extends Controller {
                 'facility' => $occurrence->FacilityName ?? 'TBA',
                 'equipment' => '',
                 'max_participants' => (int)($occurrence->MaxSlots ?? $occurrence->OccMax ?? 0),
-                'current_participants' => count($bookings),
+                'current_participants' => $currentParticipants,
+                'status' => $occurrence->Status ?? 'scheduled',
+                'status_meta' => $getOccurrenceStatusMeta($occurrence->Status ?? 'scheduled'),
+                'attendance_enabled' => $attendanceAvailable,
+                'attendance_label' => $sessionType === 'normal' ? 'Eligible Players' : 'View Bookings',
+                'attendance_note' => $attendanceAvailable ? 'Mark attendance' : 'Available after session ends',
                 'price' => 0,
             ];
         }
+
+        $pastFrom = date('Y-m-d', strtotime('-30 days'));
+        $pastTo = date('Y-m-d', strtotime('-1 day'));
+        $pastSessions = $this->getCoachSlotSessions($coachId, $pastFrom, $pastTo, true);
+        $pastSessions = array_values(array_filter($pastSessions, function($session) {
+            $status = strtolower((string) ($session->Status ?? ''));
+            $sessionDate = (string) ($session->Date ?? '');
+            return in_array($status, ['completed', 'cancelled'], true) || ($sessionDate !== '' && $sessionDate < date('Y-m-d'));
+        }));
+        $pastSessions = array_reverse($pastSessions);
 
         $todaySessionsCount = count(array_filter($upcomingBookings, function($booking) use ($today) {
             return ($booking['date'] ?? '') === $today;
@@ -70,8 +108,8 @@ class Coach extends Controller {
             'privateSessions' => $privateSessions,
             'normalSessions' => $groupSessions,
             'upcomingBookings' => array_slice($upcomingBookings, 0, 5),
+            'pastSessions' => array_slice($pastSessions, 0, 8),
             'allSessions' => [],
-            'weeklySchedule' => $this->generateWeeklySchedule($upcomingBookings),
         ];
         
         $this->view('coach/dashboard', $data);
@@ -97,7 +135,55 @@ class Coach extends Controller {
         $userModel = $this->model('M_Users');
         
         // Get players assigned to this coach from DB
-        $players = $userModel->getPlayersAssignedToCoach($coachId);
+        $players = $userModel->getCoachAssignedPlayers($coachId);
+
+        $ageGroupsMap = [];
+        foreach ($players as $player) {
+            $rawAgeGroups = array_filter(array_map('trim', explode(',', (string)($player->AssignmentAgeGroups ?? ''))));
+
+            if (empty($rawAgeGroups)) {
+                $ageGroupsMap['open'] = 'Open';
+                continue;
+            }
+
+            foreach ($rawAgeGroups as $ageGroup) {
+                $ageGroupsMap[strtolower($ageGroup)] = $ageGroup;
+            }
+        }
+
+        $ageGroups = array_values($ageGroupsMap);
+        sort($ageGroups, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $coachProfiles = $userModel->getAllCoachProfiles();
+        $coachProfile = null;
+        foreach ($coachProfiles as $profile) {
+            if ((int)($profile->coach_id ?? 0) === (int)$coachId) {
+                $coachProfile = $profile;
+                break;
+            }
+        }
+
+        $coachAssignments = [];
+        foreach ($userModel->getCoachSkillAgeGroupAssignments() as $assignment) {
+            if ((int)($assignment->CoachID ?? 0) !== (int)$coachId) {
+                continue;
+            }
+
+            $ageGroups = array_values(array_filter(array_map('trim', explode(',', (string)($assignment->AgeGroups ?? '')))));
+            $coachAssignments[] = [
+                'skill' => strtolower((string)($assignment->CoachingType ?? '')),
+                'skill_label' => ucwords(str_replace(['_', '-'], ' ', (string)($assignment->CoachingType ?? ''))),
+                'age_groups' => $ageGroups,
+            ];
+        }
+
+        if (empty($coachAssignments) && !empty($coachProfile->specialization)) {
+            $coachAssignments[] = [
+                'skill' => strtolower((string)$coachProfile->specialization),
+                'skill_label' => (string)$coachProfile->specialization,
+                'age_groups' => []
+            ];
+        }
         
         // Fetch achievements from database
         $achievementModel = $this->model('M_Achievement');
@@ -112,6 +198,9 @@ class Coach extends Controller {
             'title' => 'Player Management - Coach Dashboard',
             'players' => $players,
             'achievements' => $achievements,
+            'coachProfile' => $coachProfile,
+            'coachAssignments' => $coachAssignments,
+            'ageGroups' => $ageGroups,
             'totalPlayers' => $totalPlayers,
             'activePlayers' => $activePlayers,
             'inactivePlayers' => $inactivePlayers
@@ -161,7 +250,14 @@ class Coach extends Controller {
             'injuredCount' => $injuredCount,
             'recoveredCount' => $recoveredCount,
             'severeCount' => $severeCount,
-            'pendingCount' => $pendingCount
+            'pendingCount' => $pendingCount,
+            'healthChartData' => [
+                'healthData' => [
+                    $recoveredCount,
+                    max(0, $injuredCount - $severeCount),
+                    $severeCount,
+                ],
+            ],
         ];
         $this->view('coach/health', $data);
     }
@@ -572,11 +668,102 @@ class Coach extends Controller {
         ]);
     }
 
+    public function occurrence($id = null) {
+        if (!$id) {
+            redirect('coach/dashboard');
+        }
+
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $coachId = (int) ($_SESSION['user_id'] ?? 0);
+        $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+
+        if (!$occurrence) {
+            redirect('coach/dashboard');
+        }
+
+        $error = null;
+        $success = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['action_cancel'])) {
+                $reason = trim((string) ($_POST['cancel_reason'] ?? ''));
+
+                if ($reason === '') {
+                    $error = 'A cancellation reason is required.';
+                } else {
+                    $result = $slotStaffModel->cancelOccurrence((int) $id, $reason, $coachId);
+
+                    if ($result === true) {
+                        $success = 'Session cancelled successfully.';
+                        $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+                    } elseif ($result === 'already_cancelled') {
+                        $error = 'This session is already cancelled.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You are not assigned to this session.';
+                    } else {
+                        $error = 'Could not cancel the session. Please try again.';
+                    }
+                }
+            } elseif (isset($_POST['action_update_occurrence_status'])) {
+                $status = trim((string) ($_POST['occurrence_status'] ?? ''));
+                $reason = trim((string) ($_POST['occurrence_status_reason'] ?? ''));
+                $result = $slotStaffModel->updateOccurrenceStatus((int) $id, $status, $coachId, $reason);
+
+                if ($result === true) {
+                    $success = 'Session occurrence status updated successfully.';
+                    $occurrence = $slotStaffModel->getOccurrenceDetail((int) $id, $coachId);
+                } elseif ($result === 'invalid_status') {
+                    $error = 'That occurrence status is not allowed.';
+                } elseif ($result === 'not_past') {
+                    $error = 'Occurrence status can only be updated after the session has ended.';
+                } elseif ($result === 'reason_required') {
+                    $error = 'Please provide a reason when marking a session as cancelled.';
+                } elseif ($result === 'not_assigned') {
+                    $error = 'You are not assigned to this session.';
+                } else {
+                    $error = 'Could not update the occurrence status. Please try again.';
+                }
+            } elseif (isset($_POST['action_update_booking'])) {
+                $bookingId = (int) ($_POST['booking_id'] ?? 0);
+                $status = trim((string) ($_POST['booking_status'] ?? ''));
+
+                if ($bookingId <= 0 || $status === '') {
+                    $error = 'Please choose a valid booking status.';
+                } else {
+                    $result = $slotStaffModel->markAttendance($bookingId, $status, $coachId);
+
+                    if ($result === true) {
+                        $success = 'Booking status updated successfully.';
+                    } elseif ($result === 'not_assigned') {
+                        $error = 'You can only update bookings for your own slot sessions.';
+                    } elseif ($result === 'not_found') {
+                        $error = 'The selected booking could not be found.';
+                    } elseif ($result === 'invalid_status') {
+                        $error = 'That booking status is not allowed.';
+                    } else {
+                        $error = 'Could not update the booking status. Please try again.';
+                    }
+                }
+            }
+        }
+
+        $data = [
+            'title' => 'Coach Session Detail',
+            'role' => 'Coach',
+            'occurrence' => $occurrence,
+            'bookings' => $slotStaffModel->getBookingsForOccurrence((int) $id),
+            'error' => $error,
+            'success' => $success,
+        ];
+
+        $this->view('staff/slots/occurrence', $data);
+    }
+
     // Update Session
     public function edit_session($id = null) {
         $this->respondLegacySessionRedirect(
-            'Legacy coach session editing has been retired. Manage slot sessions from the slot calendar.',
-            $id ? 'staffslots/occurrence/' . (int) $id : 'staffslots/calendar'
+            'Legacy coach session editing has been retired. Manage slot sessions from the session detail page.',
+            $id ? 'coach/occurrence/' . (int) $id : 'coach/dashboard'
         );
     }
 
@@ -688,6 +875,85 @@ class Coach extends Controller {
             'success' => true,
             'attendance' => $attendance
         ]);
+    }
+
+    public function get_session_roster($sessionId) {
+        header('Content-Type: application/json');
+
+        $occurrenceId = (int) $sessionId;
+        if ($occurrenceId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid session id']);
+            return;
+        }
+
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $occurrence = $slotStaffModel->getOccurrenceDetail($occurrenceId, (int) ($_SESSION['user_id'] ?? 0));
+        if (!$occurrence) {
+            echo json_encode(['success' => false, 'message' => 'Session not found']);
+            return;
+        }
+
+        if (!$this->hasOccurrenceEnded($occurrence)) {
+            echo json_encode(['success' => false, 'message' => 'Attendance roster becomes available after the session ends.']);
+            return;
+        }
+
+        $roster = $slotStaffModel->getAttendanceRosterForOccurrence($occurrenceId);
+        echo json_encode([
+            'success' => true,
+            'session' => [
+                'id' => $occurrenceId,
+                'name' => (string) ($occurrence->SessionName ?? 'Session'),
+                'type' => (string) ($occurrence->SlotType ?? 'program'),
+            ],
+            'players' => $roster,
+        ]);
+    }
+
+    public function save_session_attendance() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        $occurrenceId = (int) ($_POST['session_id'] ?? 0);
+        $presentIds = array_map('intval', $_POST['attendance_present'] ?? []);
+
+        if ($occurrenceId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid session id']);
+            return;
+        }
+
+        $slotStaffModel = $this->model('M_SlotStaff');
+        $result = $slotStaffModel->saveAttendanceRoster($occurrenceId, $presentIds, (int) ($_SESSION['user_id'] ?? 0));
+
+        if ($result === true) {
+            echo json_encode(['success' => true, 'message' => 'Attendance saved successfully']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => false,
+            'message' => is_string($result) ? $result : 'Failed to save attendance',
+        ]);
+    }
+
+    private function hasOccurrenceEnded(object $occurrence): bool {
+        $date = trim((string) ($occurrence->OccurrenceDate ?? ''));
+        $endTime = trim((string) ($occurrence->EndTime ?? ''));
+
+        if ($date === '' || $endTime === '') {
+            return false;
+        }
+
+        $endTimestamp = strtotime($date . ' ' . $endTime);
+        if ($endTimestamp === false) {
+            return false;
+        }
+
+        return $endTimestamp <= time();
     }
 
     // Delete Session
@@ -941,51 +1207,6 @@ class Coach extends Controller {
         }
     }
     
-    // Helper: Generate weekly schedule from sessions
-    private function generateWeeklySchedule($sessions) {
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        $schedule = [];
-        
-        foreach ($days as $day) {
-            $daySchedule = [
-                'day' => $day,
-                'sessions' => []
-            ];
-            
-            foreach ($sessions as $session) {
-                $sessionDate = is_array($session) ? ($session['date'] ?? '') : ($session->Date ?? '');
-                $sessionStart = is_array($session) ? ($session['start_time'] ?? '') : ($session->StartTime ?? '');
-                $sessionEnd = is_array($session) ? ($session['end_time'] ?? '') : ($session->EndTime ?? '');
-                $sessionType = is_array($session) ? ($session['session_type'] ?? '') : ($session->SessionMode ?? '');
-                $sessionName = is_array($session) ? ($session['session_name'] ?? '') : ($session->Name ?? '');
-                $sessionFacility = is_array($session) ? ($session['facility'] ?? '') : ($session->Location ?? '');
-
-                if ($sessionDate === '') {
-                    continue;
-                }
-
-                $sessionDayOfWeek = date('l', strtotime($sessionDate));
-                
-                if ($sessionDayOfWeek === $day) {
-                    $startTime = $sessionStart !== '' ? date('H:i', strtotime($sessionStart)) : 'TBD';
-                    $endTime = $sessionEnd !== '' ? date('H:i', strtotime($sessionEnd)) : 'TBD';
-                    
-                    $daySchedule['sessions'][] = [
-                        'time' => "$startTime-$endTime",
-                        'type' => ucfirst((string)$sessionType) . ' - ' . $sessionName,
-                        'facility' => $sessionFacility
-                    ];
-                }
-            }
-            
-            if (!empty($daySchedule['sessions'])) {
-                $schedule[] = $daySchedule;
-            }
-        }
-        
-        return $schedule;
-    }
-
     // Upload/Update Profile Image
     public function uploadProfileImage() {
         header('Content-Type: application/json');
@@ -1190,11 +1411,66 @@ class Coach extends Controller {
                 'pendingCount' => $pendingCount
             ];
             
-            $this->view('coach/tournament-recommendations', $data);
+            $this->view('coach/tournaments/tournament-recommendations', $data);
         } catch (Exception $e) {
             error_log('Error in tournament_recommendations: ' . $e->getMessage());
             redirect('coach/tournaments');
         }
+    }
+
+    private function getCoachAssignedRecommendationPlayers(int $coachId): array {
+        $userModel = $this->model('M_Users');
+        $players = $userModel->getCoachAssignedPlayers($coachId);
+
+        $filteredPlayers = [];
+        foreach ($players as $player) {
+            if ((int)($player->UserID ?? 0) <= 0 || strtolower((string)($player->Status ?? '')) !== 'active') {
+                continue;
+            }
+
+            $playerAgeGroup = $userModel->getAgeGroupForDateOfBirth((string)($player->DateOfBirth ?? ''));
+            $player->PlayerAgeGroup = $playerAgeGroup;
+            $filteredPlayers[] = $player;
+        }
+
+        return $filteredPlayers;
+    }
+
+    private function getCoachEligibleTournaments(int $coachId): array {
+        $userModel = $this->model('M_Users');
+        $tournamentModel = $this->model('M_Tournament');
+
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $eligibleAgeGroups = [];
+        foreach ($coachAssignments as $assignment) {
+            if ((int)($assignment->CoachID ?? 0) !== $coachId) {
+                continue;
+            }
+
+            $ageGroups = array_filter(array_map('trim', explode(',', (string)($assignment->AgeGroups ?? ''))));
+            foreach ($ageGroups as $ageGroup) {
+                $eligibleAgeGroups[strtolower($ageGroup)] = true;
+            }
+        }
+
+        if (empty($eligibleAgeGroups)) {
+            return [];
+        }
+
+        $tournaments = $tournamentModel->getPublicTournaments();
+        return array_values(array_filter($tournaments, function($tournament) use ($eligibleAgeGroups) {
+            $status = strtolower((string)($tournament->Status ?? ''));
+            if (in_array($status, ['completed', 'cancelled'], true)) {
+                return false;
+            }
+
+            $tournamentAgeGroup = strtolower(trim((string)($tournament->AgeGroup ?? '')));
+            if ($tournamentAgeGroup === '') {
+                return false;
+            }
+
+            return isset($eligibleAgeGroups[$tournamentAgeGroup]) || isset($eligibleAgeGroups['open']);
+        }));
     }
 
     /**
@@ -1207,16 +1483,55 @@ class Coach extends Controller {
         $tournamentModel  = $this->model('M_Tournament');
         $joinRequestModel = $this->model('M_TournamentJoinRequest');
         $coachRecModel    = $this->model('M_CoachTournamentRecommendation');
+        $performanceModel = $this->model('M_Performance');
 
         $tournament = $tournamentModel->getTournamentById($tournamentId);
         if (!$tournament) { redirect('coach/tournaments'); return; }
 
         $data['tournament']   = $tournament;
+        $data['selected_player_id'] = isset($_GET['playerId']) ? (int)$_GET['playerId'] : null;
         $data['players']      = $joinRequestModel->getRequestsByTournament($tournamentId);
         $data['my_recs']      = $coachRecModel->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $tournamentId]);
         $data['is_head_coach'] = $this->_isHeadCoach();
 
+        foreach ($data['players'] as $player) {
+            $playerId = (int)($player->PlayerID ?? 0);
+            $player->PerformanceSummary = $this->buildTournamentRecommendationPerformanceSummary($performanceModel, $playerId);
+            $player->PerformanceMatches = $this->buildTournamentRecommendationPerformanceMatches($performanceModel, $playerId);
+        }
+
         $this->view('coach/tournaments/recommend', $data);
+    }
+
+    private function buildTournamentRecommendationPerformanceSummary($performanceModel, int $playerId): array {
+        if ($playerId <= 0) {
+            return [
+                'overall' => null,
+                'latest_match' => null,
+            ];
+        }
+
+        $overall = $performanceModel->getStoredOverallStats($playerId);
+        $matchRecords = $performanceModel->getPerformanceStatistics($playerId, false);
+        $latestMatch = !empty($matchRecords) ? $matchRecords[0] : null;
+
+        return [
+            'overall' => $overall,
+            'latest_match' => $latestMatch,
+        ];
+    }
+
+    private function buildTournamentRecommendationPerformanceMatches($performanceModel, int $playerId): array {
+        if ($playerId <= 0) {
+            return [];
+        }
+
+        $matches = $performanceModel->getPerformanceStatistics($playerId, true);
+        if (empty($matches)) {
+            return [];
+        }
+
+        return array_slice($matches, 0, 5);
     }
 
     /**
@@ -1247,6 +1562,18 @@ class Coach extends Controller {
 
         $formBack    = 'coach/recommend_players/' . $tournamentId;
         $detailPage  = 'coach/tournament_detail/' . $tournamentId;
+
+        $eligibility = $this->validateCoachRecommendationEligibility($coachId, $tournamentId, $playerId);
+        if (!$eligibility['success']) {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => $eligibility['message']]);
+                return;
+            }
+            $_SESSION['error'] = $eligibility['message'];
+            redirect('coach/tournament-recommendations');
+            return;
+        }
 
         if (!$tournamentId || !$playerId || empty($recommendedRole) || empty($reason)) {
             if ($isJsonRequest) {
@@ -1348,7 +1675,7 @@ class Coach extends Controller {
             echo json_encode(['success' => false, 'message' => 'Role is required']);
             return;
         }
-        
+
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
         
         try {
@@ -1366,6 +1693,12 @@ class Coach extends Controller {
             
             if ($recommendation->Status !== 'pending') {
                 echo json_encode(['success' => false, 'message' => 'Can only edit pending recommendations']);
+                return;
+            }
+
+            $eligibility = $this->validateCoachRecommendationEligibility($coachId, (int)$recommendation->TournamentID, (int)$recommendation->PlayerID);
+            if (!$eligibility['success']) {
+                echo json_encode(['success' => false, 'message' => $eligibility['message']]);
                 return;
             }
             
@@ -1396,6 +1729,55 @@ class Coach extends Controller {
                 'message' => 'Error: ' . $e->getMessage()
             ]);
         }
+    }
+
+    private function validateCoachRecommendationEligibility(int $coachId, int $tournamentId, int $playerId, bool $allowRecommendationIdPlayerLookup = false): array {
+        $userModel = $this->model('M_Users');
+        $tournamentModel = $this->model('M_Tournament');
+
+        $tournament = $tournamentModel->getTournamentById($tournamentId);
+        if (!$tournament) {
+            return ['success' => false, 'message' => 'Tournament not found'];
+        }
+
+        $playerAssignments = $userModel->getCoachAssignedPlayers($coachId);
+        $playerAssigned = false;
+        $playerAgeGroup = null;
+        foreach ($playerAssignments as $assignment) {
+            if ((int)($assignment->PlayerID ?? 0) === $playerId || (int)($assignment->UserID ?? 0) === $playerId) {
+                $playerAssigned = true;
+                $playerAgeGroup = (string)($assignment->PlayerAgeGroup ?? $userModel->getAgeGroupForDateOfBirth((string)($assignment->DateOfBirth ?? '')));
+                break;
+            }
+        }
+
+        if (!$playerAssigned) {
+            return ['success' => false, 'message' => 'You can only recommend players currently assigned to you'];
+        }
+
+        $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+        $eligibleAgeGroups = [];
+        foreach ($coachAssignments as $assignment) {
+            if ((int)($assignment->CoachID ?? 0) !== $coachId) {
+                continue;
+            }
+
+            foreach (array_filter(array_map('trim', explode(',', (string)($assignment->AgeGroups ?? '')))) as $ageGroup) {
+                $eligibleAgeGroups[strtolower($ageGroup)] = true;
+            }
+        }
+
+        $tournamentAgeGroup = strtolower(trim((string)($tournament->AgeGroup ?? '')));
+        if ($tournamentAgeGroup === '' || (!isset($eligibleAgeGroups[$tournamentAgeGroup]) && !isset($eligibleAgeGroups['open']))) {
+            return ['success' => false, 'message' => 'You can only recommend for tournaments in your assigned age groups'];
+        }
+
+        $playerAgeGroup = strtolower(trim((string)$playerAgeGroup));
+        if ($playerAgeGroup !== '' && $playerAgeGroup !== 'open' && $tournamentAgeGroup !== 'open' && $playerAgeGroup !== $tournamentAgeGroup) {
+            return ['success' => false, 'message' => 'You can only recommend players who match the selected tournament age group'];
+        }
+
+        return ['success' => true];
     }
 
     /**
@@ -1560,6 +1942,37 @@ class Coach extends Controller {
         return $row && $row->IsHeadCoach == 1;
     }
 
+    private function getAvailableTournamentStatuses($tournament)
+    {
+        $transitions = [
+            'created'             => ['registration_open'],
+            'registration_open'   => ['registration_closed'],
+            'registration_closed' => $tournament->IsTeamAnnounced ? ['ongoing'] : ['team_announced', 'ongoing'],
+            'team_announced'      => ['ongoing'],
+            'ongoing'             => ['completed'],
+        ];
+
+        $availableStatuses = [];
+        $queue = $transitions[$tournament->Status] ?? [];
+
+        while (!empty($queue)) {
+            $status = array_shift($queue);
+            if (in_array($status, $availableStatuses, true)) {
+                continue;
+            }
+
+            $availableStatuses[] = $status;
+
+            foreach ($transitions[$status] ?? [] as $nextStatus) {
+                if (!in_array($nextStatus, $availableStatuses, true)) {
+                    $queue[] = $nextStatus;
+                }
+            }
+        }
+
+        return $availableStatuses;
+    }
+
     public function tournament_detail($id = null)
     {
         if (!$id) { redirect('coach/tournaments'); return; }
@@ -1575,11 +1988,50 @@ class Coach extends Controller {
         $data['tournament']    = $tournament;
         $data['team']          = $M_Tournament->getTeam($id);
         $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
-        $data['my_recs']       = $M_CoachRec->getRecommendationsByCoach($_SESSION['user_id'], ['tournamentId' => $id]);
+        $data['my_recs']       = $M_CoachRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
         $data['is_head_coach'] = $this->_isHeadCoach();
+        $data['status_options'] = $data['is_head_coach'] ? $this->getAvailableTournamentStatuses($tournament) : [];
 
         $this->view('coach/tournaments/detail', $data);
+    }
+
+    public function update_tournament_status($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('coach/tournaments'); return; }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can update tournament status.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('coach/tournaments');
+            return;
+        }
+
+        $allowed = $this->getAvailableTournamentStatuses($tournament);
+        $newStatus = trim($_POST['status'] ?? '');
+
+        if ($newStatus === '' || !in_array($newStatus, $allowed, true)) {
+            $_SESSION['error'] = 'Invalid status selection.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
+
+        if ($newStatus === 'team_announced') {
+            $M_Tournament->announceTeam($id);
+            $_SESSION['success'] = 'Team announced successfully.';
+        } else {
+            $M_Tournament->updateStatus($id, $newStatus);
+            $_SESSION['success'] = 'Tournament status updated to ' . str_replace('_', ' ', $newStatus) . '.';
+        }
+
+        redirect('coach/tournament_detail/' . $id);
     }
 
     public function finalize_team($id = null)

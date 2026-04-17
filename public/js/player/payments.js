@@ -379,11 +379,9 @@ function filterRefunds(filterValue) {
 // Payment Actions
 function initializePaymentActions() {
     // Pay Now buttons
-    const payNowButtons = document.querySelectorAll('.btn-primary');
+    const payNowButtons = document.querySelectorAll('.btn-pay');
     payNowButtons.forEach(btn => {
-        if (btn.textContent.includes('Pay Now') || btn.textContent.includes('Pay All')) {
-            btn.addEventListener('click', handlePayNow);
-        }
+        btn.addEventListener('click', handlePayNow);
     });
     
     // Book Session button
@@ -423,27 +421,59 @@ function initializePaymentActions() {
 
 function handlePayNow(e) {
     e.preventDefault();
-    
-    // Get payment details from the parent element
-    let paymentItem = 'Payment';
-    let paymentAmount = '₹0';
-    
-    const card = e.target.closest('.summary-card, .appointment-card, .month-fee-card, .pending-item');
-    if (card) {
-        // Extract payment details based on card type
-        if (card.classList.contains('pending-item')) {
-            paymentItem = card.querySelector('h4').textContent;
-            paymentAmount = card.querySelector('.amount').textContent;
-        } else if (card.classList.contains('month-fee-card')) {
-            paymentItem = card.querySelector('h5').textContent + ' Monthly Fee';
-            paymentAmount = card.querySelector('.amount').textContent;
-        } else if (card.classList.contains('appointment-card')) {
-            paymentItem = 'Session with ' + card.querySelector('h4').textContent;
-            paymentAmount = card.querySelector('.payment-amount').textContent;
-        }
+
+    const button = e.currentTarget || e.target.closest('.btn-pay');
+    if (!button) {
+        return;
     }
-    
-    openPaymentModal(paymentItem, paymentAmount);
+
+    const payUrl = button.dataset.payUrl || '/player/payhere_checkout';
+    const paymentItem = button.dataset.paymentItem || getPaymentItemFromRow(button) || 'Membership Payment';
+    const paymentAmount = parseFloat(button.dataset.paymentAmount || '0');
+
+    if (!paymentAmount || paymentAmount <= 0) {
+        showNotification('This payment does not have a valid amount.', 'error');
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = payUrl;
+    form.style.display = 'none';
+
+    const amountInput = document.createElement('input');
+    amountInput.type = 'hidden';
+    amountInput.name = 'cart_total';
+    amountInput.value = paymentAmount.toFixed(2);
+
+    const itemsInput = document.createElement('input');
+    itemsInput.type = 'hidden';
+    itemsInput.name = 'cart_items';
+    itemsInput.value = JSON.stringify([{ name: paymentItem, quantity: 1 }]);
+
+    form.appendChild(amountInput);
+    form.appendChild(itemsInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function getPaymentItemFromRow(button) {
+    const row = button.closest('tr');
+    if (!row) {
+        return '';
+    }
+
+    const title = row.querySelector('.table-cell-title');
+    if (title && title.textContent.trim()) {
+        return title.textContent.trim();
+    }
+
+    const cells = row.querySelectorAll('td');
+    if (cells.length > 1) {
+        return cells[1].textContent.trim().replace(/\s+/g, ' ');
+    }
+
+    return '';
 }
 
 function handleDownload(e) {

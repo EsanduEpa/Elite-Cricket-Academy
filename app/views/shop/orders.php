@@ -155,31 +155,12 @@
             </div>
         </div>
 
-        <!-- Order Filters -->
-        <div class="filter-section">
-            <div class="filter-tabs">
-                <a href="<?php echo URLROOT; ?>/shop/orders/all" class="filter-tab <?php echo $data['current_status'] === 'all' ? 'active' : ''; ?>">
-                    <i class="fas fa-list"></i> All Orders
-                </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/pending" class="filter-tab <?php echo $data['current_status'] === 'pending' ? 'active' : ''; ?>">
-                    <i class="fas fa-clock"></i> Pending
-                </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/processing" class="filter-tab <?php echo $data['current_status'] === 'processing' ? 'active' : ''; ?>">
-                    <i class="fas fa-cog"></i> Processing
-                </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/completed" class="filter-tab <?php echo $data['current_status'] === 'completed' ? 'active' : ''; ?>">
-                    <i class="fas fa-check"></i> Completed
-                </a>
-                <a href="<?php echo URLROOT; ?>/shop/orders/cancelled" class="filter-tab <?php echo $data['current_status'] === 'cancelled' ? 'active' : ''; ?>">
-                    <i class="fas fa-times"></i> Cancelled
-                </a>
-            </div>
-        </div>
-
         <!-- Orders Table -->
         <div class="data-table">
             <div class="table-header">
-                <h3><i class="fas fa-list"></i> Orders List</h3>
+                <div class="table-header-main">
+                    <h3><i class="fas fa-list"></i> Orders List</h3>
+                </div>
                 <div class="table-actions">
                     <input type="text" class="search-box" placeholder="Search orders..." id="orderSearch">
                     <select class="filter-dropdown" id="paymentFilter">
@@ -192,6 +173,25 @@
                     <button class="btn btn-primary" onclick="exportOrders()">
                         <i class="fas fa-download"></i> Export
                     </button>
+                </div>
+                <div class="filter-section table-filters">
+                    <div class="filter-tabs">
+                        <a href="<?php echo URLROOT; ?>/shop/orders/all" class="filter-tab <?php echo $data['current_status'] === 'all' ? 'active' : ''; ?>">
+                            <i class="fas fa-list"></i> All Orders
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/shop/orders/pending" class="filter-tab <?php echo $data['current_status'] === 'pending' ? 'active' : ''; ?>">
+                            <i class="fas fa-clock"></i> Pending
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/shop/orders/processing" class="filter-tab <?php echo $data['current_status'] === 'processing' ? 'active' : ''; ?>">
+                            <i class="fas fa-cog"></i> Processing
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/shop/orders/completed" class="filter-tab <?php echo $data['current_status'] === 'completed' ? 'active' : ''; ?>">
+                            <i class="fas fa-check"></i> Completed
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/shop/orders/cancelled" class="filter-tab <?php echo $data['current_status'] === 'cancelled' ? 'active' : ''; ?>">
+                            <i class="fas fa-times"></i> Cancelled
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -480,34 +480,77 @@ function showNotification(message, type) {
 </script>
 
 <style>
+.data-table .table-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title actions"
+        "filters filters";
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.data-table .table-header-main {
+    grid-area: title;
+    min-width: 0;
+}
+
+.data-table .table-header h3 {
+    margin: 0;
+}
+
+.data-table .table-actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    justify-self: end;
+}
+
 .filter-section {
-    margin: 2rem 0;
+    margin: 0;
+    width: 100%;
+}
+
+.table-filters {
+    grid-area: filters;
+    position: relative;
+    z-index: 2;
 }
 
 .filter-tabs {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.8rem;
+    flex-wrap: nowrap;
     background: rgba(255, 255, 255, 0.25);
-    padding: 0.5rem;
+    padding: 0.65rem 0.75rem;
     border-radius: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-tab {
-    flex: 1;
-    padding: 12px 20px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 12px;
     text-decoration: none;
     color: #666;
     background: transparent;
-    border-radius: 10px;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 25px;
     text-align: center;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
+    white-space: nowrap;
 }
 
 .filter-tab:hover {
@@ -518,6 +561,7 @@ function showNotification(message, type) {
 .filter-tab.active {
     background: #4A90E2;
     color: white;
+    border-color: #4A90E2;
 }
 
 .status-dropdown {
@@ -639,8 +683,19 @@ function showNotification(message, type) {
 }
 
 @media (max-width: 768px) {
-    .filter-tabs {
+    .data-table .table-header {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "actions"
+            "filters";
+        align-items: flex-start;
+    }
+
+    .data-table .table-actions {
+        width: 100%;
         flex-wrap: wrap;
+        justify-self: start;
     }
     
     .order-grid {

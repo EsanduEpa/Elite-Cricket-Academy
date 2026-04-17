@@ -4,6 +4,7 @@
 $todaySchedule = $data['todaySchedule'] ?? [];
 $upcomingBookings = $data['upcomingBookings'] ?? [];
 $todayDate = date('Y-m-d');
+$upcomingCutoffDate = date('Y-m-d', strtotime('+7 days'));
 
 $dashboardFormatDuration = static function ($startTime, $endTime) {
     if (empty($startTime) || empty($endTime)) {
@@ -91,8 +92,8 @@ $dashboardStatusLabel = static function ($status, $date = null, $startTime = nul
     return ucwords(str_replace('_', ' ', $normalizedStatus));
 };
 
-$futureBookings = array_values(array_filter($upcomingBookings, static function ($booking) use ($todayDate) {
-    return !empty($booking->date) && $booking->date > $todayDate;
+$futureBookings = array_values(array_filter($upcomingBookings, static function ($booking) use ($todayDate, $upcomingCutoffDate) {
+    return !empty($booking->date) && $booking->date > $todayDate && $booking->date <= $upcomingCutoffDate;
 }));
 ?>
 
@@ -163,17 +164,19 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
 
             <!-- Simple Profile Section -->
             <div class="profile-section">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                    <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                        <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Player'; ?>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                        <a href="<?php echo URLROOT; ?>/player/profile" class="profile-avatar" aria-label="Open player profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                        <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
                 </div>
-                <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
-                <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/player/profile" class="action-btn" style="margin-top: 10px;">
-                    <i class="fas fa-user-cog"></i> Profile
-                </a>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 8px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
             </div>
         </div>
 
@@ -326,38 +329,7 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                 </div>
             </div>
 
-            <!-- Row 2: Calendar Section -->
-            <div class="calendar-section-wrapper">
-                <div class="calendar-section compact-calendar">
-                    <div class="calendar-header">
-                        <h3><i class="fas fa-calendar-alt"></i> Training & Match Calendar</h3>
-                        <div class="calendar-controls">
-                            <div class="view-toggle">
-                                <button class="view-btn active" data-view="month"><i class="fas fa-calendar"></i> Month</button>
-                                <button class="view-btn" data-view="week"><i class="fas fa-calendar-week"></i> Week</button>
-                                <button class="view-btn" data-view="day"><i class="fas fa-calendar-day"></i> Day</button>
-                            </div>
-                            <div class="calendar-nav">
-                                <button id="dashTodayBtn" class="calendar-btn today-btn" title="Go to Today"><i class="fas fa-calendar-check"></i></button>
-                                <button id="dashPrevPeriod" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
-                                <span id="dashCurrentPeriod"></span>
-                                <button id="dashNextPeriod" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="dashCalendarContent" class="calendar-content">
-                        <div id="dashMonthView" class="calendar-grid"></div>
-                        <div id="dashWeekView" class="week-view" style="display: none;"></div>
-                        <div id="dashDayView" class="day-view" style="display: none;"></div>
-                    </div>
-                    <div class="calendar-legend">
-                        <div class="legend-item"><span class="legend-dot training"></span> Training Sessions</div>
-                        <div class="legend-item"><span class="legend-dot match"></span> Matches</div>
-                        <div class="legend-item"><span class="legend-dot fitness"></span> Fitness</div>
-                    </div>
-                </div>
-            </div>
-            <!-- Row 3: Quick Actions and Payment Due Side by Side -->
+            <!-- Row 2: Quick Actions and Payment Due Side by Side -->
             <div class="action-row">
                 <div class="quick-actions-container">
                     <div class="section-header">

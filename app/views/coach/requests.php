@@ -53,13 +53,6 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations">
-                            <i class="fas fa-star"></i>
-                            <span>Recommendations</span>
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                             <i class="fas fa-heartbeat"></i>
                             <span>Health & Injury</span>
@@ -123,12 +116,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Requests Content -->
-            <div class="requests-content">
-                <!-- Filter Tabs -->
-                <div class="filter-tabs">
                     <button class="tab-btn active" data-filter="all">
                         <i class="fas fa-list"></i>
                         All <span class="count"><?php echo count($data['feedbacks']); ?></span>

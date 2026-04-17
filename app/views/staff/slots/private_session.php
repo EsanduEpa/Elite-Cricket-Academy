@@ -67,11 +67,19 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
         </nav>
 
         <div class="profile-section">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <div class="profile-name"><?= htmlspecialchars($_SESSION['user_name'] ?? $data['role']) ?></div>
-            <div class="profile-role"><?= $data['role'] ?></div>
-            <a href="<?php echo URLROOT; ?>/<?= strtolower($data['role']) ?>/profile" class="action-btn" style="margin-top:10px;"><i class="fas fa-user-cog"></i> Profile</a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($data['role'] ?? 'Staff'); ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/<?php echo strtolower($data['role'] ?? 'coach'); ?>/profile" class="profile-avatar" aria-label="Open profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -80,8 +88,8 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-text">
-                    <h1><i class="fas fa-plus-circle"></i> Add Private Session</h1>
-                    <p>Create a one-off session that you will lead personally.</p>
+                        <h1><i class="fas fa-plus-circle"></i> Request Private Session</h1>
+                        <p>Submit a session request for admin review and approval.</p>
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/staffslots/calendar"
@@ -98,14 +106,19 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
                style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
                 <i class="fas fa-calendar-alt"></i> Calendar
             </a>
+            <a href="<?php echo URLROOT; ?>/staffslots/past_requests"
+               style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">
+                <i class="fas fa-history"></i> Past Requests
+            </a>
             <a href="<?php echo URLROOT; ?>/staffslots/private_session"
                style="padding:7px 16px;border-radius:6px;background:#2e7d32;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">
-                <i class="fas fa-plus-circle"></i> Add Private Session
+                <i class="fas fa-plus-circle"></i> Request Private Session
             </a>
         </div>
 
         <div style="padding:0 25px 40px;max-width:760px;">
 
+            <?php flash('session_message'); ?>
             <?php if ($data['error']): ?>
                 <div class="alert-error"><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($data['error']) ?></div>
             <?php endif; ?>
@@ -113,9 +126,9 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
             <!-- Info box -->
             <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:16px 18px;margin-bottom:24px;font-size:13px;color:#1b5e20;">
                 <i class="fas fa-info-circle"></i>
-                A <strong>private session</strong> is a one-off occurrence not tied to any recurring template.
-                Once created you will be taken directly to the session page where players can see and book it (if you share the link), and you can manage or cancel it.
-                You are automatically assigned as the lead staff member.
+                A <strong>private session request</strong> is reviewed by admin before it becomes an actual session.
+                If the requested facility is free on that date and time, admin will approve the request and create the session for you.
+                You will be assigned as the lead staff member once approved.
             </div>
 
             <div style="background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
@@ -167,7 +180,7 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
                             <input type="number" name="MaxParticipants" id="MaxParticipants"
                                    min="1" max="100"
                                    value="<?= htmlspecialchars($post['MaxParticipants'] ?? '10') ?>">
-                            <small>Leave as 10 if unsure.</small>
+                            <small>Admin will use this as the requested session capacity.</small>
                         </div>
 
                     </div>
@@ -182,7 +195,7 @@ $post     = $data['post'] ?? [];  // repopulate form on validation error
                     <div style="display:flex;gap:12px;align-items:center;margin-top:8px;">
                         <button type="submit"
                                 style="padding:11px 28px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
-                            <i class="fas fa-plus-circle"></i> Create Session
+                            <i class="fas fa-paper-plane"></i> Send Request
                         </button>
                         <a href="<?php echo URLROOT; ?>/staffslots/calendar"
                            style="padding:11px 20px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;">

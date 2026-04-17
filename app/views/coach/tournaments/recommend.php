@@ -1,33 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
-<style>
-.form-card { background:#fff; border-radius:12px; padding:30px; box-shadow:0 2px 10px rgba(0,0,0,.08); max-width:720px; margin-bottom:24px; }
-.form-group { margin-bottom:18px; }
-.form-group label { display:block; font-weight:600; margin-bottom:6px; color:#333; font-size:.91rem; }
-.form-group select, .form-group textarea {
-    width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px;
-    font-size:.93rem; font-family:inherit; box-sizing:border-box;
-}
-.form-group select:focus, .form-group textarea:focus {
-    outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.1);
-}
-.form-group textarea { resize:vertical; min-height:90px; }
-.btn { padding:10px 22px; border-radius:8px; border:none; cursor:pointer; font-size:.93rem; font-weight:600; text-decoration:none; display:inline-block; }
-.btn-primary   { background:#3b82f6; color:#fff; }
-.btn-secondary { background:#6c757d; color:#fff; }
-.tournament-info { background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 8px 8px 0; padding:14px 18px; margin-bottom:24px; }
-.tournament-info h4 { margin:0 0 4px; font-size:.95rem; color:#1e3a8a; }
-.tournament-info p  { margin:0; font-size:.85rem; color:#555; }
-.player-card { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f1f5f9; }
-.player-card:last-child { border-bottom:none; }
-.rec-badge { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
-.recs-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
-.recs-table th { padding:8px 12px; background:#f8fafc; color:#64748b; font-size:12px; font-weight:600; text-align:left; border-bottom:1px solid #e2e8f0; }
-.recs-table td { padding:8px 12px; border-bottom:1px solid #f8fafc; color:#374151; }
-.recs-table tr:last-child td { border-bottom:none; }
-.alert-success { padding:12px 16px; border-radius:8px; background:#d1fae5; color:#065f46; margin-bottom:16px; }
-.alert-error   { padding:12px 16px; border-radius:8px; background:#fee2e2; color:#991b1b; margin-bottom:16px; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -41,7 +14,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
             </ul>
         </nav>
         <div class="profile-section">
@@ -54,19 +26,19 @@
 
     <main class="main-content" id="mainContent">
         <?php $t = $data['tournament']; ?>
-        <div class="dashboard-header">
+        <div class="dashboard-header recommendations-page-header">
             <div class="header-content">
                 <h1><i class="fas fa-user-plus"></i> Recommend a Player</h1>
                 <p>Recommend applicants for <strong><?php echo htmlspecialchars($t->Name); ?></strong></p>
             </div>
-            <div style="display:flex;gap:8px;padding:0 20px;">
-                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn btn-secondary">
+            <div class="header-actions" style="padding:0 20px;">
+                <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" id="coachTournamentBackBtn" class="page-action-btn">
                     <i class="fas fa-arrow-left"></i> Back to Tournament
                 </a>
             </div>
         </div>
 
-        <div style="padding:20px;max-width:760px;">
+        <div class="recommendations-shell">
 
             <?php if (isset($_SESSION['success'])): ?>
                 <div class="alert-success"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
@@ -111,10 +83,19 @@
                             <option value="">-- Choose a player who applied --</option>
                             <?php foreach ($data['players'] as $p): ?>
                                 <?php $alreadyRec = $alreadyRecommended[$p->PlayerID] ?? null; ?>
-                                <option value="<?php echo $p->PlayerID; ?>" <?php echo $alreadyRec ? 'disabled' : ''; ?>>
+                                <?php
+                                    $alreadyRecRole = 'Recommended';
+                                    if ($alreadyRec && isset($alreadyRec->RecommendedRole)) {
+                                        $alreadyRecRole = trim((string)$alreadyRec->RecommendedRole);
+                                        if ($alreadyRecRole === '' || strtolower($alreadyRecRole) === 'null') {
+                                            $alreadyRecRole = 'Recommended';
+                                        }
+                                    }
+                                ?>
+                                <option value="<?php echo $p->PlayerID; ?>" <?php echo $alreadyRec ? 'disabled' : ''; ?> <?php echo ((int)($data['selected_player_id'] ?? 0) === (int)$p->PlayerID) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($p->Name); ?>
                                     <?php if ($alreadyRec): ?>
-                                        — already recommended as <?php echo htmlspecialchars($alreadyRec->RecommendedRole ?? ''); ?>
+                                        — already recommended as <?php echo htmlspecialchars($alreadyRecRole); ?>
                                     <?php else: ?>
                                         (<?php echo $p->CoachRecs + $p->TrainerRecs; ?> rec<?php echo ($p->CoachRecs + $p->TrainerRecs) != 1 ? 's' : ''; ?> so far)
                                     <?php endif; ?>
@@ -162,22 +143,166 @@
                             <th>Player</th>
                             <th>Coach Recs</th>
                             <th>Trainer Recs</th>
+                            <th>Performance</th>
+                            <th>Details</th>
                             <th>My Rec</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($data['players'] as $p): ?>
                         <?php $myRec = $alreadyRecommended[$p->PlayerID] ?? null; ?>
+                        <?php
+                            $myRecRole = 'Recommended';
+                            if ($myRec && isset($myRec->RecommendedRole)) {
+                                $myRecRole = trim((string)$myRec->RecommendedRole);
+                                if ($myRecRole === '' || strtolower($myRecRole) === 'null') {
+                                    $myRecRole = 'Recommended';
+                                }
+                            }
+                        ?>
+                        <?php $perf = $p->PerformanceSummary ?? ['overall' => null, 'latest_match' => null]; ?>
+                        <?php $overall = $perf['overall'] ?? null; ?>
+                        <?php $latestMatch = $perf['latest_match'] ?? null; ?>
+                        <?php $matches = $p->PerformanceMatches ?? []; ?>
+                        <?php $detailsRowId = 'performance-details-' . (int)$p->PlayerID; ?>
                         <tr>
                             <td><strong><?php echo htmlspecialchars($p->Name); ?></strong><br><span style="font-size:11px;color:#94a3b8;"><?php echo htmlspecialchars($p->Email ?? ''); ?></span></td>
                             <td><?php echo $p->CoachRecs; ?></td>
                             <td><?php echo $p->TrainerRecs; ?></td>
                             <td>
+                                <div class="player-performance-summary">
+                                    <div class="player-performance-grid">
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Matches</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? (int)($overall->MatchesPlayed ?? 0) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Runs</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? (int)($overall->TotalRuns ?? 0) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Bat Avg</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? htmlspecialchars(number_format((float)($overall->BattingAverage ?? 0), 2)) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Wkts</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? (int)($overall->TotalWickets ?? 0) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Bowl Avg</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? htmlspecialchars(number_format((float)($overall->BowlingAverage ?? 0), 2)) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">SR</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? htmlspecialchars(number_format((float)($overall->StrikeRate ?? 0), 2)) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">HS</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? htmlspecialchars((string)($overall->HighestScore ?? 0)) : '—'; ?></span>
+                                        </div>
+                                        <div class="player-performance-stat">
+                                            <span class="player-performance-stat__label">Eco</span>
+                                            <span class="player-performance-stat__value"><?php echo $overall ? htmlspecialchars(number_format((float)($overall->EconomyRate ?? 0), 2)) : '—'; ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="player-performance-note">
+                                        <?php if ($latestMatch): ?>
+                                            <span class="player-performance-tag<?php echo (($latestMatch->VerifiedStatus ?? '') !== 'verified') ? ' player-performance-tag--pending' : ''; ?>">
+                                                <i class="fas fa-<?php echo (($latestMatch->VerifiedStatus ?? '') === 'verified') ? 'check-circle' : 'clock'; ?>"></i>
+                                                <?php echo (($latestMatch->VerifiedStatus ?? '') === 'verified') ? 'Verified' : 'Pending'; ?>
+                                            </span>
+                                            <div style="margin-top:6px;">
+                                                Latest: <?php echo !empty($latestMatch->Date) ? date('d M Y', strtotime($latestMatch->Date)) : 'N/A'; ?> ·
+                                                <?php echo htmlspecialchars($latestMatch->OpponentTeam ?? 'Match'); ?> ·
+                                                R <?php echo (int)($latestMatch->RunsScored ?? 0); ?> / W <?php echo (int)($latestMatch->WicketsTaken ?? 0); ?>
+                                            </div>
+                                        <?php else: ?>
+                                            No match performance recorded yet.
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="performance-toggle-cell">
+                                <button
+                                    type="button"
+                                    class="performance-toggle-btn"
+                                    data-performance-toggle="<?php echo $detailsRowId; ?>"
+                                    aria-expanded="false"
+                                >
+                                    <i class="fas fa-chart-bar"></i>
+                                    Details
+                                </button>
+                            </td>
+                            <td>
                                 <?php if ($myRec): ?>
-                                    <span class="rec-badge"><i class="fas fa-star"></i> <?php echo htmlspecialchars($myRec->RecommendedRole ?? 'Recommended'); ?></span>
+                                    <span class="rec-badge"><i class="fas fa-star"></i> <?php echo htmlspecialchars($myRecRole); ?></span>
                                 <?php else: ?>
                                     <span style="color:#94a3b8;font-size:12px;">—</span>
                                 <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr id="<?php echo $detailsRowId; ?>" class="performance-details-row" hidden>
+                            <td colspan="6">
+                                <div class="performance-details-panel">
+                                    <div class="performance-details-panel__title">
+                                        <h4><i class="fas fa-table"></i> Match-wise Performance</h4>
+                                        <div class="performance-details-panel__summary">
+                                            <?php echo $overall ? (int)($overall->MatchesPlayed ?? 0) : '—'; ?> matches ·
+                                            <?php echo $overall ? (int)($overall->TotalRuns ?? 0) : '—'; ?> runs ·
+                                            <?php echo $overall ? (int)($overall->TotalWickets ?? 0) : '—'; ?> wickets
+                                        </div>
+                                    </div>
+
+                                    <?php if (!empty($matches)): ?>
+                                        <table class="performance-match-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Match</th>
+                                                    <th>Runs</th>
+                                                    <th>Balls</th>
+                                                    <th>Wkts</th>
+                                                    <th>Overs</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($matches as $match): ?>
+                                                    <?php
+                                                        $verifiedStatus = strtolower((string)($match->VerifiedStatus ?? 'pending'));
+                                                        $statusClass = 'performance-status--other';
+                                                        if ($verifiedStatus === 'verified') {
+                                                            $statusClass = 'performance-status--verified';
+                                                        } elseif ($verifiedStatus === 'pending') {
+                                                            $statusClass = 'performance-status--pending';
+                                                        } elseif ($verifiedStatus === 'rejected') {
+                                                            $statusClass = 'performance-status--rejected';
+                                                        }
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo !empty($match->Date) ? date('d M Y', strtotime($match->Date)) : 'N/A'; ?></td>
+                                                        <td>
+                                                            <strong><?php echo htmlspecialchars($match->OpponentTeam ?? 'Match'); ?></strong><br>
+                                                            <span style="color:#64748b;">Tourn.: <?php echo htmlspecialchars($match->TournamentName ?? 'N/A'); ?></span>
+                                                        </td>
+                                                        <td><?php echo (int)($match->RunsScored ?? 0); ?></td>
+                                                        <td><?php echo (int)($match->BallsFaced ?? 0); ?></td>
+                                                        <td><?php echo (int)($match->WicketsTaken ?? 0); ?></td>
+                                                        <td><?php echo htmlspecialchars((string)($match->OversBowled ?? '0')); ?></td>
+                                                        <td>
+                                                            <span class="performance-status <?php echo $statusClass; ?>">
+                                                                <i class="fas <?php echo $verifiedStatus === 'verified' ? 'fa-check-circle' : ($verifiedStatus === 'rejected' ? 'fa-times-circle' : 'fa-clock'); ?>"></i>
+                                                                <?php echo ucfirst($verifiedStatus); ?>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    <?php else: ?>
+                                        <div class="player-performance-note">No match-wise performance records available.</div>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -189,5 +314,7 @@
         </div>
     </main>
 </div>
+
+<script src="<?php echo URLROOT; ?>/js/coach-tournament-pages.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

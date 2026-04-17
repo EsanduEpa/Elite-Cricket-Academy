@@ -156,12 +156,20 @@
 
 /* Product table action bar alignment and export button sizing */
 .data-table .table-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title actions"
+        "filters filters";
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem 1rem;
     border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.data-table .table-header-main {
+    grid-area: title;
+    min-width: 0;
 }
 
 .data-table .table-header h3 {
@@ -169,10 +177,13 @@
 }
 
 .data-table .table-actions {
+    grid-area: actions;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     margin: 0;
+    flex: 0 0 auto;
+    justify-self: end;
 }
 
 .data-table .table-actions .search-box,
@@ -200,15 +211,130 @@
     box-shadow: none;
 }
 
+/* Filter Tabs Styles */
+.filter-section {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.table-filters {
+    grid-area: filters;
+    position: relative;
+    z-index: 2;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: nowrap;
+    overflow: visible;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 0.75rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.filter-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 25px;
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    font-size: 0.87rem;
+    white-space: nowrap;
+    transition: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
+.filter-tab:hover {
+    background: rgba(74, 144, 226, 0.15);
+    border-color: #4A90E2;
+    transform: none;
+    box-shadow: none;
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    border-color: #4A90E2;
+    box-shadow: 0 5px 20px rgba(74, 144, 226, 0.3);
+}
+
+.filter-tab.active i {
+    color: white;
+}
+
+.filter-tab i {
+    font-size: 1rem;
+    color: #4A90E2;
+    transition: none;
+}
+
+/* Keep Product Management summary cards static (no hover/motion effects) */
+.summary-card,
+.summary-card::before,
+.summary-card .card-icon,
+.summary-card canvas {
+    transition: none !important;
+    animation: none !important;
+}
+
+.summary-card::before {
+    display: none !important;
+}
+
+.summary-card:hover,
+.summary-card:hover::before,
+.summary-card:hover .card-icon,
+.summary-card:hover canvas {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Keep Product Management action cards and icons static */
+.main-content#mainContent .action-card,
+.main-content#mainContent .action-card .action-icon,
+.main-content#mainContent .action-card .action-icon i {
+    transition: none !important;
+    animation: none !important;
+}
+
+.main-content#mainContent .action-card:hover,
+.main-content#mainContent .action-card:hover .action-icon,
+.main-content#mainContent .action-card:hover .action-icon i {
+    transform: none !important;
+}
+
 @media (max-width: 768px) {
     .data-table .table-header {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "actions"
+            "filters";
         align-items: flex-start;
-        flex-direction: column;
+    }
+
+    .data-table .table-header-main {
+        width: 100%;
     }
 
     .data-table .table-actions {
         width: 100%;
         flex-wrap: wrap;
+        justify-self: start;
     }
 
     .data-table .table-actions .btn.btn-primary {

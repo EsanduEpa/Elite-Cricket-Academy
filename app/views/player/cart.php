@@ -72,19 +72,24 @@
 
         <!-- Profile Section -->
         <div class="profile-section">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Player'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/player/profile" class="profile-avatar" aria-label="Open player profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
             </div>
-            <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
-            <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
         </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content" id="cartPage" data-urlroot="<?php echo URLROOT; ?>">
+    <div class="main-content" id="cartPage" data-urlroot="<?php echo URLROOT; ?>" data-cart-count="<?php echo (int)($data['cartItemCount'] ?? 0); ?>">
         <!-- Cart Header -->
         <div class="cart-header">
             <div class="header-content">
@@ -374,6 +379,9 @@
 <script type="application/json" id="cartData"><?php echo json_encode([
     'promoDiscounts' => $data['promoDiscounts'] ?? null,
     'recommendedProducts' => $data['recommendedProducts'] ?? null,
+    'cartItems' => $data['cartItems'] ?? [],
+    'cartItemCount' => (int)($data['cartItemCount'] ?? 0),
+    'cartTotal' => (float)($data['cartTotal'] ?? 0),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?></script>
 
 <script src="<?php echo URLROOT; ?>/js/player/cart.js"></script>

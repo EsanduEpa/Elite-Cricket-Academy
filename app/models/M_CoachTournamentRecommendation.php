@@ -106,20 +106,20 @@ class M_CoachTournamentRecommendation
             $query = "
                 SELECT 
                     ctr.*,
-                    u_coach.Name as CoachName,
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u_coach.FirstName, u_coach.LastName)), ''), CONCAT('Coach #', ctr.CoachID)) as CoachName,
                     t.Name as TournamentName,
                     t.tdate as TournamentDate,
                     t.Location as TournamentLocation,
-                    p.PlayerID as PlayerID,
-                    up.Name as PlayerName,
+                    ctr.PlayerID as PlayerID,
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', up.FirstName, up.LastName)), ''), CONCAT('Player #', ctr.PlayerID)) as PlayerName,
                     p.BattingStyle,
                     p.BowlingStyle,
-                    u_reviewer.Name as ReviewedByName
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u_reviewer.FirstName, u_reviewer.LastName)), ''), '') as ReviewedByName
                 FROM coach_tournament_recommendations ctr
-                JOIN user u_coach ON ctr.CoachID = u_coach.UserID
+                LEFT JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
-                JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.PlayerID = up.UserID
+                LEFT JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
+                LEFT JOIN user up ON ctr.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.CoachID = :coachId
             ";
@@ -165,20 +165,20 @@ class M_CoachTournamentRecommendation
             $query = "
                 SELECT 
                     ctr.*,
-                    u_coach.Name as CoachName,
-                    u_coach.UserID as CoachID,
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u_coach.FirstName, u_coach.LastName)), ''), CONCAT('Coach #', ctr.CoachID)) as CoachName,
+                    ctr.CoachID as CoachID,
                     t.Name as TournamentName,
                     t.tdate as TournamentDate,
-                    p.PlayerID,
-                    up.Name as PlayerName,
+                    ctr.PlayerID,
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', up.FirstName, up.LastName)), ''), CONCAT('Player #', ctr.PlayerID)) as PlayerName,
                     p.BattingStyle,
                     p.BowlingStyle,
-                    u_reviewer.Name as ReviewedByName
+                    COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u_reviewer.FirstName, u_reviewer.LastName)), ''), '') as ReviewedByName
                 FROM coach_tournament_recommendations ctr
-                JOIN user u_coach ON ctr.CoachID = u_coach.UserID
+                LEFT JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
-                JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.PlayerID = up.UserID
+                LEFT JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
+                LEFT JOIN user up ON ctr.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.TournamentID = :tournamentId
             ";
@@ -510,8 +510,8 @@ class M_CoachTournamentRecommendation
                     t.tdate as TournamentDate,
                     t.Location as TournamentLocation,
                     t.Status as TournamentStatus,
-                    p.PlayerID,
-                    up.Name as PlayerName,
+                    ctr.PlayerID,
+                    COALESCE(up.Name, CONCAT('Player #', ctr.PlayerID)) as PlayerName,
                     up.Email as PlayerEmail,
                     p.BattingStyle,
                     p.BowlingStyle,
@@ -519,8 +519,8 @@ class M_CoachTournamentRecommendation
                 FROM coach_tournament_recommendations ctr
                 JOIN user u_coach ON ctr.CoachID = u_coach.UserID
                 JOIN tournament t ON ctr.TournamentID = t.TournamentID
-                JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
-                JOIN user up ON p.PlayerID = up.UserID
+                LEFT JOIN playerprofile p ON ctr.PlayerID = p.PlayerID
+                LEFT JOIN user up ON ctr.PlayerID = up.UserID
                 LEFT JOIN user u_reviewer ON ctr.ReviewedBy = u_reviewer.UserID
                 WHERE ctr.RecommendationID = :id
             ");
@@ -565,16 +565,20 @@ class M_CoachTournamentRecommendation
             $results = $this->db->resultSet();
             
             // Format results
-            $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0];
+            $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0, 'total' => 0];
             foreach ($results as $row) {
-                $stats[$row->Status] = $row->count;
+                $statusKey = strtolower((string)($row->Status ?? ''));
+                if ($statusKey !== '') {
+                    $stats[$statusKey] = (int)$row->count;
+                    $stats['total'] += (int)$row->count;
+                }
             }
 
             return $stats;
 
         } catch (Exception $e) {
             error_log('Error in getRecommendationStats: ' . $e->getMessage());
-            return ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0];
+            return ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'confirmed' => 0, 'total' => 0];
         }
     }
 

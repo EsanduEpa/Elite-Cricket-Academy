@@ -14,6 +14,18 @@
 .badge-assistant      { background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
 .badge-substitute     { background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
 .occ-row              { border-bottom:1px solid #eef2f6; }
+.btn-header           { padding:9px 18px;border-radius:8px;color:#fff;text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s ease; }
+.btn-primary          { background:#3498db; }
+.btn-primary:hover    { background:#2980b9;box-shadow:0 2px 8px rgba(52,152,219,.3); }
+.btn-success          { background:#27ae60; }
+.btn-success:hover    { background:#229954;box-shadow:0 2px 8px rgba(39,174,96,.3); }
+.btn-purple           { background:#9b59b6; }
+.btn-purple:hover     { background:#8e44ad;box-shadow:0 2px 8px rgba(155,89,182,.3); }
+.btn-secondary        { background:#ecf0f1;color:#333; }
+.btn-secondary:hover  { background:#d5dbdb;box-shadow:0 2px 8px rgba(0,0,0,.1); }
+.btn-card             { padding:8px 16px;border-radius:8px;color:#fff;text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s ease; }
+.btn-link             { padding:6px 12px;border-radius:6px;background:#3498db;color:#fff;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;transition:all 0.2s ease; }
+.btn-link:hover       { background:#2980b9;box-shadow:0 2px 6px rgba(52,152,219,.3); }
 </style>
 
 <?php
@@ -21,6 +33,11 @@ $template = $data['template'];
 $staff = $data['staff'];
 $occurrences = $data['occurrences'];
 $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+$getOccurrenceDisplayCount = static function($occurrence) {
+    return ($occurrence->SlotType ?? '') === 'program'
+        ? (int) ($occurrence->EligiblePlayerCount ?? 0)
+        : (int) ($occurrence->BookingCount ?? 0);
+};
 ?>
 
 <div class="admin-layout">
@@ -31,8 +48,12 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
+                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
     </div>
@@ -45,12 +66,23 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                     <p>View the full template record, assigned staff, and generated occurrences.</p>
                 </div>
                 <div class="header-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= (int)$template->TemplateID ?>" style="padding:9px 18px;border-radius:8px;background:#3498db;color:#fff;text-decoration:none;font-size:14px;"><i class="fas fa-edit"></i> Edit</a>
-                    <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= (int)$template->TemplateID ?>" style="padding:9px 18px;border-radius:8px;background:#9b59b6;color:#fff;text-decoration:none;font-size:14px;"><i class="fas fa-users"></i> Staff</a>
-                    <a href="<?php echo URLROOT; ?>/adminslots/generate?template_id=<?= (int)$template->TemplateID ?>" style="padding:9px 18px;border-radius:8px;background:#27ae60;color:#fff;text-decoration:none;font-size:14px;"><i class="fas fa-calendar-plus"></i> Generate</a>
-                    <a href="<?php echo URLROOT; ?>/adminslots/templates" style="padding:9px 18px;border-radius:8px;background:#ecf0f1;color:#333;text-decoration:none;font-size:14px;"><i class="fas fa-arrow-left"></i> Back</a>
+                    <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= (int)$template->TemplateID ?>" class="btn-header btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                    <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= (int)$template->TemplateID ?>" class="btn-header btn-purple"><i class="fas fa-users"></i> Staff</a>
+                    <a href="<?php echo URLROOT; ?>/adminslots/generate?template_id=<?= (int)$template->TemplateID ?>" class="btn-header btn-success"><i class="fas fa-calendar-plus"></i> Generate</a>
+                    <a href="<?php echo URLROOT; ?>/adminslots/templates" class="btn-header btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
                 </div>
             </div>
+        </div>
+
+        <!-- Sub-nav -->
+        <div style="padding:0 25px 20px; display:flex; gap:10px;">
+            <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/private_requests" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Private Requests</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px;">
@@ -104,9 +136,11 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                     <h3 style="margin:0;color:#2c3e50;"><i class="fas fa-users"></i> Assigned Staff</h3>
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                         <span style="color:#6c757d;font-size:13px;">Total: <?= count($staff) ?></span>
-                        <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= (int)$template->TemplateID ?>" style="padding:8px 16px;border-radius:8px;background:#9b59b6;color:#fff;text-decoration:none;font-size:13px;">
-                            <i class="fas fa-users"></i> Add Staff
-                        </a>
+                        <?php if (count($staff) === 0): ?>
+                            <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= (int)$template->TemplateID ?>" class="btn-card btn-purple">
+                                <i class="fas fa-users"></i> Add Staff
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php if (empty($staff)): ?>
@@ -146,7 +180,7 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                     <h3 style="margin:0;color:#2c3e50;"><i class="fas fa-calendar-alt"></i> Generated Occurrences</h3>
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                         <span style="color:#6c757d;font-size:13px;">Total: <?= (int)$data['occurrenceCount'] ?></span>
-                        <a href="<?php echo URLROOT; ?>/adminslots/generate?template_id=<?= (int)$template->TemplateID ?>" style="padding:8px 16px;border-radius:8px;background:#27ae60;color:#fff;text-decoration:none;font-size:13px;">
+                        <a href="<?php echo URLROOT; ?>/adminslots/generate?template_id=<?= (int)$template->TemplateID ?>" class="btn-card btn-success">
                             <i class="fas fa-calendar-plus"></i> Generate Occurrences
                         </a>
                     </div>
@@ -161,7 +195,7 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Date</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Time Band</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Facility</th>
-                                    <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Bookings</th>
+                                    <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Count</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Status</th>
                                     <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #dee2e6;">Action</th>
                                 </tr>
@@ -172,9 +206,13 @@ $dayNames = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5
                                         <td style="padding:10px 12px;"><?= htmlspecialchars(date('d M Y', strtotime($occurrence->OccurrenceDate))) ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars($occurrence->SlotLabel ?? '—') ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars($occurrence->FacilityName ?? '—') ?></td>
-                                        <td style="padding:10px 12px;"><?= (int)($occurrence->BookingCount ?? 0) ?></td>
+                                        <td style="padding:10px 12px;"><?= $getOccurrenceDisplayCount($occurrence) ?></td>
                                         <td style="padding:10px 12px;"><?= htmlspecialchars(ucfirst((string)($occurrence->Status ?? 'scheduled'))) ?></td>
-                                        <td style="padding:10px 12px;"><a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= (int)$occurrence->OccurrenceID ?>">View</a></td>
+                                        <td style="padding:10px 12px;">
+                                            <a href="<?php echo URLROOT; ?>/adminslots/occurrence/<?= (int)$occurrence->OccurrenceID ?>" class="btn-link">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

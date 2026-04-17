@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 const APP_URLROOT = window.APP_URLROOT || '';
+const RECOMMENDATION_DATA = window.__COACH_RECOMMENDATION_DATA || { players: [], tournaments: [] };
 
 // ==================== INITIALIZATION ====================
 
@@ -100,6 +101,12 @@ function openNewModal() {
 
     // Load players
     loadPlayerSelect();
+
+    const tournamentSelect = document.getElementById('tournamentSelect');
+    if (tournamentSelect && !tournamentSelect.dataset.boundAgeGroupFilter) {
+        tournamentSelect.addEventListener('change', handleTournamentPlayerFilter);
+        tournamentSelect.dataset.boundAgeGroupFilter = '1';
+    }
 
     // Show modal
     modal.style.display = 'flex';
@@ -382,45 +389,74 @@ function clearFilters() {
 
 function loadTournamentSelect() {
     const select = document.getElementById('tournamentSelect');
-    
-    // Load upcoming tournaments
-    fetch(`<?php echo URLROOT; ?>/coach/tournaments`)
-        .then(r => r.text())
-        .then(html => {
-            // Parse tournaments from tournaments page
-            // For now, just load from API if available
-            select.innerHTML = '<option value="">Select a tournament...</option>';
-            // In a real scenario, you'd call an API endpoint that returns tournaments as JSON
-        })
-        .catch(err => console.warn('Could not load tournaments:', err));
+    if (!select) {
+        return;
+    }
+
+    const tournaments = Array.isArray(RECOMMENDATION_DATA.tournaments) ? RECOMMENDATION_DATA.tournaments : [];
+    select.innerHTML = '<option value="">Select a tournament...</option>';
+
+    tournaments.forEach(tournament => {
+        const option = document.createElement('option');
+        option.value = tournament.TournamentID || tournament.id || '';
+        option.textContent = tournament.Name || tournament.TournamentName || `Tournament ${option.value}`;
+        option.dataset.ageGroup = (tournament.AgeGroup || tournament.age_group || '').toString().toLowerCase();
+        select.appendChild(option);
+    });
 }
 
 function loadPlayerSelect() {
     const select = document.getElementById('playerSelect');
 
-    fetch(`<?php echo URLROOT; ?>/coach/assigned-players`)
-        .then(r => r.json())
-        .then(data => {
-            select.innerHTML = '<option value="">Select a player...</option>';
-            
-            if (data.success && data.players) {
-                data.players.forEach(player => {
-                    const option = document.createElement('option');
-                    option.value = player.PlayerID;
-                    option.textContent = player.Name || `Player ${player.PlayerID}`;
-                    select.appendChild(option);
-                });
-            } else {
-                const option = document.createElement('option');
-                option.disabled = true;
-                option.textContent = 'No players assigned';
-                select.appendChild(option);
-            }
-        })
-        .catch(err => {
-            console.error('Error loading players:', err);
-            select.innerHTML = '<option value="">Error loading players</option>';
-        });
+    if (!select) {
+        return;
+    }
+
+    const players = Array.isArray(RECOMMENDATION_DATA.players) ? RECOMMENDATION_DATA.players : [];
+    select.innerHTML = '<option value="">Select a player...</option>';
+
+    const selectedTournament = document.getElementById('tournamentSelect');
+    const selectedTournamentOption = selectedTournament ? selectedTournament.options[selectedTournament.selectedIndex] : null;
+    const tournamentAgeGroup = (selectedTournamentOption?.dataset?.ageGroup || '').toLowerCase();
+
+    if (!tournamentAgeGroup) {
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.textContent = 'Select a tournament first';
+        select.appendChild(option);
+        select.disabled = true;
+        return;
+    }
+
+    const matchingPlayers = players.filter(player => {
+        const playerAgeGroup = (player.PlayerAgeGroup || player.AgeGroup || '').toString().toLowerCase();
+        return playerAgeGroup === tournamentAgeGroup || playerAgeGroup === 'open' || tournamentAgeGroup === 'open';
+    });
+
+    select.disabled = false;
+
+    if (!matchingPlayers.length) {
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.textContent = 'No matching players for this age group';
+        select.appendChild(option);
+        return;
+    }
+
+    matchingPlayers.forEach(player => {
+        const option = document.createElement('option');
+        option.value = player.PlayerID || player.UserID || '';
+        option.textContent = player.Name || player.PlayerName || `Player ${option.value}`;
+        select.appendChild(option);
+    });
+}
+
+function handleTournamentPlayerFilter() {
+    const playerSelect = document.getElementById('playerSelect');
+    if (playerSelect) {
+        playerSelect.value = '';
+    }
+    loadPlayerSelect();
 }
 
 function loadAvailableTournaments() {

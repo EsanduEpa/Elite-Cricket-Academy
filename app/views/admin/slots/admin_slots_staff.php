@@ -18,19 +18,28 @@
         </div>
         <nav class="sidebar-nav">
             <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard </span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/staff" class="nav-link"><i class="fas fa-users-cog"></i><span>Staff Management</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/players" class="nav-link"><i class="fas fa-user-graduate"></i><span>Player Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/events" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Events &amp; Tournaments</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/adminslots/templates" class="nav-link"><i class="fas fa-clock"></i><span>Slot Management</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/feedback" class="nav-link"><i class="fas fa-comments"></i><span>Feedback</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finance</span></a></li>
+                <li class="nav-item"><a href="<?php echo URLROOT; ?>/admin/finance" class="nav-link"><i class="fas fa-chart-line"></i><span>Finances</span></a></li>
             </ul>
         </nav>
-        <div class="admin-profile">
-            <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
-            <div class="profile-info"><span class="admin-name">Admin</span><span class="admin-role">Super Administrator</span></div>
-            <div class="logout-btn"><a href="<?php echo URLROOT; ?>/login/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a></div>
+        <div class="profile-section">
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
+                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
+                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin User'; ?>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
+                    <a href="<?php echo URLROOT; ?>/admin/profile" class="profile-avatar" aria-label="Open admin profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -74,6 +83,17 @@
                     </a>
                 </div>
             </div>
+        </div>
+
+        <!-- Sub-nav -->
+        <div style="padding:0 25px 20px; display:flex; gap:10px;">
+            <a href="<?php echo URLROOT; ?>/adminslots/timeslots"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Time Bands</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/templates"  style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Templates</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/private_requests" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Private Requests</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/generate"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Generate Occurrences</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/weeklytimetable" style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Weekly Timetable</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/calendar"   style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Calendar</a>
+            <a href="<?php echo URLROOT; ?>/adminslots/adhoc"      style="padding:7px 16px;border-radius:6px;background:#ecf0f1;color:#333;text-decoration:none;font-size:13px;">Academy Event</a>
         </div>
 
         <div style="padding:0 25px 40px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
@@ -139,35 +159,24 @@
                         </select>
                     </div>
 
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;">Staff Role</label>
-                        <select name="staff_role" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
-                            <option value="lead">Lead</option>
-                            <option value="assistant">Assistant</option>
-                        </select>
-                        <p style="font-size:11px;color:#888;margin-top:4px;">
-                            Use Lead for the primary staff member and Assistant for support. You can assign one lead and one assistant to the same template by submitting this form twice.
-                        </p>
-                    </div>
-
                     <button type="submit" style="width:100%;padding:10px;background:#9b59b6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
                         <i class="fas fa-user-plus"></i> Assign Staff
                     </button>
                 </form>
             </div>
-        </div>
 
-        <!-- Proceed to Generate -->
-        <div style="padding:0 25px 20px;">
-            <form method="POST" style="display:inline;">
-                <input type="hidden" name="proceed_generate" value="1">
-                <button type="submit" style="padding:12px 28px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
-                    <i class="fas fa-arrow-right"></i> Proceed to Generate Occurrences
-                </button>
-            </form>
-            <a href="<?php echo URLROOT; ?>/adminslots/templates" style="margin-left:12px;padding:12px 20px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;display:inline-block;">
-                <i class="fas fa-list"></i> Back to Templates
-            </a>
+            <!-- Proceed to Generate - Shows on right side after success -->
+            <div style="display:flex;flex-direction:column;justify-content:center;gap:12px;<?= !empty($data['success']) ? '' : 'visibility:hidden;' ?>">
+                <form method="POST" style="display:block;width:100%;">
+                    <input type="hidden" name="proceed_generate" value="1">
+                    <button type="submit" style="width:100%;padding:16px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;">
+                        <i class="fas fa-arrow-right"></i> Proceed to Generate Occurrences
+                    </button>
+                </form>
+                <a href="<?php echo URLROOT; ?>/adminslots/templates" style="padding:12px 20px;background:#ecf0f1;color:#333;border-radius:8px;text-decoration:none;font-size:14px;text-align:center;">
+                    <i class="fas fa-list"></i> Back to Templates
+                </a>
+            </div>
         </div>
 
         <div style="padding:0 25px 30px;">

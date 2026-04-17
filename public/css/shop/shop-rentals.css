@@ -3,11 +3,187 @@
 
 /* ===== RENTALS PAGE SPECIFIC STYLES ===== */
 
-/* Any rental-specific styles can be added here */
+/* Product-table style action bar alignment and compact export button */
+.data-table .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.data-table .table-header h3 {
+    margin: 0;
+}
+
+.data-table .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.data-table .table-actions .search-box,
+.data-table .table-actions .filter-dropdown {
+    height: 32px;
+    margin: 0;
+}
+
+.data-table .table-actions .btn.btn-primary {
+    height: 32px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    border-radius: 8px;
+    box-shadow: none;
+    transition: none;
+    transform: none;
+    margin: 0;
+}
+
+.data-table .table-actions .btn.btn-primary:hover,
+.data-table .table-actions .btn.btn-primary:focus,
+.data-table .table-actions .btn.btn-primary:active {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Keep Equipment Rentals summary cards static (no hover/motion effects) */
+.summary-card,
+.summary-card::before,
+.summary-card .card-icon,
+.summary-card canvas {
+    transition: none !important;
+    animation: none !important;
+}
+
+.summary-card::before {
+    display: none !important;
+}
+
+.summary-card:hover,
+.summary-card:hover::before,
+.summary-card:hover .card-icon,
+.summary-card:hover canvas {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Disable all motion effects on Equipment Rental Management page */
+.main-content#mainContent *,
+.main-content#mainContent *::before,
+.main-content#mainContent *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.main-content#mainContent .summary-card:hover,
+.main-content#mainContent .summary-card:hover::before,
+.main-content#mainContent .summary-card:hover .card-icon,
+.main-content#mainContent .action-card:hover,
+.main-content#mainContent .action-card:hover::before,
+.main-content#mainContent .action-card:hover .action-icon,
+.main-content#mainContent .filter-tab:hover,
+.main-content#mainContent .btn:hover,
+.main-content#mainContent .btn-small:hover,
+.main-content#mainContent .table-badge:hover,
+.main-content#mainContent .status-badge:hover {
+    transform: none !important;
+}
+
+/* Notifications are injected into body and can animate via inline styles */
+.notification {
+    animation: none !important;
+    transition: none !important;
+}
 
 @media (max-width: 768px) {
+    .data-table .table-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .data-table .table-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .data-table .table-actions .btn.btn-primary {
+        margin-left: 0;
+    }
+
     /* Mobile responsive adjustments for rentals page */
     .dashboard-table {
         font-size: 12px;
+    }
+}
+
+/* ===== RETURN EQUIPMENT MODAL ===== */
+
+#returnModal .modal-content {
+    max-width: 950px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#returnModal .modal-body {
+    overflow-y: auto;
+}
+
+#returnModal .modal-header .close {
+    cursor: pointer;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0.9;
+    user-select: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+}
+
+#returnModal .modal-header .close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+#returnModal .form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#returnModal .form-row .form-group {
+    flex: 1;
+    min-width: 220px;
+    margin-bottom: 1rem;
+}
+
+#returnModal input,
+#returnModal select,
+#returnModal textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    outline: none;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#returnModal input:focus,
+#returnModal select:focus,
+#returnModal textarea:focus {
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+@media (max-width: 600px) {
+    #returnModal .modal-content {
+        width: 95%;
+        margin: 5% auto;
     }
 }

@@ -47,9 +47,46 @@ class Staffslots extends Controller {
 
         // Group by date for the weekly grid
         $byDate = [];
+        $dayLabels = [];
+        $attendanceAll = [];
+        $attendanceProgram = [];
+        $attendancePrivate = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $dayTs = strtotime("+{$i} days", $monTs);
+            $dateKey = date('Y-m-d', $dayTs);
+            $dayLabels[] = date('D j M', $dayTs);
+            $attendanceAll[$dateKey] = 0;
+            $attendanceProgram[$dateKey] = 0;
+            $attendancePrivate[$dateKey] = 0;
+        }
+
         foreach ($occurrences as $occ) {
             $byDate[$occ->OccurrenceDate][] = $occ;
+
+            $occDate = (string) ($occ->OccurrenceDate ?? '');
+            if (!array_key_exists($occDate, $attendanceAll)) {
+                continue;
+            }
+
+            $slotType = strtolower((string) ($occ->SlotType ?? 'program'));
+            $participantCount = $slotType === 'program'
+                ? (int) ($occ->EligiblePlayerCount ?? 0)
+                : (int) ($occ->BookingCount ?? 0);
+
+            $attendanceAll[$occDate] += $participantCount;
+            if ($slotType === 'program') {
+                $attendanceProgram[$occDate] += $participantCount;
+            } else {
+                $attendancePrivate[$occDate] += $participantCount;
+            }
         }
+
+        $attendanceValues = [
+            'all' => array_values($attendanceAll),
+            'program' => array_values($attendanceProgram),
+            'private' => array_values($attendancePrivate),
+        ];
 
         $data = [
             'title'    => 'My Sessions',
@@ -60,6 +97,14 @@ class Staffslots extends Controller {
             'nextWeek' => date('Y-m-d', strtotime('+7 days', $monTs)),
             'monTs'    => $monTs,
             'byDate'   => $byDate,
+            'attendanceChartData' => [
+                'labels' => $dayLabels,
+                'datasets' => [
+                    'all' => ['label' => 'All Sessions', 'values' => $attendanceValues['all']],
+                    'program' => ['label' => 'Program Sessions', 'values' => $attendanceValues['program']],
+                    'private' => ['label' => 'Private Sessions', 'values' => $attendanceValues['private']],
+                ],
+            ],
         ];
         $this->view('staff/slots/calendar', $data);
     }
@@ -98,6 +143,25 @@ class Staffslots extends Controller {
                     } else {
                         $error = 'Could not cancel the session. Please try again.';
                     }
+                }
+            } elseif (isset($_POST['action_update_occurrence_status'])) {
+                $status = trim((string) ($_POST['occurrence_status'] ?? ''));
+                $reason = trim((string) ($_POST['occurrence_status_reason'] ?? ''));
+                $result = $model->updateOccurrenceStatus((int) $id, $status, $this->userId, $reason);
+
+                if ($result === true) {
+                    $success = 'Session occurrence status updated successfully.';
+                    $occurrence = $model->getOccurrenceDetail((int) $id, $this->userId);
+                } elseif ($result === 'invalid_status') {
+                    $error = 'That occurrence status is not allowed.';
+                } elseif ($result === 'not_past') {
+                    $error = 'Occurrence status can only be updated after the session has ended.';
+                } elseif ($result === 'reason_required') {
+                    $error = 'Please provide a reason when marking a session as cancelled.';
+                } elseif ($result === 'not_assigned') {
+                    $error = 'You are not assigned to this session.';
+                } else {
+                    $error = 'Could not update the occurrence status. Please try again.';
                 }
             } elseif (isset($_POST['action_update_booking'])) {
                 $bookingId = (int) ($_POST['booking_id'] ?? 0);
@@ -208,19 +272,20 @@ class Staffslots extends Controller {
                 $result = $model->createPrivateSession($_POST, $this->userId, $this->staffType);
 
                 if (is_int($result) && $result > 0) {
-                    redirect('staffslots/occurrence/' . $result);
+                    flash('session_message', 'Private session request submitted successfully. An admin will review availability and approve it if the facility is free.', 'alert alert-success');
+                    redirect('staffslots/calendar');
                 } elseif ($result === 'time_conflict') {
                     $error = 'You are already assigned to another session in that time band on that date.';
                 } elseif ($result === 'duplicate') {
-                    $error = 'This facility is already booked for that time band on that date.';
+                    $error = 'You already have a pending request for that date, time band, and facility.';
                 } else {
-                    $error = 'Could not create the session. Please try again.';
+                    $error = 'Could not submit the request. Please try again.';
                 }
             }
         }
 
         $data = [
-            'title'      => 'Add Private Session',
+            'title'      => 'Request Private Session',
             'role'       => $this->role,
             'timeBands'  => $model->getActiveTimeBands(),
             'facilities' => $model->getFacilities(),
@@ -228,5 +293,20 @@ class Staffslots extends Controller {
             'post'       => $_POST, // repopulate form on error
         ];
         $this->view('staff/slots/private_session', $data);
+    }
+
+    // =========================================================
+    // PAST REQUESTS  —  /staffslots/past_requests
+    // =========================================================
+    public function past_requests() {
+        $model = $this->model('M_SlotStaff');
+
+        $data = [
+            'title' => 'Past Requests',
+            'role' => $this->role,
+            'requests' => $model->getPrivateSessionRequestsByStaff($this->userId),
+        ];
+
+        $this->view('staff/slots/past_requests', $data);
     }
 }

@@ -1,18 +1,15 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
 <style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; }
-.status-created { background:#e2e8f0; color:#475569; }
-.status-registration_open { background:#dcfce7; color:#166534; }
-.status-registration_closed { background:#fef9c3; color:#854d0e; }
-.status-team_announced { background:#dbeafe; color:#1e40af; }
-.status-ongoing { background:#fde68a; color:#92400e; }
-.status-completed { background:#d1fae5; color:#065f46; }
-.status-cancelled { background:#fee2e2; color:#991b1b; }
-.t-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; display:flex; justify-content:space-between; align-items:flex-start; border-left:4px solid #3b82f6; margin-bottom:12px; }
-.t-card.cancelled { border-left-color:#ef4444; opacity:.75; }
-.t-card.completed { border-left-color:#10b981; }
-.t-card.ongoing { border-left-color:#f59e0b; }
+.filter-section { display:flex; gap:16px; margin:20px; flex-wrap:wrap; align-items:center; }
+.filter-group { display:flex; align-items:center; gap:8px; }
+.filter-group label { font-weight:600; color:#333; font-size:.95rem; }
+.filter-group select { padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:.88rem; background:#fff; cursor:pointer; min-width:150px; }
+.filter-group select:focus { outline:none; border-color:#4A90E2; }
+.btn-reset-filter { padding:8px 14px; background:#f0f0f0; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:.88rem; color:#333; }
+.btn-reset-filter:hover { background:#e0e0e0; }
+.t-card.hidden { display:none; }
 </style>
 
 <div class="coach-layout">
@@ -27,7 +24,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players"><i class="fas fa-users"></i><span>Players</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/tournament-recommendations" class="nav-link" data-tooltip="Recommendations"><i class="fas fa-star"></i><span>Recommendations</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health &amp; Injury"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events"><i class="fas fa-calendar"></i><span>Events</span></a></li>
@@ -45,8 +41,21 @@
     <main class="main-content" id="mainContent">
         <div class="dashboard-header">
             <div class="header-content">
-                <h1><i class="fas fa-trophy"></i> Tournaments</h1>
-                <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+                <div class="header-text">
+                    <h1><i class="fas fa-trophy"></i> Tournaments</h1>
+                    <p>View tournaments and manage squad selection<?php echo $data['is_head_coach'] ? ' as Head Coach' : ''; ?></p>
+                </div>
+                <div class="header-actions">
+                    <a
+                        href="<?php echo URLROOT; ?>/coach/tournament-recommendations"
+                        id="coachTournamentRecommendationsBtn"
+                        class="page-action-btn"
+                        aria-label="Open tournament recommendations"
+                    >
+                        <i class="fas fa-star"></i>
+                        Recommendations
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -57,6 +66,49 @@
             <div style="margin:0 20px 10px;padding:12px 16px;border-radius:8px;background:#fee2e2;color:#991b1b;"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
+        <!-- Filters -->
+        <?php if (!empty($data['tournaments'])): ?>
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="coachAgeGroupFilter">Age Group:</label>
+                <select id="coachAgeGroupFilter">
+                    <option value="">All Age Groups</option>
+                    <?php 
+                        $ageGroups = [];
+                        foreach ($data['tournaments'] as $t) {
+                            if (!empty($t->AgeGroup) && !in_array($t->AgeGroup, $ageGroups)) {
+                                $ageGroups[] = $t->AgeGroup;
+                            }
+                        }
+                        sort($ageGroups);
+                        foreach ($ageGroups as $ag):
+                    ?>
+                    <option value="<?php echo htmlspecialchars($ag); ?>"><?php echo htmlspecialchars($ag); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="coachStatusFilter">Status:</label>
+                <select id="coachStatusFilter">
+                    <option value="">All Statuses</option>
+                    <?php 
+                        $statuses = [];
+                        foreach ($data['tournaments'] as $t) {
+                            if (!empty($t->Status) && !in_array($t->Status, $statuses)) {
+                                $statuses[] = $t->Status;
+                            }
+                        }
+                        sort($statuses);
+                        foreach ($statuses as $st):
+                    ?>
+                    <option value="<?php echo htmlspecialchars($st); ?>"><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($st))); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button class="btn-reset-filter" onclick="resetCoachFilters()"><i class="fas fa-redo"></i> Reset</button>
+        </div>
+        <?php endif; ?>
+
         <div style="padding:20px;">
             <?php if (empty($data['tournaments'])): ?>
                 <div style="text-align:center;padding:60px;color:#94a3b8;">
@@ -64,8 +116,9 @@
                     <p>No tournaments available yet.</p>
                 </div>
             <?php else: ?>
-                <?php foreach ($data['tournaments'] as $t): ?>
-                <div class="t-card <?php echo $t->Status; ?>">
+                <div id="coachTournamentCards">
+                    <?php foreach ($data['tournaments'] as $t): ?>
+                    <div class="t-card <?php echo $t->Status; ?>" data-age-group="<?php echo htmlspecialchars($t->AgeGroup ?? ''); ?>" data-status="<?php echo htmlspecialchars($t->Status ?? ''); ?>">
                     <div>
                         <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px;"><?php echo htmlspecialchars($t->Name); ?></div>
                         <div style="font-size:13px;color:#64748b;margin-bottom:8px;">
@@ -85,10 +138,45 @@
                     </div>
                 </div>
                 <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
     </main>
 </div>
+
+<script>
+function applyCoachFilters() {
+    const ageGroupFilter = document.getElementById('coachAgeGroupFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('coachStatusFilter').value.toLowerCase();
+    const cards = document.querySelectorAll('.t-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const cardAgeGroup = card.getAttribute('data-age-group').toLowerCase();
+        const cardStatus = card.getAttribute('data-status').toLowerCase();
+        
+        const matchesAgeGroup = !ageGroupFilter || cardAgeGroup === ageGroupFilter;
+        const matchesStatus = !statusFilter || cardStatus === statusFilter;
+        
+        if (matchesAgeGroup && matchesStatus) {
+            card.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
+function resetCoachFilters() {
+    document.getElementById('coachAgeGroupFilter').value = '';
+    document.getElementById('coachStatusFilter').value = '';
+    applyCoachFilters();
+}
+
+// Add event listeners
+document.getElementById('coachAgeGroupFilter').addEventListener('change', applyCoachFilters);
+document.getElementById('coachStatusFilter').addEventListener('change', applyCoachFilters);
+</script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
