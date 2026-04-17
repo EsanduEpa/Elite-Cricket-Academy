@@ -66,7 +66,7 @@
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
                         <i class="fas fa-capsules"></i>
-                        <span>Nutrition & Supplements</span>
+                        <span>Nutrition</span>
                     </a>
                 </li>
                 

@@ -419,37 +419,13 @@ class Trainer extends Controller {
     }
 
     public function supplements() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
+        $this->supplementsModuleRemoved();
+        return;
+    }
 
-        // Initialize supplement plan model
-        $supplementModel = $this->model('M_SupplementPlan');
-        
-        // Get trainer's supplement plans
-        $supplementPlans = $supplementModel->getAllPlans($_SESSION['user_id']);
-        $players = $supplementModel->getAllPlayers();
-        $groups = $supplementModel->getPlayerGroups();
-
-        $errors = $_SESSION['supplement_form_errors'] ?? [];
-        $old = $_SESSION['supplement_form_old'] ?? [];
-        unset($_SESSION['supplement_form_errors'], $_SESSION['supplement_form_old']);
-
-        $data = [
-            'title' => 'Supplement Plans',
-            'supplement_plans' => $supplementPlans,
-            'players' => $players,
-            'groups' => $groups,
-            'plan_options' => $this->getSupplementPlanOptions(),
-            'supplement_plan_library' => $this->getSupplementPlanLibrary(),
-            'errors' => $errors,
-            'old' => $old,
-        ];
-
-        $this->view('trainer/supplements', $data);
+    private function supplementsModuleRemoved(): void {
+        flash('nutrition_message', 'Supplements module has been removed.', 'alert alert-warning');
+        redirect('trainer/nutrition');
     }
 
     public function medical() {
@@ -889,6 +865,8 @@ class Trainer extends Controller {
 
     // Add supplement plan
     public function addSupplementPlan() {
+        $this->supplementsModuleRemoved();
+        return;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Initialize model
             $supplementModel = $this->model('M_SupplementPlan');
@@ -931,6 +909,8 @@ class Trainer extends Controller {
 
     // Update supplement plan
     public function updateSupplementPlan($id) {
+        $this->supplementsModuleRemoved();
+        return;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $supplementModel = $this->model('M_SupplementPlan');
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
@@ -978,6 +958,8 @@ class Trainer extends Controller {
 
     // Delete supplement plan
     public function deleteSupplementPlan($id) {
+        $this->supplementsModuleRemoved();
+        return;
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('trainer/supplements');
             return;
