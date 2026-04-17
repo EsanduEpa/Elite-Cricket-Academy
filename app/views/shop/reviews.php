@@ -190,31 +190,12 @@
             </div>
         </div>
 
-        <!-- Review Filters -->
-        <div class="filter-section" style="margin: 2rem 0;">
-            <div class="filter-tabs" style="display: flex; gap: 0.5rem; background: rgba(255, 255, 255, 0.25); padding: 0.5rem; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.18);">
-                <a href="#" class="filter-tab active" data-rating="all" style="flex: 1; padding: 12px 20px; text-decoration: none; color: white; background: #4A90E2; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-th"></i> All Reviews
-                </a>
-                <a href="#" class="filter-tab" data-rating="5" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-star"></i> 5 Stars
-                </a>
-                <a href="#" class="filter-tab" data-rating="4" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-star"></i> 4 Stars
-                </a>
-                <a href="#" class="filter-tab" data-rating="pending" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-clock"></i> Pending
-                </a>
-                <a href="#" class="filter-tab" data-rating="negative" style="flex: 1; padding: 12px 20px; text-decoration: none; color: #666; background: transparent; border-radius: 10px; text-align: center; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fas fa-exclamation-triangle"></i> Low Rated
-                </a>
-            </div>
-        </div>
-
         <!-- Reviews Table -->
         <div class="data-table">
             <div class="table-header">
-                <h3><i class="fas fa-list"></i> Customer Reviews</h3>
+                <div class="table-header-main">
+                    <h3><i class="fas fa-list"></i> Customer Reviews</h3>
+                </div>
                 <div class="table-actions">
                     <input type="text" class="search-box" placeholder="Search reviews..." id="reviewSearch">
                     <select class="filter-dropdown" id="productFilter">
@@ -227,6 +208,25 @@
                     <button class="btn btn-primary" onclick="exportReviews()">
                         <i class="fas fa-download"></i> Export
                     </button>
+                </div>
+                <div class="filter-section table-filters">
+                    <div class="filter-tabs">
+                        <a href="#" class="filter-tab active" data-rating="all">
+                            <i class="fas fa-th"></i> All Reviews
+                        </a>
+                        <a href="#" class="filter-tab" data-rating="5">
+                            <i class="fas fa-star"></i> 5 Stars
+                        </a>
+                        <a href="#" class="filter-tab" data-rating="4">
+                            <i class="fas fa-star"></i> 4 Stars
+                        </a>
+                        <a href="#" class="filter-tab" data-rating="pending">
+                            <i class="fas fa-clock"></i> Pending
+                        </a>
+                        <a href="#" class="filter-tab" data-rating="negative">
+                            <i class="fas fa-exclamation-triangle"></i> Low Rated
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -553,25 +553,22 @@
 </div>
 
 <style>
-/* Filter tabs styling */
-.filter-tab:hover {
-    background: rgba(74, 144, 226, 0.1) !important;
-    color: #4A90E2 !important;
-}
-
-.filter-tab.active {
-    background: #4A90E2 !important;
-    color: white !important;
-}
-
-/* Reviews table action bar alignment and compact export button */
+/* Reviews table action bar layout and compact export button */
 .data-table .table-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title actions"
+        "filters filters";
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem 1rem;
     border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.data-table .table-header-main {
+    grid-area: title;
+    min-width: 0;
 }
 
 .data-table .table-header h3 {
@@ -579,10 +576,12 @@
 }
 
 .data-table .table-actions {
+    grid-area: actions;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     margin: 0;
+    justify-self: end;
 }
 
 .data-table .table-actions .search-box,
@@ -608,6 +607,62 @@
 .data-table .table-actions .btn.btn-primary:active {
     transform: none;
     box-shadow: none;
+}
+
+/* Filter tabs styling */
+.filter-section {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.table-filters {
+    grid-area: filters;
+    position: relative;
+    z-index: 2;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: nowrap;
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.65rem 0.75rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.filter-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #666;
+    background: transparent;
+    border: 2px solid rgba(74, 144, 226, 0.2);
+    border-radius: 25px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+.filter-tab:hover {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+}
+
+.filter-tab.active {
+    background: #4A90E2;
+    color: white;
+    border-color: #4A90E2;
 }
 
 /* Modal Styles */
@@ -689,18 +744,19 @@
 }
 
 @media (max-width: 768px) {
-    .filter-tabs {
-        flex-wrap: wrap;
-    }
-
     .data-table .table-header {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "actions"
+            "filters";
         align-items: flex-start;
-        flex-direction: column;
     }
 
     .data-table .table-actions {
         width: 100%;
         flex-wrap: wrap;
+        justify-self: start;
     }
 
     .data-table .table-actions .btn.btn-primary {
