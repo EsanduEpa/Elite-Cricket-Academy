@@ -4,76 +4,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/medical.css?v=<?php echo time(); ?>">
     
     <div class="player-layout">
-        <!-- Simple Sidebar -->
-        <div class="player-sidebar" id="playerSidebar">
-            <div class="sidebar-header">
-                <div class="player-logo">
-                    <i class="fas fa-user-graduate"></i>
-                    <h3>Player Dashboard</h3>
-                </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-
-            <nav class="sidebar-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player" class="nav-link">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                  
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Performance</span>
-                        </a>
-                    </li>
-                        <li class="nav-item"><a href="<?php echo URLROOT; ?>/playerslots" class="nav-link"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
-               
-                   
-                    
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
-                            <i class="fas fa-medal"></i>
-                            <span>Tournaments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Medical</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/payments" class="nav-link">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Payments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Shopping</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Simple Profile Section -->
-            <div class="profile-section">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
-                <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn profile-logout-link">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-        </div>
+        <?php $playerActivePage = 'medical'; require APPROOT . '/views/inc/components/player_sidebar.php'; ?>
 
         <!-- Main Content Area -->
         <div class="main-content" id="medicalPage" data-urlroot="<?php echo URLROOT; ?>">
