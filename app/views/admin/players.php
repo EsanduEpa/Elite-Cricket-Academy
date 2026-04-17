@@ -160,7 +160,6 @@
                             <option value="Under 15">Under 15</option>
                             <option value="Under 17">Under 17</option>
                             <option value="Under 19">Under 19</option>
-                            <option value="Under 21">Under 21</option>
                             <option value="Open">Open</option>
                         </select>
                         <select id="subscriptionFilter" class="filter-select">

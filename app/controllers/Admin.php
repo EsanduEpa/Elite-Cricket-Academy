@@ -1061,7 +1061,7 @@ class Admin extends Controller {
         $coachingType = trim($_POST['coaching_type'] ?? '');
         $ageGroups = $_POST['age_groups'] ?? [];
         $validCoachingTypes = ['batting', 'bowling', 'fielding'];
-        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Under 21', 'Open'];
+        $validAgeGroups = ['Under 11', 'Under 13', 'Under 15', 'Under 17', 'Under 19', 'Open'];
 
         if ($coachId <= 0 || !in_array($coachingType, $validCoachingTypes, true)) {
             $_SESSION['error'] = 'Please choose a coach and coaching type.';

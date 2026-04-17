@@ -49,7 +49,6 @@ class SlotBookingService {
                     WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 15 THEN 'Under 15'
                     WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 17 THEN 'Under 17'
                     WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 19 THEN 'Under 19'
-                    WHEN TIMESTAMPDIFF(YEAR, DateOfBirth, CURDATE()) < 21 THEN 'Under 21'
                     ELSE 'Open'
                   END = :age_group"
         );

@@ -60,13 +60,6 @@ class M_Shop {
         return $this->db->resultSet();
     }
 
-    // Get featured products
-    public function getFeaturedProducts($limit = 8) {
-        $this->db->query('SELECT * FROM products WHERE is_featured = 1 AND status = "active" ORDER BY created_at DESC LIMIT :limit');
-        $this->db->bind(':limit', $limit);
-        
-        return $this->db->resultSet();
-    }
 
     // Get all categories
     public function getCategories() {
@@ -1303,19 +1296,7 @@ class M_Shop {
     }
 
     // Get supplement prescriptions (supplement plans assigned to players)
-    public function getSupplementPrescriptions() {
-        $this->db->query('SELECT sp.PlanID, sp.SupplementPlanName AS supplements, 
-            sp.Dosage, sp.Duration, sp.CreatedDate AS date,
-            CONCAT(u_player.FirstName, \' \', u_player.LastName) AS patient, CONCAT(u_trainer.FirstName, \' \', u_trainer.LastName) AS prescribed_by,
-            CASE WHEN DATEDIFF(CURDATE(), sp.CreatedDate) < sp.Duration THEN "active" ELSE "completed" END AS status
-            FROM supplementplan sp
-            JOIN supplement_player spp ON sp.PlanID = spp.PlanID
-            JOIN user u_player ON spp.PlayerID = u_player.UserID
-            JOIN user u_trainer ON sp.TrainerID = u_trainer.UserID
-            ORDER BY sp.CreatedDate DESC');
-        return $this->db->resultSet();
-    }
-
+  
     // Get all product categories from product table
     public function getProductCategories() {
         $this->db->query('SELECT DISTINCT Category AS name, 

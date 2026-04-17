@@ -305,7 +305,6 @@ class M_SupplementPlan {
             (object)['key' => 'under_13', 'label' => 'Under 13 Players', 'description' => 'Players younger than 13 years old.'],
             (object)['key' => 'under_15', 'label' => 'Under 15 Players', 'description' => 'Players younger than 15 years old.'],
             (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players 19 years old or younger.'],
-            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players 21 years old or younger.'],
             (object)['key' => 'tournament', 'label' => 'Tournament Players', 'description' => 'Players selected for a tournament squad.'],
         ];
     }
@@ -316,7 +315,7 @@ class M_SupplementPlan {
         if ($groupKey === 'all') {
             $this->db->query('SELECT UserID FROM ' . $this->userTable . ' WHERE Role = "Player" AND Status = "active" ORDER BY FirstName');
             $rows = $this->db->resultSet();
-        } elseif (in_array($groupKey, ['under_13', 'under_15', 'under_19', 'under_21'], true)) {
+                } elseif (in_array($groupKey, ['under_13', 'under_15', 'under_19'], true)) {
             $ageLimit = (int)str_replace('under_', '', $groupKey);
             $this->db->query('SELECT UserID
                 FROM ' . $this->userTable . '

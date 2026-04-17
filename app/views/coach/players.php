@@ -39,6 +39,13 @@
                         <span>Players</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Performance</span>
+                    </a>
+                </li>
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">

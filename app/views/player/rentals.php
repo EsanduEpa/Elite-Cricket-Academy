@@ -183,14 +183,14 @@
                     <table class="rental-history-table">
                         <thead>
                             <tr>
-                                <th>Rental ID</th>
                                 <th>Equipment</th>
                                 <th>Start</th>
                                 <th>Return By</th>
+                                <th>Total Cost</th>
+
                                 <th>Status</th>
                                 <th>Return Fee</th>
-                                <th>Payment</th>
-                                <th>Total Cost</th>
+                                <th>Return fee payment status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -216,15 +216,18 @@
                                     $hasPendingReturnFee = ($returnPay > 0 && $returnPaymentStatus === 'pending' && !empty($rental->ReturnID));
                                 ?>
                                 <tr>
-                                    <td>#<?php echo (int)($rental->RentalID ?? 0); ?></td>
                                     <td><?php echo $escape($rental->EquipmentName ?? 'Equipment'); ?></td>
                                     <td><?php echo !empty($rental->StartTime) ? date('M j, Y', strtotime($rental->StartTime)) : '-'; ?></td>
                                     <td><?php echo !empty($rental->EndTime) ? date('M j, Y', strtotime($rental->EndTime)) : '-'; ?></td>
+                                    <td>LKR <?php echo number_format((float)($rental->TotalCost ?? 0), 2); ?></td>
+
+
                                     <td>
                                         <span class="rental-status rental-status-<?php echo $escape($statusForBadge); ?>">
                                             <?php echo $escape(ucfirst($statusForBadge)); ?>
                                         </span>
                                     </td>
+
                                     <td>
                                         <?php if (!empty($rental->ReturnID)) : ?>
                                             LKR <?php echo number_format($returnPay, 2); ?>
@@ -246,7 +249,6 @@
                                             -
                                         <?php endif; ?>
                                     </td>
-                                    <td>LKR <?php echo number_format((float)($rental->TotalCost ?? 0), 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

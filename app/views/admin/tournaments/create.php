@@ -69,7 +69,7 @@
                         <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Age Group</label>
                         <select name="age_group" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
                             <option value="">— Select —</option>
-                            <?php foreach (['Under 13','Under 15','Under 16','Under 19','Under 21','Open'] as $ag): ?>
+                            <?php foreach (['Under 13','Under 15','Under 16','Under 19','Open'] as $ag): ?>
                                 <option value="<?php echo $ag; ?>" <?php echo (($_POST['age_group'] ?? '') === $ag) ? 'selected' : ''; ?>><?php echo $ag; ?></option>
                             <?php endforeach; ?>
                         </select>

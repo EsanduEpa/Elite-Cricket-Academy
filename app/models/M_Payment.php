@@ -6,6 +6,202 @@ class M_Payment {
         $this->db = new Database();
     }
 
+    private function tableExists(string $table): bool {
+        try {
+            $this->db->query('SELECT 1
+                FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = :table
+                LIMIT 1');
+            $this->db->bind(':table', $table);
+            $row = $this->db->single();
+            return !empty($row);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    private function columnExists(string $table, string $column): bool {
+        try {
+            $this->db->query('SELECT 1
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = :table
+                  AND COLUMN_NAME = :column
+                LIMIT 1');
+            $this->db->bind(':table', $table);
+            $this->db->bind(':column', $column);
+            $row = $this->db->single();
+            return !empty($row);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    // ==================== EQUIPMENT RETURN FEE PAYMENTS ====================
+
+    /**
+     * Ensure pending return-fee payments exist in the payment table for a player.
+     * Safe no-op if the table/schema isn't present yet.
+     */
+    public function ensurePendingReturnFeePaymentsForPlayer(int $playerId): bool {
+        if ($playerId <= 0) {
+            return false;
+        }
+
+        if (!$this->tableExists('equipmentreturnpayment')) {
+            return false;
+        }
+
+        if (!$this->tableExists('equipmentreturn') || !$this->tableExists('equipmentrental')) {
+            return false;
+        }
+
+        if (!$this->columnExists('equipmentreturn', 'PaymentStatus')) {
+            return false;
+        }
+
+        $hasTotal = $this->columnExists('equipmentreturn', 'TotalReturnPay');
+        $totalExpr = $hasTotal ? 'r.TotalReturnPay' : '(COALESCE(r.DamageFee,0) + COALESCE(r.LateFee,0))';
+
+        $this->db->query('SELECT r.ReturnID, er.PlayerID, ' . $totalExpr . ' AS Amount
+            FROM equipmentreturn r
+            JOIN equipmentrental er ON r.RentalID = er.RentalID
+            WHERE er.PlayerID = :player_id
+              AND r.PaymentStatus = "pending"
+              AND ' . $totalExpr . ' > 0');
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $rows = $this->db->resultSet();
+        if (!$rows) {
+            return true;
+        }
+
+        foreach ($rows as $row) {
+            $returnId = (int)($row->ReturnID ?? 0);
+            $amount = (float)($row->Amount ?? 0);
+            if ($returnId <= 0 || $amount <= 0) {
+                continue;
+            }
+
+            $this->db->query('INSERT INTO equipmentreturnpayment
+                (ReturnID, PlayerID, PaymentDate, DueDate, Amount, PaymentMethod, Status, Notes)
+                VALUES
+                (:return_id, :player_id, NULL, CURDATE(), :amount, "online", "pending", "Equipment return fee pending")
+                ON DUPLICATE KEY UPDATE
+                    Amount = VALUES(Amount),
+                    DueDate = VALUES(DueDate),
+                    Status = CASE WHEN equipmentreturnpayment.Status = "completed" THEN equipmentreturnpayment.Status ELSE VALUES(Status) END');
+            $this->db->bind(':return_id', $returnId, PDO::PARAM_INT);
+            $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+            $this->db->bind(':amount', number_format($amount, 2, '.', ''), PDO::PARAM_STR);
+            $this->db->execute();
+        }
+
+        return true;
+    }
+
+    /** Upsert a pending payment row for a specific return fee (used at checkout start). */
+    public function upsertPendingReturnFeePayment(int $returnId, int $playerId, float $amount): bool {
+        if ($returnId <= 0 || $playerId <= 0 || $amount <= 0) {
+            return false;
+        }
+        if (!$this->tableExists('equipmentreturnpayment')) {
+            return false;
+        }
+
+        $this->db->query('INSERT INTO equipmentreturnpayment
+            (ReturnID, PlayerID, PaymentDate, DueDate, Amount, PaymentMethod, Status, Notes)
+            VALUES
+            (:return_id, :player_id, NULL, CURDATE(), :amount, "online", "pending", "Equipment return fee pending")
+            ON DUPLICATE KEY UPDATE
+                Amount = VALUES(Amount),
+                DueDate = VALUES(DueDate),
+                Status = CASE WHEN equipmentreturnpayment.Status = "completed" THEN equipmentreturnpayment.Status ELSE "pending" END');
+        $this->db->bind(':return_id', $returnId, PDO::PARAM_INT);
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':amount', number_format($amount, 2, '.', ''), PDO::PARAM_STR);
+        return (bool)$this->db->execute();
+    }
+
+    public function attachGatewayOrderToReturnFeePayment(int $returnId, int $playerId, string $orderId): bool {
+        $orderId = trim($orderId);
+        if ($returnId <= 0 || $playerId <= 0 || $orderId === '') {
+            return false;
+        }
+        if (!$this->tableExists('equipmentreturnpayment')) {
+            return false;
+        }
+
+        $this->db->query('UPDATE equipmentreturnpayment
+            SET Gateway = "payhere",
+                GatewayOrderId = :order_id
+            WHERE ReturnID = :return_id
+              AND PlayerID = :player_id
+              AND Status = "pending"');
+        $this->db->bind(':order_id', $orderId);
+        $this->db->bind(':return_id', $returnId, PDO::PARAM_INT);
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        return (bool)$this->db->execute();
+    }
+
+    public function markReturnFeePaymentCompleted(int $returnId, int $playerId, string $orderId, ?string $gatewayPaymentId = null, ?string $reference = null): bool {
+        $orderId = trim($orderId);
+        if ($returnId <= 0 || $playerId <= 0 || $orderId === '') {
+            return false;
+        }
+        if (!$this->tableExists('equipmentreturnpayment')) {
+            return false;
+        }
+
+        $this->db->query('UPDATE equipmentreturnpayment
+            SET Status = "completed",
+                PaymentDate = CURDATE(),
+                PaymentMethod = "online",
+                Gateway = "payhere",
+                GatewayOrderId = :order_id,
+                GatewayPaymentId = :gateway_payment_id,
+                PaymentReference = :payment_reference,
+                PaidAt = NOW(),
+                FailedAt = NULL
+            WHERE ReturnID = :return_id
+              AND PlayerID = :player_id
+              AND Status IN ("pending", "completed")');
+        $this->db->bind(':order_id', $orderId);
+        $this->db->bind(':gateway_payment_id', $gatewayPaymentId);
+        $this->db->bind(':payment_reference', $reference ?: $orderId);
+        $this->db->bind(':return_id', $returnId, PDO::PARAM_INT);
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        return (bool)$this->db->execute();
+    }
+
+    public function getUpcomingReturnFeePaymentsForPlayer(int $playerId): array {
+        if ($playerId <= 0 || !$this->tableExists('equipmentreturnpayment')) {
+            return [];
+        }
+        $this->db->query('SELECT ReturnID, DueDate, Amount, PaymentMethod, Status, GatewayOrderId
+            FROM equipmentreturnpayment
+            WHERE PlayerID = :player_id
+              AND Status = "pending"
+            ORDER BY CreatedAt DESC');
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
+    public function getRecentReturnFeePaymentsForPlayer(int $playerId, int $limit = 10): array {
+        if ($playerId <= 0 || !$this->tableExists('equipmentreturnpayment')) {
+            return [];
+        }
+        $this->db->query('SELECT ReturnID, PaymentDate, Amount, PaymentMethod, Status, PaymentReference
+            FROM equipmentreturnpayment
+            WHERE PlayerID = :player_id
+              AND Status = "completed"
+            ORDER BY COALESCE(PaidAt, CreatedAt) DESC
+            LIMIT :limit');
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':limit', max(1, (int)$limit), PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     public function ensureInitialPendingMembershipPayment(int $playerId): bool {
         $subscription = $this->getPlayerSubscription($playerId);
         if (!$subscription || empty($subscription->SubscriptionID)) {

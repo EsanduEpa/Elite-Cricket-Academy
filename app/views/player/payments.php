@@ -131,8 +131,14 @@
                                         </td>
                                         <td>
                                             <div class="payment-actions">
-                                                <form method="POST" action="<?php echo URLROOT; ?>/player/subscription_payhere_checkout" style="display:inline;">
-                                                    <input type="hidden" name="payment_id" value="<?= (int)($payment['payment_id'] ?? 0) ?>">
+                                                <?php
+                                                    $payAction = $payment['pay_action'] ?? (URLROOT . '/player/subscription_payhere_checkout');
+                                                    $payFields = is_array($payment['pay_fields'] ?? null) ? $payment['pay_fields'] : ['payment_id' => (int)($payment['payment_id'] ?? 0)];
+                                                ?>
+                                                <form method="POST" action="<?= htmlspecialchars($payAction) ?>" style="display:inline;">
+                                                    <?php foreach ($payFields as $fieldName => $fieldValue): ?>
+                                                        <input type="hidden" name="<?= htmlspecialchars((string)$fieldName) ?>" value="<?= htmlspecialchars((string)$fieldValue) ?>">
+                                                    <?php endforeach; ?>
                                                     <button
                                                         type="submit"
                                                         class="btn"

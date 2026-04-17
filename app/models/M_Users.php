@@ -695,7 +695,6 @@ class M_Users {
         if ($age < 15) return 'Under 15';
         if ($age < 17) return 'Under 17';
         if ($age < 19) return 'Under 19';
-        if ($age < 21) return 'Under 21';
         return 'Open';
     }
 

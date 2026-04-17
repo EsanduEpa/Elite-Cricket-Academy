@@ -207,6 +207,86 @@ class Coach extends Controller {
         ];
         $this->view('coach/players', $data);
     }
+
+    public function performance() {
+        $coachId = (int)($_SESSION['user_id'] ?? 0);
+        $userModel = $this->model('M_Users');
+        $performanceModel = $this->model('M_Performance');
+
+        $players = $userModel->getCoachAssignedPlayers($coachId);
+
+        $ageGroupsMap = [];
+        foreach ($players as $player) {
+            $rawAgeGroups = array_filter(array_map('trim', explode(',', (string)($player->AssignmentAgeGroups ?? ''))));
+            if (empty($rawAgeGroups)) {
+                $ageGroupsMap['open'] = 'Open';
+                continue;
+            }
+            foreach ($rawAgeGroups as $ageGroup) {
+                $ageGroupsMap[strtolower($ageGroup)] = $ageGroup;
+            }
+        }
+
+        $ageGroups = array_values($ageGroupsMap);
+        sort($ageGroups, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $overallStatsByPlayerId = [];
+        foreach ($players as $player) {
+            $playerId = (int)($player->PlayerID ?? 0);
+            if ($playerId <= 0) {
+                continue;
+            }
+            $overallStatsByPlayerId[$playerId] = $performanceModel->getOverallStats($playerId);
+        }
+
+        $data = [
+            'title' => 'Performance - Coach Dashboard',
+            'players' => $players,
+            'overallStatsByPlayerId' => $overallStatsByPlayerId,
+            'ageGroups' => $ageGroups,
+        ];
+
+        $this->view('coach/performance', $data);
+    }
+
+    public function performance_details($playerId = null) {
+        $coachId = (int)($_SESSION['user_id'] ?? 0);
+        $playerId = (int)($playerId ?? 0);
+
+        if ($playerId <= 0) {
+            redirect('coach/performance');
+            return;
+        }
+
+        $userModel = $this->model('M_Users');
+        $performanceModel = $this->model('M_Performance');
+
+        $assignedPlayers = $userModel->getCoachAssignedPlayers($coachId);
+        $selectedPlayer = null;
+        foreach ($assignedPlayers as $player) {
+            if ((int)($player->PlayerID ?? 0) === $playerId) {
+                $selectedPlayer = $player;
+                break;
+            }
+        }
+
+        if (!$selectedPlayer) {
+            redirect('coach/performance');
+            return;
+        }
+
+        $overall = $performanceModel->getOverallStats($playerId);
+        $matchHistory = $performanceModel->getMatchHistory($playerId, 50);
+
+        $data = [
+            'title' => 'Performance Details - Coach Dashboard',
+            'player' => $selectedPlayer,
+            'overall' => $overall,
+            'matchHistory' => $matchHistory,
+        ];
+
+        $this->view('coach/performance_details', $data);
+    }
     
     public function recommendations() {
         redirect('coach/players');
