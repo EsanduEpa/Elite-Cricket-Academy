@@ -2012,6 +2012,15 @@ class M_Users {
     }
 
     /**
+     * Delete all notifications for a user
+     */
+    public function deleteAllNotifications($userId) {
+        $this->db->query('DELETE FROM notification WHERE UserID = :userId');
+        $this->db->bind(':userId', $userId);
+        return $this->db->execute();
+    }
+
+    /**
      * Get feedback received by a specific user (coach/trainer)
      */
     public function getFeedbackForUser($userId) {

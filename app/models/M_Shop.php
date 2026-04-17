@@ -314,6 +314,18 @@ class M_Shop {
         return (array)$this->db->resultSet();
     }
 
+    public function getRentalCartItemCount(int $playerId): int {
+        $playerId = (int)$playerId;
+        if ($playerId <= 0 || !$this->tableExists('equipmentrentalcart')) {
+            return 0;
+        }
+
+        $this->db->query('SELECT COUNT(*) AS total FROM equipmentrentalcart WHERE PlayerID = :player_id');
+        $this->db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $row = $this->db->single();
+        return (int)($row->total ?? 0);
+    }
+
     public function addToRentalCart(array $data): array {
         if (!$this->tableExists('equipmentrentalcart')) {
             return ['success' => false, 'message' => 'Rental cart table is missing. Please run the latest DB changes SQL (2026-04-17).'];
@@ -352,7 +364,11 @@ class M_Shop {
         }
 
         $added = $this->db->rowCount() > 0;
-        return ['success' => true, 'message' => $added ? 'Added to rental cart.' : 'This item is already in your rental cart.'];
+        return [
+            'success' => true,
+            'message' => $added ? 'Added to rental cart.' : 'This item is already in your rental cart.',
+            'cart_count' => $this->getRentalCartItemCount($playerId),
+        ];
     }
 
     public function removeFromRentalCart(int $playerId, int $cartId): array {
@@ -368,6 +384,7 @@ class M_Shop {
         return [
             'success' => $success,
             'message' => $success ? 'Rental cart item removed.' : 'Failed to remove rental cart item.',
+            'cart_count' => $this->getRentalCartItemCount($playerId),
         ];
     }
 
@@ -383,6 +400,7 @@ class M_Shop {
         return [
             'success' => $success,
             'message' => $success ? 'Rental cart cleared.' : 'Failed to clear rental cart.',
+            'cart_count' => $this->getRentalCartItemCount($playerId),
         ];
     }
 

@@ -185,7 +185,7 @@
                             $readClass = $notification->is_read ? 'read' : 'unread';
                             $priority = $notification->priority ?? 'normal';
                     ?>
-                    <div class="notification-item <?php echo $readClass; ?>" data-type="<?php echo $notification->type; ?>" data-id="<?php echo $notification->id; ?>" role="article" tabindex="0">
+                    <div class="notification-item <?php echo $readClass; ?>" data-type="<?php echo htmlspecialchars((string) $notification->type); ?>" data-id="<?php echo (int) $notification->id; ?>" data-created-at="<?php echo htmlspecialchars((string) ($notification->CreatedAt ?? '')); ?>" role="article" tabindex="0">
                         <!-- Unread Indicator Dot -->
                         <?php if (!$notification->is_read): ?>
                         <div class="unread-dot" title="Unread notification"></div>
@@ -217,7 +217,7 @@
                             <p class="notification-message"><?php echo htmlspecialchars($notification->message); ?></p>
                             
                             <div class="notification-footer">
-                                <span class="notification-time" title="<?php echo date('F d, Y H:i', strtotime($notification->created_at ?? 'now')); ?>">
+                                <span class="notification-time" title="<?php echo date('F d, Y H:i', strtotime($notification->CreatedAt ?? 'now')); ?>">
                                     <i class="far fa-clock"></i> <?php echo $notification->time; ?>
                                 </span>
                             </div>
@@ -275,7 +275,6 @@
         </div>
     </div>
 
-<script>
 <script>
     window.APP_URLROOT = <?php echo json_encode(URLROOT); ?>;
 </script>

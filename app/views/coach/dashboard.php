@@ -338,13 +338,23 @@
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
 }
 .past-sessions-card .card-header {
-    padding: 22px 24px 18px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 64, 175, 0.92));
+    margin-bottom: 0;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
 }
-.past-sessions-card .card-header h2,
-.past-sessions-card .card-header .table-badge {
-    color: #fff;
+.past-sessions-card .card-header .header-content {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.past-sessions-card .card-header h2 {
+    color: var(--text-primary);
+}
+.past-sessions-card .card-header h2 i {
+    color: var(--primary-color);
 }
 .past-sessions-card .card-content {
     padding: 18px 20px 20px;
@@ -357,22 +367,6 @@
 }
 .past-sessions-card .dashboard-table {
     margin: 0;
-}
-.past-sessions-card .dashboard-table thead th {
-    background: #eff6ff;
-    color: #1e3a5f;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-}
-.past-sessions-card .dashboard-table tbody tr {
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-.past-sessions-card .dashboard-table tbody tr:hover {
-    background: #f8fbff;
-}
-.past-sessions-card .dashboard-table tbody td {
-    vertical-align: middle;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.95);
 }
 .past-session-date {
     display: inline-flex;
