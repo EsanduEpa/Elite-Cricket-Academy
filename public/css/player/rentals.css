@@ -1,5 +1,5 @@
 /* Rentals Page - Equipment Rental Specific Styles */
-@import url('shopping-common.css');
+/* Note: rentals.php already loads shopping.css (which imports shopping-common.css). */
 
 /* Layout */
 .rentals-layout {
@@ -63,11 +63,20 @@
 
 .rental-toolbar {
     margin: 0 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .rental-search-wrap {
     position: relative;
     max-width: 460px;
+}
+
+#rental-status-filter {
+    min-width: 180px;
 }
 
 .rental-search-wrap i {
@@ -164,6 +173,31 @@
 #msg-flash.alert-danger {
     background: rgba(231, 76, 60, 0.12);
     color: #c0392b;
+}
+
+.rental-criteria {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(231, 76, 60, 0.22);
+    background: rgba(231, 76, 60, 0.08);
+    color: #c0392b;
+}
+
+.rental-criteria-title {
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.01em;
+}
+
+.rental-criteria ul {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.rental-criteria li {
+    margin: 0.25rem 0;
+    line-height: 1.35;
 }
 
 /* Responsive Design */

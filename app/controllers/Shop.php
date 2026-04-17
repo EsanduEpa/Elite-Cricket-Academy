@@ -10,7 +10,7 @@ class Shop extends Controller {
 
     public function index() {
         // Check if user is logged in as shop employee
-        if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ShopEmployee') {
+        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'ShopEmployee') {
             redirect('shop/dashboard');
         }
         
@@ -33,7 +33,7 @@ class Shop extends Controller {
 
     public function dashboard() {
         // Check authentication for shop employees
-        requireAuth(['ShopEmployee']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         $data = [
             'title' => 'Shop Dashboard - Elite Cricket Gear',
@@ -46,7 +46,7 @@ class Shop extends Controller {
 
     public function orders($status = 'all') {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         // Get order statistics
         $stats = $this->shopModel->getOrderStats();
@@ -71,7 +71,7 @@ class Shop extends Controller {
     
     public function updateOrderStatus() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         // Check if POST request
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -111,7 +111,7 @@ class Shop extends Controller {
 
     public function inventory() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         // Get inventory statistics
         $stats = $this->shopModel->getInventoryStats();
@@ -131,20 +131,56 @@ class Shop extends Controller {
 
     public function rentals() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         $data = [
             'title' => 'Equipment Rentals - Elite Cricket Gear',
             'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'rentals' => $this->shopModel->getAllRentals()
+            'rentals' => $this->shopModel->getAllRentals(),
+            'returns' => $this->shopModel->getAllEquipmentReturns(),
+            'rental_stats' => $this->shopModel->getRentalManagementStats(),
         ];
         
         $this->view('shop/rentals', $data);
     }
 
+    public function add_equipment_return() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('shop/rentals');
+        }
+
+        $rentalId = (int)($_POST['rental_id'] ?? 0);
+        $returnedAt = trim((string)($_POST['returned_at'] ?? ''));
+        $returnStatus = trim((string)($_POST['return_status'] ?? 'received'));
+        $damageStatus = trim((string)($_POST['damage_status'] ?? 'not_damaged'));
+        $paymentStatus = trim((string)($_POST['payment_status'] ?? ''));
+        $notes = trim((string)($_POST['notes'] ?? ''));
+        $inspectedBy = (int)($_SESSION['user_id'] ?? 0);
+
+        $result = $this->shopModel->createEquipmentReturn([
+            'rental_id' => $rentalId,
+            'returned_at' => $returnedAt,
+            'return_status' => $returnStatus,
+            'damage_status' => $damageStatus,
+            'payment_status' => $paymentStatus,
+            'notes' => $notes,
+            'inspected_by' => $inspectedBy,
+        ]);
+
+        if (!empty($result['success'])) {
+            flash('shop_rental_message', $result['message'] ?? 'Return recorded successfully.');
+        } else {
+            flash('shop_rental_message', $result['message'] ?? 'Could not record the return.', 'alert alert-danger');
+        }
+
+        redirect('shop/rentals');
+    }
+
     public function reviews() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         $data = [
             'title' => 'Reviews & Feedback - Elite Cricket Gear',
@@ -157,7 +193,7 @@ class Shop extends Controller {
 
     public function prescriptions() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         $data = [
             'title' => 'Prescriptions - Elite Cricket Gear',
@@ -170,7 +206,7 @@ class Shop extends Controller {
 
     public function facilities() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
 
         $facilities = $this->shopModel->getAllFacilities();
         $facilityStats = $this->shopModel->getFacilityStats();
@@ -207,7 +243,7 @@ class Shop extends Controller {
 
     public function products() {
         // Check authentication for shop employees
-        requireAuth(['Shop']);
+        requireAuth(['ShopEmployee', 'Shop']);
         
         // Get product statistics
         $stats = $this->productModel->getProductStats();

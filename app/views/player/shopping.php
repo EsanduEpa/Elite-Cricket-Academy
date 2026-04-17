@@ -208,20 +208,14 @@
 
                                 <h3 class="card-title"><?php echo htmlspecialchars($product->Name ?? 'Unnamed Product'); ?></h3>
 
-                                <p class="card-description">
-                                    <?php echo htmlspecialchars(mb_strimwidth((string)($product->Description ?? 'No description available.'), 0, 95, '...')); ?>
-                                </p>
-
-                              
-
                                 <?php if (!empty($product->Category)): ?>
                                     <div class="card-tags">
                                         <span class="card-tag"><?php echo htmlspecialchars($product->Category); ?></span>
-                                        <?php if (!empty($product->Brand)): ?>
-                                            <span class="card-tag"><?php echo htmlspecialchars($product->Brand); ?></span>
-                                        <?php endif; ?>
-                                        <?php if ($product->StockQuantity > 10): ?>
+                                        
+                                        <?php if (($product->StockQuantity ?? 0) > 0): ?>
                                             <span class="card-tag">In Stock</span>
+                                        <?php else: ?>
+                                            <span class="card-tag">Out of Stock</span>
                                         <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
@@ -230,13 +224,6 @@
                                     <span class="price-current">Rs. <?php echo number_format($product->Price ?? 0, 2); ?></span>
                                 </div>
 
-                                <div class="stock-summary <?php echo ($product->StockQuantity ?? 0) > 0 ? 'in-stock' : 'out-of-stock'; ?>">
-                                    <?php if (($product->StockQuantity ?? 0) > 0): ?>
-                                        <?php echo (int)$product->StockQuantity; ?> available
-                                    <?php else: ?>
-                                        Out of stock
-                                    <?php endif; ?>
-                                </div>
 
                                 
 
@@ -351,29 +338,6 @@
                             <span class="spec-value" id="productDetailDimensions">-</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="product-specifications">
-                    <h4><i class="fas fa-database"></i> Database Fields</h4>
-                    <div class="specs-grid">
-                        <div class="spec-item">
-                            <span class="spec-label">Status:</span>
-                            <span class="spec-value" id="productDetailStatusText">-</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">Added Date:</span>
-                            <span class="spec-value" id="productDetailAddedDate">-</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">Updated By:</span>
-                            <span class="spec-value" id="productDetailUpdatedBy">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-specifications product-record-section">
-                    <h4><i class="fas fa-table"></i> Full Product Record</h4>
-                    <div id="productRecordGrid" class="record-grid"></div>
                 </div>
 
                 <!-- Product Actions -->
