@@ -53,6 +53,34 @@
     margin-top: 1rem;
 }
 
+#rentalsPage .product-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    margin-top: auto;
+}
+
+#rentalsPage .product-actions .btn-icon i {
+    margin: 0;
+}
+
+#rentalsPage .product-actions .btn-cart {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+}
+
+#rentalsPage .product-actions .btn-cart:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+}
+
+#rentalsPage .product-actions .btn-cart:disabled {
+    background: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
 .profile-logout-spacing {
     margin-top: 15px;
 }
