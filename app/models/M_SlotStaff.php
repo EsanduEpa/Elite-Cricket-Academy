@@ -285,7 +285,6 @@ class M_SlotStaff {
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 15 THEN \'Under 15\'
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 17 THEN \'Under 17\'
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 19 THEN \'Under 19\'
-                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 21 THEN \'Under 21\'
                         ELSE \'Open\'
                     END = st.AgeGroup
                )
@@ -326,7 +325,6 @@ class M_SlotStaff {
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 15 THEN \'Under 15\'
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 17 THEN \'Under 17\'
                         WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 19 THEN \'Under 19\'
-                        WHEN TIMESTAMPDIFF(YEAR, u.DateOfBirth, CURDATE()) < 21 THEN \'Under 21\'
                         ELSE \'Open\'
                     END = st.AgeGroup
                )

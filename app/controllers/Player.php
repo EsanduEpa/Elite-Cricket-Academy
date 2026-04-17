@@ -485,12 +485,56 @@ class Player extends Controller {
     
     // Payment History
     public function payments() {
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+
         $recentPayments = $this->formatRecentSubscriptionPayments($this->getMonthlyFees());
         $upcomingPayments = $this->formatUpcomingSubscriptionPayments($this->getUpcomingPayments());
 
+        // Also include equipment return fee payments if the optional table exists.
+        $paymentModel = $this->model('M_Payment');
+        $paymentModel->ensurePendingReturnFeePaymentsForPlayer($playerId);
+
+        $returnFeeUpcoming = $paymentModel->getUpcomingReturnFeePaymentsForPlayer($playerId);
+        foreach ($returnFeeUpcoming as $p) {
+            $returnId = (int)($p->ReturnID ?? 0);
+            $upcomingPayments[] = [
+                'payment_type' => 'return_fee',
+                'return_id' => $returnId,
+                'due_date' => !empty($p->DueDate) ? $p->DueDate : date('Y-m-d'),
+                'description' => 'Equipment Return Fee',
+                'details' => $returnId > 0 ? ('Return #' . $returnId) : 'Equipment return fee pending.',
+                'amount' => (float)($p->Amount ?? 0),
+                'method_type' => 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($p->PaymentMethod ?? 'online')),
+                'status' => 'Pending',
+                'status_class' => 'pending',
+                'pay_action' => URLROOT . '/player/pay_return_fee',
+                'pay_fields' => [
+                    'return_id' => $returnId,
+                ],
+            ];
+        }
+
+        $returnFeeRecent = $paymentModel->getRecentReturnFeePaymentsForPlayer($playerId, 10);
+        foreach ($returnFeeRecent as $p) {
+            $date = !empty($p->PaymentDate) ? $p->PaymentDate : date('Y-m-d');
+            $returnId = (int)($p->ReturnID ?? 0);
+            $recentPayments[] = [
+                'date' => $date,
+                'description' => 'Equipment Return Fee',
+                'details' => $returnId > 0 ? ('Return #' . $returnId) : 'Equipment return fee payment recorded.',
+                'amount' => (float)($p->Amount ?? 0),
+                'method_type' => ((string)($p->PaymentMethod ?? 'online')) === 'bank_transfer' ? 'bank' : 'card',
+                'method_label' => $this->formatPaymentMethodLabel((string)($p->PaymentMethod ?? 'online')),
+                'status' => 'Paid',
+                'status_class' => 'paid',
+            ];
+        }
+
         $data = [
             'title' => 'Payment History',
-            'player' => $this->getPlayerData(),
+            'player' => $playerData,
             'monthlyFees' => $this->getMonthlyFees(),
             'eventFees' => $this->getEventFees(),
             'upcomingPayments' => $this->getUpcomingPayments(),
@@ -681,6 +725,9 @@ class Player extends Controller {
     public function rentals() {
         $playerData = $this->getPlayerData();
         $playerId = (int)($playerData['id'] ?? 0);
+
+        // Make sure any pending return fees show up in payment tables (optional table; safe no-op if missing).
+        $this->model('M_Payment')->ensurePendingReturnFeePaymentsForPlayer($playerId);
 
         $shopModel = $this->model('M_Shop');
         $rentalCartItems = $shopModel->getRentalCartItems($playerId);
@@ -1091,6 +1138,11 @@ class Player extends Controller {
         $orderId = 'ELITE-RETURNFEE-' . $playerId . '-' . $returnId . '-' . time();
         $itemsLabel = 'Equipment Return Fee - Return #' . $returnId;
         $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+
+        // Record pending payment row (optional table; safe no-op if not present).
+        $paymentModel = $this->model('M_Payment');
+        $paymentModel->upsertPendingReturnFeePayment($returnId, $playerId, (float)$amountValue);
+        $paymentModel->attachGatewayOrderToReturnFeePayment($returnId, $playerId, $orderId);
 
         $_SESSION['payhere_pending_order'] = $orderId;
         unset($_SESSION['payhere_pending_shop_payment']);
@@ -2394,6 +2446,16 @@ class Player extends Controller {
             return ['success' => false, 'message' => 'Could not update return payment status. Please contact support.'];
         }
 
+        // Mark payment record as completed (optional table).
+        $paymentModel = $this->model('M_Payment');
+        $paymentModel->markReturnFeePaymentCompleted(
+            $returnId,
+            $playerId,
+            $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId),
+            null,
+            $orderId !== '' ? $orderId : null
+        );
+
         $this->sendPaymentSuccessEmailForUser(
             $playerId,
             $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId),
@@ -2680,6 +2742,7 @@ class Player extends Controller {
 
         foreach ($payments as $payment) {
             $upcomingPayments[] = [
+                'payment_type' => 'subscription',
                 'payment_id' => (int)($payment->PaymentID ?? 0),
                 'due_date' => $payment->DueDate ?? date('Y-m-d'),
                 'description' => 'Membership Pending',
@@ -2691,6 +2754,10 @@ class Player extends Controller {
                 'method_label' => $this->formatPaymentMethodLabel((string)($payment->PaymentMethod ?? 'online')),
                 'status' => 'Pending',
                 'status_class' => 'pending',
+                'pay_action' => URLROOT . '/player/subscription_payhere_checkout',
+                'pay_fields' => [
+                    'payment_id' => (int)($payment->PaymentID ?? 0),
+                ],
             ];
         }
 
@@ -2778,7 +2845,7 @@ class Player extends Controller {
     }
 
     private function getMyRentals() {
-        $playerId = $_SESSION['user_id'] ?? 6;
+        $playerId = $_SESSION['user_id'] ;
         $shopModel = $this->model('M_Shop');
         return $shopModel->getPlayerRentals($playerId);
     }

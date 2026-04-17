@@ -341,7 +341,6 @@ class M_NutritionPlan {
             (object)['key' => 'under_13', 'label' => 'Under 13 Players', 'description' => 'Players younger than 13 years old.'],
             (object)['key' => 'under_15', 'label' => 'Under 15 Players', 'description' => 'Players younger than 15 years old.'],
             (object)['key' => 'under_19', 'label' => 'Under 19 Players', 'description' => 'Players 19 years old or younger.'],
-            (object)['key' => 'under_21', 'label' => 'Under 21 Players', 'description' => 'Players 21 years old or younger.'],
             (object)['key' => 'tournament', 'label' => 'Tournament Players', 'description' => 'Players who have been selected for a tournament squad.'],
         ];
     }
