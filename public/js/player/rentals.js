@@ -17,6 +17,7 @@ function initializeRentalsPage() {
     initRentalModals();
     initRentalImageFallbacks();
     initRentalSearch();
+    initRentalCart();
     setMinimumDates();
     
     console.log('Rentals page initialization complete');
@@ -315,52 +316,98 @@ function confirmRental() {
 
 // Rental Cart Functions
 function initRentalCart() {
+    bindAddToRentalCartForms();
     updateRentalCartCount();
 }
 
-function addToRentalCart(equipmentData) {
-    let cart = JSON.parse(localStorage.getItem('rentalCart')) || [];
-    
-    // Check if equipment already in cart
-    const existingItem = cart.find(item => item.id === equipmentData.id);
-    
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({
-            id: equipmentData.id,
-            name: equipmentData.name,
-            rate: equipmentData.rate,
-            condition: equipmentData.condition,
-            image: equipmentData.image,
-            quantity: 1
+let rentalCartCountState = parseInt((document.getElementById('rentalsPage') || {}).dataset?.cartCount || '0', 10) || 0;
+
+function getUrlRoot() {
+    const page = document.getElementById('rentalsPage');
+    return page && page.dataset && page.dataset.urlroot ? page.dataset.urlroot : '';
+}
+
+function getRentalCartEndpoint(path) {
+    const root = getUrlRoot();
+    return root ? `${root}/player/${path}` : `/player/${path}`;
+}
+
+async function postRentalCartAction(path, data) {
+    const response = await fetch(getRentalCartEndpoint(path), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams(data).toString()
+    });
+
+    return response.json();
+}
+
+function bindAddToRentalCartForms() {
+    document.addEventListener('submit', function (e) {
+        const form = e.target && e.target.classList ? e.target : null;
+        if (!form || !form.classList.contains('js-add-to-rental-cart-form')) return;
+
+        e.preventDefault();
+
+        const equipmentInput = form.querySelector('input[name="equipment_id"]');
+        const equipmentId = equipmentInput ? parseInt(equipmentInput.value || '0', 10) : 0;
+        const equipmentName = (form.dataset && form.dataset.name) ? form.dataset.name : 'Equipment';
+
+        if (!equipmentId) return;
+        addToRentalCartAjax(equipmentId, equipmentName);
+    });
+}
+
+async function addToRentalCartAjax(equipmentId, equipmentName) {
+    try {
+        const result = await postRentalCartAction('addToRentalCart', {
+            equipment_id: String(equipmentId)
         });
-    }
-    
-    localStorage.setItem('rentalCart', JSON.stringify(cart));
-    updateRentalCartCount();
-    showRentalNotification(equipmentData.name + ' added to rental cart!');
-}
 
-function updateRentalCartCount() {
-    const cart = JSON.parse(localStorage.getItem('rentalCart')) || [];
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    const countElement = document.getElementById('rental-cart-count');
-    if (countElement) {
-        countElement.textContent = count;
-        countElement.style.display = count > 0 ? 'block' : 'none';
+        if (result && result.success) {
+            rentalCartCountState = Number(result.cart_count || rentalCartCountState);
+            updateRentalCartCount();
+            showRentalCartNotification(equipmentName + ' added to cart!');
+            return;
+        }
+
+        showRentalCartNotification((result && result.message) ? result.message : 'Failed to add item to cart', true);
+    } catch (error) {
+        console.error('Failed to add rental equipment to cart', error);
+        showRentalCartNotification('Failed to add item to cart', true);
     }
 }
 
-function showRentalNotification(message) {
-    // Create notification element
+async function updateRentalCartCount() {
+    const cartCountNodes = document.querySelectorAll('.cart-count, #rental-cart-count');
+    if (!cartCountNodes.length) return;
+
+    try {
+        const response = await fetch(getRentalCartEndpoint('rentalCartSummary'), { credentials: 'same-origin' });
+        const payload = await response.json();
+        if (payload && payload.success) {
+            rentalCartCountState = Number(payload.cart_count || 0);
+        }
+    } catch (error) {
+        console.error('Failed to load rental cart count', error);
+    }
+
+    cartCountNodes.forEach((node) => {
+        node.textContent = String(rentalCartCountState);
+    });
+}
+
+function showRentalCartNotification(message, isError = false) {
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #27ae60;
+        background: ${isError ? '#e74c3c' : '#27ae60'};
         color: white;
         padding: 1rem 1.5rem;
         border-radius: 8px;
@@ -369,14 +416,13 @@ function showRentalNotification(message) {
         animation: slideInRight 0.3s ease;
     `;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
+
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            notification.remove();
         }, 300);
     }, 3000);
 }
