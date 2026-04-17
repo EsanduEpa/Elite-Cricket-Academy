@@ -150,6 +150,9 @@ function redirectToDashboard() {
         case 'Trainer':
             redirect('trainer/dashboard');
             break;
+        case 'Shop':
+            redirect('shop/dashboard');
+            break;
         case 'ShopEmployee':
             redirect('shop/dashboard');
             break;

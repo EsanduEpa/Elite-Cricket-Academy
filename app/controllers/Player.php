@@ -679,14 +679,291 @@ class Player extends Controller {
 
     // Equipment Rentals
     public function rentals() {
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+
+        $shopModel = $this->model('M_Shop');
+        $rentalCartItems = $shopModel->getRentalCartItems($playerId);
+
         $data = [
             'title' => 'Equipment Rentals',
-            'player' => $this->getPlayerData(),
+            'player' => $playerData,
             'rentals' => $this->getRentalEquipment(),
             'myRentals' => $this->getMyRentals(),
-            'rentalStats' => $this->getRentalStats()
+            'rentalStats' => $this->getRentalStats(),
+            'rentalCartItems' => $rentalCartItems,
         ];
         $this->view('player/rentals', $data);
+    }
+
+    public function add_rental_cart_item() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/rentals');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        if ($playerId <= 0) {
+            redirect('login');
+        }
+
+        $equipmentId = (int)($_POST['equipment_id'] ?? 0);
+
+        if ($equipmentId <= 0) {
+            flash('rental_message', 'Invalid equipment selection.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $result = $shopModel->addToRentalCart([
+            'player_id' => $playerId,
+            'equipment_id' => $equipmentId,
+        ]);
+
+        if (!empty($result['success'])) {
+            flash('rental_message', (string)($result['message'] ?? 'Added to rental cart.'), 'alert alert-success');
+        } else {
+            flash('rental_message', (string)($result['message'] ?? 'Could not add to rental cart.'), 'alert alert-danger');
+        }
+
+        redirect('player/rentals');
+    }
+
+    public function remove_rental_cart_item() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/rentals');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        $cartId = (int)($_POST['cart_id'] ?? 0);
+
+        if ($playerId <= 0 || $cartId <= 0) {
+            flash('rental_message', 'Invalid rental cart item.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $result = $shopModel->removeFromRentalCart($playerId, $cartId);
+        flash('rental_message', (string)($result['message'] ?? ''), !empty($result['success']) ? 'alert alert-success' : 'alert alert-danger');
+        redirect('player/rentals');
+    }
+
+    public function clear_rental_cart() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/rentals');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        if ($playerId <= 0) {
+            redirect('login');
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $result = $shopModel->clearRentalCart($playerId);
+        flash('rental_message', (string)($result['message'] ?? ''), !empty($result['success']) ? 'alert alert-success' : 'alert alert-danger');
+        redirect('player/rentals');
+    }
+
+    public function checkout_rental_cart() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/rentals');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        if ($playerId <= 0) {
+            redirect('login');
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $cartItems = $shopModel->getRentalCartItems($playerId);
+        if (!$cartItems) {
+            flash('rental_message', 'Your rental cart is empty.', 'alert alert-warning');
+            redirect('player/rentals');
+        }
+
+        $startDate = trim((string)($_POST['start_date'] ?? ''));
+        $duration = (int)($_POST['duration'] ?? 0);
+        $pickupMethod = trim((string)($_POST['pickup_method'] ?? 'pickup'));
+        $agreeToTerms = !empty($_POST['agree_terms']) ? 1 : 0;
+
+        $allowedDurations = range(1, 7);
+        if ($startDate === '') {
+            flash('rental_message', 'Please choose a valid rental start date for checkout.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        if (!in_array($duration, $allowedDurations, true)) {
+            flash('rental_message', 'Invalid rental duration selected for checkout.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        if (!in_array($pickupMethod, ['pickup', 'delivery'], true)) {
+            flash('rental_message', 'Invalid pickup method selected for checkout.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        if ($agreeToTerms !== 1) {
+            flash('rental_message', 'You must agree to the rental terms before checkout.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        try {
+            $start = new DateTime($startDate);
+            $today = new DateTime('today');
+            if ($start < $today) {
+                flash('rental_message', 'Please choose today or a future date for your rental.', 'alert alert-danger');
+                redirect('player/rentals');
+            }
+        } catch (Exception $e) {
+            flash('rental_message', 'Please choose a valid rental start date for checkout.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        $cartItemIds = [];
+        $amountValue = 0.0;
+        foreach ($cartItems as $item) {
+            $cartItemIds[] = (int)($item->CartID ?? 0);
+            $amountValue += $shopModel->calculateRentalTotal(
+                (float)($item->RentalPrice ?? 0),
+                $duration,
+                1,
+                $pickupMethod
+            );
+        }
+        $amountValue = max(0.0, (float)$amountValue);
+        if ($amountValue <= 0.0) {
+            flash('rental_message', 'Your rental cart total is invalid.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $currency = 'LKR';
+        $amount = number_format($amountValue, 2, '.', '');
+        $orderId = 'ELITE-RENTALCART-' . $playerId . '-' . time();
+        $itemsLabel = 'Equipment Rental Cart';
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
+        unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_subscription_payment']);
+        unset($_SESSION['payhere_pending_rental_payment']);
+        unset($_SESSION['payhere_pending_return_fee_payment']);
+        $_SESSION['payhere_pending_rental_cart_payment'] = [
+            'order_id' => $orderId,
+            'player_id' => $playerId,
+            'cart_item_ids' => $cartItemIds,
+            'start_date' => $startDate,
+            'duration_days' => $duration,
+            'pickup_method' => $pickupMethod,
+            'agree_to_terms' => 1,
+            'amount' => $amount,
+            'currency' => $currency,
+        ];
+
+        $data = [
+            'title' => 'Redirecting to PayHere...',
+            'player' => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'currency' => $currency,
+                'items' => $itemsLabel,
+                'hash' => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url' => URLROOT . '/player/payhere_return?payment_type=rental_cart',
+                'cancel_url' => URLROOT . '/player/payhere_cancel?payment_type=rental_cart',
+                'notify_url' => URLROOT . '/player/payhere_notify',
+                'first_name' => $nameParts[0] ?? 'Player',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $playerData['email'],
+                'phone' => $playerData['phone'] ?: '0000000000',
+                'address' => $playerData['address'] ?: 'N/A',
+                'city' => 'Colombo',
+                'country' => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+
+    public function pay_return_fee() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('player/rentals');
+        }
+
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        $returnId = (int)($_POST['return_id'] ?? 0);
+        if ($playerId <= 0 || $returnId <= 0) {
+            flash('rental_message', 'Invalid return fee payment request.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $feeRow = $shopModel->getPendingReturnFeeForPlayer($returnId, $playerId);
+        if (!$feeRow) {
+            flash('rental_message', 'No pending return fee was found for this rental.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        $amountValue = max(0.0, (float)($feeRow->TotalReturnPay ?? 0));
+        if ($amountValue <= 0) {
+            flash('rental_message', 'This return does not have any payable fee.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $currency = 'LKR';
+        $amount = number_format($amountValue, 2, '.', '');
+        $orderId = 'ELITE-RETURNFEE-' . $playerId . '-' . $returnId . '-' . time();
+        $itemsLabel = 'Equipment Return Fee - Return #' . $returnId;
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
+        unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_subscription_payment']);
+        unset($_SESSION['payhere_pending_rental_payment']);
+        $_SESSION['payhere_pending_return_fee_payment'] = [
+            'order_id' => $orderId,
+            'return_id' => $returnId,
+            'player_id' => $playerId,
+            'amount' => $amount,
+            'currency' => $currency,
+        ];
+
+        $data = [
+            'title' => 'Redirecting to PayHere...',
+            'player' => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'currency' => $currency,
+                'items' => $itemsLabel,
+                'hash' => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url' => URLROOT . '/player/payhere_return?payment_type=return_fee',
+                'cancel_url' => URLROOT . '/player/payhere_cancel?payment_type=return_fee',
+                'notify_url' => URLROOT . '/player/payhere_notify',
+                'first_name' => $nameParts[0] ?? 'Player',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $playerData['email'],
+                'phone' => $playerData['phone'] ?: '0000000000',
+                'address' => $playerData['address'] ?: 'N/A',
+                'city' => 'Colombo',
+                'country' => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
     }
 
     public function confirm_rental() {
@@ -701,7 +978,8 @@ class Player extends Controller {
         $duration = (int)($_POST['duration'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 0);
         $pickupMethod = trim((string)($_POST['pickup_method'] ?? 'pickup'));
-        $allowedDurations = [1, 3, 7, 14, 30];
+        $agreeToTerms = !empty($_POST['agree_terms']) ? 1 : 0;
+        $allowedDurations = range(1, 7);
 
         if ($playerId <= 0 || $equipmentId <= 0) {
             flash('rental_message', 'Invalid rental request. Please choose equipment again.', 'alert alert-danger');
@@ -725,6 +1003,11 @@ class Player extends Controller {
 
         if ($startDate === '') {
             flash('rental_message', 'Please choose a valid rental start date.', 'alert alert-danger');
+            redirect('player/rentals');
+        }
+
+        if ($agreeToTerms !== 1) {
+            flash('rental_message', 'You must agree to the rental terms before submitting.', 'alert alert-danger');
             redirect('player/rentals');
         }
 
@@ -785,6 +1068,7 @@ class Player extends Controller {
             'duration_days' => $duration,
             'quantity' => $quantity,
             'pickup_method' => $pickupMethod,
+            'agree_to_terms' => $agreeToTerms,
             'amount' => $amount,
             'currency' => $currency,
             'equipment_name' => (string)($equipment->Name ?? 'Equipment'),
@@ -1366,7 +1650,13 @@ class Player extends Controller {
         $secondaryUrl = URLROOT . '/player';
         $secondaryLabel = 'Dashboard';
 
-        if ($paymentType === 'rental') {
+        if ($paymentType === 'return_fee') {
+            $primaryUrl = URLROOT . '/player/rentals';
+            $primaryLabel = 'View Rentals';
+            $secondaryUrl = URLROOT . '/player/shopping';
+            $secondaryLabel = 'Back to Shop';
+            $message = 'Your return fee payment was successful.';
+        } elseif ($paymentType === 'rental') {
             $primaryUrl = URLROOT . '/player/rentals';
             $primaryLabel = 'View Rentals';
             $secondaryUrl = URLROOT . '/player/shopping';
@@ -1427,6 +1717,7 @@ class Player extends Controller {
             unset($_SESSION['payhere_pending_shop_payment']);
             unset($_SESSION['payhere_pending_subscription_payment']);
             unset($_SESSION['payhere_pending_rental_payment']);
+            unset($_SESSION['payhere_pending_return_fee_payment']);
             unset($_SESSION['payhere_pending_order']);
         } else {
             $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
@@ -1456,6 +1747,48 @@ class Player extends Controller {
                     unset($_SESSION['payhere_pending_order']);
                 }
             } else {
+                $pendingReturnFeePayment = $_SESSION['payhere_pending_return_fee_payment'] ?? null;
+                if (is_array($pendingReturnFeePayment) && !empty($pendingReturnFeePayment['order_id'])) {
+                    $returnFeeOrderId = (string)$pendingReturnFeePayment['order_id'];
+                    if ($orderId === '' || $orderId === $returnFeeOrderId || $paymentType === 'return_fee') {
+                        $orderId = $returnFeeOrderId;
+                        $primaryUrl = URLROOT . '/player/rentals';
+                        $primaryLabel = 'View Rentals';
+                        $secondaryUrl = URLROOT . '/player/shopping';
+                        $secondaryLabel = 'Back to Shop';
+
+                        $returnFeeResult = $this->completeReturnFeePaymentAndSendEmail($pendingReturnFeePayment, $playerData);
+                        if (!empty($returnFeeResult['success'])) {
+                            $message = 'Your return fee payment was successful and has been recorded.';
+                        } else {
+                            $message = $returnFeeResult['message'] ?? 'Your payment was received, but the return fee could not be finalized. Please contact support.';
+                        }
+
+                        unset($_SESSION['payhere_pending_return_fee_payment']);
+                        unset($_SESSION['payhere_pending_order']);
+                    }
+                } else {
+                $pendingRentalCartPayment = $_SESSION['payhere_pending_rental_cart_payment'] ?? null;
+                if (is_array($pendingRentalCartPayment) && !empty($pendingRentalCartPayment['order_id'])) {
+                    $rentalCartOrderId = (string)$pendingRentalCartPayment['order_id'];
+                    if ($orderId === '' || $orderId === $rentalCartOrderId || $paymentType === 'rental_cart') {
+                        $orderId = $rentalCartOrderId;
+                        $primaryUrl = URLROOT . '/player/rentals';
+                        $primaryLabel = 'View Rentals';
+                        $secondaryUrl = URLROOT . '/player/shopping';
+                        $secondaryLabel = 'Back to Shop';
+
+                        $cartResult = $this->completeRentalCartPaymentAndSendEmail($pendingRentalCartPayment, $playerData);
+                        if (!empty($cartResult['success'])) {
+                            $message = 'Your rental cart payment was successful and the rentals are confirmed.';
+                        } else {
+                            $message = $cartResult['message'] ?? 'Your payment was received, but the rentals could not be finalized. Please contact support.';
+                        }
+
+                        unset($_SESSION['payhere_pending_rental_cart_payment']);
+                        unset($_SESSION['payhere_pending_order']);
+                    }
+                } else {
                 $pendingRentalPayment = $_SESSION['payhere_pending_rental_payment'] ?? null;
                 if (is_array($pendingRentalPayment) && !empty($pendingRentalPayment['order_id'])) {
                     $rentalOrderId = (string)$pendingRentalPayment['order_id'];
@@ -1506,6 +1839,8 @@ class Player extends Controller {
                         }
                     }
                 }
+                }
+                }
             }
         }
 
@@ -1529,11 +1864,15 @@ class Player extends Controller {
         $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
         $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
         $pendingRentalPayment = $_SESSION['payhere_pending_rental_payment'] ?? null;
+        $pendingRentalCartPayment = $_SESSION['payhere_pending_rental_cart_payment'] ?? null;
+        $pendingReturnFeePayment = $_SESSION['payhere_pending_return_fee_payment'] ?? null;
 
         unset($_SESSION['payhere_pending_facility_booking']);
         unset($_SESSION['payhere_pending_shop_payment']);
         unset($_SESSION['payhere_pending_subscription_payment']);
         unset($_SESSION['payhere_pending_rental_payment']);
+        unset($_SESSION['payhere_pending_rental_cart_payment']);
+        unset($_SESSION['payhere_pending_return_fee_payment']);
         unset($_SESSION['payhere_pending_order']);
 
         if (is_array($pendingSubscriptionPayment) || $paymentType === 'subscription') {
@@ -1551,9 +1890,19 @@ class Player extends Controller {
             redirect('player/rentals');
         }
 
+        if (is_array($pendingRentalCartPayment) || $paymentType === 'rental_cart') {
+            flash('rental_message', 'Rental cart payment was cancelled. You can try again from the rentals page.', 'alert alert-warning');
+            redirect('player/rentals');
+        }
+
         if (is_array($pendingShopPayment) || $paymentType === 'shop') {
             $_SESSION['cart_error'] = 'Payment was cancelled. Please try again from the shop.';
             redirect('player/shopping');
+        }
+
+        if (is_array($pendingReturnFeePayment) || $paymentType === 'return_fee') {
+            flash('rental_message', 'Return fee payment was cancelled. You can try again from the rentals page.', 'alert alert-warning');
+            redirect('player/rentals');
         }
 
         $data = [
@@ -1779,6 +2128,7 @@ class Player extends Controller {
             'duration_days' => (int)($pendingRentalPayment['duration_days'] ?? 0),
             'quantity' => (int)($pendingRentalPayment['quantity'] ?? 0),
             'pickup_method' => (string)($pendingRentalPayment['pickup_method'] ?? 'pickup'),
+            'agree_to_terms' => (int)($pendingRentalPayment['agree_to_terms'] ?? 0),
             'processed_by' => 5,
         ]);
 
@@ -1805,6 +2155,89 @@ class Player extends Controller {
         );
 
         return $result;
+    }
+
+    private function completeRentalCartPaymentAndSendEmail(array $pendingRentalCartPayment, array $playerData): array {
+        $playerId = (int)($pendingRentalCartPayment['player_id'] ?? 0);
+        if ($playerId <= 0 || $playerId !== (int)($playerData['id'] ?? 0)) {
+            return ['success' => false, 'message' => 'Your payment was received, but the rental player details did not match. Please contact support.'];
+        }
+
+        $cartIds = (array)($pendingRentalCartPayment['cart_item_ids'] ?? []);
+        $shopModel = $this->model('M_Shop');
+        $cartItems = $shopModel->getRentalCartItemsByIds($playerId, $cartIds);
+        if (!$cartItems) {
+            return ['success' => false, 'message' => 'Your payment was received, but the rental cart items could not be found. Please contact support.'];
+        }
+
+        $result = $shopModel->createAutoConfirmedRentalsFromCartItems(
+            $playerId,
+            $cartItems,
+            [
+                'start_date' => (string)($pendingRentalCartPayment['start_date'] ?? ''),
+                'duration_days' => (int)($pendingRentalCartPayment['duration_days'] ?? 0),
+                'pickup_method' => (string)($pendingRentalCartPayment['pickup_method'] ?? 'pickup'),
+                'agree_to_terms' => (int)($pendingRentalCartPayment['agree_to_terms'] ?? 0),
+            ],
+            5
+        );
+        if (empty($result['success'])) {
+            return [
+                'success' => false,
+                'message' => $result['message'] ?? 'Your payment was received, but the rentals could not be finalized. Please contact support.',
+            ];
+        }
+
+        $shopModel->removeRentalCartItemsByIds($playerId, $cartIds);
+
+        $orderId = (string)($pendingRentalCartPayment['order_id'] ?? '');
+        $amount = (string)($pendingRentalCartPayment['amount'] ?? '0.00');
+        $this->sendPaymentSuccessEmailForUser(
+            $playerId,
+            $orderId !== '' ? $orderId : ('RENTALCART-' . time()),
+            $amount,
+            'LKR',
+            'Equipment Rental Cart Payment',
+            'Equipment rental cart payment received successfully.'
+        );
+
+        return $result;
+    }
+
+    private function completeReturnFeePaymentAndSendEmail(array $pendingReturnFeePayment, array $playerData): array {
+        $playerId = (int)($pendingReturnFeePayment['player_id'] ?? 0);
+        $returnId = (int)($pendingReturnFeePayment['return_id'] ?? 0);
+        if ($playerId <= 0 || $returnId <= 0 || $playerId !== (int)($playerData['id'] ?? 0)) {
+            return ['success' => false, 'message' => 'Your payment was received, but the return fee player details did not match. Please contact support.'];
+        }
+
+        $shopModel = $this->model('M_Shop');
+        $feeRow = $shopModel->getPendingReturnFeeForPlayer($returnId, $playerId);
+        if (!$feeRow) {
+            return ['success' => false, 'message' => 'No pending return fee was found for this rental.'];
+        }
+
+        $amount = number_format(max(0.0, (float)($feeRow->TotalReturnPay ?? 0)), 2, '.', '');
+        if ((float)$amount <= 0) {
+            return ['success' => false, 'message' => 'This return does not have any payable fee.'];
+        }
+
+        $orderId = (string)($pendingReturnFeePayment['order_id'] ?? '');
+        $updated = $shopModel->markReturnFeePaidForPlayer($returnId, $playerId);
+        if (!$updated) {
+            return ['success' => false, 'message' => 'Could not update return payment status. Please contact support.'];
+        }
+
+        $this->sendPaymentSuccessEmailForUser(
+            $playerId,
+            $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId),
+            $amount,
+            'LKR',
+            'Equipment Return Fee Payment',
+            'Equipment return fee payment received successfully.'
+        );
+
+        return ['success' => true];
     }
 
     // Backwards-compatible route for older links

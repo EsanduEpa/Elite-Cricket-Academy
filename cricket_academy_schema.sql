@@ -474,7 +474,6 @@ CREATE TABLE `equipment` (
   `Category` enum('Batting','Bowling','Protective','Training','Other') DEFAULT NULL,
   `AvailabilityStatus` enum('available','rented','maintenance','damaged') DEFAULT 'available',
   `RentalPrice` decimal(10,2) NOT NULL,
-  `PurchasePrice` decimal(10,2) DEFAULT NULL,
   `Stock` int(11) NOT NULL DEFAULT 0 COMMENT 'Quantity of equipment items available in inventory',
   `EqCondition` enum('new','good','fair','poor') DEFAULT 'good'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cricket equipment available for rental or purchase';
@@ -483,21 +482,21 @@ CREATE TABLE `equipment` (
 -- Dumping data for table `equipment`
 --
 
-INSERT INTO `equipment` (`EquipmentID`, `Name`, `Description`, `Category`, `AvailabilityStatus`, `RentalPrice`, `PurchasePrice`, `Stock`, `EqCondition`) VALUES
-(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 150.00, 0, 'new'),
-(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 15.00, 0, 'new'),
-(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 80.00, 0, 'new'),
-(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good'),
-(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good'),
-(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 150.00, 0, 'new'),
-(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 15.00, 0, 'new'),
-(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 80.00, 0, 'new'),
-(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 100.00, 0, 'good'),
-(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 90.00, 0, 'good'),
-(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 25.00, 150.00, 0, ''),
-(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 20.00, 100.00, 0, 'good'),
-(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 22.00, 80.00, 0, ''),
-(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 18.00, 75.00, 0, 'good');
+INSERT INTO `equipment` (`EquipmentID`, `Name`, `Description`, `Category`, `AvailabilityStatus`, `RentalPrice`, `Stock`, `EqCondition`) VALUES
+(1, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 0, 'new'),
+(2, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 0, 'new'),
+(3, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 0, 'new'),
+(4, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 0, 'good'),
+(5, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 0, 'good'),
+(6, 'Cricket Bat - Professional', 'High-quality willow cricket bat', 'Batting', 'available', 25.00, 0, 'new'),
+(7, 'Cricket Ball - Leather', 'Professional leather cricket ball', 'Bowling', 'available', 5.00, 0, 'new'),
+(8, 'Helmet - Professional', 'Safety helmet with grill', 'Protective', 'available', 15.00, 0, 'new'),
+(9, 'Batting Pads', 'Professional batting pads', 'Protective', 'available', 20.00, 0, 'good'),
+(10, 'Wicket Keeping Gloves', 'Professional WK gloves', 'Protective', 'available', 18.00, 0, 'good'),
+(11, 'Professional Cricket Bat', 'Premium English willow bat for professional players', 'Batting', 'available', 25.00, 0, ''),
+(12, 'Complete Training Kit', 'Includes cones, stumps, practice balls, and agility equipment', 'Training', 'available', 20.00, 0, 'good'),
+(13, 'Wicket Keeping Set', 'Professional wicket keeping gloves and pads', 'Protective', 'available', 22.00, 0, ''),
+(14, 'Junior Cricket Set', 'Complete cricket set designed for junior players', 'Batting', 'available', 18.00, 0, 'good');
 
 -- --------------------------------------------------------
 
