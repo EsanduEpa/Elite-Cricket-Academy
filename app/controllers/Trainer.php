@@ -158,25 +158,9 @@ class Trainer extends Controller {
     }
 
     public function nutrition() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 10;
-            $_SESSION['username'] = 'Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
-        // Initialize nutrition plan model
-        $nutritionModel = $this->model('M_NutritionPlan');
-        
-        // Get trainer's nutrition plans (with assignment counts/names)
-        $nutritionPlans = $nutritionModel->getAllPlans($_SESSION['user_id']);
-
-        $data = [
-            'title' => 'Nutrition Plans',
-            'nutrition_plans' => $nutritionPlans,
-        ];
-
-        $this->view('trainer/nutrition', $data);
+        // Use the dedicated Nutrition controller pages for all nutrition CRUD.
+        // The legacy trainer/nutrition view contains placeholder modal logic.
+        redirect('nutrition');
     }
 
     public function workout() {

@@ -1,8 +1,8 @@
 <?php
 
-// Log errors but don't display them (prevents HTML output in JSON responses)
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
+// Log errors and display them during debugging (you can set back to 0 later)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
