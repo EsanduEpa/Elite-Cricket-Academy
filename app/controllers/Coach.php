@@ -1383,6 +1383,23 @@ class Coach extends Controller {
         }
     }
 
+    // Clear all notifications
+    public function clearAllNotifications() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_SESSION['user_id'] ?? 1;
+            $userModel = $this->model('M_Users');
+            if ($userModel->deleteAllNotifications($userId)) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to clear notifications']);
+            }
+            return;
+        }
+
+        echo json_encode(['success' => false, 'message' => 'Invalid request']);
+    }
+
     // ==================== TOURNAMENT RECOMMENDATIONS ====================
 
     /**
@@ -2023,6 +2040,41 @@ class Coach extends Controller {
             return;
         }
 
+        // Enforce lifecycle timing rules (relative to tournament date)
+        try {
+            $tournamentDate = !empty($tournament->tdate) ? new DateTime((string)$tournament->tdate) : null;
+            $today = new DateTime('today');
+            $daysUntil = $tournamentDate ? (int)$today->diff($tournamentDate)->format('%r%a') : null;
+
+            if ($daysUntil !== null) {
+                if ($newStatus === 'registration_closed' && $daysUntil < 30) {
+                    $_SESSION['error'] = 'Registrations must be closed at least 1 month before the tournament date.';
+                    redirect('coach/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'team_announced' && $daysUntil < 14) {
+                    $_SESSION['error'] = 'Squad must be announced at least 2 weeks before the tournament date.';
+                    redirect('coach/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'ongoing' && $daysUntil > 0) {
+                    $_SESSION['error'] = 'Tournament can only be marked as ongoing on or after the tournament date.';
+                    redirect('coach/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'completed' && $daysUntil > 0) {
+                    $_SESSION['error'] = 'Tournament can only be marked as completed on or after the tournament date.';
+                    redirect('coach/tournament_detail/' . $id);
+                    return;
+                }
+            }
+        } catch (Exception $e) {
+            // If date parsing fails, do not block status updates.
+        }
+
         if ($newStatus === 'team_announced') {
             $M_Tournament->announceTeam($id);
             $_SESSION['success'] = 'Team announced successfully.';
@@ -2098,6 +2150,23 @@ class Coach extends Controller {
 
         // If "confirm" button pressed, lock the squad
         if (!empty($_POST['confirm'])) {
+            // Enforce: squad must be announced at least 2 weeks before tournament date
+            try {
+                if (!empty($tournament->tdate)) {
+                    $tournamentDate = new DateTime((string)$tournament->tdate);
+                    $today = new DateTime('today');
+                    $daysUntil = (int)$today->diff($tournamentDate)->format('%r%a');
+                    if ($daysUntil < 14) {
+                        $_SESSION['error'] = 'Squad cannot be announced within 2 weeks of the tournament date.';
+                        $_SESSION['success'] = 'Squad draft saved.';
+                        redirect('coach/tournament_detail/' . $id);
+                        return;
+                    }
+                }
+            } catch (Exception $e) {
+                // If date parsing fails, proceed.
+            }
+
             $M_Tournament->confirmTeam($id, $_SESSION['user_id']);
             $M_Tournament->announceTeam($id);
             $_SESSION['success'] = 'Squad confirmed and announced successfully.';

@@ -1604,6 +1604,22 @@ class Admin extends Controller {
                 return;
             }
 
+            // Creation rule: tournament must be scheduled at least 50 days ahead
+            try {
+                $tournamentDate = new DateTime((string)$data['tdate']);
+                $today = new DateTime('today');
+                $daysUntil = (int)$today->diff($tournamentDate)->format('%r%a');
+                if ($daysUntil < 50) {
+                    $_SESSION['error'] = 'Tournament date must be at least 50 days from today.';
+                    redirect('admin/create_tournament');
+                    return;
+                }
+            } catch (Exception $e) {
+                $_SESSION['error'] = 'Invalid tournament date.';
+                redirect('admin/create_tournament');
+                return;
+            }
+
             $M_Tournament = $this->model('M_Tournament');
             $id = $M_Tournament->createTournament($data);
             $_SESSION['success'] = 'Tournament created successfully.';
@@ -1643,6 +1659,22 @@ class Admin extends Controller {
 
             if (empty($data['name']) || empty($data['tdate'])) {
                 $_SESSION['error'] = 'Tournament name and date are required.';
+                redirect('admin/edit_tournament/' . $id);
+                return;
+            }
+
+            // Keep minimum lead-time consistent when editing the tournament date
+            try {
+                $tournamentDate = new DateTime((string)$data['tdate']);
+                $today = new DateTime('today');
+                $daysUntil = (int)$today->diff($tournamentDate)->format('%r%a');
+                if ($daysUntil < 50) {
+                    $_SESSION['error'] = 'Tournament date must be at least 50 days from today.';
+                    redirect('admin/edit_tournament/' . $id);
+                    return;
+                }
+            } catch (Exception $e) {
+                $_SESSION['error'] = 'Invalid tournament date.';
                 redirect('admin/edit_tournament/' . $id);
                 return;
             }
@@ -1732,6 +1764,41 @@ class Admin extends Controller {
             return;
         }
 
+        // Enforce lifecycle timing rules (relative to tournament date)
+        try {
+            $tournamentDate = !empty($tournament->tdate) ? new DateTime((string)$tournament->tdate) : null;
+            $today = new DateTime('today');
+            $daysUntil = $tournamentDate ? (int)$today->diff($tournamentDate)->format('%r%a') : null;
+
+            if ($daysUntil !== null) {
+                if ($newStatus === 'registration_closed' && $daysUntil < 30) {
+                    $_SESSION['error'] = 'Registrations must be closed at least 1 month before the tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'team_announced' && $daysUntil < 14) {
+                    $_SESSION['error'] = 'Squad must be announced at least 2 weeks before the tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'ongoing' && $daysUntil > 0) {
+                    $_SESSION['error'] = 'Tournament can only be marked as ongoing on or after the tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($newStatus === 'completed' && $daysUntil > 0) {
+                    $_SESSION['error'] = 'Tournament can only be marked as completed on or after the tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+            }
+        } catch (Exception $e) {
+            // If date parsing fails, do not block status updates.
+        }
+
         if ($newStatus === 'team_announced') {
             $M_Tournament->announceTeam($id);
             $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
@@ -1756,6 +1823,42 @@ class Admin extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
 
+        $tournament = $M_Tournament->getTournamentById($id);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('admin/tournaments');
+            return;
+        }
+
+        if (in_array($tournament->Status, ['ongoing', 'completed'], true)) {
+            $_SESSION['error'] = 'Cannot cancel a tournament that is ongoing or completed.';
+            redirect('admin/tournament_detail/' . $id);
+            return;
+        }
+
+        // Cancellation must happen before 3 weeks to tournament date
+        try {
+            if (!empty($tournament->tdate)) {
+                $tournamentDate = new DateTime((string)$tournament->tdate);
+                $today = new DateTime('today');
+                $daysUntil = (int)$today->diff($tournamentDate)->format('%r%a');
+
+                if ($daysUntil <= 0) {
+                    $_SESSION['error'] = 'Cannot cancel a tournament on or after its tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+
+                if ($daysUntil < 21) {
+                    $_SESSION['error'] = 'Tournament must be cancelled at least 3 weeks before the tournament date.';
+                    redirect('admin/tournament_detail/' . $id);
+                    return;
+                }
+            }
+        } catch (Exception $e) {
+            // If date parsing fails, do not block cancellation.
+        }
+
         $M_Tournament->updateStatus($id, 'cancelled', $reason);
         $M_JoinRequest->rejectAllPending($id, $_SESSION['user_id']);
 
@@ -1774,6 +1877,23 @@ class Admin extends Controller {
         $req = $M_JoinRequest->getRequestById($id);
         if (!$req) { echo json_encode(['success' => false, 'message' => 'Request not found.']); return; }
 
+        if (strcasecmp((string)($req->Status ?? ''), 'pending') !== 0) {
+            echo json_encode(['success' => false, 'message' => 'Only pending join requests can be approved.']);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById((int)($req->TournamentID ?? 0));
+        if (!$tournament) {
+            echo json_encode(['success' => false, 'message' => 'Tournament not found for this request.']);
+            return;
+        }
+
+        if ($tournament->Status !== 'registration_open') {
+            echo json_encode(['success' => false, 'message' => 'Join requests can only be reviewed while registration is open.']);
+            return;
+        }
+
         $M_JoinRequest->updateStatus($id, 'approved', $_SESSION['user_id'], $_POST['notes'] ?? null);
         echo json_encode(['success' => true, 'message' => 'Join request approved.']);
     }
@@ -1788,6 +1908,23 @@ class Admin extends Controller {
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $req = $M_JoinRequest->getRequestById($id);
         if (!$req) { echo json_encode(['success' => false, 'message' => 'Request not found.']); return; }
+
+        if (strcasecmp((string)($req->Status ?? ''), 'pending') !== 0) {
+            echo json_encode(['success' => false, 'message' => 'Only pending join requests can be rejected.']);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById((int)($req->TournamentID ?? 0));
+        if (!$tournament) {
+            echo json_encode(['success' => false, 'message' => 'Tournament not found for this request.']);
+            return;
+        }
+
+        if ($tournament->Status !== 'registration_open') {
+            echo json_encode(['success' => false, 'message' => 'Join requests can only be reviewed while registration is open.']);
+            return;
+        }
 
         $M_JoinRequest->updateStatus($id, 'rejected', $_SESSION['user_id'], $_POST['notes'] ?? null);
         echo json_encode(['success' => true, 'message' => 'Join request rejected.']);
@@ -1804,6 +1941,22 @@ class Admin extends Controller {
             $_SESSION['error'] = 'Team can only be published when tournament is in registration_closed status.';
             redirect('admin/tournament_detail/' . $tournamentId);
             return;
+        }
+
+        // Squad must be announced at least 2 weeks before tournament date
+        try {
+            if (!empty($tournament->tdate)) {
+                $tournamentDate = new DateTime((string)$tournament->tdate);
+                $today = new DateTime('today');
+                $daysUntil = (int)$today->diff($tournamentDate)->format('%r%a');
+                if ($daysUntil < 14) {
+                    $_SESSION['error'] = 'Squad must be announced at least 2 weeks before the tournament date.';
+                    redirect('admin/tournament_detail/' . $tournamentId);
+                    return;
+                }
+            }
+        } catch (Exception $e) {
+            // If date parsing fails, do not block team publishing.
         }
 
         $M_Tournament->announceTeam($tournamentId);

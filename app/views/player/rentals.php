@@ -3,84 +3,8 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/shopping.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/rentals.css">
     
-<div class="player-layout" id="rentalsPage" data-urlroot="<?php echo URLROOT; ?>">
-    <!-- Sidebar -->
-    <div class="player-sidebar" id="playerSidebar">
-        <div class="sidebar-header">
-            <div class="player-logo">
-                <i class="fas fa-user-graduate"></i>
-                <h3>Player Dashboard</h3>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/training" class="nav-link">
-                        <i class="fas fa-dumbbell"></i>
-                        <span>Training</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/performance" class="nav-link">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Performance</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/playerslots" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/tournaments" class="nav-link">
-                        <i class="fas fa-medal"></i>
-                        <span>Tournaments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/medical" class="nav-link">
-                        <i class="fas fa-heartbeat"></i>
-                        <span>Medical</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/player/payments" class="nav-link">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Payments</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/player/shopping" class="nav-link">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Shopping</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Profile Section -->
-        <div class="profile-section">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="profile-name"><?php echo isset($data['player']['name']) ? $data['player']['name'] : 'Player'; ?></div>
-            <div class="profile-role"><?php echo isset($data['player']['membership_level']) ? $data['player']['membership_level'] : 'Regular'; ?> Member</div>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn profile-logout-spacing">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </div>
+<div class="player-layout" id="rentalsPage" data-urlroot="<?php echo URLROOT; ?>" data-cart-count="<?php echo (int)($data['rentalCartItemCount'] ?? 0); ?>">
+    <?php $playerActivePage = 'shopping'; require APPROOT . '/views/inc/components/player_sidebar.php'; ?>
 
     <!-- Main Content Area -->
     <div class="main-content">
@@ -92,10 +16,15 @@
                     <p>High-quality cricket equipment available for daily or weekly rentals</p>
                 </div>
                 <div class="header-actions">
-                   
                     <a href="<?php echo URLROOT; ?>/player/shopping" class="btn btn-facilities">
                         <i class="fas fa-shopping-bag"></i>
                         Back to Shop
+                    </a>
+
+                    <a href="<?php echo URLROOT; ?>/player/rental_cart" class="btn btn-cart" id="rental-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Cart
+                        <span class="cart-count" id="rental-cart-count"><?php echo (int)($data['rentalCartItemCount'] ?? 0); ?></span>
                     </a>
                     <a href="<?php echo URLROOT; ?>/playerslots/bookings" class="btn btn-cart">
                         <i class="fas fa-calendar-alt"></i>
@@ -153,97 +82,6 @@
                 return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
             };
         ?>
-
-        <div class="info-section rental-cart-section">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <h3 style="margin:0;">Rental Cart</h3>
-                <?php if (!empty($data['rentalCartItems'])) : ?>
-                    <form method="POST" action="<?php echo URLROOT; ?>/player/clear_rental_cart" style="margin:0;">
-                        <button type="submit" class="btn btn-facilities" style="padding: 0.45rem 0.9rem;">
-                            Clear Cart
-                        </button>
-                    </form>
-                <?php endif; ?>
-            </div>
-
-            <?php $rentalCartItems = $data['rentalCartItems'] ?? []; ?>
-
-            <?php if (!empty($rentalCartItems)) : ?>
-                <div class="rental-history-table-wrap" style="margin-top: 1rem;">
-                    <table class="rental-history-table">
-                        <thead>
-                            <tr>
-                                <th>Equipment</th>
-                                <th>Rate</th>
-                                <th>Added</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($rentalCartItems as $item) : ?>
-                                <tr>
-                                    <td><?php echo $escape($item->EquipmentName ?? 'Equipment'); ?></td>
-                                    <td>LKR <?php echo number_format((float)($item->RentalPrice ?? 0), 2); ?>/day</td>
-                                    <td><?php echo !empty($item->AddedDate) ? date('M j, Y', strtotime($item->AddedDate)) : '-'; ?></td>
-                                    <td>
-                                        <form method="POST" action="<?php echo URLROOT; ?>/player/remove_rental_cart_item" style="display:inline; margin:0;">
-                                            <input type="hidden" name="cart_id" value="<?php echo (int)($item->CartID ?? 0); ?>">
-                                            <button type="submit" class="btn btn-cart" style="padding: 0.45rem 0.9rem;">
-                                                Remove
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <form method="POST" action="<?php echo URLROOT; ?>/player/checkout_rental_cart" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label for="rental-cart-start-date">Start Date:</label>
-                        <input type="date" id="rental-cart-start-date" name="start_date" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="rental-cart-duration">Rental Duration:</label>
-                        <select id="rental-cart-duration" name="duration" required>
-                            <option value="1">1 Day</option>
-                            <option value="2">2 Days</option>
-                            <option value="3">3 Days</option>
-                            <option value="4">4 Days</option>
-                            <option value="5">5 Days</option>
-                            <option value="6">6 Days</option>
-                            <option value="7">7 Days</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="rental-cart-pickup">Pickup Method:</label>
-                        <select id="rental-cart-pickup" name="pickup_method" required>
-                            <option value="pickup">Pickup from Academy</option>
-                            <option value="delivery">Home Delivery (+Rs. 250)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 0.85rem;">
-                        <label style="display:flex; align-items:center; gap:10px;">
-                            <input type="checkbox" name="agree_terms" value="1" required>
-                            <span>I agree to the rental terms (late fees and damage policy).</span>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-cart" style="padding: 0.6rem 1.1rem;">
-                        Checkout Cart
-                    </button>
-                </form>
-            <?php else : ?>
-                <div class="rental-empty-state" style="margin-top: 1rem;">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>Your rental cart is empty.</p>
-                </div>
-            <?php endif; ?>
-        </div>
 
         <div class="items-grid" id="rentals-grid">
             <?php
@@ -317,6 +155,15 @@
                                 <button class="btn btn-card rent-equipment" data-equipment-id="<?php echo $escape($equipment->EquipmentID ?? ''); ?>" data-name="<?php echo $escape($name); ?>" data-condition="<?php echo $escape($conditionLabel); ?>" data-rate="<?php echo $escape($dailyRate); ?>" data-stock="<?php echo (int)$stock; ?>" <?php echo $canRent ? '' : 'disabled'; ?>>
                                     Rent Now
                                 </button>
+
+                                <form class="js-add-to-rental-cart-form" method="POST" action="<?php echo URLROOT; ?>/player/add_rental_cart_item" style="margin:0;" data-name="<?php echo $escape($name); ?>">
+                                    <input type="hidden" name="return_to" value="rentals">
+                                    <input type="hidden" name="equipment_id" value="<?php echo (int)($equipment->EquipmentID ?? 0); ?>">
+                                    <button type="submit" class="btn btn-cart" title="Add to Cart" <?php echo $canRent ? '' : 'disabled'; ?>>
+                                        <i class="fas fa-cart-plus" aria-hidden="true"></i>
+                                        Add
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -426,6 +273,7 @@
             <div id="rental-details"></div>
 
             <form id="rental-cart-form" method="POST" action="<?php echo URLROOT; ?>/player/add_rental_cart_item">
+                <input type="hidden" name="return_to" value="rentals">
                 <input type="hidden" id="rental-cart-equipment-id" name="equipment_id" value="">
             </form>
 

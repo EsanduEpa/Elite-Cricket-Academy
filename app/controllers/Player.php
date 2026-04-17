@@ -684,6 +684,7 @@ class Player extends Controller {
 
         $shopModel = $this->model('M_Shop');
         $rentalCartItems = $shopModel->getRentalCartItems($playerId);
+        $rentalCartItemCount = $shopModel->getRentalCartItemCount($playerId);
 
         $data = [
             'title' => 'Equipment Rentals',
@@ -692,8 +693,120 @@ class Player extends Controller {
             'myRentals' => $this->getMyRentals(),
             'rentalStats' => $this->getRentalStats(),
             'rentalCartItems' => $rentalCartItems,
+            'rentalCartItemCount' => $rentalCartItemCount,
         ];
         $this->view('player/rentals', $data);
+    }
+
+    public function rental_cart() {
+        $playerData = $this->getPlayerData();
+        $playerId = (int)($playerData['id'] ?? 0);
+        if ($playerId <= 0) {
+            redirect('login');
+        }
+
+        $shopModel = $this->model('M_Shop');
+
+        $data = [
+            'title' => 'Rental Cart',
+            'player' => $playerData,
+            'rentalCartItems' => $shopModel->getRentalCartItems($playerId),
+            'rentalCartItemCount' => $shopModel->getRentalCartItemCount($playerId),
+        ];
+
+        $this->view('player/rental_cart', $data);
+    }
+
+    public function rentalCartSummary() {
+        header('Content-Type: application/json');
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $count = $playerId > 0 ? $this->shopModel->getRentalCartItemCount($playerId) : 0;
+
+        echo json_encode([
+            'success' => true,
+            'cart_count' => $count,
+        ]);
+        exit;
+    }
+
+    public function rentalCartItems() {
+        header('Content-Type: application/json');
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+
+        echo json_encode([
+            'success' => true,
+            'items' => $playerId > 0 ? $this->shopModel->getRentalCartItems($playerId) : [],
+            'cart_count' => $playerId > 0 ? $this->shopModel->getRentalCartItemCount($playerId) : 0,
+        ]);
+        exit;
+    }
+
+    public function addToRentalCart() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $equipmentId = (int)($_POST['equipment_id'] ?? 0);
+
+        if ($playerId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Player not found.', 'cart_count' => 0]);
+            exit;
+        }
+
+        $result = $this->shopModel->addToRentalCart([
+            'player_id' => $playerId,
+            'equipment_id' => $equipmentId,
+        ]);
+
+        echo json_encode($result);
+        exit;
+    }
+
+    public function removeRentalCartItem() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        $cartId = (int)($_POST['cart_id'] ?? 0);
+
+        if ($playerId <= 0 || $cartId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid rental cart item.', 'cart_count' => 0]);
+            exit;
+        }
+
+        $result = $this->shopModel->removeFromRentalCart($playerId, $cartId);
+        echo json_encode($result);
+        exit;
+    }
+
+    public function clearRentalCart() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+            exit;
+        }
+
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($playerId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Player not found.', 'cart_count' => 0]);
+            exit;
+        }
+
+        $result = $this->shopModel->clearRentalCart($playerId);
+        echo json_encode($result);
+        exit;
     }
 
     public function add_rental_cart_item() {
@@ -708,10 +821,22 @@ class Player extends Controller {
         }
 
         $equipmentId = (int)($_POST['equipment_id'] ?? 0);
+        $returnTo = strtolower(trim((string)($_POST['return_to'] ?? '')));
+        $redirectTarget = $returnTo === 'rental_cart' ? 'player/rental_cart' : 'player/rentals';
+
+        $accept = (string)($_SERVER['HTTP_ACCEPT'] ?? '');
+        $xrw = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+        $wantsJson = $xrw === 'xmlhttprequest' || stripos($accept, 'application/json') !== false;
 
         if ($equipmentId <= 0) {
+            if ($wantsJson) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Invalid equipment selection.', 'cart_count' => $this->shopModel->getRentalCartItemCount($playerId)]);
+                exit;
+            }
+
             flash('rental_message', 'Invalid equipment selection.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         $shopModel = $this->model('M_Shop');
@@ -720,13 +845,19 @@ class Player extends Controller {
             'equipment_id' => $equipmentId,
         ]);
 
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
         if (!empty($result['success'])) {
             flash('rental_message', (string)($result['message'] ?? 'Added to rental cart.'), 'alert alert-success');
         } else {
             flash('rental_message', (string)($result['message'] ?? 'Could not add to rental cart.'), 'alert alert-danger');
         }
 
-        redirect('player/rentals');
+        redirect($redirectTarget);
     }
 
     public function remove_rental_cart_item() {
@@ -737,16 +868,35 @@ class Player extends Controller {
         $playerData = $this->getPlayerData();
         $playerId = (int)($playerData['id'] ?? 0);
         $cartId = (int)($_POST['cart_id'] ?? 0);
+        $returnTo = strtolower(trim((string)($_POST['return_to'] ?? '')));
+        $redirectTarget = $returnTo === 'rental_cart' ? 'player/rental_cart' : 'player/rentals';
+
+        $accept = (string)($_SERVER['HTTP_ACCEPT'] ?? '');
+        $xrw = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+        $wantsJson = $xrw === 'xmlhttprequest' || stripos($accept, 'application/json') !== false;
 
         if ($playerId <= 0 || $cartId <= 0) {
+            if ($wantsJson) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Invalid rental cart item.', 'cart_count' => $this->shopModel->getRentalCartItemCount($playerId)]);
+                exit;
+            }
+
             flash('rental_message', 'Invalid rental cart item.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         $shopModel = $this->model('M_Shop');
         $result = $shopModel->removeFromRentalCart($playerId, $cartId);
+
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
         flash('rental_message', (string)($result['message'] ?? ''), !empty($result['success']) ? 'alert alert-success' : 'alert alert-danger');
-        redirect('player/rentals');
+        redirect($redirectTarget);
     }
 
     public function clear_rental_cart() {
@@ -756,14 +906,27 @@ class Player extends Controller {
 
         $playerData = $this->getPlayerData();
         $playerId = (int)($playerData['id'] ?? 0);
+        $returnTo = strtolower(trim((string)($_POST['return_to'] ?? '')));
+        $redirectTarget = $returnTo === 'rental_cart' ? 'player/rental_cart' : 'player/rentals';
+
+        $accept = (string)($_SERVER['HTTP_ACCEPT'] ?? '');
+        $xrw = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+        $wantsJson = $xrw === 'xmlhttprequest' || stripos($accept, 'application/json') !== false;
         if ($playerId <= 0) {
             redirect('login');
         }
 
         $shopModel = $this->model('M_Shop');
         $result = $shopModel->clearRentalCart($playerId);
+
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
         flash('rental_message', (string)($result['message'] ?? ''), !empty($result['success']) ? 'alert alert-success' : 'alert alert-danger');
-        redirect('player/rentals');
+        redirect($redirectTarget);
     }
 
     public function checkout_rental_cart() {
@@ -777,11 +940,14 @@ class Player extends Controller {
             redirect('login');
         }
 
+        $returnTo = strtolower(trim((string)($_POST['return_to'] ?? '')));
+        $redirectTarget = $returnTo === 'rental_cart' ? 'player/rental_cart' : 'player/rentals';
+
         $shopModel = $this->model('M_Shop');
         $cartItems = $shopModel->getRentalCartItems($playerId);
         if (!$cartItems) {
             flash('rental_message', 'Your rental cart is empty.', 'alert alert-warning');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         $startDate = trim((string)($_POST['start_date'] ?? ''));
@@ -792,22 +958,22 @@ class Player extends Controller {
         $allowedDurations = range(1, 7);
         if ($startDate === '') {
             flash('rental_message', 'Please choose a valid rental start date for checkout.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         if (!in_array($duration, $allowedDurations, true)) {
             flash('rental_message', 'Invalid rental duration selected for checkout.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         if (!in_array($pickupMethod, ['pickup', 'delivery'], true)) {
             flash('rental_message', 'Invalid pickup method selected for checkout.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         if ($agreeToTerms !== 1) {
             flash('rental_message', 'You must agree to the rental terms before checkout.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         try {
@@ -815,11 +981,11 @@ class Player extends Controller {
             $today = new DateTime('today');
             if ($start < $today) {
                 flash('rental_message', 'Please choose today or a future date for your rental.', 'alert alert-danger');
-                redirect('player/rentals');
+                redirect($redirectTarget);
             }
         } catch (Exception $e) {
             flash('rental_message', 'Please choose a valid rental start date for checkout.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         $cartItemIds = [];
@@ -836,7 +1002,7 @@ class Player extends Controller {
         $amountValue = max(0.0, (float)$amountValue);
         if ($amountValue <= 0.0) {
             flash('rental_message', 'Your rental cart total is invalid.', 'alert alert-danger');
-            redirect('player/rentals');
+            redirect($redirectTarget);
         }
 
         require_once APPROOT . '/libraries/PayHere.php';

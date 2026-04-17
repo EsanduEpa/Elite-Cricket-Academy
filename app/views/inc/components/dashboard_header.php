@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($data['title']) ? $data['title'] : 'Elite Cricket Academy'; ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <?php
+        $faLocalCssPath = dirname(APPROOT) . '/public/vendor/fontawesome/css/all.min.css';
+        if (file_exists($faLocalCssPath)) {
+            echo '<link rel="stylesheet" href="' . URLROOT . '/vendor/fontawesome/css/all.min.css">';
+        } else {
+            echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
+        }
+    ?>
     <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 </head>
 <body>

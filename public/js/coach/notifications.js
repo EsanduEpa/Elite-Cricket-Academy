@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     const notificationsList = document.getElementById('notificationsList');
-    const notificationItems = Array.from(document.querySelectorAll('.notification-item'));
     const filterTabs = document.querySelectorAll('.filter-tab');
     const searchInput = document.getElementById('notificationSearch');
     const sortSelect = document.getElementById('sortSelect');
@@ -15,8 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const appUrlRoot = window.APP_URLROOT || '';
 
+    function getNotificationItems() {
+        return Array.from(document.querySelectorAll('.notification-item'));
+    }
+
     function updateEmptyState() {
-        const visibleItems = notificationItems.filter(function(item) {
+        const visibleItems = getNotificationItems().filter(function(item) {
             return item.style.display !== 'none';
         });
 
@@ -27,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setVisibleItems(predicate) {
-        notificationItems.forEach(function(item) {
+        getNotificationItems().forEach(function(item) {
             item.style.display = predicate(item) ? 'grid' : 'none';
         });
         updateEmptyState();
@@ -62,12 +65,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCounts() {
-        const unreadCountValue = notificationItems.filter(function(item) {
+        const items = getNotificationItems();
+        const unreadCountValue = items.filter(function(item) {
             return item.classList.contains('unread');
         }).length;
 
+        const allCount = document.getElementById('allCount');
         const unreadCount = document.getElementById('unreadCount');
         const headerCount = document.getElementById('headerNotificationCount');
+        if (allCount) allCount.textContent = '(' + items.length + ')';
         if (unreadCount) unreadCount.textContent = '(' + unreadCountValue + ')';
         if (headerCount) headerCount.textContent = '(' + unreadCountValue + ')';
     }
@@ -137,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         markAllBtn.addEventListener('click', function() {
             fetch(appUrlRoot + '/coach/markAllNotificationsRead', { method: 'POST' })
                 .then(function() {
-                    notificationItems.forEach(function(item) {
+                    getNotificationItems().forEach(function(item) {
                         item.classList.remove('unread');
                         item.classList.add('read');
                         item.querySelector('.btn-mark-read')?.remove();
@@ -154,13 +160,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            notificationItems.forEach(function(item) {
-                const id = item.getAttribute('data-id');
-                fetch(appUrlRoot + '/coach/deleteNotification/' + id, { method: 'POST' });
-                item.remove();
-            });
-            updateEmptyState();
-            updateCounts();
+            fetch(appUrlRoot + '/coach/clearAllNotifications', { method: 'POST' })
+                .then(function(response) {
+                    return response.json().catch(function() { return { success: false }; });
+                })
+                .then(function(result) {
+                    if (!result || result.success !== true) {
+                        throw new Error(result?.message || 'Failed to clear notifications');
+                    }
+
+                    getNotificationItems().forEach(function(item) {
+                        item.remove();
+                    });
+                    updateEmptyState();
+                    updateCounts();
+                })
+                .catch(function(err) {
+                    console.error('Error clearing notifications:', err);
+                    alert('Failed to clear notifications. Please try again.');
+                });
         });
     }
 
@@ -188,9 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const items = Array.from(notificationsList.querySelectorAll('.notification-item'));
             items.sort(function(a, b) {
-                const dateA = a.querySelector('.notification-time')?.textContent || '';
-                const dateB = b.querySelector('.notification-time')?.textContent || '';
-                return this.value === 'oldest' ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
+                const dateA = a.getAttribute('data-created-at') || '';
+                const dateB = b.getAttribute('data-created-at') || '';
+                if (this.value === 'oldest') {
+                    return dateA.localeCompare(dateB);
+                }
+                return dateB.localeCompare(dateA);
             }.bind(this));
             items.forEach(function(item) {
                 notificationsList.appendChild(item);
