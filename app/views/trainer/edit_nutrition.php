@@ -13,7 +13,7 @@ $templates = $data['nutrition_templates'] ?? [];
 
 // Helper: return old (post) value if available, otherwise DB value
 $val = function(string $k, string $dbCol = '') use ($old, $plan) {
-    if (isset($old[$k])) return htmlspecialchars($old[$k], ENT_QUOTES);
+    if (isset($old[$k])) return htmlspecialchars(html_entity_decode((string)$old[$k], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES);
     $col = $dbCol;
     if (!$col) {
         // Special case: plan_name can map to PlanName or nutritionPlanName
@@ -23,7 +23,7 @@ $val = function(string $k, string $dbCol = '') use ($old, $plan) {
             $col = $k;
         }
     }
-    return htmlspecialchars($plan->$col ?? '', ENT_QUOTES);
+    return htmlspecialchars(html_entity_decode((string)($plan->$col ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES);
 };
 $err = fn(string $k) => $errors[$k] ?? '';
 $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
@@ -175,17 +175,32 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
                             <?php
                                 $currentTemplateId = (int)($old['template_id'] ?? ($plan->TemplateID ?? 0));
                                 if ($currentTemplateId <= 0) {
-                                    $currentPlanName = trim((string)($plan->PlanName ?? $plan->nutritionPlanName ?? ''));
+                                    $currentPlanName = trim(html_entity_decode((string)($plan->PlanName ?? $plan->nutritionPlanName ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
                                     foreach ($templates as $template) {
-                                        if (strcasecmp(trim((string)$template->PlanName), $currentPlanName) === 0) {
+                                        $templateName = trim(html_entity_decode((string)$template->PlanName, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                                        if (strcasecmp($templateName, $currentPlanName) === 0) {
                                             $currentTemplateId = (int)$template->TemplateID;
                                             break;
                                         }
                                     }
                                 }
+
+                                $hasCurrentTemplateOption = false;
+                                foreach ($templates as $template) {
+                                    if ((int)$template->TemplateID === $currentTemplateId) {
+                                        $hasCurrentTemplateOption = true;
+                                        break;
+                                    }
+                                }
                             ?>
+                            <input type="hidden" name="existing_template_id" value="<?php echo (int)$currentTemplateId; ?>">
                             <select id="template_id" name="template_id" class="form-control<?php echo $cls('template_id'); ?>" data-template-select>
                                 <option value="">— Select a predefined template —</option>
+                                <?php if ($currentTemplateId > 0 && !$hasCurrentTemplateOption): ?>
+                                    <option value="<?php echo (int)$currentTemplateId; ?>" selected>
+                                        Current Template (Unavailable)
+                                    </option>
+                                <?php endif; ?>
                                 <?php foreach ($templates as $template): ?>
                                     <option value="<?php echo (int)$template->TemplateID; ?>" <?php echo $currentTemplateId === (int)$template->TemplateID ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($template->PlanName); ?>
@@ -603,8 +618,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadSelectedTemplate(templateId) {
+        // On edit, keep current values when no template is selected.
         if (!templateEndpoint || !templateId) {
-            clearNutritionFields();
             return;
         }
 
@@ -706,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const duration    = document.getElementById('duration').value.trim();
         const createdDate = document.getElementById('created_date').value.trim();
 
-        if (!templateId) addError('template_id', 'Please select a nutrition template.');
+        // Template selection is optional on edit; keep existing template/value set when not chosen.
         if (!planName) addError('plan_name', 'Plan name is required.');
         if (!protein || isNaN(protein) || +protein < 0 || +protein > 100) addError('protein_percentage', 'Enter a valid percentage between 0 and 100.');
         if (!carbs || isNaN(carbs) || +carbs < 0 || +carbs > 100) addError('carbohydrate_percentage', 'Enter a valid percentage between 0 and 100.');

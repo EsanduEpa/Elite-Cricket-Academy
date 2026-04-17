@@ -12,8 +12,11 @@
         public function __construct() {
             $dsn = "mysql:host=". $this->host .";dbname=". $this->dbname;
             $options = array(
-                PDO::ATTR_PERSISTENT => true,
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                // Use non-persistent connections to avoid hanging on bad pooled connections
+                PDO::ATTR_PERSISTENT => false,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                // Shorter timeouts so a bad DB connection doesn't hang forever
+                PDO::ATTR_TIMEOUT => 5
             );
 
             //initiate pdo

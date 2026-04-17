@@ -96,7 +96,8 @@ class Nutrition extends Controller {
         $model   = $this->model('M_NutritionPlan');
         $players = $model->getAllPlayers();
         $groups  = $model->getPlayerGroups();
-        $templates = $model->getNutritionTemplates();
+        // Include inactive templates too, so previously selected template stays visible on edit.
+        $templates = $model->getNutritionTemplates(false);
 
         $errors = $_SESSION['nutrition_create_errors'] ?? [];
         $old    = $_SESSION['nutrition_create_old']    ?? [];
@@ -290,13 +291,27 @@ class Nutrition extends Controller {
     // Returns [$errors, $sanitisedFields]
     private function _validate(array $post, $model = null, $existingPlan = null): array {
         $templateId = (int)($post['template_id'] ?? 0);
+        $existingTemplateIdFromPost = (int)($post['existing_template_id'] ?? 0);
         $template = null;
         if ($model && $templateId > 0) {
             $template = $model->getNutritionTemplateById($templateId);
         }
 
+        // If trainer did not change template during edit, preserve the existing template id from form.
+        if (!$template && $model && $existingTemplateIdFromPost > 0) {
+            $template = $model->getNutritionTemplateById($existingTemplateIdFromPost);
+        }
+
         if (!$template && $existingPlan && !empty($existingPlan->TemplateID)) {
             $template = $model ? $model->getNutritionTemplateById((int)$existingPlan->TemplateID) : null;
+        }
+
+        // Fallback by plan name for older rows where TemplateID might be null.
+        if (!$template && $model && $existingPlan) {
+            $existingPlanName = trim(html_entity_decode((string)($existingPlan->PlanName ?? $existingPlan->nutritionPlanName ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            if ($existingPlanName !== '') {
+                $template = $model->getNutritionTemplateByName($existingPlanName);
+            }
         }
 
         $planName = trim(htmlspecialchars($post['plan_name'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -437,7 +452,11 @@ class Nutrition extends Controller {
         }
 
         $fields = [
-            'template_id' => $template ? (int)($template->TemplateID ?? $templateId) : ($existingPlan ? (int)($existingPlan->TemplateID ?? 0) : $templateId),
+            'template_id' => $template
+                ? (int)($template->TemplateID ?? $templateId)
+                : ($existingTemplateIdFromPost > 0
+                    ? $existingTemplateIdFromPost
+                    : ($existingPlan ? (int)($existingPlan->TemplateID ?? 0) : $templateId)),
             'plan_name'    => $planName,
             'assignment_mode' => $assignmentMode,
             'player_ids'   => $playerIds,
