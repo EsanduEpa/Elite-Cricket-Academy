@@ -53,12 +53,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i>
-                        <span>Supplements</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
                         <i class="fas fa-user-injured"></i>
                         <span>Injury Reports</span>
@@ -313,10 +307,6 @@
                         <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="quick-action-btn">
                             <i class="fas fa-user-injured"></i>
                             <span>Injury Report</span>
-                        </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/supplements" class="quick-action-btn">
-                            <i class="fas fa-capsules"></i>
-                            <span>Supplements</span>
                         </a>
                         <a href="<?php echo URLROOT; ?>/trainer/reports" class="quick-action-btn">
                             <i class="fas fa-chart-bar"></i>

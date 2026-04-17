@@ -237,12 +237,20 @@ function viewPlan(planId) {
     if (row) {
         const planName = row.querySelector('.plan-name strong').textContent;
         const frequency = row.querySelector('.frequency-badge').textContent.trim();
+        const statusText = row.querySelector('.status-badge') ? row.querySelector('.status-badge').textContent.trim() : '';
+        const status = statusText || '-';
         // Safely read duration and created date by class selectors added to server-rendered rows
         const durationEl = row.querySelector('.duration');
         const dateEl = row.querySelector('.table-cell-secondary') || row.querySelector('.date');
         const duration = durationEl ? durationEl.textContent.trim() : '';
         const date = dateEl ? dateEl.textContent.trim() : '';
         const planIdFormatted = row.querySelector('.plan-id').textContent;
+
+        const videoLinkEl = row.querySelector('a.video-link');
+        const videoLinkHref = videoLinkEl ? videoLinkEl.getAttribute('href') : '';
+
+        const assignedBtn = row.querySelector('.assigned-players-btn');
+        const assignedText = assignedBtn ? assignedBtn.textContent.replace(/\s+/g, ' ').trim() : '-';
         
         // Display plan details
         detailsContainer.innerHTML = `
@@ -269,9 +277,29 @@ function viewPlan(planId) {
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
                     <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-toggle-on" style="color: #4A90E2;"></i>Status:
+                    </label>
+                    <span style="font-weight: 600; color: #1f2937; text-transform: capitalize;">${status}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                    <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-clock" style="color: #4A90E2;"></i>Duration:
                     </label>
                     <span style="font-weight: 600; color: #7c3aed;">${duration}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                    <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-video" style="color: #4A90E2;"></i>Video Link:
+                    </label>
+                    ${videoLinkHref ? `<a href="${videoLinkHref}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;text-decoration:none;font-weight:600;">Open</a>` : `<span style="color:#6b7280;">-</span>`}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
+                    <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-users" style="color: #4A90E2;"></i>Assigned Players:
+                    </label>
+                    <button onclick="closeViewModal(); viewAssignedPlayers(${planId}, '${planName.replace(/'/g, "\\'")}')" style="background: rgba(74, 144, 226, 0.1); color: #4A90E2; border: 1px solid rgba(74, 144, 226, 0.3); padding: 8px 14px; border-radius: 999px; cursor: pointer; font-weight: 600;">
+                        ${assignedText || 'View'}
+                    </button>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #4A90E2;">
                     <label style="font-weight: 600; color: #374151; margin: 0; display: flex; align-items: center; gap: 8px;">

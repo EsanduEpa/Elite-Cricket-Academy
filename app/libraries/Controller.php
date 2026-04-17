@@ -10,8 +10,9 @@ error_reporting(E_ALL);
             return new $model();
     }
         public function view($view, $data = []) {
-            if(file_exists('../app/views/'. $view .'.php')){
-                require_once '../app/views/' . $view . '.php';
+            $viewPath = APPROOT . '/views/' . $view . '.php';
+            if (file_exists($viewPath)) {
+                require_once $viewPath;
         }
         else {
             die('corresponding view does not exist');

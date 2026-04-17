@@ -2,6 +2,25 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition_crud.css?v=<?php echo time(); ?>">
 
+<?php
+$plans = $data['plans'] ?? [];
+$templates = $data['nutrition_templates'] ?? [];
+
+if ($plans instanceof Traversable) {
+    $plans = iterator_to_array($plans);
+}
+if (!is_array($plans)) {
+    $plans = [];
+}
+
+if ($templates instanceof Traversable) {
+    $templates = iterator_to_array($templates);
+}
+if (!is_array($templates)) {
+    $templates = [];
+}
+?>
+
 <div class="player-layout nc-page">
 
     <!-- ── Sidebar ─────────────────────────────────────────────── -->
@@ -30,8 +49,7 @@
                 </li>
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>My Slot Sessions</span>
+                        <i class="fas fa-calendar-check"></i><span>My Slot Sessions</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -54,7 +72,7 @@
 
         <div class="trainer-profile">
             <div class="trainer-avatar"><i class="fas fa-user-tie"></i></div>
-            <div class="trainer-name"><?php echo htmlspecialchars($_SESSION['username'] ?? 'John Trainer'); ?></div>
+            <div class="trainer-name"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Trainer'); ?></div>
             <div class="trainer-role">Fitness Trainer</div>
             <div class="profile-actions">
                 <a href="<?php echo URLROOT; ?>/trainer/profile" class="profile-btn" title="Profile">
@@ -70,7 +88,6 @@
     <!-- ── Main content ─────────────────────────────────────────── -->
     <div class="main-content" id="mainContent">
 
-        <!-- Page header -->
         <div class="nc-header">
             <div class="nc-header-text">
                 <h1><i class="fas fa-apple-alt"></i> Nutrition Plans</h1>
@@ -83,7 +100,6 @@
             </div>
         </div>
 
-        <!-- Flash messages -->
         <?php flash('nutrition_message'); ?>
 
         <!-- Plans table card -->
@@ -91,101 +107,58 @@
             <div class="nc-card-header">
                 <h2><i class="fas fa-list-ul"></i> All Nutrition Plans
                     <span style="font-weight:400;color:#adb5bd;font-size:.85rem;margin-left:.5rem;">
-                        (<?php echo count($data['plans']); ?>)
+                        (<?php echo count($plans); ?>)
                     </span>
                 </h2>
             </div>
 
-            <?php if (!empty($data['plans'])): ?>
+            <?php if (!empty($plans)): ?>
                 <div class="nc-table-wrap">
                     <table class="nc-table">
                         <thead>
                             <tr>
-                                <th><i class="fas fa-tag"></i> Plan</th>
-                                <th><i class="fas fa-users"></i> Assigned To</th>
+                                <th><i class="fas fa-tag"></i> Plan Name</th>
+                                <th><i class="fas fa-user"></i> Player</th>
+                                <th><i class="fas fa-utensils"></i> Diet Details</th>
                                 <th><i class="fas fa-hourglass-half"></i> Duration</th>
-                                <th><i class="fas fa-sticky-note"></i> Notes</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
+                                <th><i class="fas fa-calendar-alt"></i> Created</th>
                                 <th><i class="fas fa-cog"></i> Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($data['plans'] as $plan): ?>
+                            <?php foreach ($plans as $plan): ?>
                                 <tr>
-                                    <!-- Plan name -->
                                     <td>
-                                        <span class="nc-plan-name">
-                                            <?php echo htmlspecialchars($plan->PlanName ?? $plan->nutritionPlanName ?? 'Untitled Plan'); ?>
+                                        <span class="nc-plan-name"><?php echo htmlspecialchars($plan->PlanName ?? 'Untitled Plan'); ?></span>
+                                        <span class="nc-plan-id">#<?php echo (int)($plan->PlanID ?? 0); ?></span>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($plan->player_name ?? '—'); ?></td>
+                                    <td>
+                                        <span class="nc-diet-preview" title="<?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>">
+                                            <?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>
                                         </span>
-                                        <?php
-                                            $macroSummary = [];
-                                            if (isset($plan->ProteinPercentage)) $macroSummary[] = 'P ' . (float)$plan->ProteinPercentage . '%';
-                                            if (isset($plan->CarbohydratePercentage)) $macroSummary[] = 'C ' . (float)$plan->CarbohydratePercentage . '%';
-                                            if (isset($plan->FatPercentage)) $macroSummary[] = 'F ' . (float)$plan->FatPercentage . '%';
-                                            if (isset($plan->RecommendedCalories)) $macroSummary[] = (int)$plan->RecommendedCalories . ' cal';
-                                        ?>
-                                        <?php if (!empty($macroSummary)): ?>
-                                            <span class="plan-description"><?php echo htmlspecialchars(implode(' · ', $macroSummary)); ?></span>
-                                        <?php endif; ?>
-                                        <span class="nc-plan-id">#<?php echo (int)$plan->PlanID; ?></span>
                                     </td>
-
-                                    <!-- Assigned To -->
-                                    <?php $assignmentCount = (int)($plan->assigned_player_count ?? 0); ?>
-                                    <td title="<?php echo htmlspecialchars($plan->assigned_player_names ?? ($plan->player_name ?? '')); ?>">
-                                        <?php if ($assignmentCount > 1): ?>
-                                            <?php echo $assignmentCount; ?> players
-                                        <?php elseif ($assignmentCount === 1 || !empty($plan->player_name)) : ?>
-                                            <?php echo htmlspecialchars($plan->player_name ?? '1 player'); ?>
-                                        <?php else: ?>
-                                            —
-                                        <?php endif; ?>
-                                    </td>
-
-                                    <!-- Duration -->
-                                    <td><?php echo (int)$plan->Duration; ?> day<?php echo $plan->Duration != 1 ? 's' : ''; ?></td>
-
-                                    <!-- Notes -->
-                                    <?php $notesText = (string)($plan->Notes ?? $plan->notes ?? ''); ?>
+                                    <td><?php echo (int)($plan->Duration ?? 0); ?> day<?php echo ((int)($plan->Duration ?? 0) !== 1) ? 's' : ''; ?></td>
                                     <td>
-                                        <?php if (trim($notesText) === ''): ?>
-                                            —
-                                        <?php else: ?>
-                                            <?php
-                                                $notesPreview = mb_strlen($notesText) > 80 ? mb_substr($notesText, 0, 80) . '…' : $notesText;
-                                            ?>
-                                            <span class="nc-notes-preview" title="<?php echo htmlspecialchars($notesText, ENT_QUOTES); ?>">
-                                                <?php echo htmlspecialchars($notesPreview, ENT_QUOTES); ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-
-                                    <!-- Status badge -->
-                                    <td>
-                                        <?php $s = strtolower($plan->Status ?? 'inactive'); ?>
+                                        <?php $s = strtolower(trim((string)($plan->Status ?? 'inactive'))); ?>
+                                        <?php if ($s !== 'active' && $s !== 'inactive') { $s = 'inactive'; } ?>
                                         <span class="nc-badge nc-badge-<?php echo $s; ?>">
                                             <i class="fas fa-<?php echo $s === 'active' ? 'check-circle' : 'pause-circle'; ?>"></i>
                                             <?php echo ucfirst($s); ?>
                                         </span>
                                     </td>
-
-                                    <!-- Actions -->
+                                    <td><?php echo !empty($plan->CreatedDate) ? date('M j, Y', strtotime($plan->CreatedDate)) : '—'; ?></td>
                                     <td class="actions-col">
                                         <div class="nc-actions">
-                                            <!-- Edit -->
-                                            <a href="<?php echo URLROOT; ?>/nutrition/edit/<?php echo (int)$plan->PlanID; ?>"
-                                               class="btn btn-primary btn-sm"
-                                               title="Edit plan">
+                                            <a href="<?php echo URLROOT; ?>/nutrition/edit/<?php echo (int)($plan->PlanID ?? 0); ?>"
+                                               class="btn btn-primary btn-sm" title="Edit plan">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-
-                                            <!-- Delete (POST form + JS confirm) -->
                                             <form method="POST"
-                                                  action="<?php echo URLROOT; ?>/nutrition/delete/<?php echo (int)$plan->PlanID; ?>"
+                                                  action="<?php echo URLROOT; ?>/nutrition/delete/<?php echo (int)($plan->PlanID ?? 0); ?>"
                                                   onsubmit="return confirmDelete(this)">
-                                                <button type="submit"
-                                                        class="btn btn-danger btn-sm"
-                                                        title="Delete plan">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete plan">
                                                     <i class="fas fa-trash-alt"></i> Delete
                                                 </button>
                                             </form>
@@ -196,30 +169,70 @@
                         </tbody>
                     </table>
                 </div>
-
             <?php else: ?>
-                <!-- Empty state -->
-                <div class="nc-empty">
-                    <h5>No Nutrition Plans Yet</h5>
-                    <p>Start by creating a personalised plan for one of your players.</p>
+                <div class="nc-empty" style="padding: 1.5rem 1.5rem 1.75rem;">
+                    <h5 style="margin: 0 0 .35rem; color: #2c3e50;">No Nutrition Plans Yet</h5>
+                    <p style="margin: 0 0 1rem; color: #6b7280;">Start by creating a personalised plan for one of your players.</p>
                     <a href="<?php echo URLROOT; ?>/nutrition/create" class="btn btn-success nc-empty-btn">
-                        <i class="fas fa-plus"></i> Create First Plan
+                        <i class="fas fa-plus"></i> New Plan
                     </a>
                 </div>
             <?php endif; ?>
+        </div>
 
-        </div><!-- /.nc-card -->
+        <!-- Template plans reference cards (under the table) -->
+        <div class="nc-card nc-templates-card">
+            <div class="nc-card-header">
+                <h2>
+                    <i class="fas fa-layer-group"></i>
+                    Template Plans (Quick Reference)
+                    <span style="font-weight:400;color:#adb5bd;font-size:.85rem;margin-left:.5rem;">
+                        (<?php echo count($templates); ?>)
+                    </span>
+                </h2>
+            </div>
+
+            <?php if (!empty($templates)): ?>
+                <div class="nc-template-grid">
+                    <?php foreach ($templates as $tpl): ?>
+                        <div class="nc-template-card">
+                            <div class="nc-template-top">
+                                <div class="nc-template-title"><?php echo htmlspecialchars($tpl->PlanName ?? 'Template'); ?></div>
+                                <div class="nc-template-calories">
+                                    <i class="fas fa-fire"></i>
+                                    <?php echo htmlspecialchars((string)($tpl->RecommendedCalories ?? '-')); ?> kcal
+                                </div>
+                            </div>
+
+                            <?php if (!empty($tpl->Description)): ?>
+                                <div class="nc-template-desc"><?php echo htmlspecialchars($tpl->Description); ?></div>
+                            <?php else: ?>
+                                <div class="nc-template-desc" style="color:#9ca3af;">No description available.</div>
+                            <?php endif; ?>
+
+                            <div class="nc-template-macros">
+                                <span class="nc-macro-pill nc-macro-protein">Protein: <?php echo htmlspecialchars((string)($tpl->ProteinPercentage ?? '-')); ?>%</span>
+                                <span class="nc-macro-pill nc-macro-carbs">Carbs: <?php echo htmlspecialchars((string)($tpl->CarbohydratePercentage ?? '-')); ?>%</span>
+                                <span class="nc-macro-pill nc-macro-fat">Fat: <?php echo htmlspecialchars((string)($tpl->FatPercentage ?? '-')); ?>%</span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div style="padding: 1.25rem 1.4rem; color: #6b7280;">No template plans found.</div>
+            <?php endif; ?>
+        </div>
 
     </div><!-- /.main-content -->
 </div><!-- /.player-layout -->
 
 <script>
-// Sidebar toggle
 document.addEventListener('DOMContentLoaded', function () {
     const toggle  = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('trainerSidebar');
     const main    = document.getElementById('mainContent');
-    if (toggle) {
+
+    if (toggle && sidebar && main) {
         toggle.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
             main.classList.toggle('expanded');
@@ -227,12 +240,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Delete confirmation — called by onsubmit on each delete form
-function confirmDelete(form) {
+function confirmDelete() {
     return confirm('Are you sure you want to permanently delete this nutrition plan?\nThis action cannot be undone.');
 }
 </script>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<!-- NUTRITION_VIEW_MARKER: trainer/nutrition_index_v2.php -->
 </body>
 </html>

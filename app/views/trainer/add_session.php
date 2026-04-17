@@ -46,11 +46,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                        <i class="fas fa-capsules"></i><span>Supplements</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
                         <i class="fas fa-user-injured"></i><span>Injury Reports</span>
                     </a>

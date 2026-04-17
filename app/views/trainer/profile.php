@@ -40,12 +40,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/supplements" class="nav-link">
-                            <i class="fas fa-pills"></i>
-                            <span>Supplements</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="nav-link">
                             <i class="fas fa-notes-medical"></i>
                             <span>Injury Reports</span>
