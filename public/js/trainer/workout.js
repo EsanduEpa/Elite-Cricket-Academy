@@ -1,5 +1,13 @@
 // Workout Plans Management JavaScript
 
+function getAppBaseUrl() {
+    if (typeof URLROOT === 'string' && URLROOT.trim() !== '') {
+        return URLROOT.replace(/\/$/, '');
+    }
+
+    return `${window.location.origin}/Elite`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize search functionality
     initializeSearch();
@@ -49,7 +57,7 @@ function initializeFilters() {
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const frequencyFilter = document.getElementById('frequencyFilter').value;
-    const tableRows = document.querySelectorAll('.workout-table tbody tr');
+    const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
     
     tableRows.forEach(row => {
         if (row.querySelector('.no-data-message')) {
@@ -105,11 +113,14 @@ function openAddModal() {
     // Reset form
     form.reset();
     document.getElementById('planId').value = '';
+    if (document.getElementById('status')) {
+        document.getElementById('status').value = 'active';
+    }
     
     // Set modal for adding
     modalTitle.innerHTML = '<i class="fas fa-dumbbell"></i> Add New Workout Plan';
     submitBtn.innerHTML = '<i class="fas fa-save"></i>Save Plan';
-    form.action = `${window.location.origin}/Elite/trainer/addWorkoutPlan`;
+    form.action = `${getAppBaseUrl()}/trainer/addWorkoutPlan`;
     
     modal.style.display = 'block';
     setTimeout(() => modal.classList.add('show'), 10);
@@ -130,6 +141,9 @@ function editPlan(planId, planData) {
     document.getElementById('intensity').value = planData.intensity || 'Moderate';
     document.getElementById('notsuitablefor').value = planData.notsuitablefor || '';
     document.getElementById('benefits').value = planData.benefits || '';
+    if (document.getElementById('status')) {
+        document.getElementById('status').value = planData.status || 'active';
+    }
     
     // Update character counters after filling the form
     setTimeout(() => {
@@ -141,10 +155,35 @@ function editPlan(planId, planData) {
     // Set modal for editing
     modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Workout Plan';
     submitBtn.innerHTML = '<i class="fas fa-save"></i>Update Plan';
-    form.action = `${window.location.origin}/Elite/trainer/updateWorkoutPlan`;
+    form.action = `${getAppBaseUrl()}/trainer/updateWorkoutPlan`;
     
     modal.style.display = 'block';
     setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function openEditFromButton(button) {
+    if (!button) {
+        return;
+    }
+
+    const planId = parseInt(button.getAttribute('data-plan-id') || '0', 10);
+    const planRaw = button.getAttribute('data-plan') || '{}';
+    let planData = {};
+
+    try {
+        planData = JSON.parse(planRaw);
+    } catch (error) {
+        console.error('Failed to parse workout plan data for edit:', error, planRaw);
+        showNotification('Could not open edit form for this plan. Please refresh and try again.', 'error');
+        return;
+    }
+
+    if (!planId) {
+        showNotification('Invalid plan selected for editing.', 'error');
+        return;
+    }
+
+    editPlan(planId, planData);
 }
 
 function closeModal() {
@@ -422,7 +461,8 @@ document.getElementById('workoutForm').addEventListener('submit', function(e) {
     const workoutName = document.getElementById('workoutname').value.trim();
     const frequency = document.getElementById('frequency').value;
     const duration = parseInt(document.getElementById('duration').value);
-    const durationDays = document.getElementById('durationdays').value;
+    const durationDaysField = document.getElementById('durationdays');
+    const durationDays = durationDaysField ? durationDaysField.value : '';
     const videoLink = document.getElementById('videolink').value.trim();
     const benefits = document.getElementById('benefits').value.trim();
     const notSuitableFor = document.getElementById('notsuitablefor').value.trim();
@@ -540,12 +580,12 @@ document.addEventListener('keydown', function(e) {
 // Enhance table interactions
 document.addEventListener('DOMContentLoaded', function() {
     // Add hover effects to table rows
-    const tableRows = document.querySelectorAll('.workout-table tbody tr');
+    const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
     tableRows.forEach(row => {
         if (!row.querySelector('.no-data-message')) {
             row.addEventListener('click', function(e) {
-                // Don't trigger on button clicks
-                if (!e.target.closest('.btn-action')) {
+                // Don't open details when clicking action controls in the row
+                if (!e.target.closest('.profile-btn') && !e.target.closest('button') && !e.target.closest('a')) {
                     const planId = this.dataset.planId;
                     if (planId) {
                         viewPlan(planId);
@@ -571,36 +611,48 @@ function openAssignModal(planId, planName) {
 function closeAssignModal() {
     document.getElementById('assignModal').style.display = 'none';
 }
-document.getElementById('assignForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn  = document.getElementById('assignSubmitBtn');
-    const fb   = document.getElementById('assignFeedback');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
-    fb.style.display = 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    const assignForm = document.getElementById('assignForm');
+    if (!assignForm) {
+        return;
+    }
 
-    const fd = new FormData(this);
-    fetch(URLROOT + '/trainer/assignPlanToPlayer', { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(data => {
-            fb.style.display = 'block';
-            if (data.success) {
-                fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(46,213,115,0.1);color:#1a7a3a;border:1px solid rgba(46,213,115,0.4);';
-                fb.textContent = data.message;
-                setTimeout(function() { closeAssignModal(); location.reload(); }, 1400);
-            } else {
+    assignForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn  = document.getElementById('assignSubmitBtn');
+        const fb   = document.getElementById('assignFeedback');
+
+        if (!btn || !fb) {
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+        fb.style.display = 'none';
+
+        const fd = new FormData(this);
+        fetch(URLROOT + '/trainer/assignPlanToPlayer', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                fb.style.display = 'block';
+                if (data.success) {
+                    fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(46,213,115,0.1);color:#1a7a3a;border:1px solid rgba(46,213,115,0.4);';
+                    fb.textContent = data.message;
+                    setTimeout(function() { closeAssignModal(); location.reload(); }, 1400);
+                } else {
+                    fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(255,59,48,0.1);color:#c0392b;border:1px solid rgba(255,59,48,0.4);';
+                    fb.textContent = data.message;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Assign';
+                }
+            })
+            .catch(function() {
                 fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(255,59,48,0.1);color:#c0392b;border:1px solid rgba(255,59,48,0.4);';
-                fb.textContent = data.message;
+                fb.textContent = 'Network error. Please try again.';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check"></i> Assign';
-            }
-        })
-        .catch(function() {
-            fb.style.cssText = 'display:block;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;background:rgba(255,59,48,0.1);color:#c0392b;border:1px solid rgba(255,59,48,0.4);';
-            fb.textContent = 'Network error. Please try again.';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check"></i> Assign';
-        });
+            });
+    });
 });
 
 /* ---- View Assigned Players ---- */
@@ -683,5 +735,14 @@ function unassignPlayer(planId, playerId) {
 }
 
 /* ---- Close modals on backdrop click ---- */
-document.getElementById('assignModal').addEventListener('click', function(e) { if (e.target === this) closeAssignModal(); });
-document.getElementById('assignedPlayersModal').addEventListener('click', function(e) { if (e.target === this) closeAssignedModal(); });
+document.addEventListener('DOMContentLoaded', function() {
+    const assignModal = document.getElementById('assignModal');
+    if (assignModal) {
+        assignModal.addEventListener('click', function(e) { if (e.target === this) closeAssignModal(); });
+    }
+
+    const assignedPlayersModal = document.getElementById('assignedPlayersModal');
+    if (assignedPlayersModal) {
+        assignedPlayersModal.addEventListener('click', function(e) { if (e.target === this) closeAssignedModal(); });
+    }
+});

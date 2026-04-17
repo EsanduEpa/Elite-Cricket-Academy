@@ -152,9 +152,13 @@
                                 <?php
                                     $isOwn        = isset($plan->is_own) ? (bool)$plan->is_own : true;
                                     $assignedCount = (int)($plan->assigned_count ?? 0);
-                                    $planStatus   = $plan->Status ?? 'active';
+                                    $planStatus   = strtolower(trim((string)($plan->Status ?? 'active')));
+                                    if ($planStatus === '') {
+                                        $planStatus = 'active';
+                                    }
                                     $statusColors = [
                                         'active'   => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);',
+                                        'inactive' => 'background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3);',
                                         'draft'    => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
                                         'archived' => 'background:rgba(153,153,153,0.1);color:#999;border:1px solid rgba(153,153,153,0.3);',
                                     ];
@@ -184,9 +188,6 @@
                                             <span class="table-badge" style="<?php echo $statusColors[$planStatus] ?? $statusColors['active']; ?>">
                                                 <?php echo ucfirst($planStatus); ?>
                                             </span>
-                                            <?php if (!$isOwn): ?>
-                                                <span style="font-size:10px;color:#9c27b0;display:block;margin-top:3px;"><i class="fas fa-lock"></i> read-only</span>
-                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <span class="table-badge frequency-badge" style="
@@ -250,15 +251,21 @@
                                                 </button>
                                                 <?php endif; ?>
                                                 <?php if ($isOwn): ?>
-                                                <button class="profile-btn" onclick='editPlan(<?php echo $plan->PlanID; ?>, <?php echo htmlspecialchars(json_encode([
-                                                    'workoutname'   => $plan->workoutname,
-                                                    'frequency'     => $plan->frequency,
-                                                    'duration'      => $plan->Duration,
-                                                    'videolink'     => $plan->VideoLink ?? '',
-                                                    'intensity'     => $plan->Intensity ?? 'Moderate',
-                                                    'notsuitablefor'=> $plan->NotSuitableFor ?? '',
-                                                    'benefits'      => $plan->Benefits ?? ''
-                                                ]), ENT_QUOTES, 'UTF-8'); ?>)' title="Edit Plan" style="background:rgba(255,159,67,0.1);color:#ff9f43;border-color:rgba(255,159,67,0.3);">
+                                                <button class="profile-btn"
+                                                        data-plan-id="<?php echo (int)$plan->PlanID; ?>"
+                                                        data-plan="<?php echo htmlspecialchars(json_encode([
+                                                            'workoutname'   => $plan->workoutname,
+                                                            'frequency'     => $plan->frequency,
+                                                            'duration'      => $plan->Duration,
+                                                            'videolink'     => $plan->VideoLink ?? '',
+                                                            'intensity'     => $plan->Intensity ?? 'Moderate',
+                                                            'notsuitablefor'=> $plan->NotSuitableFor ?? '',
+                                                            'benefits'      => $plan->Benefits ?? '',
+                                                            'status'        => $planStatus
+                                                        ]), ENT_QUOTES, 'UTF-8'); ?>"
+                                                        onclick="openEditFromButton(this)"
+                                                        title="Edit Plan"
+                                                        style="background:rgba(255,159,67,0.1);color:#ff9f43;border-color:rgba(255,159,67,0.3);">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background:rgba(255,107,107,0.1);color:#ff6b6b;border-color:rgba(255,107,107,0.3);">
@@ -373,6 +380,19 @@
                     </div>
 
                     <div class="form-group" style="margin-top: 15px;">
+                        <label for="status" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
+                            <i class="fas fa-toggle-on" style="color: #4A90E2; margin-right: 8px;"></i>
+                            Plan Status
+                        </label>
+                        <select id="status" name="status"
+                                style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Choose whether this plan is currently available for use</small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
                         <label for="benefits" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
                             <i class="fas fa-star" style="color: #4A90E2; margin-right: 8px;"></i>
                             Key Benefits
@@ -467,7 +487,7 @@
     </div>
 
     <script>const URLROOT = '<?php echo URLROOT; ?>';</script>
-    <script src="<?php echo URLROOT; ?>/js/trainer/workout.js"></script>
+    <script src="<?php echo URLROOT; ?>/js/trainer/workout.js?v=<?php echo @filemtime(dirname(APPROOT) . '/public/js/trainer/workout.js') ?: time(); ?>"></script>
 
     <!-- ===================== ASSIGN TO PLAYER MODAL ===================== -->
     <div id="assignModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">

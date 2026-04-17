@@ -185,6 +185,31 @@ $selectedPlayers = array_values(array_unique($selectedPlayers));
                                     }
                                 }
 
+                                if ($currentTemplateId <= 0) {
+                                    $planProtein = isset($plan->ProteinPercentage) ? (float)$plan->ProteinPercentage : null;
+                                    $planCarbs = isset($plan->CarbohydratePercentage) ? (float)$plan->CarbohydratePercentage : null;
+                                    $planFat = isset($plan->FatPercentage) ? (float)$plan->FatPercentage : null;
+                                    $planCalories = isset($plan->RecommendedCalories) ? (int)$plan->RecommendedCalories : null;
+
+                                    foreach ($templates as $template) {
+                                        $templateProtein = isset($template->ProteinPercentage) ? (float)$template->ProteinPercentage : null;
+                                        $templateCarbs = isset($template->CarbohydratePercentage) ? (float)$template->CarbohydratePercentage : null;
+                                        $templateFat = isset($template->FatPercentage) ? (float)$template->FatPercentage : null;
+                                        $templateCalories = isset($template->RecommendedCalories) ? (int)$template->RecommendedCalories : null;
+
+                                        if (
+                                            $planProtein !== null && $planCarbs !== null && $planFat !== null && $planCalories !== null &&
+                                            abs($templateProtein - $planProtein) < 0.01 &&
+                                            abs($templateCarbs - $planCarbs) < 0.01 &&
+                                            abs($templateFat - $planFat) < 0.01 &&
+                                            $templateCalories === $planCalories
+                                        ) {
+                                            $currentTemplateId = (int)$template->TemplateID;
+                                            break;
+                                        }
+                                    }
+                                }
+
                                 $hasCurrentTemplateOption = false;
                                 foreach ($templates as $template) {
                                     if ((int)$template->TemplateID === $currentTemplateId) {
