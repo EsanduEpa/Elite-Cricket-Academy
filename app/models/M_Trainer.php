@@ -317,7 +317,8 @@ class M_Trainer {
                 VideoLink = :videolink,
                 Intensity = :intensity,
                 NotSuitableFor = :notsuitablefor,
-                Benefits = :benefits
+                Benefits = :benefits,
+                Status = :status
             WHERE PlanID = :plan_id AND TrainerID = :trainer_id');
         
         $this->db->bind(':plan_id', $data['plan_id']);
@@ -329,6 +330,7 @@ class M_Trainer {
         $this->db->bind(':intensity', $data['intensity']);
         $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
         $this->db->bind(':benefits', $data['benefits']);
+        $this->db->bind(':status', $data['status'] ?? 'active');
         
         return $this->db->execute();
     }

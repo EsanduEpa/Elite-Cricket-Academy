@@ -167,7 +167,17 @@ class Nutrition extends Controller {
 
         $players = $model->getAllPlayers();
         $groups  = $model->getPlayerGroups();
-        $templates = $model->getNutritionTemplates();
+        // Include inactive templates too so existing assignment remains selectable on edit.
+        $templates = $model->getNutritionTemplates(false);
+
+        // Backfill TemplateID for legacy rows where only plan name was stored.
+        if (empty($plan->TemplateID)) {
+            $planName = html_entity_decode((string)($plan->PlanName ?? $plan->nutritionPlanName ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $matchedTemplate = $model->getNutritionTemplateByName($planName);
+            if ($matchedTemplate && !empty($matchedTemplate->TemplateID)) {
+                $plan->TemplateID = (int)$matchedTemplate->TemplateID;
+            }
+        }
         $assignedPlayerIds = $model->getAssignedPlayerIds($id);
         $errors  = $_SESSION['nutrition_edit_errors'] ?? [];
         $old     = $_SESSION['nutrition_edit_old']    ?? [];

@@ -6,6 +6,13 @@ class M_NutritionPlan {
         $this->db = new Database;
     }
 
+    private function normalizeTemplateName(string $value): string {
+        $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $value);
+        return trim(preg_replace('/\s+/u', ' ', $value));
+    }
+
     private function nutritionTemplateFallbacks(): array {
         return [
             (object)[
@@ -123,9 +130,12 @@ class M_NutritionPlan {
             return null;
         }
 
+        $normalizedPlanName = $this->normalizeTemplateName($planName);
+
         if (!$this->tableExists('nutrition_plan_templates')) {
             foreach ($this->nutritionTemplateFallbacks() as $template) {
-                if (strcasecmp($template->PlanName, $planName) === 0) {
+                $templateName = (string)($template->PlanName ?? '');
+                if (strcasecmp($templateName, $planName) === 0 || $this->normalizeTemplateName($templateName) === $normalizedPlanName) {
                     return $template;
                 }
             }
@@ -137,7 +147,19 @@ class M_NutritionPlan {
             WHERE PlanName = :plan_name
             LIMIT 1');
         $this->db->bind(':plan_name', $planName);
-        return $this->db->single();
+        $exact = $this->db->single();
+        if ($exact) {
+            return $exact;
+        }
+
+        foreach ($this->getNutritionTemplates(false) as $template) {
+            $templateName = (string)($template->PlanName ?? '');
+            if ($this->normalizeTemplateName($templateName) === $normalizedPlanName) {
+                return $template;
+            }
+        }
+
+        return null;
     }
 
     private function appendNutritionStructuredColumns(array $data, array &$columns, array &$placeholders, array &$bindings): void {
