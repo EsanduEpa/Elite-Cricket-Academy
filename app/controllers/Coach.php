@@ -276,7 +276,8 @@ class Coach extends Controller {
         }
 
         $overall = $performanceModel->getOverallStats($playerId);
-        $matchHistory = $performanceModel->getMatchHistory($playerId, 50);
+        // Include pending/rejected records so coaches can review & verify.
+        $matchHistory = $performanceModel->getCoachPerformanceDetails($playerId, 50);
 
         $data = [
             'title' => 'Performance Details - Coach Dashboard',
@@ -286,6 +287,74 @@ class Coach extends Controller {
         ];
 
         $this->view('coach/performance_details', $data);
+    }
+
+    // Coaches can verify or reject a pending performance record for an assigned player.
+    public function updatePerformanceVerifyStatus() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/performance');
+            return;
+        }
+
+        $coachId = (int)($_SESSION['user_id'] ?? 0);
+        $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+        $status = trim((string)($_POST['verify_status'] ?? ''));
+
+        $allowed = ['verified', 'rejected'];
+        if (!$performanceId || !in_array($status, $allowed, true)) {
+            flash('coach_performance_message', 'Invalid verification request.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $performanceModel = $this->model('M_Performance');
+        $userModel = $this->model('M_Users');
+
+        $record = $performanceModel->getPerformanceById($performanceId);
+        if (!$record) {
+            flash('coach_performance_message', 'Performance record not found.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $playerId = (int)($record->PlayerID ?? 0);
+        if ($playerId <= 0) {
+            flash('coach_performance_message', 'Invalid performance record.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        // Ensure this coach is assigned to the player.
+        $assignedPlayers = $userModel->getCoachAssignedPlayers($coachId);
+        $isAssigned = false;
+        foreach ($assignedPlayers as $player) {
+            if ((int)($player->PlayerID ?? 0) === $playerId) {
+                $isAssigned = true;
+                break;
+            }
+        }
+
+        if (!$isAssigned) {
+            flash('coach_performance_message', 'Access denied. You are not assigned to this player.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        if (isset($record->VerifiedStatus) && $record->VerifiedStatus !== 'pending') {
+            flash('coach_performance_message', 'This record has already been reviewed.', 'alert alert-warning');
+            redirect('coach/performance_details/' . $playerId);
+            return;
+        }
+
+        $ok = $performanceModel->updatePerformanceVerification($performanceId, $status, $coachId);
+
+        if ($ok) {
+            flash('coach_performance_message', 'Performance ' . $status . ' successfully.');
+        } else {
+            flash('coach_performance_message', 'Failed to update verification status.', 'alert alert-danger');
+        }
+
+        redirect('coach/performance_details/' . $playerId);
     }
     
     public function recommendations() {

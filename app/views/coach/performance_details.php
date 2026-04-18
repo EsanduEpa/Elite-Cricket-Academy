@@ -117,6 +117,10 @@
             </div>
         </div>
 
+        <div style="margin-top: 12px;">
+            <?php flash('coach_performance_message'); ?>
+        </div>
+
         <div class="table-container" style="margin-top: 16px;">
             <table class="dashboard-table">
                 <thead>
@@ -150,6 +154,8 @@
                         <th>Batting</th>
                         <th>Bowling</th>
                         <th>Result</th>
+                        <th>Status</th>
+                        <th>Verify</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -158,6 +164,8 @@
                             <?php
                                 $batting = ((int)($match->RunsScored ?? 0)) . ' (' . ((int)($match->BallsFaced ?? 0)) . ')';
                                 $bowling = ((float)($match->OversBowled ?? 0)) . ' ov, ' . ((int)($match->WicketsTaken ?? 0)) . ' wk, ' . ((int)($match->RunsConceded ?? 0)) . ' r';
+                                $status = strtolower(trim((string)($match->VerifiedStatus ?? 'pending')));
+                                $statusLabel = ucfirst($status);
                             ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($match->Date ?? ''); ?></td>
@@ -167,11 +175,43 @@
                                 <td><?php echo htmlspecialchars($batting); ?></td>
                                 <td><?php echo htmlspecialchars($bowling); ?></td>
                                 <td><?php echo htmlspecialchars($match->Result ?? ''); ?></td>
+                                <td>
+                                    <?php if ($status === 'verified'): ?>
+                                        <span style="font-weight:700; color:#1b7a3a;">Verified</span>
+                                    <?php elseif ($status === 'rejected'): ?>
+                                        <span style="font-weight:700; color:#b91c1c;">Rejected</span>
+                                    <?php else: ?>
+                                        <span style="font-weight:700; color:#b45309;">Pending</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($status === 'pending'): ?>
+                                        <div style="display:flex; gap:8px; align-items:center;">
+                                            <form method="post" action="<?php echo URLROOT; ?>/coach/updatePerformanceVerifyStatus" style="margin:0;">
+                                                <input type="hidden" name="performance_id" value="<?php echo (int)($match->PerformanceID ?? 0); ?>">
+                                                <input type="hidden" name="verify_status" value="verified">
+                                                <button type="submit" class="action-btn" style="padding:6px 10px; border-radius:10px;">
+                                                    Verify
+                                                </button>
+                                            </form>
+
+                                            <form method="post" action="<?php echo URLROOT; ?>/coach/updatePerformanceVerifyStatus" style="margin:0;">
+                                                <input type="hidden" name="performance_id" value="<?php echo (int)($match->PerformanceID ?? 0); ?>">
+                                                <input type="hidden" name="verify_status" value="rejected">
+                                                <button type="submit" class="action-btn" style="padding:6px 10px; border-radius:10px; background:#fee2e2; color:#991b1b;">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php else: ?>
+                                        <span style="color:#6b7280;">—</span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" style="text-align:center; padding: 24px;">No verified match performance found for this player.</td>
+                            <td colspan="9" style="text-align:center; padding: 24px;">No match performance found for this player.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
