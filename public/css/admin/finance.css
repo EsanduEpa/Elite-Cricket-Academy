@@ -349,6 +349,10 @@
     border-left: 4px solid #7B1FA2;
 }
 
+.category-card.return-fees {
+    border-left: 4px solid #C2410C;
+}
+
 .category-header {
     display: flex;
     align-items: center;
@@ -379,6 +383,10 @@
 
 .category-card.equipment-rental .category-icon {
     color: #7B1FA2;
+}
+
+.category-card.return-fees .category-icon {
+    color: #C2410C;
 }
 
 .category-info {

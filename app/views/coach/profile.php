@@ -23,15 +23,9 @@ if (!isset($data['user']) || !is_object($data['user'])) {
             <nav class="sidebar-nav">
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link">
-                            <i class="fas fa-users"></i>
-                            <span>Sessions</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -41,47 +35,39 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Health & Fitness</span>
+                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
+                            <i class="fas fa-users"></i>
+                            <span>Players</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link">
-                            <i class="fas fa-trophy"></i>
-                            <span>Tournaments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
                             <i class="fas fa-chart-line"></i>
                             <span>Performance</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link">
-                            <i class="fas fa-calendar"></i>
-                            <span>Events</span>
+                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
+                            <i class="fas fa-trophy"></i>
+                            <span>Tournaments</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Health & Injury</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
                             <i class="fas fa-comments"></i>
                             <span>Communication</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/reports" class="nav-link">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Reports</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/coach/profile" class="nav-link">
-                            <i class="fas fa-user-cog"></i>
-                            <span>Profile</span>
+                        <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Requests</span>
                         </a>
                     </li>
                 </ul>

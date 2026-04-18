@@ -107,8 +107,9 @@
                     <div class="card-content">
                         <div class="card-value">LKR <?php echo number_format($data['totalRevenue']); ?></div>
                         <div class="card-label">Total Revenue</div>
-                        <div class="card-trend positive">
-                            <i class="fas fa-arrow-up"></i> 12.5% from last month
+                        <div class="card-trend <?php echo $data['growthRate'] >= 0 ? 'positive' : 'negative'; ?>">
+                            <i class="fas fa-arrow-<?php echo $data['growthRate'] >= 0 ? 'up' : 'down'; ?>"></i>
+                            <?php echo abs($data['growthRate']); ?>% vs last month
                         </div>
                     </div>
                 </div>
@@ -120,8 +121,8 @@
                     <div class="card-content">
                         <div class="card-value">LKR <?php echo number_format($data['monthlyRevenue']); ?></div>
                         <div class="card-label">This Month</div>
-                        <div class="card-trend positive">
-                            <i class="fas fa-arrow-up"></i> 8.3% growth
+                        <div class="card-trend neutral">
+                            <i class="fas fa-calendar-check"></i> Current month revenue
                         </div>
                     </div>
                 </div>
@@ -176,7 +177,7 @@
                                     <i class="fas fa-id-card"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h3>Membership Fees</h3>
+                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['membership_fees']['label'] ?? 'Membership Fees'); ?></h3>
                                     <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['membership_fees']['amount']); ?></div>
                                 </div>
                                 <div class="category-percentage"><?php echo $data['revenueCategories']['membership_fees']['percentage']; ?>%</div>
@@ -189,10 +190,49 @@
                                     <i class="fas fa-shopping-cart"></i>
                                 </div>
                                 <div class="category-info">
-                                    <h3>Shop Sales</h3>
+                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['shop_sales']['label'] ?? 'Shop Sales'); ?></h3>
                                     <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['shop_sales']['amount']); ?></div>
                                 </div>
                                 <div class="category-percentage"><?php echo $data['revenueCategories']['shop_sales']['percentage']; ?>%</div>
+                            </div>
+                        </div>
+
+                        <div class="category-card facility-rental">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['facility_bookings']['label'] ?? 'Facility & Session Bookings'); ?></h3>
+                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['facility_bookings']['amount'] ?? 0); ?></div>
+                                </div>
+                                <div class="category-percentage"><?php echo $data['revenueCategories']['facility_bookings']['percentage'] ?? 0; ?>%</div>
+                            </div>
+                        </div>
+
+                        <div class="category-card equipment-rental">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i class="fas fa-dumbbell"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['equipment_rentals']['label'] ?? 'Equipment Rentals'); ?></h3>
+                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['equipment_rentals']['amount'] ?? 0); ?></div>
+                                </div>
+                                <div class="category-percentage"><?php echo $data['revenueCategories']['equipment_rentals']['percentage'] ?? 0; ?>%</div>
+                            </div>
+                        </div>
+
+                        <div class="category-card return-fees">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i class="fas fa-rotate-left"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['return_fees']['label'] ?? 'Return Fees'); ?></h3>
+                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['return_fees']['amount'] ?? 0); ?></div>
+                                </div>
+                                <div class="category-percentage"><?php echo $data['revenueCategories']['return_fees']['percentage'] ?? 0; ?>%</div>
                             </div>
                         </div>
                     </div>
@@ -232,9 +272,10 @@
                         <select class="filter-select" id="paymentFilter">
                             <option value="all">All Types</option>
                             <option value="membership_fee">Membership Fees</option>
-                            <option value="equipment_purchase">Equipment Purchase</option>
-                            <option value="facility_rental">Facility Rental</option>
+                            <option value="shop_sale">Shop Sales</option>
+                            <option value="facility_booking">Facility / Session Bookings</option>
                             <option value="equipment_rental">Equipment Rental</option>
+                            <option value="return_fee">Return Fees</option>
                         </select>
                         <select class="status-filter" id="statusFilter">
                             <option value="all">All Status</option>
