@@ -287,6 +287,8 @@ class Register extends Controller {
                         // Non-critical: Activity logging failure shouldn't stop registration
                         error_log("Activity logging failed: " . $e->getMessage());
                     }
+
+                    $this->notifyAdminsOfRegistration($userId, $data);
                     
                     // STEP 9: REDIRECT TO LOGIN PAGE
                     // flash() stores a one-time message in session to display after redirect
@@ -519,6 +521,29 @@ class Register extends Controller {
             'Registration Membership Payment',
             ucfirst((string)($payment['plan_name'] ?? 'Membership')) . ' membership plan paid successfully. Please complete your account registration.'
         );
+    }
+
+    private function notifyAdminsOfRegistration(int $userId, array $data): void {
+        if ($userId <= 0) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $playerName = trim(($data['firstName'] ?? '') . ' ' . ($data['lastName'] ?? ''));
+            $playerName = $playerName !== '' ? $playerName : 'A new player';
+
+            $notificationModel->createOnceForRoles(
+                ['Admin'],
+                'player-registration-' . $userId,
+                'registration',
+                'New player registration',
+                "{$playerName} registered a new player account.",
+                URLROOT . '/admin/players'
+            );
+        } catch (Throwable $e) {
+            error_log('Admin registration notification failed: ' . $e->getMessage());
+        }
     }
 
     private function storeRegistrationDraft(array $source): void {

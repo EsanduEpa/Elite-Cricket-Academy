@@ -72,7 +72,7 @@
         </ul>
         <div class="nav-buttons">
             <?php if ($isLoggedIn): ?>
-                <a href="#" class="nav-icon-btn notification-nav-btn" aria-label="Notifications" title="Notifications" data-notifications-toggle data-list-url="<?php echo URLROOT; ?>/notifications/list" data-mark-url="<?php echo URLROOT; ?>/notifications/mark_read">
+                <a href="#" class="nav-icon-btn notification-nav-btn" aria-label="Notifications" title="Notifications" data-notifications-toggle data-list-url="<?php echo URLROOT; ?>/notifications/list" data-mark-url="<?php echo URLROOT; ?>/notifications/mark_read" data-delete-url="<?php echo URLROOT; ?>/notifications/delete" data-clear-url="<?php echo URLROOT; ?>/notifications/clear">
                     <i class="fas fa-bell"></i>
                     <span class="notification-dot" data-notification-badge aria-hidden="true"></span>
                 </a>
@@ -82,7 +82,10 @@
                             <h3>Notifications</h3>
                             <p>Latest updates for your account</p>
                         </div>
-                        <button type="button" class="notification-dropdown__mark" data-notifications-mark-all>Mark all read</button>
+                        <div class="notification-dropdown__actions">
+                            <button type="button" class="notification-dropdown__mark" data-notifications-mark-all>Mark all read</button>
+                            <button type="button" class="notification-dropdown__clear" data-notifications-clear>Clear</button>
+                        </div>
                     </div>
                     <div class="notification-dropdown__body" data-notification-list>
                         <div class="notification-dropdown__state">Click the bell to load notifications.</div>

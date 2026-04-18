@@ -69,6 +69,74 @@ class M_Notification {
         return (bool)$this->db->single();
     }
 
+    public function createOnceForUsers(
+        array $userIds,
+        string $key,
+        string $type,
+        string $title,
+        string $message,
+        string $actionUrl = ''
+    ): int {
+        $created = 0;
+        foreach (array_unique(array_map('intval', $userIds)) as $userId) {
+            if ($userId <= 0) {
+                continue;
+            }
+
+            if ($this->createOnceForOrder($userId, $key, $type, $title, $message, $actionUrl) !== false) {
+                $created++;
+            }
+        }
+
+        return $created;
+    }
+
+    public function createOnceForRoles(
+        array $roles,
+        string $key,
+        string $type,
+        string $title,
+        string $message,
+        string $actionUrl = ''
+    ): int {
+        $userIds = $this->getUserIdsByRoles($roles);
+        return $this->createOnceForUsers($userIds, $key, $type, $title, $message, $actionUrl);
+    }
+
+    public function deleteForUser(int $notificationId, int $userId): bool {
+        $this->db->query('DELETE FROM notification WHERE NotificationID = :id AND UserID = :uid');
+        $this->db->bind(':id', $notificationId, PDO::PARAM_INT);
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    public function clearForUser(int $userId): bool {
+        $this->db->query('DELETE FROM notification WHERE UserID = :uid');
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        return $this->db->execute();
+    }
+
+    public function getUserIdsByRoles(array $roles): array {
+        $roles = array_values(array_unique(array_filter(array_map('strval', $roles))));
+        if (!$roles) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($roles as $index => $role) {
+            $placeholders[] = ':role_' . $index;
+        }
+
+        $this->db->query('SELECT UserID FROM user WHERE Role IN (' . implode(',', $placeholders) . ')');
+        foreach ($roles as $index => $role) {
+            $this->db->bind(':role_' . $index, $role, PDO::PARAM_STR);
+        }
+
+        return array_map(static function ($row) {
+            return (int)($row->UserID ?? 0);
+        }, $this->db->resultSet());
+    }
+
     /**
      * Get all notifications for a user (newest first)
      */

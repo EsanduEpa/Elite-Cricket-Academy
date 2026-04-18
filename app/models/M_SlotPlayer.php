@@ -1004,6 +1004,37 @@ class M_SlotPlayer {
         return $this->db->single();
     }
 
+    public function getOccurrenceStaffUserIds(int $occurrenceId): array {
+        $this->db->query(
+            'SELECT DISTINCT staff.UserID
+             FROM slot_occurrence so
+             JOIN user staff ON (
+                staff.UserID IN (
+                    SELECT ov.UserID
+                    FROM slot_occurrence_staff_override ov
+                    WHERE ov.OccurrenceID = so.OccurrenceID
+                )
+                OR (
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM slot_occurrence_staff_override ov0
+                        WHERE ov0.OccurrenceID = so.OccurrenceID
+                    )
+                    AND staff.UserID IN (
+                        SELECT ts.UserID
+                        FROM slot_template_staff ts
+                        WHERE ts.TemplateID = so.TemplateID
+                    )
+                )
+             )
+             WHERE so.OccurrenceID = :oid'
+        );
+        $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+        return array_map(static function ($row) {
+            return (int)($row->UserID ?? 0);
+        }, $this->db->resultSet());
+    }
+
     public function getAssignedProgramBookings(int $playerId, ?string $fromDate = null): array {
         $sql =
                 'SELECT sb.BookingID, sb.Status, sb.BookingSource, sb.ParticipantCount,

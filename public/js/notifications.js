@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const list = document.querySelector('[data-notification-list]');
     const badge = document.querySelector('[data-notification-badge]');
     const markAllButton = document.querySelector('[data-notifications-mark-all]');
+    const clearButton = document.querySelector('[data-notifications-clear]');
 
     if (!toggle || !dropdown || !list) {
         return;
@@ -11,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const listUrl = toggle.dataset.listUrl;
     const markUrl = toggle.dataset.markUrl;
+    const deleteUrl = toggle.dataset.deleteUrl;
+    const clearUrl = toggle.dataset.clearUrl;
     let hasLoaded = false;
     let isLoading = false;
 
@@ -45,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             session: 'fa-calendar-check',
             reminder: 'fa-clock',
             rental: 'fa-dumbbell',
+            registration: 'fa-user-plus',
             warning: 'fa-triangle-exclamation',
             success: 'fa-circle-check',
         };
@@ -68,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const actionAttribute = notification.action_url ? `href="${escapeHtml(actionUrl)}"` : 'href="#"';
 
             return `
+                <div class="notification-dropdown__row">
                 <a ${actionAttribute} class="notification-dropdown__item${unreadClass}" data-notification-id="${Number(notification.id)}">
                     <span class="notification-dropdown__icon">
                         <i class="fas ${iconForType(notification.type)}"></i>
@@ -78,6 +83,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <small>${escapeHtml(notification.time || 'Recently')}</small>
                     </span>
                 </a>
+                <button type="button" class="notification-dropdown__delete" data-notification-delete="${Number(notification.id)}" aria-label="Delete notification" title="Delete notification">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                </div>
             `;
         }).join('');
     };
@@ -108,6 +117,54 @@ document.addEventListener('DOMContentLoaded', function () {
             renderState(error.message || 'Unable to load notifications right now.');
         } finally {
             isLoading = false;
+        }
+    };
+
+    const deleteNotification = async function (notificationId) {
+        if (!deleteUrl || !notificationId) {
+            return;
+        }
+
+        const body = new URLSearchParams();
+        body.append('notification_id', notificationId);
+
+        try {
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                credentials: 'same-origin',
+                body: body.toString(),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setBadge(data.unread_count);
+            }
+        } catch (error) {
+            console.warn('Notification delete failed', error);
+        }
+    };
+
+    const clearNotifications = async function () {
+        if (!clearUrl) {
+            return;
+        }
+
+        try {
+            const response = await fetch(clearUrl, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+            if (data.success) {
+                setBadge(0);
+                renderState('No notifications yet.');
+            }
+        } catch (error) {
+            console.warn('Notification clear failed', error);
         }
     };
 
@@ -158,7 +215,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (clearButton) {
+        clearButton.addEventListener('click', function () {
+            clearNotifications();
+        });
+    }
+
     list.addEventListener('click', function (event) {
+        const deleteButton = event.target.closest('[data-notification-delete]');
+        if (deleteButton) {
+            event.preventDefault();
+            const notificationId = deleteButton.dataset.notificationDelete;
+            const row = deleteButton.closest('.notification-dropdown__row');
+            if (row) {
+                row.remove();
+            }
+            deleteNotification(notificationId);
+            if (!list.querySelector('.notification-dropdown__row')) {
+                renderState('No notifications yet.');
+            }
+            return;
+        }
+
         const item = event.target.closest('[data-notification-id]');
         if (!item) {
             return;

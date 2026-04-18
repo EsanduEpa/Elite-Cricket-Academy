@@ -1595,6 +1595,11 @@ class Player extends Controller {
             ? $this->shopModel->createOrderFromCart($playerId, $selectedProductIds, 'card', null, null, null, 'completed')
             : ['success' => false, 'message' => 'Player not found.'];
 
+        if (!empty($result['success'])) {
+            $this->notifyShopOfNewOrder((int)($result['order_id'] ?? 0), $playerId, (float)($result['total_amount'] ?? 0));
+            $this->notifyShopOfLowProductStock();
+        }
+
         echo json_encode($result);
         exit;
     }
@@ -2057,6 +2062,13 @@ class Player extends Controller {
 
                             if (empty($orderResult['success'])) {
                                 error_log('Shop order finalization failed for ' . $shopOrderId . ': ' . ($orderResult['message'] ?? 'Unknown error'));
+                            } else {
+                                $this->notifyShopOfNewOrder(
+                                    (int)($orderResult['order_id'] ?? 0),
+                                    (int)($playerData['id'] ?? 0),
+                                    (float)($orderResult['total_amount'] ?? 0)
+                                );
+                                $this->notifyShopOfLowProductStock();
                             }
 
                             $emailSent = $this->sendPendingShopPaymentSuccessEmail($pendingShopPayment);
@@ -2340,8 +2352,107 @@ class Player extends Controller {
                 "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
                 URLROOT . '/playerslots/bookings'
             );
+
+            $staffIds = $this->slotPlayerModel->getOccurrenceStaffUserIds($occurrenceId);
+            $playerName = (string)($this->getPlayerData()['name'] ?? 'A player');
+            $notificationModel->createOnceForUsers(
+                $staffIds,
+                'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'New session booking',
+                "{$playerName} booked {$sessionName} for {$displayDate} at {$displayTime}.",
+                URLROOT . '/staffslots/occurrence/' . $occurrenceId
+            );
         } catch (Throwable $e) {
             error_log('Session booking notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfNewOrder(int $orderId, int $playerId, float $totalAmount): void {
+        if ($orderId <= 0) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForRoles(
+                ['Shop', 'ShopEmployee'],
+                'shop-new-order-' . $orderId,
+                'payment',
+                'New shop order',
+                'Order #' . $orderId . ' was placed by player #' . $playerId . ' for Rs. ' . number_format($totalAmount, 2) . '.',
+                URLROOT . '/shop/orders'
+            );
+        } catch (Throwable $e) {
+            error_log('Shop order notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfNewRental(array $rentalIds, int $playerId, float $totalCost): void {
+        $rentalIds = array_values(array_filter(array_map('intval', $rentalIds)));
+        if (!$rentalIds) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $firstRentalId = (int)$rentalIds[0];
+            $notificationModel->createOnceForRoles(
+                ['Shop', 'ShopEmployee'],
+                'shop-new-rental-' . $firstRentalId,
+                'rental',
+                'New equipment rental',
+                'Player #' . $playerId . ' confirmed ' . count($rentalIds) . ' rental item(s) for Rs. ' . number_format($totalCost, 2) . '.',
+                URLROOT . '/shop/rentals'
+            );
+        } catch (Throwable $e) {
+            error_log('Shop rental notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfLowProductStock(): void {
+        try {
+            $notificationModel = $this->model('M_Notification');
+            foreach ($this->shopModel->getLowStockItems() as $item) {
+                $productId = (int)($item->ProductID ?? 0);
+                if ($productId <= 0) {
+                    continue;
+                }
+
+                $notificationModel->createOnceForRoles(
+                    ['Shop', 'ShopEmployee'],
+                    'product-low-stock-' . $productId,
+                    'warning',
+                    'Low product stock',
+                    (string)($item->Name ?? 'Product') . ' has only ' . (int)($item->StockQuantity ?? 0) . ' item(s) left.',
+                    URLROOT . '/shop/products'
+                );
+            }
+        } catch (Throwable $e) {
+            error_log('Low product stock notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfLowEquipmentStock(): void {
+        try {
+            $notificationModel = $this->model('M_Notification');
+            foreach ($this->shopModel->getLowStockEquipmentItems() as $item) {
+                $equipmentId = (int)($item->EquipmentID ?? 0);
+                if ($equipmentId <= 0) {
+                    continue;
+                }
+
+                $notificationModel->createOnceForRoles(
+                    ['Shop', 'ShopEmployee'],
+                    'equipment-low-stock-' . $equipmentId,
+                    'warning',
+                    'Low rental equipment stock',
+                    (string)($item->Name ?? 'Equipment') . ' has only ' . (int)($item->Stock ?? 0) . ' item(s) available.',
+                    URLROOT . '/shop/rentals'
+                );
+            }
+        } catch (Throwable $e) {
+            error_log('Low equipment stock notification failed: ' . $e->getMessage());
         }
     }
 
@@ -2480,6 +2591,8 @@ class Player extends Controller {
             'Your equipment rental payment of Rs. ' . number_format((float)($result['total_cost'] ?? ($pendingRentalPayment['amount'] ?? 0)), 2) . ' was successful.',
             URLROOT . '/player/rentals'
         );
+        $this->notifyShopOfNewRental((array)($result['rental_ids'] ?? []), $playerId, (float)($result['total_cost'] ?? 0));
+        $this->notifyShopOfLowEquipmentStock();
 
         return $result;
     }
@@ -2537,6 +2650,8 @@ class Player extends Controller {
             'Your rental cart payment of Rs. ' . number_format((float)$amount, 2) . ' was successful and the rentals are confirmed.',
             URLROOT . '/player/rentals'
         );
+        $this->notifyShopOfNewRental((array)($result['rental_ids'] ?? []), $playerId, (float)($result['total_cost'] ?? 0));
+        $this->notifyShopOfLowEquipmentStock();
 
         return $result;
     }

@@ -37,6 +37,42 @@ class Notifications extends Controller
         ]);
     }
 
+    public function delete()
+    {
+        $this->requireLoggedInJson();
+
+        $notificationId = (int) ($_POST['notification_id'] ?? 0);
+        if ($notificationId <= 0) {
+            $this->json([
+                'success' => false,
+                'message' => 'Invalid notification selected.',
+            ], 400);
+        }
+
+        $userId = (int) $_SESSION['user_id'];
+        $notificationModel = $this->model('M_Notification');
+        $notificationModel->deleteForUser($notificationId, $userId);
+
+        $this->json([
+            'success' => true,
+            'unread_count' => $notificationModel->countUnread($userId),
+        ]);
+    }
+
+    public function clear()
+    {
+        $this->requireLoggedInJson();
+
+        $userId = (int) $_SESSION['user_id'];
+        $notificationModel = $this->model('M_Notification');
+        $notificationModel->clearForUser($userId);
+
+        $this->json([
+            'success' => true,
+            'unread_count' => 0,
+        ]);
+    }
+
     private function requireLoggedInJson(): void
     {
         if (!function_exists('isLoggedIn') || !isLoggedIn()) {

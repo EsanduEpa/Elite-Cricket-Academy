@@ -299,6 +299,18 @@ class Playerslots extends Controller {
                 "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
                 URLROOT . '/playerslots/bookings'
             );
+
+            $staffIds = $this->slotModel->getOccurrenceStaffUserIds($occurrenceId);
+            $player = $this->playerData();
+            $playerName = (string)($player['name'] ?? 'A player');
+            $notificationModel->createOnceForUsers(
+                $staffIds,
+                'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'New session booking',
+                "{$playerName} booked {$sessionName} for {$displayDate} at {$displayTime}.",
+                URLROOT . '/staffslots/occurrence/' . $occurrenceId
+            );
         } catch (Throwable $e) {
             error_log('Session booking notification failed: ' . $e->getMessage());
         }
