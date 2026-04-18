@@ -1,5 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/profile.css?v=<?php echo time(); ?>">
+<?php $trainerSidebarActive = ''; ?>
 
 <?php 
 // Safety check for user data
@@ -19,52 +20,7 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                 </div>
             </div>
 
-            <nav class="sidebar-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/dashboard" class="nav-link">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                            <i class="fas fa-running"></i>
-                            <span>Workout Plans</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                            <i class="fas fa-apple-alt"></i>
-                            <span>Nutrition Plans</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/injury-reports" class="nav-link">
-                            <i class="fas fa-notes-medical"></i>
-                            <span>Injury Reports</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>Bookings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>My Slot Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/trainer/profile" class="nav-link">
-                            <i class="fas fa-user-cog"></i>
-                            <span>Profile</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
 
             <!-- Simple Profile Section -->
             <div class="profile-section">
