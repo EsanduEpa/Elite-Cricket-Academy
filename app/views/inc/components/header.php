@@ -16,6 +16,37 @@
 </head>
 <body>
 <?php require_once APPROOT . '/views/inc/components/dev_mode_banner.php'; ?>
+<?php
+    $isLoggedIn = function_exists('isLoggedIn') ? isLoggedIn() : !empty($_SESSION['user_id']);
+    $userRole = function_exists('getUserRole') ? getUserRole() : ($_SESSION['user_role'] ?? 'Guest');
+
+    $notificationUrl = URLROOT . '/player/dashboard';
+    $profileUrl = URLROOT . '/player/profile';
+    switch ($userRole) {
+        case 'Admin':
+            $notificationUrl = URLROOT . '/admin/dashboard';
+            $profileUrl = URLROOT . '/admin/profile';
+            break;
+        case 'Coach':
+            $notificationUrl = URLROOT . '/coach/notifications';
+            $profileUrl = URLROOT . '/coach/profile';
+            break;
+        case 'Trainer':
+            $notificationUrl = URLROOT . '/trainer/dashboard';
+            $profileUrl = URLROOT . '/trainer/profile';
+            break;
+        case 'Shop':
+        case 'ShopEmployee':
+            $notificationUrl = URLROOT . '/shop/dashboard';
+            $profileUrl = URLROOT . '/shop/profile';
+            break;
+        case 'Player':
+        default:
+            $notificationUrl = URLROOT . '/player/dashboard';
+            $profileUrl = URLROOT . '/player/profile';
+            break;
+    }
+?>
 
 <header class="header">
     <nav class="nav-container">
@@ -40,8 +71,23 @@
             <li><a href="<?php echo URLROOT; ?>/#contact">Contact</a></li>
         </ul>
         <div class="nav-buttons">
-            <a href="<?php echo URLROOT; ?>/register" class="enroll-btn">Enroll Now</a>
-            <a href="<?php echo URLROOT; ?>/login" class="enroll-btn">Login</a>
+            <?php if ($isLoggedIn): ?>
+                <a href="<?php echo htmlspecialchars($notificationUrl, ENT_QUOTES, 'UTF-8'); ?>" class="nav-icon-btn notification-nav-btn" aria-label="Notifications" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot" aria-hidden="true"></span>
+                </a>
+                <a href="<?php echo htmlspecialchars($profileUrl, ENT_QUOTES, 'UTF-8'); ?>" class="nav-action-btn" aria-label="Profile" title="Profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="<?php echo URLROOT; ?>/login/logout" class="nav-action-btn nav-action-btn--danger" aria-label="Logout" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            <?php else: ?>
+                <a href="<?php echo URLROOT; ?>/register" class="enroll-btn">Enroll Now</a>
+                <a href="<?php echo URLROOT; ?>/login" class="enroll-btn">Login</a>
+            <?php endif; ?>
         </div>
     </nav>
 </header>
