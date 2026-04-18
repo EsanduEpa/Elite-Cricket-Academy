@@ -2717,37 +2717,6 @@ class Player extends Controller {
         $this->checkout();
     }
     
-    // AJAX: Get notifications for the logged-in player
-    public function notifications() {
-        $this->requireLogin();
-        ob_start();
-        header('Content-Type: application/json');
-        $userId = (int)$_SESSION['user_id'];
-        $notifModel = $this->model('M_Notification');
-        echo json_encode([
-            'notifications' => $notifModel->getForUser($userId, 15),
-            'unread_count'  => $notifModel->countUnread($userId),
-        ]);
-        ob_end_flush(); exit;
-    }
-
-    // AJAX: Mark notification(s) read
-    public function mark_notifications_read() {
-        $this->requireLogin();
-        ob_start();
-        header('Content-Type: application/json');
-        $userId = (int)$_SESSION['user_id'];
-        $notifModel = $this->model('M_Notification');
-        $id = (int)($_POST['notification_id'] ?? 0);
-        if ($id) {
-            $notifModel->markRead($id, $userId);
-        } else {
-            $notifModel->markAllRead($userId);
-        }
-        echo json_encode(['success' => true, 'unread_count' => $notifModel->countUnread($userId)]);
-        ob_end_flush(); exit;
-    }
-
     // Session Calendar
     // =========================================================================
     // PRIVATE HELPER METHODS - ALL USE REAL DATABASE QUERIES

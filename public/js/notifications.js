@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             session: 'fa-calendar-check',
             reminder: 'fa-clock',
             rental: 'fa-dumbbell',
+            tournament: 'fa-trophy',
             registration: 'fa-user-plus',
             warning: 'fa-triangle-exclamation',
             success: 'fa-circle-check',

@@ -17,12 +17,15 @@ class ReminderTasks extends Controller
         require_once APPROOT . '/models/M_SlotPlayer.php';
         require_once APPROOT . '/models/M_Email.php';
         require_once APPROOT . '/libraries/PlayerSessionReminderService.php';
+        require_once APPROOT . '/libraries/TournamentNotificationService.php';
 
         try {
             $summary = PlayerSessionReminderService::sendDueReminders(false);
+            $tournamentSummary = TournamentNotificationService::sendDueReminders(false);
             echo json_encode([
                 'success' => true,
                 'summary' => $summary,
+                'tournament_summary' => $tournamentSummary,
             ]);
         } catch (Throwable $e) {
             error_log('Reminder heartbeat failed: ' . $e->getMessage());

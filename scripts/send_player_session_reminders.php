@@ -16,9 +16,11 @@ require_once dirname(__DIR__) . '/app/bootloader.php';
 require_once APPROOT . '/models/M_SlotPlayer.php';
 require_once APPROOT . '/models/M_Email.php';
 require_once APPROOT . '/libraries/PlayerSessionReminderService.php';
+require_once APPROOT . '/libraries/TournamentNotificationService.php';
 
 $dryRun = in_array('--dry-run', $argv, true);
 $summary = PlayerSessionReminderService::sendDueReminders($dryRun);
+$tournamentSummary = TournamentNotificationService::sendDueReminders($dryRun);
 
 echo 'Player session reminder scan started at ' . date('Y-m-d H:i:s') . "\n";
 echo 'Mode: ' . ($dryRun ? 'dry-run' : 'send') . "\n";
@@ -32,4 +34,6 @@ foreach ($summary['items'] as $item) {
 }
 
 echo "Summary: sent={$summary['sent']}, skipped={$summary['skipped']}, failed={$summary['failed']}\n";
-exit($summary['failed'] > 0 ? 1 : 0);
+echo 'Tournament reminder tournaments found: ' . $tournamentSummary['found'] . "\n";
+echo "Tournament summary: sent={$tournamentSummary['sent']}, skipped={$tournamentSummary['skipped']}, failed={$tournamentSummary['failed']}\n";
+exit(($summary['failed'] > 0 || $tournamentSummary['failed'] > 0) ? 1 : 0);

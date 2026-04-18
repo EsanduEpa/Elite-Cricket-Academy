@@ -26,7 +26,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
                 <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health &amp; Injury"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events"><i class="fas fa-calendar"></i><span>Events</span></a></li>
             </ul>
         </nav>

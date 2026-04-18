@@ -66,6 +66,19 @@ class M_Tournament
         return $this->db->resultset();
     }
 
+    public function getUpcomingReminderTournaments(string $date): array
+    {
+        $this->db->query(
+            "SELECT t.*
+             FROM tournament t
+             WHERE DATE(t.tdate) = :date
+               AND t.Status NOT IN ('cancelled', 'completed', 'created')
+             ORDER BY t.tdate ASC, t.Name ASC"
+        );
+        $this->db->bind(':date', $date);
+        return $this->db->resultset();
+    }
+
     public function getTournamentById($id)
     {
         $this->db->query(

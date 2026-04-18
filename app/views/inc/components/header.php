@@ -28,7 +28,7 @@
             $profileUrl = URLROOT . '/admin/profile';
             break;
         case 'Coach':
-            $notificationUrl = URLROOT . '/coach/notifications';
+            $notificationUrl = URLROOT . '/coach/dashboard';
             $profileUrl = URLROOT . '/coach/profile';
             break;
         case 'Trainer':

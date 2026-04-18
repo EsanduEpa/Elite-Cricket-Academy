@@ -420,22 +420,6 @@ class Coach extends Controller {
         }
     }
     
-    public function notifications() {
-        $userId = $_SESSION['user_id'];
-        $userModel = $this->model('M_Users');
-        
-        // Get real notifications from database
-        $notifications = $userModel->getNotificationsByUser($userId);
-        $unreadCount = $userModel->getUnreadNotificationCount($userId);
-        
-        $data = [
-            'title' => 'Notifications - Elite Cricket Academy',
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount
-        ];
-        $this->view('coach/notifications', $data);
-    }
-    
     public function communication() {
         $coachId = $_SESSION['user_id'];
         $userModel = $this->model('M_Users');
@@ -1415,71 +1399,6 @@ class Coach extends Controller {
         }
     }
 
-    // Mark notification as read
-    public function markNotificationRead($id = null) {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->markNotificationRead($id, $userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to mark as read']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Mark all notifications as read
-    public function markAllNotificationsRead() {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->markAllNotificationsRead($userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to mark all as read']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Delete notification
-    public function deleteNotification($id = null) {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->deleteNotification($id, $userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to delete']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Clear all notifications
-    public function clearAllNotifications() {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->deleteAllNotifications($userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to clear notifications']);
-            }
-            return;
-        }
-
-        echo json_encode(['success' => false, 'message' => 'Invalid request']);
-    }
-
     // ==================== TOURNAMENT RECOMMENDATIONS ====================
 
     /**
@@ -2157,6 +2076,7 @@ class Coach extends Controller {
 
         if ($newStatus === 'team_announced') {
             $M_Tournament->announceTeam($id);
+            $this->notifyTournamentTeamSelection((int)$id);
             $_SESSION['success'] = 'Team announced successfully.';
         } else {
             $M_Tournament->updateStatus($id, $newStatus);
@@ -2249,12 +2169,27 @@ class Coach extends Controller {
 
             $M_Tournament->confirmTeam($id, $_SESSION['user_id']);
             $M_Tournament->announceTeam($id);
+            $this->notifyTournamentTeamSelection((int)$id);
             $_SESSION['success'] = 'Squad confirmed and announced successfully.';
         } else {
             $_SESSION['success'] = 'Squad draft saved.';
         }
 
         redirect('coach/tournament_detail/' . $id);
+    }
+
+    private function notifyTournamentTeamSelection(int $tournamentId): void
+    {
+        if ($tournamentId <= 0) {
+            return;
+        }
+
+        try {
+            require_once APPROOT . '/libraries/TournamentNotificationService.php';
+            TournamentNotificationService::notifyTeamSelection($tournamentId);
+        } catch (Throwable $e) {
+            error_log('Coach tournament selection notification failed: ' . $e->getMessage());
+        }
     }
 }
 ?>

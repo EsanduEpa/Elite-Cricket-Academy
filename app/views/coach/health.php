@@ -66,12 +66,6 @@
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </li>
                 
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
