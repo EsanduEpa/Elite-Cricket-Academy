@@ -167,12 +167,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
                         <i class="fas fa-calendar-check"></i>
                         <span>My Slot Sessions</span>
@@ -190,17 +184,11 @@
                         <span>Performance</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item active">
                     <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
                         <i class="fas fa-trophy"></i>
                         <span>Tournaments</span>
                     </a>
-                </li>
-                <li class="nav-item active">
-                    <span class="nav-link" data-tooltip="Recommendations">
-                        <i class="fas fa-star"></i>
-                        <span>Recommendations</span>
-                    </span>
                 </li>
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
@@ -209,9 +197,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
-                        <i class="fas fa-calendar"></i>
-                        <span>Events</span>
+                    <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
+                        <i class="fas fa-comments"></i>
+                        <span>Communication</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Requests</span>
                     </a>
                 </li>
             </ul>

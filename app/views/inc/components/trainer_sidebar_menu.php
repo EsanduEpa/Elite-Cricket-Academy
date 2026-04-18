@@ -9,12 +9,6 @@ $menuItems = [
         'label' => 'Dashboard',
     ],
     [
-        'key' => 'bookings',
-        'href' => URLROOT . '/trainer/bookings',
-        'icon' => 'fas fa-calendar-check',
-        'label' => 'Player Bookings',
-    ],
-    [
         'key' => 'slots',
         'href' => URLROOT . '/staffslots/calendar',
         'icon' => 'fas fa-calendar-check',

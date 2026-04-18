@@ -48,15 +48,21 @@ foreach ($nutritionPlans as $plan) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>Schedule & Bookings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
                             <i class="fas fa-calendar-check"></i>
                             <span>My Slot Sessions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo URLROOT; ?>/trainer/tournaments" class="nav-link">
+                            <i class="fas fa-trophy"></i>
+                            <span>Tournaments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="<?php echo URLROOT; ?>/nutrition" class="nav-link">
+                            <i class="fas fa-capsules"></i>
+                            <span>Nutrition & Supplements</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -65,16 +71,10 @@ foreach ($nutritionPlans as $plan) {
                             <span>Workout Plans</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                            <i class="fas fa-apple-alt"></i>
-                            <span>Nutrition Plans</span>
-                        </a>
-                    </li>
                     <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
+                        <a href="<?php echo URLROOT; ?>/trainer/medical" class="nav-link">
                             <i class="fas fa-user-injured"></i>
-                            <span>Injury Reports</span>
+                            <span>Medical Records</span>
                         </a>
                     </li>
                 </ul>
