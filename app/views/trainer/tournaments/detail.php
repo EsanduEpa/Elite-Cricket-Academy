@@ -1,5 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css?v=<?php echo time(); ?>">
+<?php $trainerSidebarActive = 'tournaments'; ?>
 <style>
 .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
 .info-card  { background:#fff; border-radius:10px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
@@ -35,19 +36,7 @@ table.data-table tr:last-child td { border-bottom:none; }
             </div>
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
         </div>
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/dashboard" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link"><i class="fas fa-calendar-check"></i><span>Player Bookings</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/schedules" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Training Schedules</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/tournaments" class="nav-link"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/my_recommendations" class="nav-link"><i class="fas fa-star"></i><span>My Recommendations</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link"><i class="fas fa-capsules"></i><span>Nutrition &amp; Supplements</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link"><i class="fas fa-dumbbell"></i><span>Workout Plans</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/trainer/medical" class="nav-link"><i class="fas fa-user-injured"></i><span>Medical Records</span></a></li>
-            </ul>
-        </nav>
+        <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
         <div class="sidebar-footer">
             <a href="#" class="logout-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
         </div>

@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/bookings.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
+<?php $trainerSidebarActive = 'bookings'; ?>
 <!-- Mobile-specific meta tags -->
 <meta name="theme-color" content="#2c3e50">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,46 +22,7 @@
                 </button>
             </div>
 
-            <nav class="sidebar-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>Schedule & Bookings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>My Slot Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                            <i class="fas fa-dumbbell"></i>
-                            <span>Workout Plans</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                            <i class="fas fa-apple-alt"></i>
-                            <span>Nutrition Plans</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                            <i class="fas fa-user-injured"></i>
-                            <span>Injury Reports</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
 
             <!-- Profile Section -->
             <div class="trainer-profile">

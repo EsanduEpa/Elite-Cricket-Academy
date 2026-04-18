@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition_crud.css?v=<?php echo time(); ?>">
+<?php $trainerSidebarActive = 'nutrition'; ?>
 
 <div class="player-layout nc-page">
 
@@ -16,41 +17,7 @@
             </button>
         </div>
 
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                        <i class="fas fa-calendar-check"></i><span>Schedule &amp; Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>My Slot Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                        <i class="fas fa-dumbbell"></i><span>Workout Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/nutrition" class="nav-link">
-                        <i class="fas fa-apple-alt"></i><span>Nutrition Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                        <i class="fas fa-user-injured"></i><span>Injury Reports</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
 
         <div class="trainer-profile">
             <div class="trainer-avatar"><i class="fas fa-user-tie"></i></div>
@@ -243,6 +210,24 @@
                             <?php endif; ?>
                         </div>
                     </div>
+                        <div class="nc-field-row full">
+                            <div class="nc-field">
+                                <label for="supplements">
+                                    <i class="fas fa-capsules"></i> Supplements (optional)
+                                </label>
+                                <textarea id="supplements" name="supplements"
+                                          class="form-control<?php echo $cls('supplements'); ?>"
+                                          rows="4"
+                                          placeholder="Add supplement guidance only if necessary (e.g., whey protein 1 scoop after training, electrolytes after intense sessions)."><?php echo $val('supplements'); ?></textarea>
+                                <small class="nc-help-text">Leave this empty unless supplements are required for the player or group.</small>
+                                <?php if ($err('supplements')): ?>
+                                    <span class="invalid-feedback">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <?php echo htmlspecialchars($err('supplements')); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
 
                     <!-- Row 4: Assignment Target -->
                     <div class="nc-field-row full nc-assignment-grid">
@@ -628,6 +613,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const mode        = assignmentMode ? assignmentMode.value : 'individual';
         const groupValue  = document.getElementById('player_group') ? document.getElementById('player_group').value : '';
         const selectedPlayers = playerCheckboxes.filter(input => input.checked).map(input => input.value).filter(Boolean);
+        const supplements = document.getElementById('supplements') ? document.getElementById('supplements').value.trim() : '';
         const notes       = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
         const protein     = document.getElementById('protein_percentage').value.trim();
         const carbs       = document.getElementById('carbohydrate_percentage').value.trim();
@@ -654,6 +640,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!calories || isNaN(calories) || +calories < 500 || +calories > 10000)
                                                          addError('recommended_calories', 'Calories must be between 500 and 10000.');
         if (description.length > 2000)                  addError('description', 'Description must be 2000 characters or fewer.');
+        if (supplements.length > 2000)                  addError('supplements', 'Supplements must be 2000 characters or fewer.');
         if (mode === 'group') {
             if (!groupValue) addError('player_group', 'Please select a player group.');
         } else if (!selectedPlayers.length) {

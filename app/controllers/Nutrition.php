@@ -386,6 +386,7 @@ class Nutrition extends Controller {
 
         $playerGroup = trim($post['player_group'] ?? '');
 
+        $supplements = trim(htmlspecialchars($post['supplements'] ?? '', ENT_QUOTES, 'UTF-8'));
         $notes      = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
         $duration    = trim($post['duration']    ?? '');
         $status      = trim($post['status']      ?? 'active');
@@ -443,6 +444,10 @@ class Nutrition extends Controller {
             $errors['player_ids'] = 'Please select at least one player.';
         }
 
+        if ($supplements !== '' && mb_strlen($supplements) > 2000) {
+            $errors['supplements'] = 'Supplements must be 2000 characters or fewer.';
+        }
+
         if ($notes !== '' && mb_strlen($notes) > 1000) {
             $errors['notes'] = 'Notes must be 1000 characters or fewer.';
         }
@@ -478,6 +483,7 @@ class Nutrition extends Controller {
             'fat_percentage' => $fatPercentage,
             'recommended_calories' => $recommendedCalories,
             'description' => $description,
+            'supplements' => $supplements,
             'diet_details' => $this->_composeDietDetails([
                 'plan_name' => $planName,
                 'protein_percentage' => $proteinPercentage,

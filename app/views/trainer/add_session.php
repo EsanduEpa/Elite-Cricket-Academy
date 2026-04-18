@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/bookings.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/add-session.css?v=<?php echo time(); ?>">
+<?php $trainerSidebarActive = 'bookings'; ?>
 
 <!-- Trainer Layout -->
 <div class="player-layout">
@@ -17,41 +18,7 @@
             </button>
         </div>
 
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                        <i class="fas fa-calendar-check"></i><span>Schedule &amp; Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>My Slot Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                        <i class="fas fa-dumbbell"></i><span>Workout Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="nav-link">
-                        <i class="fas fa-apple-alt"></i><span>Nutrition Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                        <i class="fas fa-user-injured"></i><span>Injury Reports</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
 
         <div class="trainer-profile">
             <div class="trainer-avatar"><i class="fas fa-user-tie"></i></div>

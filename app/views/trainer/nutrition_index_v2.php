@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition_crud.css?v=<?php echo time(); ?>">
+<?php $trainerSidebarActive = 'nutrition'; ?>
 
 <?php
 $plans = $data['plans'] ?? [];
@@ -35,40 +36,7 @@ if (!is_array($templates)) {
             </button>
         </div>
 
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer" class="nav-link">
-                        <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="nav-link">
-                        <i class="fas fa-calendar-check"></i><span>Schedule &amp; Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link">
-                        <i class="fas fa-calendar-check"></i><span>My Slot Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="nav-link">
-                        <i class="fas fa-dumbbell"></i><span>Workout Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/nutrition" class="nav-link">
-                        <i class="fas fa-apple-alt"></i><span>Nutrition Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="nav-link">
-                        <i class="fas fa-user-injured"></i><span>Injury Reports</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
 
         <div class="trainer-profile">
             <div class="trainer-avatar"><i class="fas fa-user-tie"></i></div>
@@ -120,6 +88,7 @@ if (!is_array($templates)) {
                                 <th><i class="fas fa-tag"></i> Plan Name</th>
                                 <th><i class="fas fa-user"></i> Player</th>
                                 <th><i class="fas fa-utensils"></i> Diet Details</th>
+                                <th><i class="fas fa-capsules"></i> Supplements</th>
                                 <th><i class="fas fa-hourglass-half"></i> Duration</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
                                 <th><i class="fas fa-calendar-alt"></i> Created</th>
@@ -138,6 +107,16 @@ if (!is_array($templates)) {
                                         <span class="nc-diet-preview" title="<?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>">
                                             <?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <?php $supplements = trim((string)($plan->Supplements ?? $plan->supplements ?? '')); ?>
+                                        <?php if ($supplements !== ''): ?>
+                                            <span class="nc-diet-preview" title="<?php echo htmlspecialchars($supplements); ?>">
+                                                <?php echo htmlspecialchars($supplements); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span style="color:#9ca3af;">Not required</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?php echo (int)($plan->Duration ?? 0); ?> day<?php echo ((int)($plan->Duration ?? 0) !== 1) ? 's' : ''; ?></td>
                                     <td>
