@@ -1801,6 +1801,7 @@ class Admin extends Controller {
 
         if ($newStatus === 'team_announced') {
             $M_Tournament->announceTeam($id);
+            $this->notifyTournamentTeamSelection((int)$id);
             $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
         } else {
             $M_Tournament->updateStatus($id, $newStatus);
@@ -1960,8 +1961,23 @@ class Admin extends Controller {
         }
 
         $M_Tournament->announceTeam($tournamentId);
+        $this->notifyTournamentTeamSelection((int)$tournamentId);
         $_SESSION['success'] = 'Team announced! The squad is now visible to all users.';
         redirect('admin/tournament_detail/' . $tournamentId);
+    }
+
+    private function notifyTournamentTeamSelection(int $tournamentId): void
+    {
+        if ($tournamentId <= 0) {
+            return;
+        }
+
+        try {
+            require_once APPROOT . '/libraries/TournamentNotificationService.php';
+            TournamentNotificationService::notifyTeamSelection($tournamentId);
+        } catch (Throwable $e) {
+            error_log('Admin tournament selection notification failed: ' . $e->getMessage());
+        }
     }
 
     public function enter_results($tournamentId = null)

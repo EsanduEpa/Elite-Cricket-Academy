@@ -972,6 +972,69 @@ class M_SlotPlayer {
         return $this->db->resultSet();
     }
 
+    public function getOccurrenceNotificationDetails(int $occurrenceId): object|false {
+        $this->db->query(
+            'SELECT so.OccurrenceID, so.OccurrenceDate,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    COALESCE(st.TemplateName, "Session") AS TemplateName,
+                    COALESCE(st.SlotType, "private") AS SlotType,
+                    COALESCE(f.Name, "Academy") AS FacilityName,
+                    IF(
+                        EXISTS (
+                            SELECT 1 FROM slot_occurrence_staff_override ov0
+                            WHERE ov0.OccurrenceID = so.OccurrenceID
+                        ),
+                        (SELECT GROUP_CONCAT(CONCAT(staff.FirstName, " ", staff.LastName) ORDER BY staff.FirstName SEPARATOR ", ")
+                         FROM slot_occurrence_staff_override ov
+                         JOIN user staff ON staff.UserID = ov.UserID
+                         WHERE ov.OccurrenceID = so.OccurrenceID),
+                        (SELECT GROUP_CONCAT(CONCAT(staff.FirstName, " ", staff.LastName) ORDER BY staff.FirstName SEPARATOR ", ")
+                         FROM slot_template_staff ts
+                         JOIN user staff ON staff.UserID = ts.UserID
+                         WHERE ts.TemplateID = so.TemplateID)
+                    ) AS StaffNames
+             FROM slot_occurrence so
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             WHERE so.OccurrenceID = :oid
+             LIMIT 1'
+        );
+        $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+        return $this->db->single();
+    }
+
+    public function getOccurrenceStaffUserIds(int $occurrenceId): array {
+        $this->db->query(
+            'SELECT DISTINCT staff.UserID
+             FROM slot_occurrence so
+             JOIN user staff ON (
+                staff.UserID IN (
+                    SELECT ov.UserID
+                    FROM slot_occurrence_staff_override ov
+                    WHERE ov.OccurrenceID = so.OccurrenceID
+                )
+                OR (
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM slot_occurrence_staff_override ov0
+                        WHERE ov0.OccurrenceID = so.OccurrenceID
+                    )
+                    AND staff.UserID IN (
+                        SELECT ts.UserID
+                        FROM slot_template_staff ts
+                        WHERE ts.TemplateID = so.TemplateID
+                    )
+                )
+             )
+             WHERE so.OccurrenceID = :oid'
+        );
+        $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+        return array_map(static function ($row) {
+            return (int)($row->UserID ?? 0);
+        }, $this->db->resultSet());
+    }
+
     public function getAssignedProgramBookings(int $playerId, ?string $fromDate = null): array {
         $sql =
                 'SELECT sb.BookingID, sb.Status, sb.BookingSource, sb.ParticipantCount,

@@ -849,7 +849,18 @@ class M_Shop {
     }
     
     public function getLowStockItems() {
-        $this->db->query('SELECT Name, StockQuantity FROM product WHERE StockQuantity <= 5 AND Status = "active" ORDER BY StockQuantity ASC LIMIT 5');
+        $this->db->query('SELECT ProductID, Name, StockQuantity FROM product WHERE StockQuantity <= 5 AND Status = "active" ORDER BY StockQuantity ASC LIMIT 5');
+        return $this->db->resultSet();
+    }
+
+    public function getLowStockEquipmentItems(int $threshold = 2): array {
+        $this->db->query('SELECT EquipmentID, Name, Stock
+            FROM equipment
+            WHERE Stock <= :threshold
+              AND AvailabilityStatus IN ("available", "rented")
+            ORDER BY Stock ASC
+            LIMIT 5');
+        $this->db->bind(':threshold', $threshold, PDO::PARAM_INT);
         return $this->db->resultSet();
     }
     
