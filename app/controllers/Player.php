@@ -29,14 +29,11 @@ class Player extends Controller {
     }
     
     private function requireLogin() {
-        // TEMPORARILY DISABLED FOR TESTING - REMOVE THIS COMMENT IN PRODUCTION
-        return true;
-        
         if (!function_exists('isLoggedIn')) {
             require_once APPROOT . '/helpers/session_helper.php';
         }
         if (!isLoggedIn()) {
-            redirect('login');
+            redirect('');
             exit;
         }
     }
@@ -64,7 +61,7 @@ class Player extends Controller {
         $this->view('player/dashboard', $data);
     }
     
-    // Test method without login requirement
+    // Test method for dashboard UI checks; protected by the global auth guard.
     public function test() {
         // Direct UI test without any auth or database
         $playerData = $this->getPlayerData();
@@ -3556,10 +3553,8 @@ class Player extends Controller {
             $userId = $_SESSION['user_id'];
             
             if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('player/profile');

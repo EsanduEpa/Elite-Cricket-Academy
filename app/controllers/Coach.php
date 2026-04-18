@@ -604,10 +604,8 @@ class Coach extends Controller {
             $userId = $_SESSION['user_id'] ?? 1;
             
             if ($userModel->suspendUser($userId, 9999)) {
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('coach/profile');

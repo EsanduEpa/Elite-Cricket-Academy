@@ -2,13 +2,7 @@
 class Nutrition extends Controller {
 
     public function __construct() {
-        // Dev bypass — mirrors the pattern used in Trainer.php
-        if (!isset($_SESSION['user_id'])) {
-            // Use an actual Trainer that exists in `trainerprofile` to avoid FK failures.
-            $_SESSION['user_id']   = 10;
-            $_SESSION['username']  = 'Trainer';
-            $_SESSION['user_role'] = 'Trainer';
-        }
+        requireAuth(['Trainer']);
     }
 
     private function _normalizeDecimal($value): ?string {

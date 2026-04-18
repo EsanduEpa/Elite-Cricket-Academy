@@ -14,7 +14,7 @@ class Trainer extends Controller {
 
     public function dashboard() {
         if (!isset($_SESSION['user_id'])) {
-            redirect('login');
+            redirect('');
         }
 
         $trainerId = (int)$_SESSION['user_id'];
@@ -45,13 +45,6 @@ class Trainer extends Controller {
     }
 
     public function schedules() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
         $data = [
             'title' => 'Schedules Management',
             'schedules' => [] // $this->trainerModel->getSchedules($_SESSION['user_id'])
@@ -429,13 +422,6 @@ class Trainer extends Controller {
     }
 
     public function medical() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
         $data = [
             'title' => 'Medical Records',
             'medical_records' => [] // $this->trainerModel->getMedicalRecords($_SESSION['user_id'])
@@ -445,13 +431,6 @@ class Trainer extends Controller {
     }
 
     public function injuryReports() {
-        // Temporary bypass for development
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'John Trainer';
-            $_SESSION['user_type'] = 'trainer';
-        }
-
         // Initialize medical model to get all medical records
         $medicalModel = $this->model('M_Medical');
         
@@ -817,10 +796,8 @@ class Trainer extends Controller {
             $userId = $_SESSION['user_id'] ?? 1;
             
             if ($userModel->suspendUser($userId, 9999)) {
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('trainer/profile');

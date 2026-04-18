@@ -108,10 +108,8 @@ class Profile extends Controller {
             $userId = $_SESSION['user_id'];
             
             if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 // Redirect back to role-specific profile
