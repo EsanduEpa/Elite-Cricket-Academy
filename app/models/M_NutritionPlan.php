@@ -421,6 +421,16 @@ class M_NutritionPlan {
             $bindings[':notes'] = $data['notes'] ?? null;
         }
 
+        if ($this->columnExists('NutritionPlan', 'Supplements')) {
+            $columns[] = 'Supplements';
+            $placeholders[] = ':supplements';
+            $bindings[':supplements'] = $data['supplements'] ?? null;
+        } elseif ($this->columnExists('NutritionPlan', 'supplements')) {
+            $columns[] = 'supplements';
+            $placeholders[] = ':supplements';
+            $bindings[':supplements'] = $data['supplements'] ?? null;
+        }
+
         if ($this->columnExists('NutritionPlan', 'PlayerID') && !empty($playerIds)) {
             $columns[] = 'PlayerID';
             $placeholders[] = ':player_id';
@@ -612,6 +622,14 @@ class M_NutritionPlan {
         } elseif ($this->columnExists('NutritionPlan', 'notes')) {
             $sets[] = 'notes = :notes';
             $bindings[':notes'] = $data['notes'] ?? null;
+        }
+
+        if ($this->columnExists('NutritionPlan', 'Supplements')) {
+            $sets[] = 'Supplements = :supplements';
+            $bindings[':supplements'] = $data['supplements'] ?? null;
+        } elseif ($this->columnExists('NutritionPlan', 'supplements')) {
+            $sets[] = 'supplements = :supplements';
+            $bindings[':supplements'] = $data['supplements'] ?? null;
         }
 
         if ($this->columnExists('NutritionPlan', 'Duration')) {
