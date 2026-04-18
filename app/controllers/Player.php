@@ -1926,6 +1926,18 @@ class Player extends Controller {
                         'Facility Booking Payment',
                         'Facility booking confirmed successfully.'
                     );
+                    $this->createPaymentSuccessNotification(
+                        (int)$playerData['id'],
+                        (string)$pendingFacilityBooking['order_id'],
+                        'session',
+                        'Facility booking payment successful',
+                        'Your PayHere payment for a facility booking was received and your booking is confirmed.',
+                        URLROOT . '/playerslots/bookings'
+                    );
+                    $this->createSessionBookedNotification(
+                        (int)$playerData['id'],
+                        $occurrenceId
+                    );
                 } else {
                     $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
                 }
@@ -2240,6 +2252,15 @@ class Player extends Controller {
             ucfirst((string)($payment->PlanName ?? 'Membership')) . ' membership fee paid successfully.'
         );
 
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $orderId,
+            'payment',
+            'Membership payment successful',
+            'Your ' . ucfirst((string)($payment->PlanName ?? 'Membership')) . ' membership payment of Rs. ' . number_format((float)($payment->Amount ?? 0), 2) . ' was successful.',
+            URLROOT . '/player/payments'
+        );
+
         return true;
     }
 
@@ -2269,6 +2290,61 @@ class Player extends Controller {
         );
     }
 
+    private function createPaymentSuccessNotification(
+        int $playerId,
+        string $orderId,
+        string $type,
+        string $title,
+        string $message,
+        string $actionUrl
+    ): void {
+        if ($playerId <= 0 || $orderId === '') {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                $orderId,
+                $type,
+                $title,
+                $message,
+                $actionUrl
+            );
+        } catch (Throwable $e) {
+            error_log('Payment notification creation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function createSessionBookedNotification(int $playerId, int $occurrenceId): void {
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            return;
+        }
+
+        try {
+            $details = $this->slotPlayerModel->getOccurrenceNotificationDetails($occurrenceId);
+            $sessionName = (string)($details->TemplateName ?? 'Session');
+            $date = (string)($details->OccurrenceDate ?? '');
+            $startTime = (string)($details->StartTime ?? '');
+            $displayDate = $date !== '' ? date('D, d M Y', strtotime($date)) : 'the selected date';
+            $displayTime = $startTime !== '' ? date('g:i A', strtotime($startTime)) : 'the selected time';
+            $facility = (string)($details->FacilityName ?? 'Academy');
+
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                'slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'Session booked successfully',
+                "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
+                URLROOT . '/playerslots/bookings'
+            );
+        } catch (Throwable $e) {
+            error_log('Session booking notification failed: ' . $e->getMessage());
+        }
+    }
+
     private function sendPendingShopPaymentSuccessEmail(array $pendingShopPayment): bool {
         $orderId = (string)($pendingShopPayment['order_id'] ?? '');
         if ($orderId === '') {
@@ -2288,7 +2364,7 @@ class Player extends Controller {
         }
 
         require_once APPROOT . '/libraries/PaymentEmailService.php';
-        return PaymentEmailService::sendSuccessEmail(
+        $emailSent = PaymentEmailService::sendSuccessEmail(
             $playerId > 0 ? $playerId : null,
             $recipientEmail,
             $recipientName,
@@ -2298,6 +2374,19 @@ class Player extends Controller {
             'Shop Product Payment',
             'Shop product payment received successfully.'
         );
+
+        if ($playerId > 0) {
+            $this->createPaymentSuccessNotification(
+                $playerId,
+                $orderId,
+                'payment',
+                'Shop payment successful',
+                'Your shop product payment of Rs. ' . number_format((float)($pendingShopPayment['amount'] ?? 0), 2) . ' was successful.',
+                URLROOT . '/player/shopping'
+            );
+        }
+
+        return $emailSent;
     }
 
     private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
@@ -2306,7 +2395,7 @@ class Player extends Controller {
             error_log("Payment email skipped: could not parse player ID from order $orderId");
             return false;
         }
-        return $this->sendPaymentSuccessEmailForUser(
+        $emailSent = $this->sendPaymentSuccessEmailForUser(
             $playerId,
             $orderId,
             $amount,
@@ -2314,6 +2403,17 @@ class Player extends Controller {
             'Shop Product Payment',
             'Shop product payment received successfully.'
         );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $orderId,
+            'payment',
+            'Shop payment successful',
+            'Your shop product payment of Rs. ' . number_format((float)$amount, 2) . ' was successful.',
+            URLROOT . '/player/shopping'
+        );
+
+        return $emailSent;
     }
 
     private function sendRentalConfirmationEmail(array $playerData, array $rentalDetails): bool {
@@ -2372,6 +2472,15 @@ class Player extends Controller {
             ]
         );
 
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            (string)($pendingRentalPayment['order_id'] ?? ('RENTAL-' . time())),
+            'rental',
+            'Rental payment successful',
+            'Your equipment rental payment of Rs. ' . number_format((float)($result['total_cost'] ?? ($pendingRentalPayment['amount'] ?? 0)), 2) . ' was successful.',
+            URLROOT . '/player/rentals'
+        );
+
         return $result;
     }
 
@@ -2409,14 +2518,24 @@ class Player extends Controller {
         $shopModel->removeRentalCartItemsByIds($playerId, $cartIds);
 
         $orderId = (string)($pendingRentalCartPayment['order_id'] ?? '');
+        $completedOrderId = $orderId !== '' ? $orderId : ('RENTALCART-' . time());
         $amount = (string)($pendingRentalCartPayment['amount'] ?? '0.00');
         $this->sendPaymentSuccessEmailForUser(
             $playerId,
-            $orderId !== '' ? $orderId : ('RENTALCART-' . time()),
+            $completedOrderId,
             $amount,
             'LKR',
             'Equipment Rental Cart Payment',
             'Equipment rental cart payment received successfully.'
+        );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $completedOrderId,
+            'rental',
+            'Rental cart payment successful',
+            'Your rental cart payment of Rs. ' . number_format((float)$amount, 2) . ' was successful and the rentals are confirmed.',
+            URLROOT . '/player/rentals'
         );
 
         return $result;
@@ -2456,13 +2575,23 @@ class Player extends Controller {
             $orderId !== '' ? $orderId : null
         );
 
+        $completedOrderId = $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId);
         $this->sendPaymentSuccessEmailForUser(
             $playerId,
-            $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId),
+            $completedOrderId,
             $amount,
             'LKR',
             'Equipment Return Fee Payment',
             'Equipment return fee payment received successfully.'
+        );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $completedOrderId,
+            'payment',
+            'Return fee payment successful',
+            'Your equipment return fee payment of Rs. ' . number_format((float)$amount, 2) . ' was successful.',
+            URLROOT . '/player/rentals'
         );
 
         return ['success' => true];

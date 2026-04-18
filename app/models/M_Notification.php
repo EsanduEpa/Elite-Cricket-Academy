@@ -24,6 +24,52 @@ class M_Notification {
     }
 
     /**
+     * Create a notification once for a specific PayHere/order reference.
+     */
+    public function createOnceForOrder(
+        int $userId,
+        string $orderId,
+        string $type,
+        string $title,
+        string $message,
+        string $actionUrl = ''
+    ): int|false {
+        if ($userId <= 0 || $orderId === '') {
+            return false;
+        }
+
+        if ($this->existsForOrder($userId, $orderId)) {
+            return false;
+        }
+
+        $data = json_encode(['order_id' => $orderId], JSON_UNESCAPED_SLASHES);
+        $this->db->query('INSERT INTO notification (UserID, Type, Title, Message, Data, ActionUrl, IsRead)
+            VALUES (:uid, :type, :title, :msg, :data, :url, 0)');
+        $this->db->bind(':uid',   $userId,    PDO::PARAM_INT);
+        $this->db->bind(':type',  $type,      PDO::PARAM_STR);
+        $this->db->bind(':title', $title,     PDO::PARAM_STR);
+        $this->db->bind(':msg',   $message,   PDO::PARAM_STR);
+        $this->db->bind(':data',  $data,      PDO::PARAM_STR);
+        $this->db->bind(':url',   $actionUrl, PDO::PARAM_STR);
+
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+
+        return false;
+    }
+
+    public function existsForOrder(int $userId, string $orderId): bool {
+        $this->db->query("SELECT NotificationID FROM notification
+            WHERE UserID = :uid
+              AND JSON_UNQUOTE(JSON_EXTRACT(Data, '$.order_id')) = :order_id
+            LIMIT 1");
+        $this->db->bind(':uid', $userId, PDO::PARAM_INT);
+        $this->db->bind(':order_id', $orderId, PDO::PARAM_STR);
+        return (bool)$this->db->single();
+    }
+
+    /**
      * Get all notifications for a user (newest first)
      */
     public function getForUser(int $userId, int $limit = 20): array {

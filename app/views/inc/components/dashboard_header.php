@@ -72,10 +72,22 @@
         </ul>
         <div class="nav-buttons">
             <?php if ($isLoggedIn): ?>
-                <a href="<?php echo htmlspecialchars($notificationUrl, ENT_QUOTES, 'UTF-8'); ?>" class="nav-icon-btn notification-nav-btn" aria-label="Notifications" title="Notifications">
+                <a href="#" class="nav-icon-btn notification-nav-btn" aria-label="Notifications" title="Notifications" data-notifications-toggle data-list-url="<?php echo URLROOT; ?>/notifications/list" data-mark-url="<?php echo URLROOT; ?>/notifications/mark_read">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-dot" aria-hidden="true"></span>
+                    <span class="notification-dot" data-notification-badge aria-hidden="true"></span>
                 </a>
+                <div class="notification-dropdown" data-notification-dropdown>
+                    <div class="notification-dropdown__header">
+                        <div>
+                            <h3>Notifications</h3>
+                            <p>Latest updates for your account</p>
+                        </div>
+                        <button type="button" class="notification-dropdown__mark" data-notifications-mark-all>Mark all read</button>
+                    </div>
+                    <div class="notification-dropdown__body" data-notification-list>
+                        <div class="notification-dropdown__state">Click the bell to load notifications.</div>
+                    </div>
+                </div>
                 <a href="<?php echo htmlspecialchars($profileUrl, ENT_QUOTES, 'UTF-8'); ?>" class="nav-action-btn" aria-label="Profile" title="Profile">
                     <i class="fas fa-user-circle"></i>
                     <span>Profile</span>
@@ -91,3 +103,6 @@
         </div>
     </nav>
 </header>
+<?php if ($isLoggedIn): ?>
+<script src="<?php echo URLROOT; ?>/js/notifications.js?v=<?php echo time(); ?>" defer></script>
+<?php endif; ?>
