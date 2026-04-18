@@ -142,9 +142,7 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
             <a href="<?php echo URLROOT; ?>/staffslots/past_requests" class="subnav-link">
                 <i class="fas fa-history"></i> Past Requests
             </a>
-            <a href="#attendance" class="subnav-link nav-anchor">
-                <i class="fas fa-chart-line"></i> Attendance
-            </a>
+           
         </div>
 
         <div style="padding:0 25px 40px;">
