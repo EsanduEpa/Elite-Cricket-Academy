@@ -43,6 +43,25 @@
     flex-direction: column;
 }
 
+/* Account actions now live in the top navbar, not inside sidebars. */
+.admin-sidebar > .profile-section,
+.coach-sidebar > .profile-section,
+.trainer-sidebar > .profile-section,
+.shop-sidebar > .profile-section,
+.trainer-sidebar > .trainer-profile,
+.trainer-sidebar > .sidebar-footer,
+.coach-sidebar > .sidebar-footer,
+.admin-sidebar > .sidebar-footer,
+.shop-sidebar > .sidebar-footer,
+.staff-sidebar > .profile-section,
+.staff-sidebar > .sidebar-footer {
+    display: none !important;
+}
+
+.trainer-sidebar .trainer-details {
+    display: none !important;
+}
+
 /* Collapsed Sidebar State */
 .sidebar.collapsed,
 .admin-sidebar.collapsed,
