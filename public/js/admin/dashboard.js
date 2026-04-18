@@ -14,19 +14,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Calendar not found');
     }
     
-    // Wait for Chart.js to be available
-    function waitForChart() {
-        if (typeof Chart !== 'undefined' && window.chartJsLoaded) {
-            console.log('Chart.js is available, initializing charts...');
-            initializeCharts();
-        } else {
-            console.log('Chart.js not ready, waiting... Chart available:', typeof Chart !== 'undefined', 'Flag set:', window.chartJsLoaded);
-            setTimeout(waitForChart, 100);
+    if (document.querySelector('.summary-card canvas')) {
+        // Wait for Chart.js only on dashboard variants that still render chart canvases.
+        function waitForChart() {
+            if (typeof Chart !== 'undefined' && window.chartJsLoaded) {
+                console.log('Chart.js is available, initializing charts...');
+                initializeCharts();
+            } else {
+                console.log('Chart.js not ready, waiting... Chart available:', typeof Chart !== 'undefined', 'Flag set:', window.chartJsLoaded);
+                setTimeout(waitForChart, 100);
+            }
         }
+
+        setTimeout(waitForChart, 500);
     }
-    
-    // Give Chart.js some time to load
-    setTimeout(waitForChart, 500);
     
     updateCurrentTime();
     

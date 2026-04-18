@@ -14,7 +14,6 @@
     //website name
     define('SITENAME', 'Elite-Cricket-Academy');
     
-    // Development mode - Set to true to bypass authentication (FOR DEVELOPMENT ONLY!)
-    // ⚠️ WARNING: Set to false in production!
-    define('DEV_MODE', true);
-?>
+    // Authentication/session settings
+    define('DEV_MODE', false);
+    define('SESSION_TIMEOUT_SECONDS', 1800); // 30 minutes of inactivity

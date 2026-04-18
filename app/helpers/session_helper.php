@@ -27,7 +27,7 @@ function flash($name = '', $message = '', $class = 'alert alert-success') {
 }
 
 function isLoggedIn() {
-    if(isset($_SESSION['user_id'])) {
+    if(isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
         return true;
     } else {
         return false;
@@ -50,58 +50,175 @@ function getUserRole() {
     return $_SESSION['user_role'] ?? 'Guest';
 }
 
+function isAjaxOrJsonRequest(): bool {
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $isJsonRequest = (isset($_SERVER['CONTENT_TYPE']) &&
+                     strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
+                     (isset($_SERVER['HTTP_ACCEPT']) &&
+                     strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+    return $isAjax || $isJsonRequest;
+}
+
+function destroyUserSession(): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $_SESSION = [];
+
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            $params['domain'],
+            $params['secure'],
+            $params['httponly']
+        );
+    }
+
+    session_destroy();
+}
+
+function isPublicRoute(string $controller, string $method = 'index'): bool {
+    $controller = strtolower($controller);
+    $method = strtolower($method ?: 'index');
+
+    $publicRoutes = [
+        'home' => ['*'],
+        'pages' => ['index', 'logout'],
+        'login' => ['index', 'logout', 'forgot_password', 'reset_password'],
+        'player' => ['payhere_notify'],
+        'register' => ['*'],
+    ];
+
+    if (!isset($publicRoutes[$controller])) {
+        return false;
+    }
+
+    return in_array('*', $publicRoutes[$controller], true) ||
+           in_array($method, $publicRoutes[$controller], true);
+}
+
+function getRouteAllowedRoles(string $controller): array {
+    $controller = strtolower($controller);
+
+    $roleMap = [
+        'admin' => ['Admin'],
+        'adminslots' => ['Admin'],
+        'coach' => ['Coach'],
+        'trainer' => ['Trainer'],
+        'nutrition' => ['Trainer'],
+        'player' => ['Player'],
+        'playerslots' => ['Player'],
+        'performance' => ['Player'],
+        'shop' => ['Shop', 'ShopEmployee'],
+        'staffslots' => ['Admin', 'Coach', 'Trainer'],
+        'profile' => ['Admin', 'Coach', 'Trainer', 'Player', 'Shop', 'ShopEmployee'],
+        'notifications' => ['Admin', 'Coach', 'Trainer', 'Player', 'Shop', 'ShopEmployee'],
+        'remindertasks' => ['Admin', 'Coach', 'Trainer', 'Player', 'Shop', 'ShopEmployee'],
+        'posts' => ['Admin'],
+        'setup' => ['Admin'],
+    ];
+
+    return $roleMap[$controller] ?? ['Admin', 'Coach', 'Trainer', 'Player', 'Shop', 'ShopEmployee'];
+}
+
+function handleUnauthorizedAccess(string $message = 'You do not have permission to access this page.'): void {
+    if (isAjaxOrJsonRequest()) {
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode([
+            'status' => 'error',
+            'success' => false,
+            'message' => $message,
+        ]);
+        exit();
+    }
+
+    flash('access_denied', $message, 'alert alert-danger');
+    redirectToDashboard();
+}
+
+function handleUnauthenticatedAccess(string $message = 'Please login first.'): void {
+    if (isAjaxOrJsonRequest()) {
+        header('Content-Type: application/json');
+        http_response_code(401);
+        echo json_encode([
+            'status' => 'error',
+            'success' => false,
+            'message' => $message,
+        ]);
+        exit();
+    }
+
+    flash('login_required', $message, 'alert alert-danger');
+    redirect('');
+}
+
+function enforceSessionTimeout(): void {
+    if (!isLoggedIn()) {
+        return;
+    }
+
+    $timeout = defined('SESSION_TIMEOUT_SECONDS') ? (int) SESSION_TIMEOUT_SECONDS : 1800;
+    if ($timeout <= 0) {
+        $_SESSION['last_activity'] = time();
+        return;
+    }
+
+    $lastActivity = (int)($_SESSION['last_activity'] ?? time());
+    if ((time() - $lastActivity) > $timeout) {
+        destroyUserSession();
+        handleUnauthenticatedAccess('Your session expired due to inactivity. Please login again.');
+    }
+
+    $_SESSION['last_activity'] = time();
+}
+
+function enforceRouteAccess(string $controller, string $method = 'index'): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (isPublicRoute($controller, $method)) {
+        if (isLoggedIn()) {
+            enforceSessionTimeout();
+        }
+        return;
+    }
+
+    if (!isLoggedIn()) {
+        handleUnauthenticatedAccess('Please login first to continue.');
+    }
+
+    enforceSessionTimeout();
+
+    $allowedRoles = getRouteAllowedRoles($controller);
+    if ($allowedRoles && !in_array($_SESSION['user_role'] ?? '', $allowedRoles, true)) {
+        handleUnauthorizedAccess();
+    }
+}
+
 // Check if user is logged in and has correct role
 function requireAuth($allowedRoles = []) {
-    // 🔧 DEVELOPMENT MODE: Bypass authentication
-    if (defined('DEV_MODE') && DEV_MODE === true) {
-        // Set up mock session for development if not already set
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        if (!isset($_SESSION['user_id'])) {
-            // Set role based on what's being accessed
-            if (!empty($allowedRoles)) {
-                $_SESSION['user_role'] = $allowedRoles[0];
-            } else {
-                $_SESSION['user_role'] = 'Admin';
-            }
-            
-            // Use appropriate real user IDs for each role to avoid empty data
-            $roleUserMap = [
-                'Admin'        => 1,
-                'Coach'        => 3,
-                'Player'       => 6,
-                'Trainer'      => 4,
-                'Shop'         => 5,
-                'ShopEmployee' => 5,
-            ];
-            $_SESSION['user_id'] = $roleUserMap[$_SESSION['user_role']] ?? 1;
-            $_SESSION['user_name'] = $_SESSION['user_role'] . ' User';
-            $_SESSION['user_email'] = strtolower($_SESSION['user_role']) . '@cricketacademy.com';
-        }
-        return; // Skip authentication in dev mode
-    }
-    
-    // 🔒 PRODUCTION MODE: Normal authentication
     // Start session if not started
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
     
-    // Check if this is an AJAX request
-    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    $isJsonRequest = (isset($_SERVER['CONTENT_TYPE']) && 
-                     strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
-                     (isset($_SERVER['HTTP_ACCEPT']) && 
-                     strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+    $isAjaxOrJson = isAjaxOrJsonRequest();
     
     // Check if user is logged in
     if (!isLoggedIn()) {
-        if ($isAjax || $isJsonRequest) {
+        if ($isAjaxOrJson) {
             // Return JSON error for AJAX requests
             header('Content-Type: application/json');
+            http_response_code(401);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
@@ -109,16 +226,17 @@ function requireAuth($allowedRoles = []) {
             ]);
             exit();
         }
-        flash('login_required', 'Please login to access this page', 'alert alert-danger');
-        redirect('login');
-        exit();
+        handleUnauthenticatedAccess('Please login first to continue.');
     }
+
+    enforceSessionTimeout();
     
     // Check if role is allowed (if roles specified)
     if (!empty($allowedRoles) && !in_array($_SESSION['user_role'], $allowedRoles)) {
-        if ($isAjax || $isJsonRequest) {
+        if ($isAjaxOrJson) {
             // Return JSON error for AJAX requests
             header('Content-Type: application/json');
+            http_response_code(403);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
@@ -129,14 +247,13 @@ function requireAuth($allowedRoles = []) {
         flash('access_denied', 'You do not have permission to access this page', 'alert alert-danger');
         // Redirect to their own dashboard
         redirectToDashboard();
-        exit();
     }
 }
 
 // Redirect user to their appropriate dashboard
 function redirectToDashboard() {
     if (!isset($_SESSION['user_role'])) {
-        redirect('login');
+        redirect('');
         return;
     }
     
@@ -162,4 +279,3 @@ function redirectToDashboard() {
             break;
     }
 }
-?> 

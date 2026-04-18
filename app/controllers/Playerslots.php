@@ -12,7 +12,7 @@ class Playerslots extends Controller {
     // ── Helpers ────────────────────────────────────────────────
 
     private function playerId(): int {
-        return (int)($_SESSION['user_id'] ?? 6);
+        return (int)$_SESSION['user_id'];
     }
 
     private function playerData(): array {

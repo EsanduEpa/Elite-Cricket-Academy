@@ -16,6 +16,7 @@ class Core {
         // print_r($this->getURL());
 
         $url = $this->getURL();
+        $requestedUrl = $url;
 
         // Check if URL exists and has a controller
         if($url && file_exists('../app/controllers/' . ucwords($url[0]) . '.php')) {
@@ -28,20 +29,29 @@ class Core {
         // Call the controller
         require_once '../app/controllers/' . $this->currentController . '.php';
 
-        // Instantiate the controller
-        $this->currentController = new $this->currentController;
-
         if(isset($url[1])) {
             $requestedMethod = str_replace('-', '_', $url[1]);
 
             // Check if the method exists in the controller
-            if(method_exists($this->currentController, $requestedMethod)) {
+            if(method_exists($this->currentController, $requestedMethod) && (new ReflectionMethod($this->currentController, $requestedMethod))->isPublic()) {
                 $this->currentMethod = $requestedMethod;
                 unset($url[1]);
             }
 
 
         }   
+
+        if (function_exists('enforceRouteAccess')) {
+            $unknownControllerRequested = $requestedUrl && !file_exists('../app/controllers/' . ucwords($requestedUrl[0]) . '.php');
+            if ($unknownControllerRequested) {
+                redirect('');
+            }
+
+            enforceRouteAccess($this->currentController, $this->currentMethod);
+        }
+
+        // Instantiate the controller only after auth has been checked.
+        $this->currentController = new $this->currentController;
 
         // get the parameters
         $this->param = $url ? array_values($url) : [];
@@ -60,4 +70,3 @@ class Core {
         }
     }
 }
-?>
