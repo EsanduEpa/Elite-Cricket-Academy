@@ -13,7 +13,7 @@
             <div class="header-content">
                 <div class="header-text">
                     <h1><i class="fas fa-tools"></i> Equipment Rentals</h1>
-                    <p>High-quality cricket equipment available for daily or weekly rentals</p>
+                    <p>High-quality cricket equipment available for daily ,  weekly rentals</p>
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/player/shopping" class="btn btn-facilities">
