@@ -50,14 +50,14 @@ class Register extends Controller {
                 // USER INPUT VALUES - trim() removes leading/trailing whitespace
                 'firstName' => trim($_POST['firstName'] ?? ''),
                 'lastName' => trim($_POST['lastName'] ?? ''),
-                'dateOfBirth' => trim($_POST['dateOfBirth']),
-                'address' => trim($_POST['address']),
-                'email' => trim($_POST['email']),
-                'contactNumber' => trim($_POST['contactNumber']),
-                'school' => trim($_POST['school']),
-                'username' => trim($_POST['username']),
-                'password' => trim($_POST['password']),
-                'confirmPassword' => trim($_POST['confirmPassword']),
+                'dateOfBirth' => trim($_POST['dateOfBirth'] ?? ''),
+                'address' => trim($_POST['address'] ?? ''),
+                'email' => trim($_POST['email'] ?? ''),
+                'contactNumber' => trim($_POST['contactNumber'] ?? ''),
+                'school' => trim($_POST['school'] ?? ''),
+                'username' => trim($_POST['username'] ?? ''),
+                'password' => trim($_POST['password'] ?? ''),
+                'confirmPassword' => trim($_POST['confirmPassword'] ?? ''),
                 'membershipPlan' => trim($_POST['membershipPlan'] ?? ''),
                 'form_err' => '',
                 
@@ -111,10 +111,9 @@ class Register extends Controller {
                 }
             }
 
-            // VALIDATE ADDRESS - Required field
-            if(empty($data['address'])) {
-                $data['address_err'] = 'Please enter your address';
-            } elseif(strlen($data['address']) < 10) {
+            // VALIDATE ADDRESS - Optional field
+            // If provided, require a reasonable minimum length
+            if(!empty($data['address']) && strlen($data['address']) < 10) {
                 $data['address_err'] = 'Please enter a complete address';
             }
 
@@ -142,10 +141,8 @@ class Register extends Controller {
                 }
             }
 
-            // VALIDATE SCHOOL - Required field (player's educational institution)
-            if(empty($data['school'])) {
-                $data['school_err'] = 'Please enter your school/institution';
-            } elseif(strlen($data['school']) < 2) {
+            // VALIDATE SCHOOL - Optional field (player's educational institution)
+            if(!empty($data['school']) && strlen($data['school']) < 2) {
                 $data['school_err'] = 'Please enter your school/institution';
             }
 
@@ -429,6 +426,10 @@ class Register extends Controller {
             $phone = '0000000000';
         }
 
+        if ($address === '') {
+            $address = 'Elite Cricket Academy';
+        }
+
         $_SESSION['register_payment_plan_id'] = (int)$selectedPlan->PlanID;
         $_SESSION['register_payment_order_id'] = $orderId;
         $_SESSION['register_pending_payment'] = [
@@ -580,7 +581,7 @@ class Register extends Controller {
      *   - At least 1 uppercase letter (A-Z)
      *   - At least 1 lowercase letter (a-z)
      *   - At least 1 number (0-9)
-     *   - At least 1 special character (!@#$%^&*)
+    *   - At least 1 special character (!@#$%^&*.../)
      * 
      * Why: Strong passwords prevent:
      *   - Brute force attacks
@@ -615,8 +616,8 @@ class Register extends Controller {
         
         // Check for at least one special character
         // Matches common special characters used in passwords
-        if(!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
-            return 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)';
+        if(!preg_match('/[!@#$%^&*(),.?":{}|<>\/]/', $password)) {
+            return 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>/)';
         }
         
         // All validation checks passed - password is strong

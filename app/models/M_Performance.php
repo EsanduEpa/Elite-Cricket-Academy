@@ -6,8 +6,57 @@ class M_Performance {
         $this->db = new Database();
     }
 
+    private function emptyOverallStatsObject(int $playerId): stdClass
+    {
+        $stats = new stdClass();
+        $stats->PlayerID = $playerId;
+        $stats->MatchesPlayed = 0;
+        $stats->TotalRuns = 0;
+        $stats->HighestScore = 0;
+        $stats->TotalWickets = 0;
+        $stats->BattingAverage = 0;
+        $stats->BowlingAverage = 0;
+        $stats->StrikeRate = 0;
+        $stats->EconomyRate = 0;
+        $stats->Centuries = 0;
+        $stats->HalfCenturies = 0;
+        $stats->FiveWickets = 0;
+        $stats->FourWickets = 0;
+        $stats->BestBowling = 'N/A';
+
+        // Legacy aliases expected by some views/controllers
+        $stats->BattingAvg = 0;
+        $stats->BowlingAvg = 0;
+        $stats->Wickets = 0;
+
+        return $stats;
+    }
+
+    private function deleteStoredOverallStats(int $playerId): void
+    {
+        try {
+            $this->db->query('DELETE FROM playeroverallstats WHERE PlayerID = :player_id');
+            $this->db->bind(':player_id', $playerId);
+            $this->db->execute();
+        } catch (Throwable $e) {
+            error_log('Failed to delete playeroverallstats for PlayerID=' . $playerId . ' error=' . $e->getMessage());
+        }
+    }
+
     // Get overall stats for a player
     public function getOverallStats($playerId) {
+        $playerId = (int)$playerId;
+
+        if ($playerId <= 0) {
+            return $this->emptyOverallStatsObject(0);
+        }
+
+        // If the player has no VERIFIED performance records, they should not have a stored overallstats row.
+        if (!$this->hasAnyVerifiedPerformanceRecords($playerId)) {
+            $this->deleteStoredOverallStats($playerId);
+            return $this->emptyOverallStatsObject($playerId);
+        }
+
         // Try to get from playeroverallstats table first
         $this->db->query('SELECT * FROM playeroverallstats WHERE PlayerID = :player_id');
         $this->db->bind(':player_id', $playerId);
@@ -15,15 +64,15 @@ class M_Performance {
         
         // If no stats found in overall table, calculate from match history
         if (!$stats) {
-            return $this->calculateOverallStats($playerId);
+            return $this->calculateOverallStats($playerId) ?: $this->emptyOverallStatsObject($playerId);
         }
 
         // If the row exists but is still empty,
         // In that case, refresh from playermatchperformance.
         $matchesPlayed = (int)($stats->MatchesPlayed ?? 0);
-        if ($matchesPlayed === 0 && $this->hasAnyRelevantPerformanceRecords($playerId)) {
+        if ($matchesPlayed === 0 && $this->hasAnyVerifiedPerformanceRecords($playerId)) {
             $recalculated = $this->calculateOverallStats($playerId);
-            return $recalculated ?: $stats;
+            return $recalculated ?: $this->emptyOverallStatsObject($playerId);
         }
 
         return $stats;
@@ -36,10 +85,27 @@ class M_Performance {
         return $this->db->single();
     }
 
-    private function hasAnyRelevantPerformanceRecords($playerId) {
-        $this->db->query('SELECT COUNT(*) AS cnt
-            FROM playermatchperformance
-            WHERE PlayerID = :player_id');
+    private function hasAnyVerifiedPerformanceRecords(int $playerId): bool
+    {
+        $playerId = (int)$playerId;
+        if ($playerId <= 0) {
+            return false;
+        }
+
+        // If verification columns don't exist, we can't enforce verified-only semantics.
+        // In that case, fall back to "any record" behavior.
+        $hasVerificationColumns = $this->checkVerificationColumns();
+        if ($hasVerificationColumns) {
+            $this->db->query('SELECT COUNT(*) AS cnt
+                FROM playermatchperformance
+                WHERE PlayerID = :player_id
+                  AND VerifiedStatus = "verified"');
+        } else {
+            $this->db->query('SELECT COUNT(*) AS cnt
+                FROM playermatchperformance
+                WHERE PlayerID = :player_id');
+        }
+
         $this->db->bind(':player_id', $playerId);
         $row = $this->db->single();
         return (int)($row->cnt ?? 0) > 0;
@@ -48,8 +114,18 @@ class M_Performance {
 
     // Calculate overall stats from match history and persist into playeroverallstats
     private function calculateOverallStats($playerId) {
-        // For personal stats viewing, don't require verification
-        // Only verified stats should be used for official records/leaderboards
+        $playerId = (int)$playerId;
+
+        // Enforce: only players with at least one VERIFIED performance record can have overallstats.
+        if (!$this->hasAnyVerifiedPerformanceRecords($playerId)) {
+            $this->deleteStoredOverallStats($playerId);
+            return false;
+        }
+
+        // Overall stats are derived ONLY from verified match performance records.
+        $hasVerificationColumns = $this->checkVerificationColumns();
+        $whereVerified = $hasVerificationColumns ? ' AND VerifiedStatus = "verified"' : '';
+
         $this->db->query('SELECT 
             COUNT(*) as MatchesPlayed,
             COALESCE(SUM(RunsScored), 0) as TotalRuns,
@@ -63,14 +139,14 @@ class M_Performance {
             COALESCE(SUM(CASE WHEN WicketsTaken >= 5 THEN 1 ELSE 0 END), 0) as FiveWickets,
             COALESCE(SUM(CASE WHEN WicketsTaken >= 4 THEN 1 ELSE 0 END), 0) as FourWickets
             FROM playermatchperformance
-            WHERE PlayerID = :player_id');
+            WHERE PlayerID = :player_id' . $whereVerified);
         $this->db->bind(':player_id', $playerId);
         $result = $this->db->single();
 
         // Get best bowling figures separately
         $this->db->query('SELECT CONCAT(WicketsTaken, \'/\', RunsConceded) as BestBowling 
             FROM playermatchperformance 
-            WHERE PlayerID = :player_id 
+            WHERE PlayerID = :player_id' . $whereVerified . '
             ORDER BY WicketsTaken DESC, RunsConceded ASC 
             LIMIT 1');
         $this->db->bind(':player_id', $playerId);
@@ -82,6 +158,11 @@ class M_Performance {
         }
 
         $matchesPlayed = (int)($result->MatchesPlayed ?? 0);
+        if ($matchesPlayed <= 0) {
+            // No verified matches => no overallstats row.
+            $this->deleteStoredOverallStats($playerId);
+            return false;
+        }
         $totalRuns = (int)($result->TotalRuns ?? 0);
         $totalBalls = (float)($result->TotalBalls ?? 0);
         $highestScore = (int)($result->HighestScore ?? 0);
@@ -507,8 +588,11 @@ class M_Performance {
     // Verify/Reject performance statistics (for coaches/admins)
    
 public function updatePerformanceVerification($performanceId, $status, $verifiedBy) {
-    // Get PlayerID first
-    $this->db->query('SELECT PlayerID FROM playermatchperformance WHERE PerformanceID = :performance_id');
+    // Get PlayerID + TournamentID first (TournamentID via the match)
+    $this->db->query('SELECT pmp.PlayerID, cm.TournamentID
+        FROM playermatchperformance pmp
+        LEFT JOIN crimatch cm ON cm.MatchID = pmp.MatchID
+        WHERE pmp.PerformanceID = :performance_id');
     $this->db->bind(':performance_id', $performanceId);
     $record = $this->db->single();
     
@@ -531,9 +615,28 @@ public function updatePerformanceVerification($performanceId, $status, $verified
         return false;
     }
     
-    // Recalculate overall stats after verification
+    // Keep playeroverallstats consistent with verified-only rule.
+    // - If verified: recalc from verified performances.
+    // - If rejected: delete overallstats row if the player has no verified performances left.
     if ($status === 'verified') {
         $this->calculateOverallStats($record->PlayerID);
+    } else {
+        if (!$this->hasAnyVerifiedPerformanceRecords((int)$record->PlayerID)) {
+            $this->deleteStoredOverallStats((int)$record->PlayerID);
+        }
+    }
+
+    // Recalculate tournament stats from match performance (keeps playertournamentstats and awards in sync)
+    $tournamentId = (int)($record->TournamentID ?? 0);
+    if ($tournamentId > 0) {
+        try {
+            require_once APPROOT . '/models/M_TournamentResult.php';
+            $resultModel = new M_TournamentResult();
+            $resultModel->recalculatePlayerTournamentStatsFromPerformance($tournamentId, true);
+            $resultModel->updateResultAwardsFromPerformance($tournamentId, true);
+        } catch (Throwable $e) {
+            error_log('Tournament stats recalculation failed after verification: ' . $e->getMessage());
+        }
     }
     
     return true;

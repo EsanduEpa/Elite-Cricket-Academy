@@ -172,7 +172,7 @@ registrationForm.addEventListener('submit', function(e) {
         }
     }
     
-    if (formData.address.length < 10) {
+        if (formData.address.length > 0 && formData.address.length < 10) {
         showError('address', 'Please enter a complete address');
         isValid = false;
     }
@@ -192,7 +192,7 @@ registrationForm.addEventListener('submit', function(e) {
         getField('contactNumber').value = phoneDigitsOnly;
     }
     
-    if (formData.school.length < 2) {
+    if (formData.school.length > 0 && formData.school.length < 2) {
         showError('school', 'Please enter your school/institution');
         isValid = false;
     }
@@ -223,8 +223,8 @@ registrationForm.addEventListener('submit', function(e) {
         if (!/[0-9]/.test(formData.password)) {
             passwordErrors.push('one number');
         }
-        if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-            passwordErrors.push('one special character (!@#$%^&*(),.?":{}|<>)');
+        if (!/[!@#$%^&*(),.?":{}|<>\/]/.test(formData.password)) {
+            passwordErrors.push('one special character (!@#$%^&*(),.?":{}|<>/)');
         }
         
         if (passwordErrors.length > 0) {
@@ -384,7 +384,7 @@ passwordField.addEventListener('input', function() {
         if (!/[0-9]/.test(password)) {
             passwordErrors.push('one number');
         }
-        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        if (!/[!@#$%^&*(),.?":{}|<>\/]/.test(password)) {
             passwordErrors.push('one special character');
         }
         
