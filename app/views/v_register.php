@@ -1,5 +1,6 @@
 <?php
-// Ensure session helper is available
+// Registration view: renders the public player registration form.
+// Register controller performs the final server-side validation and database inserts.
 if (!function_exists('flash')) {
     require_once APPROOT . '/helpers/session_helper.php';
 }
@@ -243,55 +244,5 @@ if (!function_exists('flash')) {
         </div>
     </div>
 
-    <script>
-    (function () {
-        var modal = document.getElementById('planDetailsModal');
-        var openBtn = document.getElementById('seePlanDetailsBtn');
-        var closeBtn = document.getElementById('closePlanModal');
-        var dropdown = document.getElementById('membershipPlan');
-
-        openBtn.addEventListener('click', function () {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-
-        function closeModal() {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        closeBtn.addEventListener('click', closeModal);
-
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) closeModal();
-        });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeModal();
-        });
-
-        document.querySelectorAll('.plan-select-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var planId = this.getAttribute('data-plan-id');
-                dropdown.value = planId;
-                closeModal();
-            });
-        });
-
-        // Highlight the card that matches the currently selected plan
-        dropdown.addEventListener('change', function () {
-            highlightSelected();
-        });
-
-        function highlightSelected() {
-            document.querySelectorAll('.plan-card').forEach(function (card) {
-                card.classList.toggle('plan-card-selected', card.getAttribute('data-plan-id') === dropdown.value);
-            });
-        }
-
-        highlightSelected();
-
-    }());
-    </script>
 </body>
 </html> 

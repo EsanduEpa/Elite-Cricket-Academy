@@ -1,9 +1,13 @@
 <?php
+// This helper is loaded for every request by app/bootloader.php.
+// It starts PHP sessions and centralizes authentication, authorization, flash messages,
+// and inactivity-timeout behavior.
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Flash message helper
+// Store or display one-time messages.
+// Controllers set flash('name', 'message'), and views display flash('name').
 function flash($name = '', $message = '', $class = 'alert alert-success') {
     if(!empty($name)) {
         if(!empty($message) && empty($_SESSION[$name])) {
@@ -27,6 +31,7 @@ function flash($name = '', $message = '', $class = 'alert alert-success') {
 }
 
 function isLoggedIn() {
+    // A valid logged-in user must have both an ID and a role in session.
     if(isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
         return true;
     } else {
@@ -35,6 +40,7 @@ function isLoggedIn() {
 }
 
 function redirect($page) {
+    // Redirects always use URLROOT so links work from any controller.
     header('location: ' . URLROOT . '/' . $page);
     exit();
 }
@@ -51,6 +57,7 @@ function getUserRole() {
 }
 
 function isAjaxOrJsonRequest(): bool {
+    // AJAX/API requests should receive JSON errors instead of HTML redirects.
     $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     $isJsonRequest = (isset($_SERVER['CONTENT_TYPE']) &&
@@ -62,6 +69,8 @@ function isAjaxOrJsonRequest(): bool {
 }
 
 function destroyUserSession(): void {
+    // Clear session data and expire the browser's session cookie.
+    // This is used for logout and automatic timeout logout.
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -85,6 +94,8 @@ function destroyUserSession(): void {
 }
 
 function isPublicRoute(string $controller, string $method = 'index'): bool {
+    // These routes are allowed without login.
+    // PayHere notify must be public because PayHere calls it server-to-server.
     $controller = strtolower($controller);
     $method = strtolower($method ?: 'index');
 
@@ -105,6 +116,8 @@ function isPublicRoute(string $controller, string $method = 'index'): bool {
 }
 
 function getRouteAllowedRoles(string $controller): array {
+    // Controller-level role map.
+    // Core.php calls enforceRouteAccess() before creating the controller.
     $controller = strtolower($controller);
 
     $roleMap = [
@@ -129,6 +142,7 @@ function getRouteAllowedRoles(string $controller): array {
 }
 
 function handleUnauthorizedAccess(string $message = 'You do not have permission to access this page.'): void {
+    // User is logged in but their role is not allowed for this route.
     if (isAjaxOrJsonRequest()) {
         header('Content-Type: application/json');
         http_response_code(403);
@@ -145,6 +159,7 @@ function handleUnauthorizedAccess(string $message = 'You do not have permission 
 }
 
 function handleUnauthenticatedAccess(string $message = 'Please login first.'): void {
+    // User is not logged in. Browser page requests go home; AJAX gets a 401 JSON response.
     if (isAjaxOrJsonRequest()) {
         header('Content-Type: application/json');
         http_response_code(401);
@@ -161,6 +176,8 @@ function handleUnauthenticatedAccess(string $message = 'Please login first.'): v
 }
 
 function enforceSessionTimeout(): void {
+    // Auto logout after configured inactivity period.
+    // Each valid request refreshes last_activity, so active users stay logged in.
     if (!isLoggedIn()) {
         return;
     }
@@ -181,6 +198,8 @@ function enforceSessionTimeout(): void {
 }
 
 function enforceRouteAccess(string $controller, string $method = 'index'): void {
+    // Main route security function used by Core.php.
+    // It combines public-route checks, login checks, timeout checks, and role checks.
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -204,7 +223,7 @@ function enforceRouteAccess(string $controller, string $method = 'index'): void 
     }
 }
 
-// Check if user is logged in and has correct role
+// Controller-level guard for methods that need stricter checks inside the controller.
 function requireAuth($allowedRoles = []) {
     // Start session if not started
     if (session_status() === PHP_SESSION_NONE) {
@@ -231,7 +250,7 @@ function requireAuth($allowedRoles = []) {
 
     enforceSessionTimeout();
     
-    // Check if role is allowed (if roles specified)
+    // Check if role is allowed when a controller passes an allowed role list.
     if (!empty($allowedRoles) && !in_array($_SESSION['user_role'], $allowedRoles)) {
         if ($isAjaxOrJson) {
             // Return JSON error for AJAX requests
@@ -250,7 +269,7 @@ function requireAuth($allowedRoles = []) {
     }
 }
 
-// Redirect user to their appropriate dashboard
+// Redirect user to their appropriate dashboard after login or after denied access.
 function redirectToDashboard() {
     if (!isset($_SESSION['user_role'])) {
         redirect('');

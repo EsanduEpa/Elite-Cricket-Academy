@@ -9,6 +9,8 @@ class Mailer
 
     public static function send(string $toEmail, string $subject, string $htmlBody, string $toName = ''): bool
     {
+        // Public send method used by payment/rental/session email services.
+        // It returns false instead of throwing so email failure does not crash the app.
         self::$lastError = '';
         self::loadConfig();
 
@@ -38,6 +40,8 @@ class Mailer
         stream_set_timeout($sock, 15);
 
         try {
+            // SMTP sequence: connect, introduce app, upgrade to TLS, authenticate,
+            // set sender/recipient, send DATA, then quit.
             self::expect($sock, 220);
 
             self::cmd($sock, 'EHLO localhost');
@@ -93,6 +97,8 @@ class Mailer
 
     private static function loadConfig(): void
     {
+        // SMTP credentials are kept outside the main config file so they can be
+        // changed per machine/demo without touching application logic.
         $configPath = dirname(__DIR__) . '/config/mail_config.php';
         if (file_exists($configPath)) {
             require_once $configPath;
@@ -107,6 +113,8 @@ class Mailer
         string $subject,
         string $htmlBody
     ): string {
+        // Create a multipart email with both plain text and HTML versions.
+        // This improves compatibility with email clients that block HTML.
         $boundary = bin2hex(random_bytes(12));
         $plainText = html_entity_decode(strip_tags($htmlBody), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
@@ -139,11 +147,14 @@ class Mailer
 
     private static function cleanHeader(string $value): string
     {
+        // Prevent header injection by removing line breaks from header values.
         return trim(str_replace(["\r", "\n"], '', $value));
     }
 
     private static function dotStuff(string $body): string
     {
+        // SMTP treats a single dot on a line as end-of-message.
+        // Dot-stuffing escapes body lines that start with a dot.
         $normalized = str_replace(["\r\n", "\r"], "\n", $body);
         $stuffed = preg_replace('/^\./m', '..', $normalized);
         return str_replace("\n", "\r\n", $stuffed);
@@ -156,6 +167,7 @@ class Mailer
 
     private static function expect($sock, int $expectedCode): string
     {
+        // SMTP replies can be multi-line. The final line has a space after the code.
         $response = '';
         while (($line = fgets($sock, 512)) !== false) {
             $response .= $line;
