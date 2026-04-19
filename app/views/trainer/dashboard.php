@@ -49,9 +49,6 @@
                     <a href="<?php echo URLROOT; ?>/trainer/bookings" class="btn btn-training">
                         <i class="fas fa-calendar-plus"></i> New Session
                     </a>
-                    <a href="<?php echo URLROOT; ?>/trainer/workouts" class="btn btn-performance">
-                        <i class="fas fa-dumbbell"></i> Workouts
-                    </a>
                     <button class="btn btn-refresh" onclick="refreshDashboard()">
                         <i class="fas fa-sync-alt"></i>
                         <span class="current-time"><?php echo date('H:i'); ?></span>

@@ -158,7 +158,7 @@ function buildEventsByDate(sessions) {
             };
         }
 
-        const normalizedStatus = normalizeCalendarStatus(session.Status || session.status || 'upcoming');
+        const normalizedStatus = normalizeCalendarStatus(session);
         summary[dateKey][normalizedStatus] += 1;
         summary[dateKey].total += 1;
     });
@@ -166,17 +166,27 @@ function buildEventsByDate(sessions) {
     return summary;
 }
 
-function normalizeCalendarStatus(status) {
-    const currentStatus = String(status || '').toLowerCase();
+function normalizeCalendarStatus(session) {
+    const currentStatus = String(session.Status || session.status || '').toLowerCase();
+    const dateKey = String(session.Date || session.date || '').slice(0, 10);
+    const todayKey = new Date().toISOString().slice(0, 10);
 
     if (currentStatus === 'cancelled' || currentStatus === 'canceled') {
         return 'cancelled';
     }
-    if (currentStatus === 'completed' || currentStatus === 'attended') {
+    if (currentStatus === 'completed' || currentStatus === 'attended' || currentStatus === 'missed') {
         return 'completed';
     }
     if (currentStatus === 'active' || currentStatus === 'confirmed') {
         return 'confirmed';
+    }
+    if (currentStatus === 'scheduled' || currentStatus === 'upcoming' || currentStatus === 'pending') {
+        return 'pending';
+    }
+
+    // Fallback for legacy/missing statuses: older dates are treated as completed.
+    if (dateKey && dateKey < todayKey) {
+        return 'completed';
     }
 
     return 'pending';
