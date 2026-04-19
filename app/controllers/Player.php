@@ -1715,13 +1715,7 @@ class Player extends Controller {
             redirect('playerslots/facilities');
         }
 
-        $occurrence = null;
-        foreach ($this->slotPlayerModel->getFacilityOccurrences($playerId) as $row) {
-            if ((int)($row->OccurrenceID ?? 0) === $occurrenceId) {
-                $occurrence = $row;
-                break;
-            }
-        }
+        $occurrence = $this->slotPlayerModel->getFacilityOccurrenceById($playerId, $occurrenceId);
 
         if (!$occurrence || !empty($occurrence->blocked)) {
             $_SESSION['slot_error'] = 'Selected slot is no longer available. Please choose another one.';
@@ -1800,6 +1794,7 @@ class Player extends Controller {
 
         // Rebuild the same catalog list used by Playerslots so we only allow checkout for visible/entitled sessions.
         $occurrences = [];
+        $toDate = (new DateTimeImmutable('today'))->modify('+1 month')->format('Y-m-d');
         if ($bookingType === 'coach') {
             $planKey = $this->slotPlayerModel->getActivePlanKey($playerId);
             if ($planKey === 'facility_only') {
@@ -1815,10 +1810,10 @@ class Player extends Controller {
             };
 
             $occurrences = $planKey === 'private'
-                ? $this->slotPlayerModel->getAllPrivateCoachOccurrences($playerId)
-                : $this->slotPlayerModel->getAssignedCoachOccurrences($playerId, $slotTypes);
+                ? $this->slotPlayerModel->getAllPrivateCoachOccurrences($playerId, $toDate)
+                : $this->slotPlayerModel->getAssignedCoachOccurrences($playerId, $slotTypes, $toDate);
         } else {
-            $occurrences = $this->slotPlayerModel->getAvailableOccurrences($playerId);
+            $occurrences = $this->slotPlayerModel->getAvailableOccurrences($playerId, $toDate);
         }
 
         if ($bookingType !== '' && $bookingType !== 'coach') {

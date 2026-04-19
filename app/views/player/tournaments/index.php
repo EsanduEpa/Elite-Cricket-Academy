@@ -1,15 +1,14 @@
 <?php require_once APPROOT . '/views/inc/components/dashboard_header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css">
 <style>
-.tournament-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px; padding:20px 0; }
-.tournament-card  { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.08); overflow:hidden; display:flex; flex-direction:column; }
-.card-header-strip { padding:16px 20px; background:linear-gradient(135deg,#4A90E2,#357ABD); color:#fff; }
-.card-header-strip h3 { margin:0 0 4px; font-size:1rem; }
-.card-header-strip .fmt-badge { font-size:.72rem; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,.2); }
-.card-body { padding:16px 20px; flex:1; }
-.card-body p { margin:4px 0; font-size:.88rem; color:#555; }
-.card-body p strong { color:#333; }
-.card-footer-strip { padding:12px 20px; border-top:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.tournament-table-wrap { padding:20px 0; overflow-x:auto; }
+.tournament-table { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid #eee; border-radius:12px; overflow:hidden; }
+.tournament-table thead th { text-align:left; font-size:.86rem; letter-spacing:.01em; color:#333; background:#f7f7f7; padding:12px 14px; border-bottom:1px solid #eee; white-space:nowrap; }
+.tournament-table tbody td { padding:12px 14px; border-bottom:1px solid #f0f0f0; font-size:.9rem; color:#555; vertical-align:middle; }
+.tournament-table tbody tr:last-child td { border-bottom:none; }
+.tournament-name { font-weight:700; color:#333; }
+.tournament-sub { display:block; font-size:.8rem; color:#777; margin-top:2px; }
+.table-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .btn-sm { padding:6px 14px; font-size:.83rem; border-radius:6px; text-decoration:none; border:none; cursor:pointer; display:inline-block; }
 .btn-primary   { background:#2e6da4; color:#fff; }
 .btn-secondary { background:#6c757d; color:#fff; }
@@ -93,43 +92,68 @@
                     <p>There are no open tournaments at the moment. Check back later.</p>
                 </div>
             <?php else: ?>
-                <div class="tournament-cards" id="tournamentCards">
-                    <?php foreach ($data['tournaments'] as $t): ?>
-                        <?php $myReq = $data['my_requests'][$t->TournamentID] ?? null; ?>
-                        <?php $eligibility = $data['eligibility'][$t->TournamentID] ?? ['eligible' => true, 'message' => '']; ?>
-                        <div class="tournament-card" data-age-group="<?php echo htmlspecialchars($t->AgeGroup ?? ''); ?>" data-status="<?php echo htmlspecialchars($t->Status ?? ''); ?>">
-                            <div class="card-header-strip">
-                                <h3><?php echo htmlspecialchars($t->Name); ?></h3>
-                                <span class="fmt-badge"><?php echo htmlspecialchars($t->Format ?? 'N/A'); ?></span>
-                            </div>
-                            <div class="card-body">
-                                <p><strong>Date:</strong> <?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : 'TBD'; ?></p>
-                                <p><strong>Age Group:</strong> <?php echo htmlspecialchars($t->AgeGroup ?? 'Open'); ?></p>
-                                <p><strong>Your eligibility:</strong> <?php echo $eligibility['eligible'] ? 'Eligible' : 'Not eligible'; ?></p>
-                                <p><strong>Location:</strong> <?php echo htmlspecialchars($t->Location ?? 'TBD'); ?></p>
-                                <p><strong>Deadline:</strong> <?php echo $t->RegistrationDeadline ? date('d M Y', strtotime($t->RegistrationDeadline)) : 'N/A'; ?></p>
-                                <p><strong>Status:</strong> <?php echo ucfirst(htmlspecialchars($t->Status)); ?></p>
-                            </div>
-                            <div class="card-footer-strip">
-                                <a href="<?php echo URLROOT; ?>/player/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-sm btn-secondary">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                <?php if ($myReq): ?>
-                                    <span class="status-pill pill-applied">
-                                        <i class="fas fa-check-circle"></i> Applied
-                                    </span>
-                                <?php elseif ($t->Status === 'registration_open' && !$eligibility['eligible']): ?>
-                                    <span class="status-pill pill-ineligible">
-                                        <i class="fas fa-ban"></i> Not Eligible
-                                    </span>
-                                <?php elseif ($t->Status === 'registration_open'): ?>
-                                    <a href="<?php echo URLROOT; ?>/player/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-sm btn-primary">
-                                        <i class="fas fa-paper-plane"></i> Apply
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                <div class="tournament-table-wrap">
+                    <table class="tournament-table">
+                        <thead>
+                            <tr>
+                                <th>Tournament</th>
+                                <th>Date</th>
+                                <th>Age Group</th>
+                                
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th>Your Eligibility</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tournamentRows">
+                            <?php foreach ($data['tournaments'] as $t): ?>
+                                <?php $myReq = $data['my_requests'][$t->TournamentID] ?? null; ?>
+                                <?php $eligibility = $data['eligibility'][$t->TournamentID] ?? ['eligible' => true, 'message' => '']; ?>
+                                <tr class="tournament-row" data-age-group="<?php echo htmlspecialchars($t->AgeGroup ?? ''); ?>" data-status="<?php echo htmlspecialchars($t->Status ?? ''); ?>">
+                                    <td>
+                                        <span class="tournament-name"><?php echo htmlspecialchars($t->Name); ?></span>
+                                        <span class="tournament-sub">Format: <?php echo htmlspecialchars($t->Format ?? 'N/A'); ?></span>
+                                    </td>
+                                    <td><?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : 'TBD'; ?></td>
+                                    <td><?php echo htmlspecialchars($t->AgeGroup ?? 'Open'); ?></td>
+                                    <td><?php echo $t->RegistrationDeadline ? date('d M Y', strtotime($t->RegistrationDeadline)) : 'N/A'; ?></td>
+                                    <td><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($t->Status ?? ''))); ?></td>
+                                    <td><?php echo $eligibility['eligible'] ? 'Eligible' : 'Not eligible'; ?></td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="<?php echo URLROOT; ?>/player/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-sm btn-secondary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <?php if ($myReq): ?>
+                                                <span class="status-pill pill-applied">
+                                                    <i class="fas fa-check-circle"></i> Applied
+                                                </span>
+                                            <?php elseif (($t->Status ?? '') === 'registration_open' && !$eligibility['eligible']): ?>
+                                                <span class="status-pill pill-ineligible">
+                                                    <i class="fas fa-ban"></i> Not Eligible
+                                                </span>
+                                            <?php elseif (($t->Status ?? '') === 'registration_open'): ?>
+                                                <a href="<?php echo URLROOT; ?>/player/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-sm btn-primary">
+                                                    <i class="fas fa-paper-plane"></i> Apply
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+
+                            <tr id="noResultsRow" style="display:none;">
+                                <td colspan="8">
+                                    <div class="empty-state" style="padding:40px 20px;">
+                                        <i class="fas fa-search"></i>
+                                        <h3>No Tournaments Found</h3>
+                                        <p>Try adjusting your filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             <?php endif; ?>
         </div>
@@ -140,39 +164,27 @@
 function applyFilters() {
     const ageGroupFilter = document.getElementById('ageGroupFilter').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-    const cards = document.querySelectorAll('.tournament-card');
+    const rows = document.querySelectorAll('.tournament-row');
     let visibleCount = 0;
 
-    cards.forEach(card => {
-        const cardAgeGroup = card.getAttribute('data-age-group').toLowerCase();
-        const cardStatus = card.getAttribute('data-status').toLowerCase();
+    rows.forEach(row => {
+        const rowAgeGroup = (row.getAttribute('data-age-group') || '').toLowerCase();
+        const rowStatus = (row.getAttribute('data-status') || '').toLowerCase();
         
-        const matchesAgeGroup = !ageGroupFilter || cardAgeGroup === ageGroupFilter;
-        const matchesStatus = !statusFilter || cardStatus === statusFilter;
+        const matchesAgeGroup = !ageGroupFilter || rowAgeGroup === ageGroupFilter;
+        const matchesStatus = !statusFilter || rowStatus === statusFilter;
         
         if (matchesAgeGroup && matchesStatus) {
-            card.style.display = '';
+            row.style.display = '';
             visibleCount++;
         } else {
-            card.style.display = 'none';
+            row.style.display = 'none';
         }
     });
 
-    // Show no results message if needed
-    const container = document.getElementById('tournamentCards');
-    if (container && visibleCount === 0) {
-        let noResults = document.getElementById('noResultsMessage');
-        if (!noResults) {
-            noResults = document.createElement('div');
-            noResults.id = 'noResultsMessage';
-            noResults.className = 'empty-state';
-            noResults.style.gridColumn = '1 / -1';
-            noResults.innerHTML = '<i class="fas fa-search"></i><h3>No Tournaments Found</h3><p>Try adjusting your filters.</p>';
-            container.appendChild(noResults);
-        }
-    } else {
-        const noResults = document.getElementById('noResultsMessage');
-        if (noResults) noResults.remove();
+    const noResultsRow = document.getElementById('noResultsRow');
+    if (noResultsRow) {
+        noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
     }
 }
 

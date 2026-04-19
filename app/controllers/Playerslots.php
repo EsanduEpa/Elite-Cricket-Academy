@@ -226,7 +226,7 @@ class Playerslots extends Controller {
 
             return [
                 'rows' => $this->filterOccurrencesToNextThreeWeeks(
-                    $this->slotModel->getFacilityOccurrences($playerId, $facilityId, $date, $slotId)
+                    $this->slotModel->getFacilityOccurrences($playerId, $facilityId, $date, $slotId, $maxDate)
                 ),
                 'filter' => [
                     'facility' => $facilityId,
@@ -241,7 +241,8 @@ class Playerslots extends Controller {
 
         if ($tab === 'coach_booking' || $tab === 'trainer_booking') {
             $staffType = $tab === 'coach_booking' ? 'coach' : 'trainer';
-            $rows = $this->slotModel->getAllPrivateCoachOccurrences($playerId);
+            $maxDate = date('Y-m-d', strtotime('+21 days'));
+            $rows = $this->slotModel->getAllPrivateCoachOccurrences($playerId, $maxDate);
             $rows = array_values(array_filter($rows, function ($row) use ($staffType) {
                 return strtolower((string) ($row->SlotType ?? '')) === 'private'
                     && strtolower((string) ($row->StaffType ?? 'coach')) === $staffType;
