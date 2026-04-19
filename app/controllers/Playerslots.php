@@ -1,9 +1,24 @@
 <?php
+/**
+ * Player session/facility booking controller.
+ *
+ * This controller is only for logged-in players. It shows available sessions,
+ * creates bookings, shows booking history, and cancels eligible bookings.
+ *
+ * Main flow:
+ * 1. Player opens available coach/trainer/facility slots.
+ * 2. Controller asks M_SlotPlayer for valid occurrences based on plan/rules.
+ * 3. Player submits a booking form.
+ * 4. M_SlotPlayer validates and inserts the booking.
+ * 5. Controller creates notifications and redirects back with a flash message.
+ */
 class Playerslots extends Controller {
 
     private $slotModel;
 
     public function __construct() {
+        // Security: Core already checks route access, but this keeps the controller safe
+        // if a method is called directly from another route.
         requireAuth(['Player']);
         $this->slotModel = $this->model('M_SlotPlayer');
         require_once APPROOT . '/libraries/SlotBookingService.php';
@@ -12,15 +27,20 @@ class Playerslots extends Controller {
     // ── Helpers ────────────────────────────────────────────────
 
     private function playerId(): int {
+        // Current player ID comes from the login session created by Login controller.
         return (int)$_SESSION['user_id'];
     }
 
     private function playerData(): array {
+        // Common player summary passed to slot-related views.
+        // The view uses this for headings/profile display, not for security decisions.
         $userId    = $this->playerId();
         $userModel = $this->model('M_Users');
         $user      = $userModel->getUserWithProfile($userId) ?: $userModel->getUserById($userId);
 
         if ($user) {
+            // Membership level comes from payment/subscription data.
+            // If no subscription row exists, the UI falls back to "Standard".
             $sub = $this->model('M_Payment')->getPlayerSubscription($userId);
             return [
                 'id'               => $user->UserID,
@@ -34,8 +54,14 @@ class Playerslots extends Controller {
     // ── Routes ─────────────────────────────────────────────────
 
     private function renderSessionCatalog(?string $staffType = null): void {
+        // Shared renderer for coach sessions, trainer sessions, and all available sessions.
+        // $staffType:
+        // - "coach" means show coach sessions allowed by membership.
+        // - "trainer" means filter trainer-led sessions.
+        // - null means show general available occurrences.
         $playerId    = $this->playerId();
         if ($staffType === 'coach') {
+            // Membership rules control which coach session types the player can see.
             $planKey = $this->slotModel->getActivePlanKey($playerId);
 
             if ($planKey === 'facility_only') {
@@ -44,12 +70,17 @@ class Playerslots extends Controller {
             }
 
             $slotTypes = match ($planKey) {
+                // General members can book program sessions.
                 'general' => ['program'],
+                // Private members can book private sessions.
                 'private' => ['private'],
+                // Pro members can access both program and private sessions.
                 'pro' => ['program', 'private'],
                 default => [],
             };
 
+            // Private-only players can choose from private coach occurrences.
+            // Other plans are restricted to assigned coaches and allowed slot types.
             $occurrences = $planKey === 'private'
                 ? $this->slotModel->getAllPrivateCoachOccurrences($playerId)
                 : $this->slotModel->getAssignedCoachOccurrences($playerId, $slotTypes);
@@ -58,6 +89,7 @@ class Playerslots extends Controller {
         }
 
         if ($staffType !== null && $staffType !== 'coach') {
+            // For trainer route, remove facility-only slots and keep only matching staff type.
             $occurrences = array_values(array_filter($occurrences, function ($occ) use ($staffType) {
                 return ($occ->SlotType ?? '') !== 'facility_only'
                     && strcasecmp((string)($occ->StaffType ?? ''), $staffType) === 0;
@@ -77,6 +109,8 @@ class Playerslots extends Controller {
         ];
 
         $this->view('player/slots', [
+            // The same view is reused for multiple booking pages.
+            // These values customize the title, description, and displayed slot list.
             'title' => $titles[$staffType] ?? $titles[null],
             'player' => $this->playerData(),
             'occurrences' => $occurrences,
@@ -112,6 +146,10 @@ class Playerslots extends Controller {
 
     /** POST /playerslots/book */
     public function book() {
+        // Handles normal coach/trainer session booking.
+        // Validation and business rules live in M_SlotPlayer::createBooking().
+        // This controller only collects POST data and translates model result codes
+        // into user-friendly messages.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/available');
         }
@@ -126,7 +164,9 @@ class Playerslots extends Controller {
         }
 
         $result = $this->slotModel->createBooking(
+            // OccurrenceID identifies the exact session date/time being booked.
             $occurrenceId,
+            // PlayerID identifies who owns this booking.
             $playerId,
             'self',           // source
             $playerId,        // bookedBy = player themselves
@@ -138,12 +178,15 @@ class Playerslots extends Controller {
         );
 
         if ($result === true) {
+            // Create in-app notifications for both the player and assigned staff.
             $this->createSessionBookedNotification($playerId, $occurrenceId);
             $_SESSION['slot_success'] = 'Session booked successfully!';
             redirect('playerslots/bookings');
         }
 
         $messages = [
+            // These keys are returned by M_SlotPlayer::createBooking().
+            // Keeping messages here separates business logic from presentation wording.
             'duplicate'       => 'You have already booked this session.',
             'full'            => 'This session is fully booked.',
             'time_conflict'   => 'You already have another booking at the same date and time.',
@@ -163,6 +206,8 @@ class Playerslots extends Controller {
 
     /** GET /playerslots/bookings */
     public function bookings() {
+        // Shows the player's bookings split into upcoming and past groups.
+        // This page is shown at /playerslots/bookings.
         $playerId = $this->playerId();
         $bookings = $this->slotModel->getPlayerBookings($playerId);
 
@@ -172,6 +217,7 @@ class Playerslots extends Controller {
         $past     = [];
 
         foreach ($bookings as $b) {
+            // Combine date + start time so the system can compare against current time.
             $sessionDateTime = !empty($b->OccurrenceDate)
                 ? strtotime($b->OccurrenceDate . ' ' . ($b->StartTime ?? '00:00:00'))
                 : false;
@@ -193,12 +239,16 @@ class Playerslots extends Controller {
 
     /** GET /playerslots/facilities[?facility=N&date=YYYY-MM-DD&slot=N] */
     public function facilities() {
+        // Facility booking page supports filters by facility, date, and time band.
+        // Filters come from the query string, for example:
+        // /playerslots/facilities?facility=2&date=2026-04-18&slot=4
         $playerId   = $this->playerId();
         $facilityId = (int)($_GET['facility'] ?? 0);
         $date       = trim($_GET['date'] ?? '');
         $slotId     = (int)($_GET['slot'] ?? 0);
 
         // Sanitise date input
+        // Only accept YYYY-MM-DD. Invalid dates are ignored instead of trusted.
         if ($date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $date = '';
         }
@@ -226,6 +276,8 @@ class Playerslots extends Controller {
 
     /** POST /playerslots/bookfacility */
     public function bookfacility() {
+        // Facility booking is similar to session booking, but may include a payment amount.
+        // At this point, the current implementation records the payment status in the booking.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/facilities');
         }
@@ -277,11 +329,14 @@ class Playerslots extends Controller {
     }
 
     private function createSessionBookedNotification(int $playerId, int $occurrenceId): void {
+        // Notification failure should never block the booking itself.
+        // That is why all notification logic is inside try/catch.
         if ($playerId <= 0 || $occurrenceId <= 0) {
             return;
         }
 
         try {
+            // Read extra details so the notification message is useful to the user.
             $details = $this->slotModel->getOccurrenceNotificationDetails($occurrenceId);
             $sessionName = (string)($details->TemplateName ?? 'Session');
             $date = (string)($details->OccurrenceDate ?? '');
@@ -291,6 +346,8 @@ class Playerslots extends Controller {
             $facility = (string)($details->FacilityName ?? 'Academy');
 
             $notificationModel = $this->model('M_Notification');
+            // Player notification: confirms their own booking.
+            // The unique key prevents duplicate notifications if the same flow is retried.
             $notificationModel->createOnceForOrder(
                 $playerId,
                 'slot-booked-' . $playerId . '-' . $occurrenceId,
@@ -301,8 +358,11 @@ class Playerslots extends Controller {
             );
 
             $staffIds = $this->slotModel->getOccurrenceStaffUserIds($occurrenceId);
+            // Staff IDs usually come from assigned coach/trainer users for the slot.
             $player = $this->playerData();
             $playerName = (string)($player['name'] ?? 'A player');
+            // Staff notification: informs coaches/trainers when a player books their session.
+            // createOnceForUsers() sends the same alert to each staff user safely.
             $notificationModel->createOnceForUsers(
                 $staffIds,
                 'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
@@ -318,6 +378,7 @@ class Playerslots extends Controller {
 
     /** POST /playerslots/cancel */
     public function cancel() {
+        // Players can cancel only their own bookings and only within the allowed window.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/bookings');
         }

@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Public home page controller.
+ *
+ * This controller does not require login. It collects public-facing data
+ * from several models and sends one combined $data array to app/views/v_home.php.
+ */
 class Home extends Controller {
     private $eventModel;
     private $userModel;
@@ -7,6 +13,8 @@ class Home extends Controller {
     private $feedbackModel;
     
     public function __construct() {
+        // The home page is a summary page, so it needs data from events,
+        // coaches/users, facilities/shop, and feedback/testimonials.
         $this->eventModel = $this->model('Event');
         $this->userModel = $this->model('M_Users');
         $this->shopModel = $this->model('M_Shop');
@@ -14,6 +22,7 @@ class Home extends Controller {
     }
 
     public function index() {
+        // Build the complete page data in the controller so the view can focus on HTML.
         $data = [
             'title' => 'Elite Cricket Academy',
             'full_width_footer' => true,
@@ -30,6 +39,7 @@ class Home extends Controller {
     }
 
     private function getHomePrograms(): array {
+        // Public programs are generated from active membership plans in the database.
         $plans = $this->userModel->getActiveMembershipPlans();
         $programs = [];
 
@@ -55,6 +65,7 @@ class Home extends Controller {
     }
 
     private function getHomeTestimonials(): array {
+        // Only show feedback that has both a rating and a message.
         $feedback = $this->feedbackModel->getAllFeedbacks();
         $testimonials = [];
 
@@ -82,6 +93,8 @@ class Home extends Controller {
     }
 
     private function getHomeContactDetails(): array {
+        // Contact details are inferred from upcoming events first, then facilities.
+        // This avoids hardcoding contact information on the home page.
         $events = $this->eventModel->getUpcomingEvents(5);
         $contact = [
             'address_lines' => [],
@@ -122,6 +135,7 @@ class Home extends Controller {
     }
 
     private function getHomeStats(): array {
+        // Small counters used by the landing page statistics section.
         return [
             'program_count' => count($this->userModel->getActiveMembershipPlans()),
             'coach_count' => count($this->userModel->getAllCoachProfiles()),
@@ -130,4 +144,3 @@ class Home extends Controller {
         ];
     }
 }
-?>

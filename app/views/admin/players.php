@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/players-management.css">
 
     <!-- Admin Dashboard Layout -->
-    <div class="admin-layout">
+    <div class="admin-layout" data-urlroot="<?php echo URLROOT; ?>">
         <!-- Left Sidebar Panel -->
         <div class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
@@ -164,9 +164,13 @@
                         </select>
                         <select id="subscriptionFilter" class="filter-select">
                             <option value="all">All Subscriptions</option>
+                            <option value="general">General</option>
+                            <option value="private">Private</option>
+                            <option value="pro">Pro</option>
+                            <option value="facility-only">Facility Only</option>
                             <option value="premium">Premium</option>
                             <option value="basic">Basic</option>
-                            <option value="private_only">Private Only</option>
+                            <option value="private-only">Private Only</option>
                         </select>
                         <select id="battingFilter" class="filter-select">
                             <option value="all">All Batting Styles</option>
@@ -180,8 +184,17 @@
                 </div>
 
                 <!-- Players Table -->
-                <div class="staff-table-section">
-                    <table class="staff-table" id="playersTable">
+                <div class="staff-table-section player-table-section">
+                    <div class="table-topline">
+                        <div>
+                            <h2>Players Directory</h2>
+                            <p>Showing a focused page of players at a time. Use search and filters to narrow the list.</p>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="resetFilters()">
+                            <i class="fas fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                    <table class="staff-table players-table" id="playersTable">
                         <thead>
                             <tr>
                                 <th>
@@ -200,12 +213,36 @@
                         <tbody id="playersTableBody">
                             <?php if (!empty($data['players'])): ?>
                                 <?php foreach ($data['players'] as $player): ?>
-                            <tr data-player-age="<?php echo (int)($player->Age ?? 0); ?>">
+                            <?php
+                                $subscriptionLabel = $player->SubscriptionPlanName ?? $player->SubscriptionType ?? 'Basic';
+                                $subscriptionRaw = $player->SubscriptionType ?? $subscriptionLabel;
+                                $normalizeSubscription = function ($value) {
+                                    $key = strtolower(trim((string)$value));
+                                    $key = str_replace('_', '-', $key);
+                                    $key = preg_replace('/[^a-z0-9]+/', '-', $key);
+                                    return trim($key, '-');
+                                };
+                                $subscriptionKeys = array_values(array_unique(array_filter([
+                                    $normalizeSubscription($subscriptionLabel),
+                                    $normalizeSubscription($subscriptionRaw),
+                                ])));
+                                $playerName = $player->Name ?? trim(($player->FirstName ?? '') . ' ' . ($player->LastName ?? ''));
+                                $nameParts = preg_split('/\s+/', trim($playerName));
+                                $initials = strtoupper(substr($nameParts[0] ?? 'P', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+                                $statusKey = strtolower($player->Status ?? 'active');
+                            ?>
+                            <tr
+                                data-player-age="<?php echo (int)($player->Age ?? 0); ?>"
+                                data-player-subscription="<?php echo htmlspecialchars(implode(' ', $subscriptionKeys)); ?>"
+                            >
                                 <td><input type="checkbox" class="player-checkbox"></td>
                                 <td>
-                                    <div class="staff-info">
-                                        <h4><?php echo htmlspecialchars($player->Name); ?></h4>
-                                        <p><?php echo $player->Age ?? 'N/A'; ?> years old</p>
+                                    <div class="player-cell">
+                                        <div class="player-mini-avatar"><?php echo htmlspecialchars($initials); ?></div>
+                                        <div class="staff-info">
+                                            <h4><?php echo htmlspecialchars($playerName); ?></h4>
+                                            <p><?php echo $player->Age ?? 'N/A'; ?> years old</p>
+                                        </div>
                                     </div>
                                 </td>
                                 <td><?php echo $player->JerseyNumber ? '#' . $player->JerseyNumber : 'N/A'; ?></td>
@@ -219,25 +256,23 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php
-                                        $subscriptionLabel = $player->SubscriptionPlanName ?? $player->SubscriptionType ?? 'Basic';
-                                        $subscriptionClass = strtolower(preg_replace('/[^a-z0-9]+/i', '-', (string)$subscriptionLabel));
-                                    ?>
+                                    <?php $subscriptionClass = strtolower(preg_replace('/[^a-z0-9]+/i', '-', (string)$subscriptionLabel)); ?>
                                     <span class="role-badge <?php echo htmlspecialchars($subscriptionClass); ?>"><?php echo htmlspecialchars($subscriptionLabel); ?></span>
                                 </td>
-                                <td><span class="status-badge <?php echo strtolower($player->Status ?? 'active'); ?>"><?php echo ucfirst($player->Status ?? 'active'); ?></span></td>
+                                <td><span class="status-badge status-<?php echo htmlspecialchars($statusKey); ?>"><?php echo ucfirst($player->Status ?? 'active'); ?></span></td>
                                 <td>
                                     <div class="action-btns">
                                         <button class="action-btn view" 
                                                 data-player-id="<?php echo $player->UserID; ?>"
-                                                data-player-name="<?php echo htmlspecialchars($player->Name); ?>"
+                                                data-player-name="<?php echo htmlspecialchars($playerName); ?>"
+                                                data-player-initials="<?php echo htmlspecialchars($initials); ?>"
                                                 data-player-email="<?php echo htmlspecialchars($player->Email); ?>"
                                                 data-player-phone="<?php echo htmlspecialchars($player->PhoneNumber ?? 'N/A'); ?>"
                                                 data-player-address="<?php echo htmlspecialchars($player->Address ?? 'N/A'); ?>"
                                                 data-player-jersey="<?php echo $player->JerseyNumber ?? ''; ?>"
                                                 data-player-batting="<?php echo htmlspecialchars($player->BattingStyle ?? 'Not set'); ?>"
                                                 data-player-bowling="<?php echo htmlspecialchars($player->BowlingStyle ?? 'Not set'); ?>"
-                                                data-player-subscription="<?php echo htmlspecialchars($player->SubscriptionType ?? 'basic'); ?>"
+                                                data-player-subscription="<?php echo htmlspecialchars($subscriptionLabel); ?>"
                                                 data-player-status="<?php echo htmlspecialchars($player->Status ?? 'active'); ?>"
                                                 data-player-joined="<?php echo date('M d, Y', strtotime($player->DateJoined)); ?>"
                                                 title="View Details">
@@ -245,7 +280,7 @@
                                         </button>
                                         <button class="action-btn edit" 
                                                 data-player-id="<?php echo $player->UserID; ?>"
-                                                data-player-name="<?php echo htmlspecialchars($player->Name); ?>"
+                                                data-player-name="<?php echo htmlspecialchars($playerName); ?>"
                                                 data-player-email="<?php echo htmlspecialchars($player->Email); ?>"
                                                 data-player-phone="<?php echo htmlspecialchars($player->PhoneNumber ?? ''); ?>"
                                                 data-player-address="<?php echo htmlspecialchars($player->Address ?? ''); ?>"
@@ -259,14 +294,14 @@
                                         </button>
                                         <button class="action-btn suspend" 
                                                 data-player-id="<?php echo $player->UserID; ?>"
-                                                data-player-name="<?php echo htmlspecialchars($player->Name); ?>"
+                                                data-player-name="<?php echo htmlspecialchars($playerName); ?>"
                                                 data-player-status="<?php echo htmlspecialchars($player->Status ?? 'active'); ?>"
                                                 title="<?php echo strtolower($player->Status ?? 'active') === 'active' ? 'Suspend Player' : 'Unsuspend Player'; ?>">
                                             <i class="fas fa-<?php echo strtolower($player->Status ?? 'active') === 'active' ? 'user-lock' : 'user-check'; ?>"></i>
                                         </button>
                                         <button class="action-btn delete" 
                                                 data-player-id="<?php echo $player->UserID; ?>"
-                                                data-player-name="<?php echo htmlspecialchars($player->Name); ?>"
+                                                data-player-name="<?php echo htmlspecialchars($playerName); ?>"
                                                 title="Delete Player">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -290,15 +325,11 @@
                         <div class="pagination-info">
                             Showing <span id="showingStart">1</span> to <span id="showingEnd"><?php echo min(10, count($data['players'] ?? [])); ?></span> of <span id="totalPlayers"><?php echo count($data['players'] ?? []); ?></span> players
                         </div>
-                        <div class="pagination-controls">
+                        <div class="pagination-controls" id="playersPagination">
                             <button class="page-btn" id="prevPage">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                             <button class="page-btn active">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn">3</button>
-                            <button class="page-btn">4</button>
-                            <button class="page-btn">5</button>
                             <button class="page-btn" id="nextPage">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
@@ -414,78 +445,87 @@
     <!-- View Player Modal -->
     <div class="modal" id="viewPlayerModal">
         <div class="modal-overlay" id="viewModalOverlay"></div>
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h2><i class="fas fa-user-circle"></i> Player Details</h2>
+        <div class="modal-content modal-large player-view-modal">
+            <div class="modal-header player-view-header">
+                <h2><i class="fas fa-user-circle"></i> Player Profile</h2>
                 <button class="modal-close" id="closeViewModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="staff-details-container">
-                    <div class="staff-header-section">
-                        <div class="staff-avatar-large">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="staff-header-info">
+                <div class="player-profile-view">
+                    <div class="player-profile-hero">
+                        <div class="player-profile-avatar" id="viewPlayerInitials">P</div>
+                        <div class="player-profile-main">
+                            <span class="profile-eyebrow">Elite Cricket Academy Player</span>
                             <h3 id="viewPlayerName">-</h3>
-                            <p class="staff-role-badge" id="viewPlayerJerseyBadge">-</p>
-                            <p class="staff-status" id="viewPlayerStatusBadge">-</p>
+                            <div class="player-profile-badges">
+                                <span class="profile-chip jersey" id="viewPlayerJerseyBadge">-</span>
+                                <span class="profile-chip status" id="viewPlayerStatusBadge">-</span>
+                                <span class="profile-chip subscription" id="viewSubscription">-</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="details-grid">
-                        <div class="detail-section">
+                    <div class="player-quick-grid">
+                        <div class="quick-card">
+                            <i class="fas fa-envelope"></i>
+                            <span>Email</span>
+                            <strong id="viewEmail">-</strong>
+                        </div>
+                        <div class="quick-card">
+                            <i class="fas fa-phone"></i>
+                            <span>Phone</span>
+                            <strong id="viewPhone">-</strong>
+                        </div>
+                        <div class="quick-card">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>Joined</span>
+                            <strong id="viewJoined">-</strong>
+                        </div>
+                        <div class="quick-card">
+                            <i class="fas fa-shirt"></i>
+                            <span>Jersey</span>
+                            <strong id="viewJerseyNumber">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="player-detail-panels">
+                        <div class="player-detail-panel">
                             <h4><i class="fas fa-id-card"></i> Personal Information</h4>
-                            <div class="detail-item">
+                            <div class="player-detail-row">
                                 <span class="detail-label">Full Name:</span>
                                 <span class="detail-value" id="viewFullName">-</span>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Email:</span>
-                                <span class="detail-value" id="viewEmail">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Phone:</span>
-                                <span class="detail-value" id="viewPhone">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Date Joined:</span>
-                                <span class="detail-value" id="viewJoined">-</span>
-                            </div>
-                            <div class="detail-item">
+                            <div class="player-detail-row">
                                 <span class="detail-label">Address:</span>
                                 <span class="detail-value" id="viewAddress">-</span>
                             </div>
+                            <div class="player-detail-row">
+                                <span class="detail-label">Account Status:</span>
+                                <span class="detail-value" id="viewStatus">-</span>
+                            </div>
                         </div>
 
-                        <div class="detail-section">
+                        <div class="player-detail-panel">
                             <h4><i class="fas fa-cricket"></i> Cricket Details</h4>
-                            <div class="detail-item">
-                                <span class="detail-label">Jersey Number:</span>
-                                <span class="detail-value" id="viewJerseyNumber">-</span>
-                            </div>
-                            <div class="detail-item">
+                            <div class="player-detail-row">
                                 <span class="detail-label">Batting Style:</span>
                                 <span class="detail-value" id="viewBattingStyle">-</span>
                             </div>
-                            <div class="detail-item">
+                            <div class="player-detail-row">
                                 <span class="detail-label">Bowling Style:</span>
                                 <span class="detail-value" id="viewBowlingStyle">-</span>
                             </div>
-                            <div class="detail-item">
+                            <div class="player-detail-row">
                                 <span class="detail-label">Subscription Type:</span>
-                                <span class="detail-value" id="viewSubscription">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Status:</span>
-                                <span class="detail-value" id="viewStatus">-</span>
+                                <span class="detail-value" id="viewSubscriptionDetail">-</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="var modal = document.getElementById('viewPlayerModal'); modal.classList.remove('active'); modal.style.display = 'none';">
+                        <button type="button" class="btn-secondary" id="closeViewFooterBtn">
                             Close
                         </button>
                         <button type="button" class="btn-primary" id="editFromViewBtn">
@@ -889,471 +929,9 @@
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript -->
-    <script>
-        const URLROOT = '<?php echo URLROOT; ?>';
-    </script>
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/players-management.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/admin-dashboard.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔍 Player Management - Initializing button handlers...');
-
-            // Add Player Button Handler
-            const addPlayerBtn = document.getElementById('addPlayerBtn');
-            const addPlayerModal = document.getElementById('addPlayerModal');
-            
-            if (addPlayerBtn) {
-                addPlayerBtn.addEventListener('click', function() {
-                    console.log('🎯 Add Player button clicked!');
-                    
-                    if (addPlayerModal) {
-                        addPlayerModal.classList.add('active');
-                        addPlayerModal.style.display = 'flex';
-                        
-                        // Reset form
-                        const form = document.getElementById('addPlayerForm');
-                        if (form) form.reset();
-                        
-                        // Go to step 1
-                        goToPlayerWizardStep(1);
-                        
-                        console.log('✅ Modal opened successfully!');
-                    } else {
-                        console.error('❌ Modal not found!');
-                    }
-                });
-            }
-            
-            // Wizard navigation functions
-            let currentPlayerStep = 1;
-            
-            function goToPlayerWizardStep(step) {
-                currentPlayerStep = step;
-                
-                // Update step content visibility
-                document.querySelectorAll('#addPlayerModal .wizard-step-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.querySelector(`#addPlayerModal .wizard-step-content[data-step="${step}"]`).classList.add('active');
-                
-                // Update progress circles
-                document.querySelectorAll('#addPlayerModal .wizard-step').forEach(stepEl => {
-                    const stepNum = parseInt(stepEl.dataset.step);
-                    if (stepNum < step) {
-                        stepEl.classList.add('completed');
-                        stepEl.classList.remove('active');
-                    } else if (stepNum === step) {
-                        stepEl.classList.add('active');
-                        stepEl.classList.remove('completed');
-                    } else {
-                        stepEl.classList.remove('active', 'completed');
-                    }
-                });
-                
-                // Update buttons
-                const prevBtn = document.getElementById('playerWizardPrevBtn');
-                const nextBtn = document.getElementById('playerWizardNextBtn');
-                const submitBtn = document.getElementById('playerWizardSubmitBtn');
-                
-                if (step === 1) {
-                    prevBtn.style.display = 'none';
-                    nextBtn.style.display = 'inline-flex';
-                    submitBtn.style.display = 'none';
-                } else if (step === 2) {
-                    prevBtn.style.display = 'inline-flex';
-                    nextBtn.style.display = 'none';
-                    submitBtn.style.display = 'inline-flex';
-                    
-                    // Update review section
-                    updatePlayerReview();
-                }
-            }
-            
-            function updatePlayerReview() {
-                // Personal Information
-                const playerFullName = [
-                    document.getElementById('playerFirstName').value,
-                    document.getElementById('playerLastName').value
-                ].filter(Boolean).join(' ');
-                document.getElementById('reviewPlayerFullName').textContent = 
-                    playerFullName || '-';
-                document.getElementById('reviewPlayerDOB').textContent = 
-                    document.getElementById('playerDOB').value || '-';
-                document.getElementById('reviewPlayerJersey').textContent = 
-                    document.getElementById('playerJersey').value || 'Not assigned';
-                
-                // Contact Information
-                document.getElementById('reviewPlayerEmail').textContent = 
-                    document.getElementById('playerEmail').value || '-';
-                document.getElementById('reviewPlayerPhone').textContent = 
-                    document.getElementById('playerPhone').value || '-';
-                document.getElementById('reviewPlayerAddress').textContent = 
-                    document.getElementById('playerAddress').value || '-';
-                
-                // Login Credentials
-                document.getElementById('reviewPlayerUsername').textContent = 
-                    document.getElementById('playerUsername').value || '-';
-                
-                // Cricket Details
-                const battingSelect = document.getElementById('playerBatting');
-                document.getElementById('reviewPlayerBatting').textContent = 
-                    battingSelect.options[battingSelect.selectedIndex].text || 'Not set';
-                
-                const bowlingSelect = document.getElementById('playerBowling');
-                document.getElementById('reviewPlayerBowling').textContent = 
-                    bowlingSelect.options[bowlingSelect.selectedIndex].text || 'Not set';
-                
-                const subscriptionSelect = document.getElementById('playerSubscription');
-                document.getElementById('reviewPlayerSubscription').textContent = 
-                    subscriptionSelect.options[subscriptionSelect.selectedIndex].text || '-';
-            }
-            
-            // Wizard navigation buttons
-            document.getElementById('playerWizardNextBtn').addEventListener('click', function() {
-                // Validate current step
-                const form = document.getElementById('addPlayerForm');
-                const currentStepContent = document.querySelector(`#addPlayerModal .wizard-step-content[data-step="${currentPlayerStep}"]`);
-                const inputs = currentStepContent.querySelectorAll('input[required], select[required]');
-                
-                let isValid = true;
-                inputs.forEach(input => {
-                    if (!input.value) {
-                        isValid = false;
-                        input.classList.add('error');
-                    } else {
-                        input.classList.remove('error');
-                    }
-                });
-                
-                if (isValid) {
-                    goToPlayerWizardStep(currentPlayerStep + 1);
-                } else {
-                    alert('Please fill in all required fields');
-                }
-            });
-            
-            document.getElementById('playerWizardPrevBtn').addEventListener('click', function() {
-                goToPlayerWizardStep(currentPlayerStep - 1);
-            });
-            
-            // Close Modal handlers
-            const modalOverlay = document.getElementById('modalOverlay');
-            const cancelBtn = document.getElementById('playerCancelBtn');
-            
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', function() {
-                    addPlayerModal.classList.remove('active');
-                    addPlayerModal.style.display = 'none';
-                });
-            }
-            
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function() {
-                    addPlayerModal.classList.remove('active');
-                    addPlayerModal.style.display = 'none';
-                });
-            }
-            
-            // Add Player Form Submission
-            const addPlayerForm = document.getElementById('addPlayerForm');
-            if (addPlayerForm) {
-                addPlayerForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const data = Object.fromEntries(formData.entries());
-                    
-                    // Send to backend
-                    fetch(`${URLROOT}/admin/add_player`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            alert('✅ Player added successfully!\n\nDefault Password: player123456\n\nThe player should change this password upon first login.');
-                            addPlayerModal.classList.remove('active');
-                            addPlayerModal.style.display = 'none';
-                            location.reload();
-                        } else {
-                            // Display detailed error message from server
-                            const errorMsg = result.message || 'Failed to add player';
-                            alert('❌ Failed to Add Player\n\nError Details:\n' + errorMsg + '\n\nPlease check the error and try again.');
-                            console.error('Server Error:', result);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Network Error:', error);
-                        alert('❌ Network Error\n\nFailed to connect to server.\nError: ' + error.message + '\n\nPlease check your connection and try again.');
-                    });
-                });
-            }
-            
-            // View Player Modal Functions
-            function openViewPlayerModal(data) {
-                const modal = document.getElementById('viewPlayerModal');
-                document.getElementById('viewPlayerName').textContent = data.name;
-                document.getElementById('viewPlayerJerseyBadge').textContent = data.jersey ? `Jersey #${data.jersey}` : 'No Jersey';
-                document.getElementById('viewPlayerStatusBadge').textContent = data.status.toUpperCase();
-                document.getElementById('viewPlayerStatusBadge').className = 'staff-status ' + data.status.toLowerCase();
-                
-                document.getElementById('viewFullName').textContent = data.name;
-                document.getElementById('viewEmail').textContent = data.email;
-                document.getElementById('viewPhone').textContent = data.phone || 'N/A';
-                document.getElementById('viewJoined').textContent = data.joined;
-                document.getElementById('viewAddress').textContent = data.address || 'N/A';
-                
-                document.getElementById('viewJerseyNumber').textContent = data.jersey || 'Not Assigned';
-                document.getElementById('viewBattingStyle').textContent = data.batting || 'Not Set';
-                document.getElementById('viewBowlingStyle').textContent = data.bowling || 'Not Set';
-                document.getElementById('viewSubscription').textContent = data.subscription.charAt(0).toUpperCase() + data.subscription.slice(1).replace('_', ' ');
-                document.getElementById('viewStatus').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-                
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
-                
-                // Store player ID for edit button
-                document.getElementById('editFromViewBtn').dataset.playerId = data.id;
-                document.getElementById('editFromViewBtn').dataset.playerData = JSON.stringify(data);
-            }
-
-            function closeViewPlayerModal() {
-                const modal = document.getElementById('viewPlayerModal');
-                modal.classList.remove('active');
-                setTimeout(() => modal.style.display = 'none', 300);
-            }
-
-            // Edit Player Modal Functions
-            function openEditPlayerModal(data) {
-                const modal = document.getElementById('editPlayerModal');
-                const nameParts = String(data.name || '').trim().split(/\s+/);
-                const firstName = nameParts[0] || '';
-                const lastName = nameParts.slice(1).join(' ');
-                document.getElementById('editPlayerId').value = data.id;
-                document.getElementById('editPlayerFirstName').value = firstName;
-                document.getElementById('editPlayerLastName').value = lastName;
-                document.getElementById('editPlayerEmail').value = data.email;
-                document.getElementById('editPlayerPhone').value = data.phone || '';
-                document.getElementById('editPlayerAddress').value = data.address || '';
-                document.getElementById('editPlayerJersey').value = data.jersey || '';
-                document.getElementById('editPlayerBatting').value = data.batting || '';
-                document.getElementById('editPlayerBowling').value = data.bowling || '';
-                document.getElementById('editPlayerSubscription').value = data.subscription;
-                document.getElementById('editPlayerStatus').value = data.status;
-                
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
-            }
-
-            function closeEditPlayerModal() {
-                const modal = document.getElementById('editPlayerModal');
-                modal.classList.remove('active');
-                setTimeout(() => modal.style.display = 'none', 300);
-            }
-
-            // Modal Close Button Events
-            document.getElementById('closeViewModal').addEventListener('click', closeViewPlayerModal);
-            document.getElementById('closeEditModal').addEventListener('click', closeEditPlayerModal);
-            document.getElementById('cancelEditBtn').addEventListener('click', closeEditPlayerModal);
-            
-            // Edit from view button
-            document.getElementById('editFromViewBtn').addEventListener('click', function() {
-                const data = JSON.parse(this.dataset.playerData);
-                closeViewPlayerModal();
-                setTimeout(() => openEditPlayerModal(data), 300);
-            });
-
-            // Close modals when clicking overlay
-            document.getElementById('viewModalOverlay').addEventListener('click', closeViewPlayerModal);
-            document.getElementById('editModalOverlay').addEventListener('click', closeEditPlayerModal);
-
-            // Delete Player Modal Functions
-            function openDeleteModal(playerId, playerName) {
-                document.getElementById('deletePlayerId').value = playerId;
-                document.getElementById('deletePlayerName').textContent = playerName;
-                document.getElementById('deleteConfirmation').value = '';
-                document.getElementById('confirmDeleteBtn').disabled = true;
-                
-                const modal = document.getElementById('deleteModal');
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
-            }
-
-            function closeDeleteModal() {
-                const modal = document.getElementById('deleteModal');
-                modal.classList.remove('active');
-                setTimeout(() => modal.style.display = 'none', 300);
-            }
-
-            // Enable delete button only when "DELETE" is typed
-            document.getElementById('deleteConfirmation').addEventListener('input', function() {
-                const confirmBtn = document.getElementById('confirmDeleteBtn');
-                confirmBtn.disabled = this.value.toUpperCase() !== 'DELETE';
-            });
-
-            // Delete Form Submission
-            document.getElementById('deleteForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const playerId = document.getElementById('deletePlayerId').value;
-                const confirmation = document.getElementById('deleteConfirmation').value;
-                
-                if (confirmation.toUpperCase() !== 'DELETE') {
-                    alert('Please type DELETE to confirm');
-                    return;
-                }
-                
-                console.log('Deleting player:', playerId);
-                
-                fetch(`${URLROOT}/admin/delete_player`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ playerId: playerId })
-                })
-                .then(response => {
-                    console.log('Delete response status:', response.status);
-                    return response.text().then(text => {
-                        console.log('Raw delete response:', text);
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('JSON parse error:', e);
-                            throw new Error('Server returned invalid JSON: ' + text.substring(0, 100));
-                        }
-                    });
-                })
-                .then(result => {
-                    console.log('Delete result:', result);
-                    if (result.success) {
-                        alert('✅ Player deleted successfully!');
-                        closeDeleteModal();
-                        location.reload();
-                    } else {
-                        alert('❌ Failed to Delete Player\n\n' + (result.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('❌ Network Error\n\n' + error.message);
-                });
-            });
-
-            // Edit Player Form Submission
-            document.getElementById('editPlayerForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const data = Object.fromEntries(formData.entries());
-                
-                console.log('Sending update request:', data);
-                
-                fetch(`${URLROOT}/admin/update_player`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    console.log('Response headers:', response.headers.get('content-type'));
-                    
-                    // Clone response to read it twice (once for text, once for json)
-                    return response.text().then(text => {
-                        console.log('Raw response:', text);
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('JSON parse error:', e);
-                            throw new Error('Server returned invalid JSON: ' + text.substring(0, 100));
-                        }
-                    });
-                })
-                .then(result => {
-                    console.log('Parsed result:', result);
-                    if (result.success) {
-                        alert('✅ Player updated successfully!');
-                        closeEditPlayerModal();
-                        location.reload();
-                    } else {
-                        alert('❌ Failed to Update Player\n\n' + (result.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('❌ Network Error\n\n' + error.message);
-                });
-            });
-
-            // Handle action buttons with event delegation
-            document.addEventListener('click', function(e) {
-                const target = e.target.closest('.action-btn');
-                if (!target) return;
-                
-                const playerId = target.dataset.playerId;
-                const playerName = target.dataset.playerName;
-                const playerStatus = target.dataset.playerStatus;
-                
-                if (target.classList.contains('view')) {
-                    // View player details
-                    const playerData = {
-                        id: playerId,
-                        name: playerName,
-                        email: target.dataset.playerEmail,
-                        phone: target.dataset.playerPhone,
-                        address: target.dataset.playerAddress,
-                        jersey: target.dataset.playerJersey,
-                        batting: target.dataset.playerBatting,
-                        bowling: target.dataset.playerBowling,
-                        subscription: target.dataset.playerSubscription,
-                        status: target.dataset.playerStatus,
-                        joined: target.dataset.playerJoined
-                    };
-                    openViewPlayerModal(playerData);
-                    
-                } else if (target.classList.contains('edit')) {
-                    // Edit player
-                    const playerData = {
-                        id: playerId,
-                        name: playerName,
-                        email: target.dataset.playerEmail,
-                        phone: target.dataset.playerPhone,
-                        address: target.dataset.playerAddress,
-                        jersey: target.dataset.playerJersey,
-                        batting: target.dataset.playerBatting,
-                        bowling: target.dataset.playerBowling,
-                        subscription: target.dataset.playerSubscription,
-                        status: target.dataset.playerStatus
-                    };
-                    openEditPlayerModal(playerData);
-                    
-                } else if (target.classList.contains('suspend')) {
-                    // Suspend or unsuspend player
-                    if (playerStatus.toLowerCase() === 'active') {
-                        if (typeof openSuspendModal === 'function') {
-                            openSuspendModal(playerId, playerName);
-                        }
-                    } else {
-                        if (confirm(`Unsuspend ${playerName}?`)) {
-                            if (typeof unsuspendPlayer === 'function') {
-                                unsuspendPlayer(playerId, playerName);
-                            }
-                        }
-                    }
-                    
-                } else if (target.classList.contains('delete')) {
-                    // Delete player
-                    openDeleteModal(playerId, playerName);
-                }
-            });
-        });
-    </script>
+    <script src="<?php echo URLROOT; ?>/js/admin/players-page.js"></script>
 </body>
 </html>

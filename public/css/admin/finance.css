@@ -349,10 +349,6 @@
     border-left: 4px solid #7B1FA2;
 }
 
-.category-card.return-fees {
-    border-left: 4px solid #C2410C;
-}
-
 .category-header {
     display: flex;
     align-items: center;
@@ -383,10 +379,6 @@
 
 .category-card.equipment-rental .category-icon {
     color: #7B1FA2;
-}
-
-.category-card.return-fees .category-icon {
-    color: #C2410C;
 }
 
 .category-info {
@@ -438,55 +430,6 @@
 
 .detail-item .positive {
     color: #2E7D32;
-}
-
-/* Revenue Chart */
-.revenue-chart-container {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    border: 1px solid #E0E0E0;
-    height: fit-content;
-}
-
-.chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.chart-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.chart-controls {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.chart-type-btn {
-    background: #F5F5F5;
-    border: 1px solid #DDD;
-    border-radius: 6px;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: #666;
-}
-
-.chart-type-btn.active,
-.chart-type-btn:hover {
-    background: #2E7D32;
-    color: white;
-    border-color: #2E7D32;
-}
-
-.chart-wrapper {
-    height: 300px;
-    position: relative;
 }
 
 /* Payments Section */
@@ -789,57 +732,6 @@
     transition: all 0.3s ease;
 }
 
-.performance-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.performance-card.rank-1 {
-    border-left: 4px solid #FFD700;
-    background: linear-gradient(135deg, #FFFBF0, #FFF8E1);
-}
-
-.performance-card.rank-2 {
-    border-left: 4px solid #C0C0C0;
-    background: linear-gradient(135deg, #F8F8F8, #F0F0F0);
-}
-
-.performance-card.rank-3 {
-    border-left: 4px solid #CD7F32;
-    background: linear-gradient(135deg, #FFF3E0, #FFEBCC);
-}
-
-.rank-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: #2E7D32;
-    color: white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.875rem;
-}
-
-.performance-card.rank-1 .rank-badge {
-    background: #FFD700;
-    color: #333;
-}
-
-.performance-card.rank-2 .rank-badge {
-    background: #C0C0C0;
-    color: #333;
-}
-
-.performance-card.rank-3 .rank-badge {
-    background: #CD7F32;
-    color: white;
-}
-
 .item-info {
     margin-bottom: 1rem;
 }
@@ -890,9 +782,6 @@
         gap: 1.5rem;
     }
     
-    .revenue-chart-container {
-        order: -1;
-    }
 }
 
 @media (max-width: 768px) {
@@ -978,4 +867,425 @@
     .payment-actions {
         flex-direction: column;
     }
+}
+
+/* Refined finance page: calmer admin style matching the other refined pages */
+.finance-page-header {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    padding: 24px 28px !important;
+    border-radius: 16px !important;
+    margin-bottom: 22px !important;
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+.finance-page-header::before {
+    display: none !important;
+}
+
+.finance-page-header .header-text h1,
+.finance-page-header .header-text h1 i,
+.finance-page-header .header-text p {
+    color: #1e293b !important;
+}
+
+.finance-page-header .header-text p {
+    color: #64748b !important;
+    font-size: 0.98rem;
+}
+
+.finance-page-header .btn-primary,
+.finance-page-header .btn-secondary {
+    border: 1px solid #dbe4ef;
+    box-shadow: none;
+}
+
+.finance-page-header .btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.finance-page-header .btn-secondary {
+    background: #f8fafc;
+    color: #2563eb;
+}
+
+.finance-page-header .btn-primary:hover,
+.finance-page-header .btn-secondary:hover {
+    transform: none;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.14);
+}
+
+.finance-overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.overview-card {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    padding: 18px;
+}
+
+.overview-card::before {
+    display: none;
+}
+
+.overview-card:hover,
+.category-card:hover,
+.performance-card:hover {
+    transform: none;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.overview-card .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 1.25rem;
+}
+
+.overview-card:hover .card-icon {
+    transform: none;
+}
+
+.overview-card .card-value {
+    font-size: 1.25rem;
+    color: #0f172a;
+}
+
+.overview-card .card-label,
+.overview-card .card-trend {
+    color: #64748b;
+}
+
+.revenue-section,
+.payments-section,
+.performance-section {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.section-header {
+    margin-bottom: 18px;
+}
+
+.section-header h2 {
+    font-size: 1.2rem;
+    color: #1e293b;
+}
+
+.revenue-grid {
+    grid-template-columns: 1fr;
+}
+
+.revenue-categories {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.category-card {
+    border-radius: 14px;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left-width: 4px;
+}
+
+.category-header {
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.category-icon {
+    width: 40px;
+    height: 40px;
+    box-shadow: none;
+    background: #f8fafc;
+}
+
+.category-info h3 {
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.category-amount {
+    font-size: 1.05rem;
+    color: #0f172a;
+}
+
+.category-percentage {
+    font-size: 0.92rem;
+    color: #2563eb;
+}
+
+.payments-table {
+    box-shadow: none;
+    min-width: 900px;
+}
+
+.payments-table th {
+    padding: 11px 14px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.payments-table td {
+    padding: 10px 14px;
+    color: #334155;
+}
+
+.payments-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.search-box input,
+.period-selector,
+.filter-select,
+.status-filter {
+    border-color: #dbe4ef;
+    border-radius: 10px;
+    height: 40px;
+}
+
+.search-box input:focus,
+.period-selector:focus,
+.filter-select:focus,
+.status-filter:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.action-btn.view {
+    border-color: #dbe4ef;
+    color: #2563eb;
+    border-radius: 9px;
+}
+
+.pagination-container {
+    border-top: 1px solid #edf2f7;
+    padding-top: 14px;
+}
+
+.page-btn,
+.page-number {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.page-btn.active,
+.page-number {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.page-ellipsis {
+    color: #64748b;
+    font-weight: 800;
+}
+
+.performance-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.performance-card,
+.performance-card.rank-1,
+.performance-card.rank-2,
+.performance-card.rank-3 {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left-width: 4px;
+}
+
+@media (max-width: 1300px) {
+    .finance-overview,
+    .revenue-categories {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .finance-overview,
+    .revenue-categories {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dashboard-aligned finance page after chart removal */
+.finance-page-header {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.92) 100%) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.24) !important;
+}
+
+.finance-page-header .header-text h1,
+.finance-page-header .header-text h1 i,
+.finance-page-header .header-text p {
+    color: #fff !important;
+}
+
+.finance-page-header .header-text p {
+    opacity: 0.92;
+}
+
+.finance-page-header .btn-primary {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.finance-page-header .btn-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+
+.finance-overview {
+    margin-bottom: 24px;
+}
+
+.overview-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.22);
+}
+
+.overview-card .card-value {
+    color: #1e293b;
+    font-size: 1.35rem;
+}
+
+.overview-card .card-label {
+    font-weight: 700;
+    color: #475569;
+}
+
+.overview-card .card-trend {
+    font-size: 0.8rem;
+}
+
+.revenue-section,
+.payments-section,
+.performance-section {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.18);
+}
+
+.revenue-grid {
+    display: block;
+}
+
+.revenue-categories {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.category-card,
+.performance-card,
+.performance-card.rank-1,
+.performance-card.rank-2,
+.performance-card.rank-3 {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-left-width: 4px;
+}
+
+.payments-table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.payments-table thead,
+.payments-table th {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+}
+
+.pagination-container {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+/* Simple Top Performing Revenue Sources cards */
+.performance-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+}
+
+.performance-card,
+.performance-card.rank-1,
+.performance-card.rank-2,
+.performance-card.rank-3 {
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+
+.performance-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.performance-card .item-info {
+    margin-bottom: 14px;
+}
+
+.item-rank {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.performance-card .item-name {
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.performance-card .item-category {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.performance-card .item-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.performance-card .stat-item {
+    padding-top: 10px;
+    border-top: 1px solid #edf2f7;
+}
+
+.performance-card .stat-label {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.performance-card .stat-value {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 700;
 }
