@@ -123,18 +123,15 @@ function renderProductsTable(products) {
                 <span class="table-badge status-${product.Status ? product.Status.toLowerCase() : 'active'}">${product.Status || 'Active'}</span>
             </td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-primary" onclick="editProduct(${product.ProductID})">
-                        <i class="fas fa-edit"></i>
+                <div class="catalog-action-buttons">
+                    <button class="catalog-action-btn btn-edit" onclick="editProduct(${product.ProductID})">
+                        <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="btn-small btn-secondary" onclick="viewProduct(${product.ProductID})">
-                        <i class="fas fa-eye"></i>
+                    <button class="catalog-action-btn btn-view" onclick="viewProduct(${product.ProductID})">
+                        <i class="fas fa-eye"></i> View
                     </button>
-                    <button class="btn-small btn-warning" onclick="duplicateProduct(${product.ProductID})">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="btn-small btn-danger" onclick="deleteProduct(${product.ProductID})">
-                        <i class="fas fa-trash"></i>
+                    <button class="catalog-action-btn btn-delete" onclick="deleteProduct(${product.ProductID})">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </td>
