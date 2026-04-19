@@ -7,6 +7,10 @@ $layout   = $isCoach ? 'coach-layout' : 'trainer-layout';
 $sidebar  = $isCoach ? 'coach-sidebar' : 'trainer-sidebar';
 $logo     = $isCoach ? 'fa-chalkboard-teacher' : 'fa-user-tie';
 $panelName = $isCoach ? 'Coach Panel' : 'Trainer Panel';
+$staffDisplayName = trim((string) ($_SESSION['user_name'] ?? $_SESSION['username'] ?? ''));
+if ($staffDisplayName === '') {
+    $staffDisplayName = $data['role'] ?? ($isCoach ? 'Coach' : 'Trainer');
+}
 
 $getOccurrenceDisplayCount = static function($occ) {
     return ($occ->SlotType ?? '') === 'program'
@@ -23,6 +27,12 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
 ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/<?php echo $cssFile; ?>.css">
 <style>
+.trainer-sidebar .trainer-details {
+    display: block !important;
+}
+.trainer-sidebar.collapsed .trainer-details {
+    display: none !important;
+}
 .cal-calendar-shell {
     background: rgba(255,255,255,0.92);
     border: 1px solid rgba(255,255,255,0.45);
@@ -118,7 +128,7 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                 <?php else: ?>
                     <div class="trainer-avatar"><i class="fas <?php echo $logo; ?>"></i></div>
                     <div class="trainer-details">
-                        <h4><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Trainer'); ?></h4>
+                        <h4><?php echo htmlspecialchars($staffDisplayName, ENT_QUOTES, 'UTF-8'); ?></h4>
                         <p>Physical Trainer</p>
                     </div>
                 <?php endif; ?>
@@ -145,7 +155,7 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
         <div class="profile-section">
             <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
                 <div class="profile-name" style="margin:0; text-align:center; width:100%;">
-                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($data['role'] ?? 'Staff'); ?>
+                    <?php echo htmlspecialchars($staffDisplayName, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
                     <a href="<?php echo URLROOT; ?>/<?php echo strtolower($data['role'] ?? 'coach'); ?>/profile" class="profile-avatar" aria-label="Open profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">

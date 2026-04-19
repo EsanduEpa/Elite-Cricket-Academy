@@ -1,7 +1,21 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/injury-reports.css?v=<?php echo time(); ?>">
+<style>
+.trainer-sidebar .trainer-details {
+    display: block !important;
+}
+.trainer-sidebar.collapsed .trainer-details {
+    display: none !important;
+}
+</style>
 <?php $trainerSidebarActive = 'medical'; ?>
+<?php
+$trainerDisplayName = trim((string) ($_SESSION['user_name'] ?? $_SESSION['username'] ?? ''));
+if ($trainerDisplayName === '') {
+    $trainerDisplayName = 'Trainer';
+}
+?>
 
 <!-- Trainer Dashboard Layout -->
 <div class="trainer-layout">
@@ -13,7 +27,7 @@
                     <i class="fas fa-user-tie"></i>
                 </div>
                 <div class="trainer-details">
-                    <h4><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></h4>
+                    <h4><?php echo htmlspecialchars($trainerDisplayName, ENT_QUOTES, 'UTF-8'); ?></h4>
                     <p>Physical Trainer</p>
                 </div>
             </div>
@@ -30,7 +44,7 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-info">
-                <div class="trainer-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Trainer'; ?></div>
+                <div class="trainer-name"><?php echo htmlspecialchars($trainerDisplayName, ENT_QUOTES, 'UTF-8'); ?></div>
                 <div class="trainer-role">Physical Trainer</div>
             </div>
             <div class="profile-actions">

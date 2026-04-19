@@ -1,7 +1,19 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css?v=<?php echo time(); ?>">
 <?php $trainerSidebarActive = 'tournaments'; ?>
+<?php
+$trainerDisplayName = trim((string) ($_SESSION['user_name'] ?? $_SESSION['username'] ?? ''));
+if ($trainerDisplayName === '') {
+    $trainerDisplayName = 'Trainer';
+}
+?>
 <style>
+.trainer-sidebar .trainer-details {
+    display: block !important;
+}
+.trainer-sidebar.collapsed .trainer-details {
+    display: none !important;
+}
 .tournament-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px 0; }
 .tournament-card  { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); overflow: hidden; display: flex; flex-direction: column; }
 .card-header-strip { padding: 16px 20px; background: linear-gradient(135deg,#4A90E2,#357ABD); color:#fff; }
@@ -32,7 +44,7 @@
             <div class="trainer-info">
                 <div class="trainer-avatar"><i class="fas fa-user-circle"></i></div>
                 <div class="trainer-details">
-                    <h4><?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Trainer'; ?></h4>
+                    <h4><?php echo htmlspecialchars($trainerDisplayName, ENT_QUOTES, 'UTF-8'); ?></h4>
                     <p>Physical Trainer</p>
                 </div>
             </div>

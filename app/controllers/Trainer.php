@@ -119,9 +119,10 @@ class Trainer extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $trainerId = $_SESSION['user_id'];
             $playerId  = (int)$_POST['player_id'];
+            $fitnessRecommended = trim((string)($_POST['fitness_recommended'] ?? 'No'));
+            $fitnessRecommended = strcasecmp($fitnessRecommended, 'Yes') === 0 ? 'Yes' : 'No';
             $result    = $M_TTR->addRecommendation($trainerId, $id, $playerId, [
-                'role'     => trim($_POST['role'] ?? ''),
-                'reason'   => trim($_POST['reason'] ?? ''),
+                'fitness_recommended' => $fitnessRecommended,
                 'comments' => trim($_POST['comments'] ?? ''),
             ]);
             if ($result['success']) {

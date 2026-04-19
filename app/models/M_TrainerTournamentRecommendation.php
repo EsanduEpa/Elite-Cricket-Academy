@@ -17,17 +17,19 @@ class M_TrainerTournamentRecommendation
             return ['success' => false, 'message' => 'You have already recommended this player for this tournament.'];
         }
 
+        $fitnessRecommended = trim((string)($data['fitness_recommended'] ?? 'No'));
+        $fitnessRecommended = strcasecmp($fitnessRecommended, 'Yes') === 0 ? 'Yes' : 'No';
+
         try {
             $this->db->query(
                 'INSERT INTO trainer_tournament_recommendations
-                 (TrainerID, TournamentID, PlayerID, RecommendedRole, Reason, Comments)
-                 VALUES (:trainer, :tid, :pid, :role, :reason, :comments)'
+                 (TrainerID, TournamentID, PlayerID, FitnessRecommended, Comments)
+                 VALUES (:trainer, :tid, :pid, :fitness_recommended, :comments)'
             );
             $this->db->bind(':trainer',  $trainerId);
             $this->db->bind(':tid',      $tournamentId);
             $this->db->bind(':pid',      $playerId);
-            $this->db->bind(':role',     $data['role'] ?? null);
-            $this->db->bind(':reason',   $data['reason'] ?? null);
+            $this->db->bind(':fitness_recommended', $fitnessRecommended);
             $this->db->bind(':comments', $data['comments'] ?? null);
             $this->db->execute();
             return ['success' => true, 'id' => $this->db->lastInsertId(), 'message' => 'Recommendation submitted successfully.'];

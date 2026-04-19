@@ -70,8 +70,8 @@ table.data-table tr:last-child td { border-bottom:none; }
                             <th>Tournament</th>
                             <th>Date</th>
                             <th>Player</th>
-                            <th>Recommended Role</th>
-                            <th>Reason</th>
+                            <th>Fitness Recommended</th>
+                            <th>Comments</th>
                             <th>Status</th>
                             <th>Submitted</th>
                         </tr>
@@ -87,8 +87,8 @@ table.data-table tr:last-child td { border-bottom:none; }
                             </td>
                             <td><?php echo $r->tdate ? date('d M Y', strtotime($r->tdate)) : 'TBD'; ?></td>
                             <td><?php echo htmlspecialchars($r->PlayerName ?? '—'); ?></td>
-                            <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
-                            <td style="max-width:200px;"><?php echo htmlspecialchars($r->Reason ?? '—'); ?></td>
+                            <td><?php echo htmlspecialchars($r->FitnessRecommended ?? 'No'); ?></td>
+                            <td style="max-width:200px;"><?php echo htmlspecialchars($r->Comments ?? '—'); ?></td>
                             <td>
                                 <span class="status-badge status-<?php echo strtolower($r->Status); ?>">
                                     <?php echo ucfirst($r->Status); ?>
