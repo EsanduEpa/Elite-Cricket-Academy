@@ -1,43 +1,10 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
-<style>
-.filter-section { display:flex; gap:16px; margin:20px; flex-wrap:wrap; align-items:center; }
-.filter-group { display:flex; align-items:center; gap:8px; }
-.filter-group label { font-weight:600; color:#333; font-size:.95rem; }
-.filter-group select { padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:.88rem; background:#fff; cursor:pointer; min-width:150px; }
-.filter-group select:focus { outline:none; border-color:#4A90E2; }
-.btn-reset-filter { padding:8px 14px; background:#f0f0f0; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:.88rem; color:#333; }
-.btn-reset-filter:hover { background:#e0e0e0; }
-.t-card.hidden { display:none; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach/tournaments-index.css">
 
 <div class="coach-layout">
-    <div class="coach-sidebar" id="coachSidebar">
-        <div class="sidebar-header">
-            <div class="coach-logo"><i class="fas fa-chalkboard-teacher"></i><h3>Coach Panel</h3></div>
-            <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-angle-left"></i></button>
-        </div>
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions"><i class="fas fa-calendar-check"></i><span>My Slot Sessions</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players"><i class="fas fa-users"></i><span>Players</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance"><i class="fas fa-chart-line"></i><span>Performance</span></a></li>
-                <li class="nav-item active"><a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments"><i class="fas fa-trophy"></i><span>Tournaments</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health &amp; Injury"><i class="fas fa-heartbeat"></i><span>Health &amp; Injury</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication"><i class="fas fa-comments"></i><span>Communication</span></a></li>
-                <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests"><i class="fas fa-clipboard-list"></i><span>Requests</span></a></li>
-            </ul>
-        </nav>
-        <div class="profile-section">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <div class="profile-name"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Coach'); ?></div>
-            <div class="profile-role">Cricket Coach<?php echo $data['is_head_coach'] ? ' · Head Coach' : ''; ?></div>
-            <a href="<?php echo URLROOT; ?>/coach/profile" class="action-btn" style="margin-top:10px;"><i class="fas fa-user-cog"></i> Profile</a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
-    </div>
+    <?php $activeCoachNav = 'tournaments'; require APPROOT . '/views/inc/components/coach_sidebar.php'; ?>
 
     <main class="main-content" id="mainContent">
         <div class="dashboard-header">
@@ -145,40 +112,7 @@
     </main>
 </div>
 
-<script>
-function applyCoachFilters() {
-    const ageGroupFilter = document.getElementById('coachAgeGroupFilter').value.toLowerCase();
-    const statusFilter = document.getElementById('coachStatusFilter').value.toLowerCase();
-    const cards = document.querySelectorAll('.t-card');
-    let visibleCount = 0;
-
-    cards.forEach(card => {
-        const cardAgeGroup = card.getAttribute('data-age-group').toLowerCase();
-        const cardStatus = card.getAttribute('data-status').toLowerCase();
-        
-        const matchesAgeGroup = !ageGroupFilter || cardAgeGroup === ageGroupFilter;
-        const matchesStatus = !statusFilter || cardStatus === statusFilter;
-        
-        if (matchesAgeGroup && matchesStatus) {
-            card.classList.remove('hidden');
-            visibleCount++;
-        } else {
-            card.classList.add('hidden');
-        }
-    });
-}
-
-function resetCoachFilters() {
-    document.getElementById('coachAgeGroupFilter').value = '';
-    document.getElementById('coachStatusFilter').value = '';
-    applyCoachFilters();
-}
-
-// Add event listeners
-document.getElementById('coachAgeGroupFilter').addEventListener('change', applyCoachFilters);
-document.getElementById('coachStatusFilter').addEventListener('change', applyCoachFilters);
-</script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/tournaments-index.js"></script>
 
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
-</body>
-</html>

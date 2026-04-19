@@ -3,87 +3,7 @@
 
 <!-- Coach Dashboard Layout -->
 <div class="coach-layout">
-    <!-- Left Sidebar Panel -->
-    <div class="coach-sidebar" id="coachSidebar">
-        <div class="sidebar-header">
-            <div class="coach-logo">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <h3>Coach Panel</h3>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-angle-left"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>My Slot Sessions</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
-                        <i class="fas fa-users"></i>
-                        <span>Players</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Performance</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
-                        <i class="fas fa-trophy"></i>
-                        <span>Tournaments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
-                        <i class="fas fa-heartbeat"></i>
-                        <span>Health & Injury</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
-                        <i class="fas fa-comments"></i>
-                        <span>Communication</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
-                        <i class="fas fa-clipboard-list"></i>
-                        <span>Requests</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="profile-section">
-            <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding:12px 14px; box-sizing:border-box; gap:8px;">
-                <div class="profile-name" style="margin:0; text-align:center; width:100%;">
-                    <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px; width:100%; justify-content:center;">
-                    <a href="<?php echo URLROOT; ?>/coach/profile" class="profile-avatar" aria-label="Open coach profile" style="width:auto; min-width:46px; min-height:46px; margin:0; flex:0 0 46px; padding:0;">
-                        <i class="fas fa-user-circle"></i>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin:0; flex:1; padding:8px 12px !important; border-radius:12px !important;">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php $activeCoachNav = 'performance'; require APPROOT . '/views/inc/components/coach_sidebar.php'; ?>
 
     <!-- Main Content Area -->
     <div class="main-content">
@@ -170,45 +90,7 @@
     </div>
 </div>
 
-<script>
-// Sidebar Toggle
-(function() {
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            const icon = sidebarToggle.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-angle-left');
-                icon.classList.toggle('fa-angle-right');
-            }
-        });
-    }
-})();
-
-// Age group filter
-(function() {
-    const filter = document.getElementById('coachPerformanceAgeGroupFilter');
-    const rows = Array.from(document.querySelectorAll('.coach-performance-row'));
-    if (!filter || rows.length === 0) return;
-
-    const applyFilter = () => {
-        const selected = (filter.value || 'all').toLowerCase();
-        rows.forEach((row) => {
-            const raw = (row.getAttribute('data-age-groups') || '').toLowerCase();
-            if (selected === 'all') {
-                row.style.display = '';
-                return;
-            }
-            const groups = raw.split(',').map(s => s.trim()).filter(Boolean);
-            row.style.display = groups.includes(selected) ? '' : 'none';
-        });
-    };
-
-    filter.addEventListener('change', applyFilter);
-    applyFilter();
-})();
-</script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/performance.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

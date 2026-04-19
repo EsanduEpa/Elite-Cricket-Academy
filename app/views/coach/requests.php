@@ -4,71 +4,7 @@
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
-        <!-- Left Sidebar Panel -->
-        <div class="coach-sidebar" id="coachSidebar">
-            <div class="sidebar-header">
-                <div class="coach-logo">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <h3>Coach Panel</h3>
-                </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-angle-left"></i>
-                </button>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>My Slot Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
-                            <i class="fas fa-users"></i>
-                            <span>Players</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Performance</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
-                            <i class="fas fa-trophy"></i>
-                            <span>Tournaments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Health & Injury</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
-                            <i class="fas fa-comments"></i>
-                            <span>Communication</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span>Requests</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        <?php $activeCoachNav = 'requests'; require APPROOT . '/views/inc/components/coach_sidebar.php'; ?>
 
         <!-- Main Content Area -->
         <div class="main-content">
@@ -89,26 +25,29 @@
                         </div>
                     </div>
                 </div>
-                    <button class="tab-btn active" data-filter="all">
-                        <i class="fas fa-list"></i>
-                        All <span class="count"><?php echo count($data['feedbacks']); ?></span>
-                    </button>
-                    <button class="tab-btn" data-filter="pending">
-                        <i class="fas fa-clock"></i>
-                        Pending <span class="count"><?php echo $data['pendingCount']; ?></span>
-                    </button>
-                    <button class="tab-btn" data-filter="reviewed">
-                        <i class="fas fa-eye"></i>
-                        Reviewed <span class="count"><?php echo $data['reviewedCount']; ?></span>
-                    </button>
-                    <button class="tab-btn" data-filter="resolved">
-                        <i class="fas fa-check-circle"></i>
-                        Resolved <span class="count"><?php echo $data['resolvedCount']; ?></span>
-                    </button>
-                </div>
+            </div>
 
-                <!-- Requests List -->
-                <div class="requests-list" id="requestsList">
+            <div class="filter-tabs coach-request-tabs" aria-label="Request status filters">
+                <button type="button" class="tab-btn active" data-filter="all">
+                    <i class="fas fa-list"></i>
+                    All <span class="count"><?php echo count($data['feedbacks']); ?></span>
+                </button>
+                <button type="button" class="tab-btn" data-filter="pending">
+                    <i class="fas fa-clock"></i>
+                    Pending <span class="count"><?php echo $data['pendingCount']; ?></span>
+                </button>
+                <button type="button" class="tab-btn" data-filter="reviewed">
+                    <i class="fas fa-eye"></i>
+                    Reviewed <span class="count"><?php echo $data['reviewedCount']; ?></span>
+                </button>
+                <button type="button" class="tab-btn" data-filter="resolved">
+                    <i class="fas fa-check-circle"></i>
+                    Resolved <span class="count"><?php echo $data['resolvedCount']; ?></span>
+                </button>
+            </div>
+
+            <!-- Requests List -->
+            <div class="requests-list" id="requestsList">
                     <?php if (!empty($data['feedbacks'])): ?>
                         <?php foreach ($data['feedbacks'] as $feedback): ?>
                         <?php
@@ -153,51 +92,11 @@
                             <p style="margin: 0;">Feedback from players will appear here</p>
                         </div>
                     <?php endif; ?>
-                </div>
             </div>
         </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Sidebar Toggle
-    const sidebar = document.getElementById('coachSidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.querySelector('.main-content');
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('fa-angle-left');
-                icon.classList.add('fa-angle-right');
-                mainContent.style.marginLeft = '80px';
-            } else {
-                icon.classList.remove('fa-angle-right');
-                icon.classList.add('fa-angle-left');
-                mainContent.style.marginLeft = '280px';
-            }
-        });
-    }
-
-    // Filter Tabs
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const requestItems = document.querySelectorAll('.request-item');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const filter = this.getAttribute('data-filter');
-            requestItems.forEach(item => {
-                if (filter === 'all' || item.getAttribute('data-status') === filter) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    });
-});
-</script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/coach/requests.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
