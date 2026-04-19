@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeTrainerSidebar();
     initializeTrainerStatsCards();
+    initializeBookingCalendar();
 });
 
 function initializeTrainerSidebar() {
@@ -28,6 +29,167 @@ function initializeTrainerStatsCards() {
             card.style.transform = '';
         });
     });
+}
+
+function initializeBookingCalendar() {
+    const calendarGrid = document.getElementById('bookingCalendarGrid');
+    const monthLabel = document.getElementById('currentMonth');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
+
+    if (!calendarGrid || !monthLabel || !prevMonthBtn || !nextMonthBtn) {
+        return;
+    }
+
+    const sourceSessions = Array.isArray(window.trainerDashboardSessions)
+        ? window.trainerDashboardSessions
+        : [];
+
+    const calendarState = {
+        current: new Date()
+    };
+
+    const render = () => {
+        renderBookingCalendarGrid(calendarGrid, monthLabel, calendarState.current, sourceSessions);
+    };
+
+    prevMonthBtn.addEventListener('click', function() {
+        calendarState.current = new Date(calendarState.current.getFullYear(), calendarState.current.getMonth() - 1, 1);
+        render();
+    });
+
+    nextMonthBtn.addEventListener('click', function() {
+        calendarState.current = new Date(calendarState.current.getFullYear(), calendarState.current.getMonth() + 1, 1);
+        render();
+    });
+
+    render();
+}
+
+function renderBookingCalendarGrid(container, monthLabel, dateCursor, sessions) {
+    const year = dateCursor.getFullYear();
+    const month = dateCursor.getMonth();
+    const today = new Date();
+
+    monthLabel.textContent = dateCursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    container.innerHTML = '';
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayNames.forEach(function(name) {
+        const headerCell = document.createElement('div');
+        headerCell.className = 'calendar-day-header';
+        headerCell.textContent = name;
+        container.appendChild(headerCell);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const eventsByDate = buildEventsByDate(sessions);
+
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day empty';
+        container.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = eventsByDate[isoDate] || { pending: 0, confirmed: 0, completed: 0, cancelled: 0, total: 0 };
+
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        if (dayEvents.total > 0) {
+            dayCell.classList.add('has-events');
+        }
+        if (
+            day === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
+        ) {
+            dayCell.classList.add('today');
+        }
+
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'calendar-day-number';
+        dayNumber.textContent = String(day);
+        dayCell.appendChild(dayNumber);
+
+        if (dayEvents.total > 0) {
+            const markers = document.createElement('div');
+            markers.className = 'calendar-event-markers';
+
+            ['pending', 'confirmed', 'completed', 'cancelled'].forEach(function(status) {
+                if (dayEvents[status] > 0) {
+                    const dot = document.createElement('span');
+                    dot.className = `calendar-event-dot ${status}`;
+                    dot.title = `${dayEvents[status]} ${status} session${dayEvents[status] > 1 ? 's' : ''}`;
+                    markers.appendChild(dot);
+                }
+            });
+
+            const count = document.createElement('div');
+            count.className = 'calendar-day-count';
+            count.textContent = `${dayEvents.total} session${dayEvents.total > 1 ? 's' : ''}`;
+
+            dayCell.appendChild(markers);
+            dayCell.appendChild(count);
+        }
+
+        container.appendChild(dayCell);
+    }
+}
+
+function buildEventsByDate(sessions) {
+    const summary = {};
+
+    sessions.forEach(function(session) {
+        const dateKey = String(session.Date || session.date || '').slice(0, 10);
+        if (!dateKey) {
+            return;
+        }
+
+        if (!summary[dateKey]) {
+            summary[dateKey] = {
+                pending: 0,
+                confirmed: 0,
+                completed: 0,
+                cancelled: 0,
+                total: 0
+            };
+        }
+
+        const normalizedStatus = normalizeCalendarStatus(session);
+        summary[dateKey][normalizedStatus] += 1;
+        summary[dateKey].total += 1;
+    });
+
+    return summary;
+}
+
+function normalizeCalendarStatus(session) {
+    const currentStatus = String(session.Status || session.status || '').toLowerCase();
+    const dateKey = String(session.Date || session.date || '').slice(0, 10);
+    const todayKey = new Date().toISOString().slice(0, 10);
+
+    if (currentStatus === 'cancelled' || currentStatus === 'canceled') {
+        return 'cancelled';
+    }
+    if (currentStatus === 'completed' || currentStatus === 'attended' || currentStatus === 'missed') {
+        return 'completed';
+    }
+    if (currentStatus === 'active' || currentStatus === 'confirmed') {
+        return 'confirmed';
+    }
+    if (currentStatus === 'scheduled' || currentStatus === 'upcoming' || currentStatus === 'pending') {
+        return 'pending';
+    }
+
+    // Fallback for legacy/missing statuses: older dates are treated as completed.
+    if (dateKey && dateKey < todayKey) {
+        return 'completed';
+    }
+
+    return 'pending';
 }
 
 function showNotification(message, type = 'info') {

@@ -34,9 +34,9 @@ $menuItems = [
     ],
     [
         'key' => 'medical',
-        'href' => URLROOT . '/trainer/medical',
+        'href' => URLROOT . '/trainer/injury_reports',
         'icon' => 'fas fa-user-injured',
-        'label' => 'Medical Records',
+        'label' => 'Injury Reports',
     ],
 ];
 ?>

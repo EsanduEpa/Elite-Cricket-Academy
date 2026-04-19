@@ -100,8 +100,8 @@ table.data-table tr:last-child td { border-bottom:none; }
                     <thead>
                         <tr>
                             <th>Player</th>
-                            <th>Recommended Role</th>
-                            <th>Reason</th>
+                            <th>Fitness Recommended</th>
+                            <th>Comments</th>
                             <th>Status</th>
                             <th>Date</th>
                         </tr>
@@ -110,8 +110,8 @@ table.data-table tr:last-child td { border-bottom:none; }
                         <?php foreach ($recs as $r): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($r->PlayerName); ?></td>
-                            <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
-                            <td><?php echo htmlspecialchars($r->Reason ?? '—'); ?></td>
+                            <td><?php echo htmlspecialchars($r->FitnessRecommended ?? 'No'); ?></td>
+                            <td><?php echo htmlspecialchars($r->Comments ?? '—'); ?></td>
                             <td><span class="status-badge status-<?php echo strtolower($r->Status); ?>"><?php echo ucfirst($r->Status); ?></span></td>
                             <td><?php echo date('d M Y', strtotime($r->DateRecommended)); ?></td>
                         </tr>

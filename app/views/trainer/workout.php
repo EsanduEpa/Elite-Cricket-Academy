@@ -172,12 +172,12 @@
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
                                                 <?php if ($planStatus !== 'archived'): ?>
-                                                <button type="button" class="btn btn-primary btn-sm" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player">
+                                                <button type="button" class="btn btn-primary btn-sm btn-assign" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player">
                                                     <i class="fas fa-user-plus"></i> Assign
                                                 </button>
                                                 <?php endif; ?>
                                                 <?php if ($isOwn): ?>
-                                                <button type="button" class="btn btn-primary btn-sm"
+                                                <button type="button" class="btn btn-primary btn-sm btn-edit"
                                                         data-plan-id="<?php echo (int)$plan->PlanID; ?>"
                                                         data-plan="<?php echo htmlspecialchars(json_encode([
                                                             'workoutname'   => $plan->workoutname,

@@ -59,6 +59,10 @@
 }
 
 .trainer-sidebar .trainer-details {
+    display: block;
+}
+
+.trainer-sidebar.collapsed .trainer-details {
     display: none !important;
 }
 

@@ -49,9 +49,6 @@
                     <a href="<?php echo URLROOT; ?>/trainer/bookings" class="btn btn-training">
                         <i class="fas fa-calendar-plus"></i> New Session
                     </a>
-                    <a href="<?php echo URLROOT; ?>/trainer/workouts" class="btn btn-performance">
-                        <i class="fas fa-dumbbell"></i> Workouts
-                    </a>
                     <button class="btn btn-refresh" onclick="refreshDashboard()">
                         <i class="fas fa-sync-alt"></i>
                         <span class="current-time"><?php echo date('H:i'); ?></span>
@@ -218,46 +215,12 @@
             </div>
         </div>
 
-        <!-- Second Row: Quick Actions and Assignments -->
-        <div class="schedule-row">
-            <!-- Quick Actions -->
-            <div class="schedule-card quick-actions-card">
-                <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <div class="quick-action-grid">
-                        <a href="<?php echo URLROOT; ?>/trainer/bookings" class="quick-action-btn">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span>Schedule Session</span>
-                        </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/workouts" class="quick-action-btn">
-                            <i class="fas fa-dumbbell"></i>
-                            <span>Create Workout</span>
-                        </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/nutrition" class="quick-action-btn">
-                            <i class="fas fa-apple-alt"></i>
-                            <span>Nutrition Plan</span>
-                        </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/injury_reports" class="quick-action-btn">
-                            <i class="fas fa-user-injured"></i>
-                            <span>Injury Report</span>
-                        </a>
-                        <a href="<?php echo URLROOT; ?>/trainer/reports" class="quick-action-btn">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>View Reports</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activities & Assignments -->
+        <!-- Upcoming Activities -->
+        <div class="schedule-row schedule-row-single">
             <div class="schedule-card activities-card">
                 <div class="card-header">
                     <div class="header-content">
-                        <h2><i class="fas fa-clipboard-list"></i> Recent Activities</h2>
+                        <h2><i class="fas fa-clipboard-list"></i> Upcoming Activities</h2>
                         <a href="<?php echo URLROOT; ?>/trainer/reports" class="btn-primary">
                             <i class="fas fa-eye"></i> View All
                         </a>
@@ -265,9 +228,9 @@
                 </div>
                 <div class="card-content">
                     <div class="activity-list">
-                        <?php $recentSessions = $data['recent_sessions'] ?? []; ?>
-                        <?php if (!empty($recentSessions)): ?>
-                            <?php foreach ($recentSessions as $session): ?>
+                        <?php $upcomingSessions = $data['upcoming_sessions'] ?? []; ?>
+                        <?php if (!empty($upcomingSessions)): ?>
+                            <?php foreach ($upcomingSessions as $session): ?>
                                 <?php
                                 $status = strtolower($session->Status ?? 'upcoming');
                                 $icon = match ($status) {
@@ -291,8 +254,8 @@
                         <?php else: ?>
                             <div class="activity-item">
                                 <div class="activity-content">
-                                    <div class="activity-title">No recent activities</div>
-                                    <div class="activity-details">Activities will appear here once sessions are created.</div>
+                                    <div class="activity-title">No upcoming activities</div>
+                                    <div class="activity-details">Upcoming sessions will appear here once scheduled.</div>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -301,20 +264,33 @@
             </div>
         </div>
 
-        <!-- Action Buttons Row -->
-        <div class="booking-actions">
-            <button class="action-btn view-notes" onclick="openNotesModal()">
-                <i class="fas fa-notes-medical"></i> Session Notes
-            </button>
-            <button class="action-btn followup" onclick="scheduleFollowup()">
-                <i class="fas fa-calendar-plus"></i> Schedule Follow-up
-            </button>
-            <button class="action-btn details" onclick="viewReports()">
-                <i class="fas fa-chart-bar"></i> View Reports
-            </button>
-            <button class="action-btn emergency" onclick="emergencyProtocol()">
-                <i class="fas fa-exclamation-triangle"></i> Emergency
-            </button>
+        <!-- Bottom Quick Actions -->
+        <div class="schedule-card quick-actions-card trainer-quick-actions-bottom">
+            <div class="card-header">
+                <div class="header-content">
+                    <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="actions-grid">
+                    <a href="<?php echo URLROOT; ?>/trainer/bookings" class="action-btn primary">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Add Session</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/nutrition" class="action-btn secondary">
+                        <i class="fas fa-apple-alt"></i>
+                        <span>View Nutrition Plans</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/trainer/workout" class="action-btn success">
+                        <i class="fas fa-dumbbell"></i>
+                        <span>Add Workout Plans</span>
+                    </a>
+                    <a href="<?php echo URLROOT; ?>/trainer/medical" class="action-btn warning">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Medical Records</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -322,6 +298,9 @@
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
 <!-- Scripts -->
+<script>
+window.trainerDashboardSessions = <?php echo json_encode($data['sessions'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/trainer/dashboard.js?v=<?php echo time(); ?>"></script>

@@ -86,21 +86,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="role">Recommended Role</label>
-                    <select name="role" id="role">
-                        <option value="">-- Select role (optional) --</option>
-                        <option value="Batsman">Batsman</option>
-                        <option value="Bowler">Bowler</option>
-                        <option value="All-rounder">All-rounder</option>
-                        <option value="Wicket Keeper">Wicket Keeper</option>
-                        <option value="Captain">Captain</option>
-                        <option value="Vice Captain">Vice Captain</option>
+                    <label for="fitness_recommended">Fitness Recommended <span style="color:red">*</span></label>
+                    <select name="fitness_recommended" id="fitness_recommended" required>
+                        <option value="No" selected>No</option>
+                        <option value="Yes">Yes</option>
                     </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="reason">Reason for Recommendation <span style="color:red">*</span></label>
-                    <textarea name="reason" id="reason" required placeholder="Why are you recommending this player?"></textarea>
                 </div>
 
                 <div class="form-group">
