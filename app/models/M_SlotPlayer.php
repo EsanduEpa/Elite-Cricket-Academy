@@ -132,7 +132,7 @@ class M_SlotPlayer {
                     st.RequiredPlanFeature,
                     st.MaxParticipants AS TplMax,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
-                    f.Name AS FacilityName,
+                    f.FacilityID, f.Name AS FacilityName,
                     CONCAT(c.FirstName, " ", c.LastName) AS CoachName,
                     EXISTS (
                         SELECT 1 FROM slot_booking sb2
@@ -451,7 +451,7 @@ class M_SlotPlayer {
                     st.RequiredPlanFeature,
                     st.MaxParticipants AS TplMax,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
-                    f.Name AS FacilityName,
+                    f.FacilityID, f.Name AS FacilityName,
                     COUNT(sb.BookingID) AS BookedCount,
                     EXISTS (
                         SELECT 1 FROM slot_booking sb2
@@ -1507,7 +1507,7 @@ class M_SlotPlayer {
                     so.OccurrenceID, so.OccurrenceDate,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     st.TemplateName, st.SlotType,
-                    f.Name AS FacilityName,
+                    f.FacilityID, f.Name AS FacilityName,
                     CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
              FROM slot_booking sb
              JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID

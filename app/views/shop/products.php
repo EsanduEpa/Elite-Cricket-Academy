@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-products.css">
 
-<div class="admin-layout">
+<div class="admin-layout" data-urlroot="<?php echo URLROOT; ?>">
     <!-- Shop Sidebar -->
     <div class="admin-sidebar" id="shopSidebar">
         <div class="sidebar-header">
@@ -218,20 +218,23 @@
                         <a href="#" class="filter-tab active" data-category="all">
                             <i class="fas fa-th"></i> All Categories
                         </a>
-                        <a href="#" class="filter-tab" data-category="bats">
+                        <a href="#" class="filter-tab" data-category="batting">
                             <i class="fas fa-baseball-bat"></i> Bats
                         </a>
                         <a href="#" class="filter-tab" data-category="protective">
                             <i class="fas fa-shield-alt"></i> Protective Gear
                         </a>
-                        <a href="#" class="filter-tab" data-category="clothing">
+                        <a href="#" class="filter-tab" data-category="merchandise">
                             <i class="fas fa-tshirt"></i> Clothing
                         </a>
                         <a href="#" class="filter-tab" data-category="accessories">
                             <i class="fas fa-cog"></i> Accessories
                         </a>
-                        <a href="#" class="filter-tab" data-category="balls">
+                        <a href="#" class="filter-tab" data-category="bowling">
                             <i class="fas fa-circle"></i> Balls
+                        </a>
+                        <a href="#" class="filter-tab" data-category="training">
+                            <i class="fas fa-dumbbell"></i> Training
                         </a>
                     </div>
                 </div>
@@ -267,7 +270,9 @@
                                 $rating = round($product->avg_rating);
                                 $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
                                 ?>
-                                <tr>
+                                <tr data-product-id="<?php echo (int)$product->ProductID; ?>"
+                                    data-search="<?php echo htmlspecialchars(strtolower(($product->Name ?? '') . ' ' . ($product->Description ?? '') . ' ' . ($product->Brand ?? '') . ' ' . ($product->Category ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-category="<?php echo htmlspecialchars(strtolower($product->Category ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                                     <td>
                                         <div class="product-image">
                                             <?php if($product->ProductImage): ?>
@@ -284,7 +289,7 @@
                                         <div class="table-cell-details"><?php echo htmlspecialchars(substr($product->Description ?? 'No description', 0, 40)); ?><?php echo strlen($product->Description ?? '') > 40 ? '...' : ''; ?></div>
                                     </td>
                                     <td style="text-align: center;">
-                                        <span class="category-badge category-<?php echo strtolower($product->Category); ?>"><?php echo $product->Category; ?></span>
+                                        <span class="category-badge category-<?php echo htmlspecialchars(strtolower($product->Category ?? 'other')); ?>"><?php echo htmlspecialchars($product->Category ?? 'Other'); ?></span>
                                     </td>
                                     <td>
                                         <div class="table-cell-primary">₨ <?php echo number_format($product->Price, 2); ?></div>
@@ -812,6 +817,6 @@
 }
 </style>
 
-<script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/shop/products.js?v=20260419"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

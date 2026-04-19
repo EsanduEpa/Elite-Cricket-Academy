@@ -210,13 +210,14 @@
                     <tbody>
                         <?php if(isset($data['orders']) && !empty($data['orders'])): ?>
                             <?php foreach($data['orders'] as $order): ?>
-                                <tr>
+                                <tr data-payment="<?php echo htmlspecialchars(strtolower($order->PaymentMethod ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-search="<?php echo htmlspecialchars(strtolower(($order->OrderID ?? '') . ' ' . ($order->CustomerName ?? '') . ' ' . ($order->Email ?? '') . ' ' . ($order->PaymentMethod ?? '') . ' ' . ($order->Status ?? '')), ENT_QUOTES, 'UTF-8'); ?>">
                                     <td>
                                         <div class="table-cell-primary">#ORD-<?php echo str_pad($order->OrderID, 4, '0', STR_PAD_LEFT); ?></div>
                                     </td>
                                     <td>
-                                        <div class="table-cell-title"><?php echo $order->CustomerName; ?></div>
-                                        <div class="table-cell-details"><?php echo $order->Email; ?></div>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($order->CustomerName ?? 'Unknown Customer'); ?></div>
+                                        <div class="table-cell-details"><?php echo htmlspecialchars($order->Email ?? ''); ?></div>
                                     </td>
                                     <td>
                                         <div class="table-cell-primary"><?php echo date('M d, Y', strtotime($order->OrderDate)); ?></div>
@@ -229,10 +230,10 @@
                                         <div class="table-cell-primary">₨ <?php echo number_format($order->TotalAmount); ?></div>
                                     </td>
                                     <td style="text-align: center;">
-                                        <span class="table-badge status-<?php echo strtolower($order->PaymentMethod); ?>"><?php echo ucfirst($order->PaymentMethod); ?></span>
+                                        <span class="table-badge status-<?php echo htmlspecialchars(strtolower($order->PaymentMethod ?? '')); ?>"><?php echo htmlspecialchars(ucfirst($order->PaymentMethod ?? '-')); ?></span>
                                     </td>
                                     <td>
-                                        <span class="table-badge status-<?php echo strtolower($order->Status); ?>"><?php echo ucfirst($order->Status); ?></span>
+                                        <span class="table-badge status-<?php echo htmlspecialchars(strtolower($order->Status ?? '')); ?>"><?php echo htmlspecialchars(ucfirst($order->Status ?? '-')); ?></span>
                                     </td>
                                     <td>
                                         <div class="order-action-buttons">
@@ -282,50 +283,27 @@
 <script>
 // Search functionality
 document.getElementById('orderSearch').addEventListener('input', function() {
-    filterOrders(this.value);
+    applyOrderFilters();
 });
 
 // Payment filter
 document.getElementById('paymentFilter').addEventListener('change', function() {
-    filterOrdersByPayment(this.value);
+    applyOrderFilters();
 });
 
-function filterOrders(searchTerm) {
+function applyOrderFilters() {
+    const searchTerm = (document.getElementById('orderSearch')?.value || '').toLowerCase();
+    const payment = (document.getElementById('paymentFilter')?.value || 'all').toLowerCase();
     const table = document.getElementById('ordersTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm.toLowerCase())) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    }
-}
+    if (!table) return;
 
-function filterOrdersByPayment(payment) {
-    if (payment === 'all') {
-        const rows = document.getElementById('ordersTable').getElementsByTagName('tr');
-        for (let i = 1; i < rows.length; i++) {
-            rows[i].style.display = '';
-        }
-        return;
-    }
-    
-    const table = document.getElementById('ordersTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const badge = row.querySelector('.table-badge');
-        if (badge && badge.textContent.toLowerCase() === payment.replace('_', ' ')) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    }
+    table.querySelectorAll('tbody tr').forEach(row => {
+        const rowSearch = row.dataset.search || row.textContent.toLowerCase();
+        const rowPayment = row.dataset.payment || '';
+        const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+        const matchesPayment = payment === 'all' || rowPayment === payment;
+        row.style.display = matchesSearch && matchesPayment ? '' : 'none';
+    });
 }
 
 function updateOrderStatus(orderId, status) {
@@ -358,43 +336,54 @@ function updateOrderStatus(orderId, status) {
 }
 
 function viewOrder(orderId) {
-    console.log('Viewing order:', orderId);
-    // Load order details
-    document.getElementById('orderDetails').innerHTML = `
-        <div class="order-info">
-            <h4>Order #ORD-2025-${orderId}</h4>
-            <div class="order-grid">
-                <div class="order-section">
-                    <h5>Customer Information</h5>
-                    <p><strong>Name:</strong> John Smith</p>
-                    <p><strong>Email:</strong> john@example.com</p>
-                    <p><strong>Phone:</strong> +94771234567</p>
-                    <p><strong>Address:</strong> 123 Main St, Colombo</p>
-                </div>
-                <div class="order-section">
-                    <h5>Order Items</h5>
-                    <div class="order-items">
-                        <div class="order-item">
-                            <span>Cricket Bat Pro × 1</span>
-                            <span>₨ 8,500</span>
+    document.getElementById('orderDetails').innerHTML = '<p>Loading order details...</p>';
+    document.getElementById('orderModal').style.display = 'block';
+
+    fetch('<?php echo URLROOT; ?>/shop/getOrderDetails?id=' + encodeURIComponent(orderId))
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById('orderDetails').innerHTML = `<p>${escapeHtml(data.message || 'Order not found')}</p>`;
+                return;
+            }
+
+            const order = data.order;
+            const items = data.items || [];
+            const itemRows = items.length
+                ? items.map(item => `
+                    <div class="order-item">
+                        <span>${escapeHtml(item.ProductName)} × ${escapeHtml(item.Quantity)}</span>
+                        <span>₨ ${Number(item.SubTotal || 0).toLocaleString()}</span>
+                    </div>`).join('')
+                : '<p>No items found for this order.</p>';
+
+            document.getElementById('orderDetails').innerHTML = `
+                <div class="order-info">
+                    <h4>Order #ORD-${String(order.OrderID).padStart(4, '0')}</h4>
+                    <div class="order-grid">
+                        <div class="order-section">
+                            <h5>Customer Information</h5>
+                            <p><strong>Name:</strong> ${escapeHtml(order.CustomerName || '-')}</p>
+                            <p><strong>Email:</strong> ${escapeHtml(order.Email || '-')}</p>
+                            <p><strong>Phone:</strong> ${escapeHtml(order.PhoneNumber || '-')}</p>
+                            <p><strong>Address:</strong> ${escapeHtml(order.Address || '-')}</p>
                         </div>
-                        <div class="order-item">
-                            <span>Batting Gloves × 1</span>
-                            <span>₨ 2,500</span>
-                        </div>
-                        <div class="order-item">
-                            <span>Helmet Elite × 1</span>
-                            <span>₨ 4,200</span>
-                        </div>
-                        <div class="order-total">
-                            <span><strong>Total: ₨ 15,200</strong></span>
+                        <div class="order-section">
+                            <h5>Order Items</h5>
+                            <div class="order-items">
+                                ${itemRows}
+                                <div class="order-total">
+                                    <span><strong>Total: ₨ ${Number(order.TotalAmount || 0).toLocaleString()}</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-    document.getElementById('orderModal').style.display = 'block';
+            `;
+        })
+        .catch(() => {
+            document.getElementById('orderDetails').innerHTML = '<p>Failed to load order details.</p>';
+        });
 }
 
 function printInvoice(orderId) {
@@ -418,8 +407,32 @@ function requestReview(orderId) {
 }
 
 function exportOrders() {
-    console.log('Exporting orders');
+    const rows = Array.from(document.querySelectorAll('#ordersTable tbody tr'))
+        .filter(row => row.style.display !== 'none')
+        .map(row => Array.from(row.children).slice(0, 7).map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`).join(','));
+    const csv = ['Order ID,Customer,Date,Items,Total,Payment,Status', ...rows].join('\n');
+    downloadCsv(csv, 'shop_orders.csv');
     showNotification('Orders exported successfully', 'success');
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function downloadCsv(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 }
 
 function closeModal() {
@@ -734,5 +747,5 @@ function showNotification(message, type) {
 }
 </style>
 
-<script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
