@@ -1,6 +1,7 @@
 <?php
 
 require_once APPROOT . '/libraries/Mailer.php';
+require_once APPROOT . '/models/M_Notification.php';
 
 class PlayerSessionReminderService
 {
@@ -8,6 +9,7 @@ class PlayerSessionReminderService
     {
         $slotModel = new M_SlotPlayer();
         $emailModel = new M_Email();
+        $notificationModel = new M_Notification();
         $bookings = $slotModel->getPlayerBookingsDueForReminder(120, 180);
 
         $summary = [
@@ -36,6 +38,10 @@ class PlayerSessionReminderService
                 $summary['skipped']++;
                 $summary['items'][] = ['booking_id' => $bookingId, 'status' => 'skipped', 'reason' => 'already_sent'];
                 continue;
+            }
+
+            if (!$dryRun) {
+                self::createReminderNotification($notificationModel, $booking);
             }
 
             $subject = "Session Reminder - Booking #{$bookingId}";
@@ -88,6 +94,37 @@ class PlayerSessionReminderService
         }
 
         return $summary;
+    }
+
+    private static function createReminderNotification(M_Notification $notificationModel, object $booking): void
+    {
+        $bookingId = (int)($booking->BookingID ?? 0);
+        $playerId = (int)($booking->PlayerID ?? 0);
+
+        if ($bookingId <= 0 || $playerId <= 0) {
+            return;
+        }
+
+        try {
+            $sessionName = (string)($booking->TemplateName ?? 'Session');
+            $sessionDate = (string)($booking->OccurrenceDate ?? '');
+            $startTime = (string)($booking->StartTime ?? '');
+            $facilityName = (string)($booking->FacilityName ?? 'Academy');
+
+            $displayDate = $sessionDate !== '' ? date('D, d M Y', strtotime($sessionDate)) : 'today';
+            $displayStart = $startTime !== '' ? date('g:i A', strtotime($startTime)) : 'soon';
+
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                'session-reminder-' . $bookingId,
+                'reminder',
+                'Session starts in about 3 hours',
+                "{$sessionName} starts at {$displayStart} on {$displayDate} at {$facilityName}. Please arrive 10 minutes early.",
+                URLROOT . '/playerslots/bookings'
+            );
+        } catch (Throwable $e) {
+            error_log('Session reminder notification failed for booking #' . $bookingId . ': ' . $e->getMessage());
+        }
     }
 
     private static function buildReminderEmail(object $booking, string $playerName): string

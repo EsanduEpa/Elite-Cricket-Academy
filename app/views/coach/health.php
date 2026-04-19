@@ -24,59 +24,46 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
-                
-                <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/sessions" class="nav-link" data-tooltip="Sessions">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Sessions</span>
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
                         <i class="fas fa-calendar-check"></i>
                         <span>My Slot Sessions</span>
                     </a>
                 </li>
-                
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
                         <i class="fas fa-users"></i>
                         <span>Players</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
                         <i class="fas fa-chart-line"></i>
                         <span>Performance</span>
                     </a>
                 </li>
-                
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
                         <i class="fas fa-trophy"></i>
                         <span>Tournaments</span>
                     </a>
                 </li>
-
                 <li class="nav-item active">
                     <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
                         <i class="fas fa-heartbeat"></i>
                         <span>Health & Injury</span>
                     </a>
                 </li>
-                
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/notifications" class="nav-link" data-tooltip="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span>Notifications</span>
+                    <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
+                        <i class="fas fa-comments"></i>
+                        <span>Communication</span>
                     </a>
                 </li>
-                
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/coach/events" class="nav-link" data-tooltip="Events">
-                        <i class="fas fa-calendar"></i>
-                        <span>Events</span>
+                    <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Requests</span>
                     </a>
                 </li>
             </ul>
@@ -143,24 +130,6 @@
                     <p class="stat-description">Awaiting verification</p>
                 </div>
             </div>
-        </div>
-
-        <div class="analytics-card" id="healthOverview" style="margin-bottom:2rem;">
-            <div class="card-header">
-                <h3>Health & Injury Overview</h3>
-                <div class="controls">
-                    <select id="healthFilterSelect">
-                        <option value="all">All Players</option>
-                        <option value="fit">Fit</option>
-                        <option value="under_observation">Under Observation</option>
-                        <option value="injured">Injured</option>
-                    </select>
-                </div>
-            </div>
-            <div class="card-body chart-container" style="min-height:320px;">
-                <canvas id="healthChart" aria-label="Health status distribution"></canvas>
-            </div>
-            <div class="card-footer muted">Track injury load and clearance. Click segments to filter player lists.</div>
         </div>
 
         <!-- Injury Reports Table -->
@@ -260,12 +229,6 @@
         </div>
     </div>
 </div>
-
-<script>
-window.__COACH_DASHBOARD_DATA = <?php echo json_encode($data['healthChartData'] ?? new stdClass(), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="<?php echo URLROOT; ?>/js/coach/dashboard.js"></script>
 
 <!-- Injury Details Modal -->
 <div class="modal" id="injuryModal" style="display: none;">

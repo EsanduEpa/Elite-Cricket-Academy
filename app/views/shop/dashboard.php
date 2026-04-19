@@ -38,9 +38,13 @@
                         <span>Product Management</span>
                     </a>
                 </li>
-                
-              
-                
+                <li class="nav-item">
+                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Inventory</span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/rentals" class="nav-link">
                         <i class="fas fa-tools"></i>

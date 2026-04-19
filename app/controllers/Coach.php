@@ -276,7 +276,8 @@ class Coach extends Controller {
         }
 
         $overall = $performanceModel->getOverallStats($playerId);
-        $matchHistory = $performanceModel->getMatchHistory($playerId, 50);
+        // Include pending/rejected records so coaches can review & verify.
+        $matchHistory = $performanceModel->getCoachPerformanceDetails($playerId, 50);
 
         $data = [
             'title' => 'Performance Details - Coach Dashboard',
@@ -286,6 +287,74 @@ class Coach extends Controller {
         ];
 
         $this->view('coach/performance_details', $data);
+    }
+
+    // Coaches can verify or reject a pending performance record for an assigned player.
+    public function updatePerformanceVerifyStatus() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/performance');
+            return;
+        }
+
+        $coachId = (int)($_SESSION['user_id'] ?? 0);
+        $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+        $status = trim((string)($_POST['verify_status'] ?? ''));
+
+        $allowed = ['verified', 'rejected'];
+        if (!$performanceId || !in_array($status, $allowed, true)) {
+            flash('coach_performance_message', 'Invalid verification request.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $performanceModel = $this->model('M_Performance');
+        $userModel = $this->model('M_Users');
+
+        $record = $performanceModel->getPerformanceById($performanceId);
+        if (!$record) {
+            flash('coach_performance_message', 'Performance record not found.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $playerId = (int)($record->PlayerID ?? 0);
+        if ($playerId <= 0) {
+            flash('coach_performance_message', 'Invalid performance record.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        // Ensure this coach is assigned to the player.
+        $assignedPlayers = $userModel->getCoachAssignedPlayers($coachId);
+        $isAssigned = false;
+        foreach ($assignedPlayers as $player) {
+            if ((int)($player->PlayerID ?? 0) === $playerId) {
+                $isAssigned = true;
+                break;
+            }
+        }
+
+        if (!$isAssigned) {
+            flash('coach_performance_message', 'Access denied. You are not assigned to this player.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        if (isset($record->VerifiedStatus) && $record->VerifiedStatus !== 'pending') {
+            flash('coach_performance_message', 'This record has already been reviewed.', 'alert alert-warning');
+            redirect('coach/performance_details/' . $playerId);
+            return;
+        }
+
+        $ok = $performanceModel->updatePerformanceVerification($performanceId, $status, $coachId);
+
+        if ($ok) {
+            flash('coach_performance_message', 'Performance ' . $status . ' successfully.');
+        } else {
+            flash('coach_performance_message', 'Failed to update verification status.', 'alert alert-danger');
+        }
+
+        redirect('coach/performance_details/' . $playerId);
     }
     
     public function recommendations() {
@@ -418,22 +487,6 @@ class Coach extends Controller {
             error_log("Stack trace: " . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         }
-    }
-    
-    public function notifications() {
-        $userId = $_SESSION['user_id'];
-        $userModel = $this->model('M_Users');
-        
-        // Get real notifications from database
-        $notifications = $userModel->getNotificationsByUser($userId);
-        $unreadCount = $userModel->getUnreadNotificationCount($userId);
-        
-        $data = [
-            'title' => 'Notifications - Elite Cricket Academy',
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount
-        ];
-        $this->view('coach/notifications', $data);
     }
     
     public function communication() {
@@ -620,10 +673,8 @@ class Coach extends Controller {
             $userId = $_SESSION['user_id'] ?? 1;
             
             if ($userModel->suspendUser($userId, 9999)) {
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('coach/profile');
@@ -1415,71 +1466,6 @@ class Coach extends Controller {
         }
     }
 
-    // Mark notification as read
-    public function markNotificationRead($id = null) {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->markNotificationRead($id, $userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to mark as read']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Mark all notifications as read
-    public function markAllNotificationsRead() {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->markAllNotificationsRead($userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to mark all as read']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Delete notification
-    public function deleteNotification($id = null) {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && $id) {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->deleteNotification($id, $userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to delete']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid request']);
-        }
-    }
-
-    // Clear all notifications
-    public function clearAllNotifications() {
-        header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId = $_SESSION['user_id'] ?? 1;
-            $userModel = $this->model('M_Users');
-            if ($userModel->deleteAllNotifications($userId)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to clear notifications']);
-            }
-            return;
-        }
-
-        echo json_encode(['success' => false, 'message' => 'Invalid request']);
-    }
-
     // ==================== TOURNAMENT RECOMMENDATIONS ====================
 
     /**
@@ -2157,6 +2143,7 @@ class Coach extends Controller {
 
         if ($newStatus === 'team_announced') {
             $M_Tournament->announceTeam($id);
+            $this->notifyTournamentTeamSelection((int)$id);
             $_SESSION['success'] = 'Team announced successfully.';
         } else {
             $M_Tournament->updateStatus($id, $newStatus);
@@ -2249,12 +2236,27 @@ class Coach extends Controller {
 
             $M_Tournament->confirmTeam($id, $_SESSION['user_id']);
             $M_Tournament->announceTeam($id);
+            $this->notifyTournamentTeamSelection((int)$id);
             $_SESSION['success'] = 'Squad confirmed and announced successfully.';
         } else {
             $_SESSION['success'] = 'Squad draft saved.';
         }
 
         redirect('coach/tournament_detail/' . $id);
+    }
+
+    private function notifyTournamentTeamSelection(int $tournamentId): void
+    {
+        if ($tournamentId <= 0) {
+            return;
+        }
+
+        try {
+            require_once APPROOT . '/libraries/TournamentNotificationService.php';
+            TournamentNotificationService::notifyTeamSelection($tournamentId);
+        } catch (Throwable $e) {
+            error_log('Coach tournament selection notification failed: ' . $e->getMessage());
+        }
     }
 }
 ?>

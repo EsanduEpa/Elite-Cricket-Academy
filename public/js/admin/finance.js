@@ -4,7 +4,12 @@ let revenueChart = null;
 
 // Initialize finance charts
 function initializeFinanceCharts(monthlyData, revenueCategories) {
-    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const chartCanvas = document.getElementById('revenueChart');
+    if (!chartCanvas || typeof Chart === 'undefined') {
+        return;
+    }
+
+    const ctx = chartCanvas.getContext('2d');
     
     // Prepare data
     const months = Object.keys(monthlyData);
@@ -94,15 +99,18 @@ function updateChartType(type, monthlyData, revenueCategories) {
         revenueChart.destroy();
     }
     
-    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const chartCanvas = document.getElementById('revenueChart');
+    if (!chartCanvas || typeof Chart === 'undefined') {
+        return;
+    }
+
+    const ctx = chartCanvas.getContext('2d');
     
     if (type === 'pie') {
         // Create pie chart for revenue categories
-        const categoryLabels = Object.keys(revenueCategories).map(key => 
-            key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-        );
+        const categoryLabels = Object.values(revenueCategories).map(cat => cat.label || 'Revenue');
         const categoryData = Object.values(revenueCategories).map(cat => cat.amount);
-        const categoryColors = ['#2E7D32', '#1976D2', '#F57C00', '#7B1FA2'];
+        const categoryColors = ['#2E7D32', '#1976D2', '#F57C00', '#7B1FA2', '#C2410C'];
         
         revenueChart = new Chart(ctx, {
             type: 'pie',

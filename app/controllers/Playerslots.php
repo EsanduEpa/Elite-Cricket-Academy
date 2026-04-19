@@ -12,7 +12,7 @@ class Playerslots extends Controller {
     // ── Helpers ────────────────────────────────────────────────
 
     private function playerId(): int {
-        return (int)($_SESSION['user_id'] ?? 6);
+        return (int)$_SESSION['user_id'];
     }
 
     private function playerData(): array {
@@ -138,6 +138,7 @@ class Playerslots extends Controller {
         );
 
         if ($result === true) {
+            $this->createSessionBookedNotification($playerId, $occurrenceId);
             $_SESSION['slot_success'] = 'Session booked successfully!';
             redirect('playerslots/bookings');
         }
@@ -254,6 +255,7 @@ class Playerslots extends Controller {
         );
 
         if ($result === true) {
+            $this->createSessionBookedNotification($playerId, $occurrenceId);
             $_SESSION['slot_success'] = 'Facility slot booked successfully!';
             redirect('playerslots/bookings');
         }
@@ -272,6 +274,46 @@ class Playerslots extends Controller {
         ];
         $_SESSION['slot_error'] = $messages[$result] ?? $messages['error'];
         redirect('playerslots/facilities');
+    }
+
+    private function createSessionBookedNotification(int $playerId, int $occurrenceId): void {
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            return;
+        }
+
+        try {
+            $details = $this->slotModel->getOccurrenceNotificationDetails($occurrenceId);
+            $sessionName = (string)($details->TemplateName ?? 'Session');
+            $date = (string)($details->OccurrenceDate ?? '');
+            $startTime = (string)($details->StartTime ?? '');
+            $displayDate = $date !== '' ? date('D, d M Y', strtotime($date)) : 'the selected date';
+            $displayTime = $startTime !== '' ? date('g:i A', strtotime($startTime)) : 'the selected time';
+            $facility = (string)($details->FacilityName ?? 'Academy');
+
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                'slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'Session booked successfully',
+                "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
+                URLROOT . '/playerslots/bookings'
+            );
+
+            $staffIds = $this->slotModel->getOccurrenceStaffUserIds($occurrenceId);
+            $player = $this->playerData();
+            $playerName = (string)($player['name'] ?? 'A player');
+            $notificationModel->createOnceForUsers(
+                $staffIds,
+                'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'New session booking',
+                "{$playerName} booked {$sessionName} for {$displayDate} at {$displayTime}.",
+                URLROOT . '/staffslots/occurrence/' . $occurrenceId
+            );
+        } catch (Throwable $e) {
+            error_log('Session booking notification failed: ' . $e->getMessage());
+        }
     }
 
     /** POST /playerslots/cancel */

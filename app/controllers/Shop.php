@@ -466,10 +466,8 @@ class Shop extends Controller {
             $userId = $_SESSION['user_id'];
             
             if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('shop/profile');
@@ -820,6 +818,7 @@ class Shop extends Controller {
                 $productId = $productModel->createProduct($data);
                 
                 if ($productId) {
+                    $this->notifyShopLowProductStock((int)$productId, $data['name'], (int)$data['stock'], (string)$data['status']);
                     echo json_encode([
                         'success' => true,
                         'message' => 'Product added successfully',
@@ -920,12 +919,33 @@ class Shop extends Controller {
             $productModel = $this->model('M_Product');
             
             if ($productModel->updateProduct($productId, $data)) {
+                $this->notifyShopLowProductStock((int)$productId, $data['name'], (int)$data['stock'], (string)$data['status']);
                 echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to update product']);
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+    }
+
+    private function notifyShopLowProductStock(int $productId, string $productName, int $stockQuantity, string $status): void {
+        if ($productId <= 0 || strtolower($status) !== 'active' || $stockQuantity > 5) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForRoles(
+                ['Shop', 'ShopEmployee'],
+                'product-low-stock-' . $productId,
+                'warning',
+                'Low product stock',
+                $productName . ' has only ' . $stockQuantity . ' item(s) left.',
+                URLROOT . '/shop/products'
+            );
+        } catch (Throwable $e) {
+            error_log('Shop low product stock notification failed: ' . $e->getMessage());
         }
     }
 

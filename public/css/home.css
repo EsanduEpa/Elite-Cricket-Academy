@@ -130,6 +130,7 @@ body {
     gap: 0.7rem;
     align-items: center;
     justify-self: end;
+    position: relative;
 }
 
 .nav-icon-btn {
@@ -161,14 +162,194 @@ body {
 }
 
 .notification-dot {
-    width: 8px;
-    height: 8px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
     border-radius: 50%;
     background: #ef4444;
     border: 2px solid #fff;
     position: absolute;
-    top: 12px;
-    right: 13px;
+    top: 5px;
+    right: 4px;
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.notification-dot.has-count {
+    display: inline-flex;
+}
+
+.notification-dropdown {
+    width: min(360px, calc(100vw - 24px));
+    max-height: 440px;
+    overflow: hidden;
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    z-index: 1200;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    display: none;
+}
+
+.notification-dropdown.is-open {
+    display: block;
+}
+
+.notification-dropdown__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.notification-dropdown__header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+}
+
+.notification-dropdown__header p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.notification-dropdown__actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.notification-dropdown__mark {
+    border: none;
+    background: #dbeafe;
+    color: #2563eb;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    white-space: nowrap;
+}
+
+.notification-dropdown__clear {
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    white-space: nowrap;
+}
+
+.notification-dropdown__mark:hover {
+    background: #bfdbfe;
+}
+
+.notification-dropdown__clear:hover {
+    background: #fecaca;
+}
+
+.notification-dropdown__body {
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.notification-dropdown__state {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.notification-dropdown__row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.notification-dropdown__item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    color: #334155;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-dropdown__item:hover {
+    background: #f8fafc;
+}
+
+.notification-dropdown__item.is-unread {
+    background: #eff6ff;
+}
+
+.notification-dropdown__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    color: #2563eb;
+    background: #dbeafe;
+}
+
+.notification-dropdown__content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.notification-dropdown__content strong {
+    color: #0f172a;
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.notification-dropdown__content span {
+    color: #475569;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.notification-dropdown__content small {
+    color: #94a3b8;
+    font-size: 0.73rem;
+}
+
+.notification-dropdown__delete {
+    width: 40px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-dropdown__delete:hover {
+    color: #dc2626;
+    background: #fef2f2;
 }
 
 .nav-action-btn {
@@ -1044,6 +1225,11 @@ body {
         border-radius: 0 0 15px 15px;
         margin-top: -1px;
         display: none;
+    }
+
+    .notification-dropdown {
+        top: calc(100% + 8px);
+        right: 0;
     }
     
     .nav-buttons.active {

@@ -89,7 +89,7 @@
                     <div class="current-time" id="currentTime"></div>
                 </div>
             </div>
-            <!-- Summary Cards - 4 in a Row with Charts -->
+            <!-- Summary Cards - 4 in a Row -->
             <div class="summary-cards">
                 <div class="summary-card staff-card">
                     <div class="card-header">
@@ -100,9 +100,6 @@
                             <span class="number"><?php echo $data['totalStaff']; ?></span>
                             <span class="label">Total Staff</span>
                         </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="staffChart"></canvas>
                     </div>
                 </div>
 
@@ -116,9 +113,6 @@
                             <span class="label">Upcoming Events</span>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="eventsChart"></canvas>
-                    </div>
                 </div>
 
                 <div class="summary-card feedback-card">
@@ -131,9 +125,6 @@
                             <span class="label">Pending Reviews</span>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="feedbackChart"></canvas>
-                    </div>
                 </div>
 
                 <div class="summary-card finance-card">
@@ -145,9 +136,6 @@
                             <span class="number">RS <?php echo number_format($data['monthlyRevenue'] ?? 0); ?></span>
                             <span class="label">Monthly Revenue</span>
                         </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="financeChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -391,13 +379,6 @@
     <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
 
     <!-- JavaScript for Dashboard -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script>
-        // Ensure Chart.js is loaded before proceeding
-        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
-        window.chartJsLoaded = typeof Chart !== 'undefined';
-        console.log('URLROOT for JS files: <?php echo URLROOT; ?>');
-    </script>
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
@@ -461,22 +442,6 @@
             if (typeFilter) typeFilter.addEventListener('change', filterActivities);
             if (timeFilter) timeFilter.addEventListener('change', filterActivities);
         });
-    </script>
-    
-    <!-- Chart.js Test -->
-    <script>
-        console.log('Chart.js test script running...');
-        console.log('Chart available:', typeof Chart);
-        
-        // Test if we can find the canvas elements
-        setTimeout(function() {
-            const staffCanvas = document.getElementById('staffChart');
-            console.log('Staff canvas found:', !!staffCanvas);
-            if (staffCanvas) {
-                console.log('Staff canvas dimensions:', staffCanvas.width, 'x', staffCanvas.height);
-                console.log('Staff canvas parent:', staffCanvas.parentElement);
-            }
-        }, 1000);
     </script>
 </body>
 

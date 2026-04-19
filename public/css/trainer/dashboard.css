@@ -42,6 +42,14 @@ body {
     width: calc(100% - 80px);
 }
 
+/* Sidebar nav link icon spacing */
+.trainer-sidebar .sidebar-nav .nav-link {
+    gap: 14px;
+}
+.trainer-sidebar .sidebar-nav .nav-link i {
+    margin-right: 0;
+}
+
 /* Dashboard Header */
 .dashboard-header {
     background: linear-gradient(135deg, rgba(74, 144, 226, 0.95) 0%, rgba(53, 122, 189, 0.9) 100%);

@@ -29,14 +29,11 @@ class Player extends Controller {
     }
     
     private function requireLogin() {
-        // TEMPORARILY DISABLED FOR TESTING - REMOVE THIS COMMENT IN PRODUCTION
-        return true;
-        
         if (!function_exists('isLoggedIn')) {
             require_once APPROOT . '/helpers/session_helper.php';
         }
         if (!isLoggedIn()) {
-            redirect('login');
+            redirect('');
             exit;
         }
     }
@@ -64,7 +61,7 @@ class Player extends Controller {
         $this->view('player/dashboard', $data);
     }
     
-    // Test method without login requirement
+    // Test method for dashboard UI checks; protected by the global auth guard.
     public function test() {
         // Direct UI test without any auth or database
         $playerData = $this->getPlayerData();
@@ -1595,6 +1592,11 @@ class Player extends Controller {
             ? $this->shopModel->createOrderFromCart($playerId, $selectedProductIds, 'card', null, null, null, 'completed')
             : ['success' => false, 'message' => 'Player not found.'];
 
+        if (!empty($result['success'])) {
+            $this->notifyShopOfNewOrder((int)($result['order_id'] ?? 0), $playerId, (float)($result['total_amount'] ?? 0));
+            $this->notifyShopOfLowProductStock();
+        }
+
         echo json_encode($result);
         exit;
     }
@@ -1926,6 +1928,18 @@ class Player extends Controller {
                         'Facility Booking Payment',
                         'Facility booking confirmed successfully.'
                     );
+                    $this->createPaymentSuccessNotification(
+                        (int)$playerData['id'],
+                        (string)$pendingFacilityBooking['order_id'],
+                        'session',
+                        'Facility booking payment successful',
+                        'Your PayHere payment for a facility booking was received and your booking is confirmed.',
+                        URLROOT . '/playerslots/bookings'
+                    );
+                    $this->createSessionBookedNotification(
+                        (int)$playerData['id'],
+                        $occurrenceId
+                    );
                 } else {
                     $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
                 }
@@ -2045,6 +2059,13 @@ class Player extends Controller {
 
                             if (empty($orderResult['success'])) {
                                 error_log('Shop order finalization failed for ' . $shopOrderId . ': ' . ($orderResult['message'] ?? 'Unknown error'));
+                            } else {
+                                $this->notifyShopOfNewOrder(
+                                    (int)($orderResult['order_id'] ?? 0),
+                                    (int)($playerData['id'] ?? 0),
+                                    (float)($orderResult['total_amount'] ?? 0)
+                                );
+                                $this->notifyShopOfLowProductStock();
                             }
 
                             $emailSent = $this->sendPendingShopPaymentSuccessEmail($pendingShopPayment);
@@ -2240,6 +2261,15 @@ class Player extends Controller {
             ucfirst((string)($payment->PlanName ?? 'Membership')) . ' membership fee paid successfully.'
         );
 
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $orderId,
+            'payment',
+            'Membership payment successful',
+            'Your ' . ucfirst((string)($payment->PlanName ?? 'Membership')) . ' membership payment of Rs. ' . number_format((float)($payment->Amount ?? 0), 2) . ' was successful.',
+            URLROOT . '/player/payments'
+        );
+
         return true;
     }
 
@@ -2269,6 +2299,160 @@ class Player extends Controller {
         );
     }
 
+    private function createPaymentSuccessNotification(
+        int $playerId,
+        string $orderId,
+        string $type,
+        string $title,
+        string $message,
+        string $actionUrl
+    ): void {
+        if ($playerId <= 0 || $orderId === '') {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                $orderId,
+                $type,
+                $title,
+                $message,
+                $actionUrl
+            );
+        } catch (Throwable $e) {
+            error_log('Payment notification creation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function createSessionBookedNotification(int $playerId, int $occurrenceId): void {
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            return;
+        }
+
+        try {
+            $details = $this->slotPlayerModel->getOccurrenceNotificationDetails($occurrenceId);
+            $sessionName = (string)($details->TemplateName ?? 'Session');
+            $date = (string)($details->OccurrenceDate ?? '');
+            $startTime = (string)($details->StartTime ?? '');
+            $displayDate = $date !== '' ? date('D, d M Y', strtotime($date)) : 'the selected date';
+            $displayTime = $startTime !== '' ? date('g:i A', strtotime($startTime)) : 'the selected time';
+            $facility = (string)($details->FacilityName ?? 'Academy');
+
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForOrder(
+                $playerId,
+                'slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'Session booked successfully',
+                "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
+                URLROOT . '/playerslots/bookings'
+            );
+
+            $staffIds = $this->slotPlayerModel->getOccurrenceStaffUserIds($occurrenceId);
+            $playerName = (string)($this->getPlayerData()['name'] ?? 'A player');
+            $notificationModel->createOnceForUsers(
+                $staffIds,
+                'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
+                'session',
+                'New session booking',
+                "{$playerName} booked {$sessionName} for {$displayDate} at {$displayTime}.",
+                URLROOT . '/staffslots/occurrence/' . $occurrenceId
+            );
+        } catch (Throwable $e) {
+            error_log('Session booking notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfNewOrder(int $orderId, int $playerId, float $totalAmount): void {
+        if ($orderId <= 0) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $notificationModel->createOnceForRoles(
+                ['Shop', 'ShopEmployee'],
+                'shop-new-order-' . $orderId,
+                'payment',
+                'New shop order',
+                'Order #' . $orderId . ' was placed by player #' . $playerId . ' for Rs. ' . number_format($totalAmount, 2) . '.',
+                URLROOT . '/shop/orders'
+            );
+        } catch (Throwable $e) {
+            error_log('Shop order notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfNewRental(array $rentalIds, int $playerId, float $totalCost): void {
+        $rentalIds = array_values(array_filter(array_map('intval', $rentalIds)));
+        if (!$rentalIds) {
+            return;
+        }
+
+        try {
+            $notificationModel = $this->model('M_Notification');
+            $firstRentalId = (int)$rentalIds[0];
+            $notificationModel->createOnceForRoles(
+                ['Shop', 'ShopEmployee'],
+                'shop-new-rental-' . $firstRentalId,
+                'rental',
+                'New equipment rental',
+                'Player #' . $playerId . ' confirmed ' . count($rentalIds) . ' rental item(s) for Rs. ' . number_format($totalCost, 2) . '.',
+                URLROOT . '/shop/rentals'
+            );
+        } catch (Throwable $e) {
+            error_log('Shop rental notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfLowProductStock(): void {
+        try {
+            $notificationModel = $this->model('M_Notification');
+            foreach ($this->shopModel->getLowStockItems() as $item) {
+                $productId = (int)($item->ProductID ?? 0);
+                if ($productId <= 0) {
+                    continue;
+                }
+
+                $notificationModel->createOnceForRoles(
+                    ['Shop', 'ShopEmployee'],
+                    'product-low-stock-' . $productId,
+                    'warning',
+                    'Low product stock',
+                    (string)($item->Name ?? 'Product') . ' has only ' . (int)($item->StockQuantity ?? 0) . ' item(s) left.',
+                    URLROOT . '/shop/products'
+                );
+            }
+        } catch (Throwable $e) {
+            error_log('Low product stock notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function notifyShopOfLowEquipmentStock(): void {
+        try {
+            $notificationModel = $this->model('M_Notification');
+            foreach ($this->shopModel->getLowStockEquipmentItems() as $item) {
+                $equipmentId = (int)($item->EquipmentID ?? 0);
+                if ($equipmentId <= 0) {
+                    continue;
+                }
+
+                $notificationModel->createOnceForRoles(
+                    ['Shop', 'ShopEmployee'],
+                    'equipment-low-stock-' . $equipmentId,
+                    'warning',
+                    'Low rental equipment stock',
+                    (string)($item->Name ?? 'Equipment') . ' has only ' . (int)($item->Stock ?? 0) . ' item(s) available.',
+                    URLROOT . '/shop/rentals'
+                );
+            }
+        } catch (Throwable $e) {
+            error_log('Low equipment stock notification failed: ' . $e->getMessage());
+        }
+    }
+
     private function sendPendingShopPaymentSuccessEmail(array $pendingShopPayment): bool {
         $orderId = (string)($pendingShopPayment['order_id'] ?? '');
         if ($orderId === '') {
@@ -2288,7 +2472,7 @@ class Player extends Controller {
         }
 
         require_once APPROOT . '/libraries/PaymentEmailService.php';
-        return PaymentEmailService::sendSuccessEmail(
+        $emailSent = PaymentEmailService::sendSuccessEmail(
             $playerId > 0 ? $playerId : null,
             $recipientEmail,
             $recipientName,
@@ -2298,6 +2482,19 @@ class Player extends Controller {
             'Shop Product Payment',
             'Shop product payment received successfully.'
         );
+
+        if ($playerId > 0) {
+            $this->createPaymentSuccessNotification(
+                $playerId,
+                $orderId,
+                'payment',
+                'Shop payment successful',
+                'Your shop product payment of Rs. ' . number_format((float)($pendingShopPayment['amount'] ?? 0), 2) . ' was successful.',
+                URLROOT . '/player/shopping'
+            );
+        }
+
+        return $emailSent;
     }
 
     private function sendShopPaymentSuccessEmail(string $orderId, string $amount, string $currency): bool {
@@ -2306,7 +2503,7 @@ class Player extends Controller {
             error_log("Payment email skipped: could not parse player ID from order $orderId");
             return false;
         }
-        return $this->sendPaymentSuccessEmailForUser(
+        $emailSent = $this->sendPaymentSuccessEmailForUser(
             $playerId,
             $orderId,
             $amount,
@@ -2314,6 +2511,17 @@ class Player extends Controller {
             'Shop Product Payment',
             'Shop product payment received successfully.'
         );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $orderId,
+            'payment',
+            'Shop payment successful',
+            'Your shop product payment of Rs. ' . number_format((float)$amount, 2) . ' was successful.',
+            URLROOT . '/player/shopping'
+        );
+
+        return $emailSent;
     }
 
     private function sendRentalConfirmationEmail(array $playerData, array $rentalDetails): bool {
@@ -2372,6 +2580,17 @@ class Player extends Controller {
             ]
         );
 
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            (string)($pendingRentalPayment['order_id'] ?? ('RENTAL-' . time())),
+            'rental',
+            'Rental payment successful',
+            'Your equipment rental payment of Rs. ' . number_format((float)($result['total_cost'] ?? ($pendingRentalPayment['amount'] ?? 0)), 2) . ' was successful.',
+            URLROOT . '/player/rentals'
+        );
+        $this->notifyShopOfNewRental((array)($result['rental_ids'] ?? []), $playerId, (float)($result['total_cost'] ?? 0));
+        $this->notifyShopOfLowEquipmentStock();
+
         return $result;
     }
 
@@ -2409,15 +2628,27 @@ class Player extends Controller {
         $shopModel->removeRentalCartItemsByIds($playerId, $cartIds);
 
         $orderId = (string)($pendingRentalCartPayment['order_id'] ?? '');
+        $completedOrderId = $orderId !== '' ? $orderId : ('RENTALCART-' . time());
         $amount = (string)($pendingRentalCartPayment['amount'] ?? '0.00');
         $this->sendPaymentSuccessEmailForUser(
             $playerId,
-            $orderId !== '' ? $orderId : ('RENTALCART-' . time()),
+            $completedOrderId,
             $amount,
             'LKR',
             'Equipment Rental Cart Payment',
             'Equipment rental cart payment received successfully.'
         );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $completedOrderId,
+            'rental',
+            'Rental cart payment successful',
+            'Your rental cart payment of Rs. ' . number_format((float)$amount, 2) . ' was successful and the rentals are confirmed.',
+            URLROOT . '/player/rentals'
+        );
+        $this->notifyShopOfNewRental((array)($result['rental_ids'] ?? []), $playerId, (float)($result['total_cost'] ?? 0));
+        $this->notifyShopOfLowEquipmentStock();
 
         return $result;
     }
@@ -2456,13 +2687,23 @@ class Player extends Controller {
             $orderId !== '' ? $orderId : null
         );
 
+        $completedOrderId = $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId);
         $this->sendPaymentSuccessEmailForUser(
             $playerId,
-            $orderId !== '' ? $orderId : ('RETURNFEE-' . $returnId),
+            $completedOrderId,
             $amount,
             'LKR',
             'Equipment Return Fee Payment',
             'Equipment return fee payment received successfully.'
+        );
+
+        $this->createPaymentSuccessNotification(
+            $playerId,
+            $completedOrderId,
+            'payment',
+            'Return fee payment successful',
+            'Your equipment return fee payment of Rs. ' . number_format((float)$amount, 2) . ' was successful.',
+            URLROOT . '/player/rentals'
         );
 
         return ['success' => true];
@@ -2473,37 +2714,6 @@ class Player extends Controller {
         $this->checkout();
     }
     
-    // AJAX: Get notifications for the logged-in player
-    public function notifications() {
-        $this->requireLogin();
-        ob_start();
-        header('Content-Type: application/json');
-        $userId = (int)$_SESSION['user_id'];
-        $notifModel = $this->model('M_Notification');
-        echo json_encode([
-            'notifications' => $notifModel->getForUser($userId, 15),
-            'unread_count'  => $notifModel->countUnread($userId),
-        ]);
-        ob_end_flush(); exit;
-    }
-
-    // AJAX: Mark notification(s) read
-    public function mark_notifications_read() {
-        $this->requireLogin();
-        ob_start();
-        header('Content-Type: application/json');
-        $userId = (int)$_SESSION['user_id'];
-        $notifModel = $this->model('M_Notification');
-        $id = (int)($_POST['notification_id'] ?? 0);
-        if ($id) {
-            $notifModel->markRead($id, $userId);
-        } else {
-            $notifModel->markAllRead($userId);
-        }
-        echo json_encode(['success' => true, 'unread_count' => $notifModel->countUnread($userId)]);
-        ob_end_flush(); exit;
-    }
-
     // Session Calendar
     // =========================================================================
     // PRIVATE HELPER METHODS - ALL USE REAL DATABASE QUERIES
@@ -3343,10 +3553,8 @@ class Player extends Controller {
             $userId = $_SESSION['user_id'];
             
             if ($userModel->suspendUser($userId, 9999)) { // Long suspension = deactivation
-                // Clear session and redirect to login
-                session_destroy();
-                flash('login_message', 'Your account has been deactivated successfully');
-                redirect('login');
+                destroyUserSession();
+                redirect('');
             } else {
                 flash('profile_message', 'Failed to deactivate account', 'alert alert-danger');
                 redirect('player/profile');

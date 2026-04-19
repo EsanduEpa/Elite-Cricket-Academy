@@ -444,6 +444,28 @@ class M_Performance {
         return $this->db->resultSet();
     }
 
+    // Coach view: get match-wise performance records including pending/rejected
+    public function getCoachPerformanceDetails($playerId, $limit = 50) {
+        $this->db->query("SELECT pmp.*,
+            cm.Date, cm.Venue, cm.OpponentTeam, cm.Result, cm.Name AS MatchName,
+            cm.MarginValue, cm.MarginType, cm.OurRuns, cm.OurWickets, cm.OpponentRuns, cm.OpponentWickets,
+            cm.IsDLS, cm.SummaryNotes, cm.OurRuns AS OurScore, cm.OpponentRuns AS OpponentScore,
+            t.Name AS TournamentName,
+            CONCAT(u1.FirstName, ' ', u1.LastName) AS AddedByName,
+            CONCAT(u2.FirstName, ' ', u2.LastName) AS VerifiedByName
+            FROM playermatchperformance pmp
+            LEFT JOIN crimatch cm ON pmp.MatchID = cm.MatchID
+            LEFT JOIN tournament t ON cm.TournamentID = t.TournamentID
+            LEFT JOIN user u1 ON pmp.AddedBy = u1.UserID
+            LEFT JOIN user u2 ON pmp.VerifiedBy = u2.UserID
+            WHERE pmp.PlayerID = :player_id
+            ORDER BY cm.Date DESC, pmp.CreatedAt DESC
+            LIMIT :limit");
+        $this->db->bind(':player_id', $playerId);
+        $this->db->bind(':limit', (int)$limit, PDO::PARAM_INT);
+        return $this->db->resultSet();
+    }
+
     // Get pending (unverified) performance statistics for review
     public function getPendingPerformanceStatistics($playerId = null) {
         if ($playerId) {

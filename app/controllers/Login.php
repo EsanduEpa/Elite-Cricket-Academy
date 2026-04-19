@@ -146,6 +146,7 @@ class Login extends Controller {
                     $_SESSION['user_email'] = $loggedInUser->Email;      // User's email
                     $_SESSION['user_name'] = $loggedInUser->Name;        // Display name
                     $_SESSION['user_role'] = $loggedInUser->Role;        // For access control
+                    $_SESSION['last_activity'] = time();                 // Inactivity timeout clock
                     
                     // STEP 11: DEBUG OUTPUT (Remove in production)
                     // Shows authentication details before redirect
@@ -320,19 +321,8 @@ class Login extends Controller {
             session_start();
         }
         
-        // STEP 2: CLEAR ALL SESSION VARIABLES
-        // session_unset() removes all session variables (user_id, user_role, etc.)
-        // User is no longer authenticated after this
-        session_unset();
-        
-        // STEP 3: DESTROY THE SESSION
-        // session_destroy() completely removes the session file from server
-        // This is more secure than just unsetting variables
-        session_destroy();
-        
-        // STEP 4: REDIRECT TO LOGIN PAGE
-        // Send user back to login page
-        redirect('login');
+        destroyUserSession();
+        redirect('');
     }
     
     // Forgot Password
