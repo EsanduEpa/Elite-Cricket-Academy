@@ -2022,7 +2022,9 @@ class Coach extends Controller {
         $M_Tournament  = $this->model('M_Tournament');
         $M_JoinRequest = $this->model('M_TournamentJoinRequest');
         $M_CoachRec    = $this->model('M_CoachTournamentRecommendation');
+        $M_TrainerRec  = $this->model('M_TrainerTournamentRecommendation');
         $M_Result      = $this->model('M_TournamentResult');
+        $M_CriMatch    = $this->model('M_CriMatch');
 
         $tournament = $M_Tournament->getTournamentById($id);
         if (!$tournament) { redirect('coach/tournaments'); return; }
@@ -2030,12 +2032,202 @@ class Coach extends Controller {
         $data['tournament']    = $tournament;
         $data['team']          = $M_Tournament->getTeam($id);
         $data['join_requests'] = $M_JoinRequest->getRequestsByTournament($id);
-        $data['my_recs']       = $M_CoachRec->getRecommendationsByTournament($id);
+        $data['my_recs']       = $M_CoachRec->getRecommendationsByCoach((int)($_SESSION['user_id'] ?? 0), ['tournamentId' => (int)$id]);
+        $data['coach_recs']    = $M_CoachRec->getRecommendationsByTournament($id);
+        $data['trainer_recs']  = $M_TrainerRec->getRecommendationsByTournament($id);
         $data['result']        = $M_Result->getResult($id);
+        $data['matches']       = $M_CriMatch->getMatchesByTournament((int)$id);
         $data['is_head_coach'] = $this->_isHeadCoach();
         $data['status_options'] = $data['is_head_coach'] ? $this->getAvailableTournamentStatuses($tournament) : [];
 
         $this->view('coach/tournaments/detail', $data);
+    }
+
+    public function approve_coach_recommendation($tournamentId = null, $recommendationId = null)
+    {
+        $tournamentId = (int)($tournamentId ?? 0);
+        $recommendationId = (int)($recommendationId ?? 0);
+
+        if ($tournamentId <= 0 || $recommendationId <= 0 || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/tournaments');
+            return;
+        }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can review recommendations.';
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_CoachRec = $this->model('M_CoachTournamentRecommendation');
+        $ok = $M_CoachRec->updateStatusForTournament($recommendationId, $tournamentId, 'approved', (int)($_SESSION['user_id'] ?? 0));
+
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Coach recommendation approved.' : 'Unable to approve coach recommendation.';
+        redirect('coach/tournament_detail/' . $tournamentId);
+    }
+
+    public function reject_coach_recommendation($tournamentId = null, $recommendationId = null)
+    {
+        $tournamentId = (int)($tournamentId ?? 0);
+        $recommendationId = (int)($recommendationId ?? 0);
+
+        if ($tournamentId <= 0 || $recommendationId <= 0 || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/tournaments');
+            return;
+        }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can review recommendations.';
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_CoachRec = $this->model('M_CoachTournamentRecommendation');
+        $ok = $M_CoachRec->updateStatusForTournament($recommendationId, $tournamentId, 'rejected', (int)($_SESSION['user_id'] ?? 0));
+
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Coach recommendation rejected.' : 'Unable to reject coach recommendation.';
+        redirect('coach/tournament_detail/' . $tournamentId);
+    }
+
+    public function approve_trainer_recommendation($tournamentId = null, $recommendationId = null)
+    {
+        $tournamentId = (int)($tournamentId ?? 0);
+        $recommendationId = (int)($recommendationId ?? 0);
+
+        if ($tournamentId <= 0 || $recommendationId <= 0 || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/tournaments');
+            return;
+        }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can review recommendations.';
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_TrainerRec = $this->model('M_TrainerTournamentRecommendation');
+        $ok = $M_TrainerRec->updateStatusForTournament($recommendationId, $tournamentId, 'approved', (int)($_SESSION['user_id'] ?? 0));
+
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Trainer recommendation approved.' : 'Unable to approve trainer recommendation.';
+        redirect('coach/tournament_detail/' . $tournamentId);
+    }
+
+    public function reject_trainer_recommendation($tournamentId = null, $recommendationId = null)
+    {
+        $tournamentId = (int)($tournamentId ?? 0);
+        $recommendationId = (int)($recommendationId ?? 0);
+
+        if ($tournamentId <= 0 || $recommendationId <= 0 || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/tournaments');
+            return;
+        }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can review recommendations.';
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_TrainerRec = $this->model('M_TrainerTournamentRecommendation');
+        $ok = $M_TrainerRec->updateStatusForTournament($recommendationId, $tournamentId, 'rejected', (int)($_SESSION['user_id'] ?? 0));
+
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Trainer recommendation rejected.' : 'Unable to reject trainer recommendation.';
+        redirect('coach/tournament_detail/' . $tournamentId);
+    }
+
+    public function add_match($tournamentId = null)
+    {
+        if (!$tournamentId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/tournaments');
+            return;
+        }
+
+        if (!$this->_isHeadCoach()) {
+            $_SESSION['error'] = 'Only the head coach can add matches.';
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_Tournament = $this->model('M_Tournament');
+        $tournament = $M_Tournament->getTournamentById($tournamentId);
+        if (!$tournament) {
+            $_SESSION['error'] = 'Tournament not found.';
+            redirect('coach/tournaments');
+            return;
+        }
+
+        $name = trim((string)($_POST['name'] ?? ''));
+        $matchDate = trim((string)($_POST['match_date'] ?? ''));
+        $venue = trim((string)($_POST['venue'] ?? ''));
+        $opponentTeam = trim((string)($_POST['opponent_team'] ?? ''));
+        $result = trim((string)($_POST['result'] ?? 'pending'));
+
+        $allowedResults = ['win', 'loss', 'tie', 'draw', 'no-result', 'abandoned', 'pending'];
+        if (!in_array($result, $allowedResults, true)) {
+            $result = 'pending';
+        }
+
+        $allowedMarginTypes = ['runs', 'wickets', 'super over', 'DLS', 'boundaries', 'forfeit'];
+        $marginType = trim((string)($_POST['margin_type'] ?? ''));
+        if ($marginType === '' || !in_array($marginType, $allowedMarginTypes, true)) {
+            $marginType = null;
+        }
+
+        $marginValue = filter_input(INPUT_POST, 'margin_value', FILTER_VALIDATE_INT);
+        $ourRuns = filter_input(INPUT_POST, 'our_runs', FILTER_VALIDATE_INT);
+        $ourWickets = filter_input(INPUT_POST, 'our_wickets', FILTER_VALIDATE_INT);
+        $oppRuns = filter_input(INPUT_POST, 'opponent_runs', FILTER_VALIDATE_INT);
+        $oppWickets = filter_input(INPUT_POST, 'opponent_wickets', FILTER_VALIDATE_INT);
+        $isDls = !empty($_POST['is_dls']);
+        $summaryNotes = trim((string)($_POST['summary_notes'] ?? ''));
+
+        $errors = [];
+        if ($name === '') {
+            $errors[] = 'Match name is required.';
+        }
+        if ($matchDate === '') {
+            $errors[] = 'Match date is required.';
+        }
+        if ($opponentTeam === '') {
+            $errors[] = 'Opponent team is required.';
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['error'] = implode(' ', $errors);
+            redirect('coach/tournament_detail/' . $tournamentId);
+            return;
+        }
+
+        $M_CriMatch = $this->model('M_CriMatch');
+        try {
+            $id = $M_CriMatch->createMatch([
+                'tournament_id' => (int)$tournamentId,
+                'name' => $name,
+                'match_date' => $matchDate,
+                'venue' => $venue !== '' ? $venue : null,
+                'opponent_team' => $opponentTeam,
+                'result' => $result,
+                'margin_value' => ($marginValue !== false && $marginValue !== null) ? (int)$marginValue : null,
+                'margin_type' => $marginType,
+                'our_runs' => ($ourRuns !== false && $ourRuns !== null) ? (int)$ourRuns : null,
+                'our_wickets' => ($ourWickets !== false && $ourWickets !== null) ? (int)$ourWickets : null,
+                'opponent_runs' => ($oppRuns !== false && $oppRuns !== null) ? (int)$oppRuns : null,
+                'opponent_wickets' => ($oppWickets !== false && $oppWickets !== null) ? (int)$oppWickets : null,
+                'is_dls' => $isDls,
+                'summary_notes' => $summaryNotes !== '' ? $summaryNotes : null,
+            ]);
+
+            if ($id) {
+                $_SESSION['success'] = 'Match added successfully.';
+            } else {
+                $_SESSION['error'] = 'Failed to add match. Please try again.';
+            }
+        } catch (Throwable $e) {
+            error_log('Add match failed: ' . $e->getMessage());
+            $_SESSION['error'] = 'Database error while adding match.';
+        }
+
+        redirect('coach/tournament_detail/' . $tournamentId);
     }
 
     public function update_tournament_status($id = null)

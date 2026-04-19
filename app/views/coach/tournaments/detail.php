@@ -191,10 +191,254 @@
                     </table>
                     <?php endif; ?>
                 </div>
+
+                <!-- Matches -->
+                <div class="panel-card">
+                    <div class="panel-hdr" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                        <h3><i class="fas fa-cricket"></i> Matches (<?php echo count($data['matches'] ?? []); ?>)</h3>
+                        <?php if (!empty($data['is_head_coach'])): ?>
+                            <button type="button" class="page-action-btn" onclick="openMatchModal()" style="background:#3b82f6;color:#fff;border:0;cursor:pointer;">
+                                <i class="fas fa-plus"></i> Add Match
+                            </button>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (empty($data['matches'])): ?>
+                        <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No matches added for this tournament yet.</p>
+                    <?php else: ?>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Match</th>
+                                    <th>Opponent</th>
+                                    <th>Result</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($data['matches'] as $m): ?>
+                                    <tr>
+                                        <td><?php echo !empty($m->Date) ? date('d M Y', strtotime($m->Date)) : '—'; ?></td>
+                                        <td><strong><?php echo htmlspecialchars($m->Name ?? 'Match'); ?></strong></td>
+                                        <td><?php echo htmlspecialchars($m->OpponentTeam ?? '—'); ?></td>
+                                        <td><span class="badge-<?php echo htmlspecialchars($m->Result ?? 'pending'); ?>"><?php echo strtoupper((string)($m->Result ?? 'pending')); ?></span></td>
+                                        <td>
+                                            <?php
+                                                $our = ($m->OurRuns !== null || $m->OurWickets !== null) ? ((int)($m->OurRuns ?? 0) . '/' . (int)($m->OurWickets ?? 0)) : '—';
+                                                $opp = ($m->OpponentRuns !== null || $m->OpponentWickets !== null) ? ((int)($m->OpponentRuns ?? 0) . '/' . (int)($m->OpponentWickets ?? 0)) : '—';
+                                                echo htmlspecialchars($our . ' vs ' . $opp);
+                                            ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+
+                <?php if (!empty($data['is_head_coach'])): ?>
+                <!-- Head coach review: coach recommendations -->
+                <div class="panel-card">
+                    <div class="panel-hdr"><h3><i class="fas fa-user-tie"></i> Coach Recommendations (<?php echo count($data['coach_recs'] ?? []); ?>)</h3></div>
+                    <?php if (empty($data['coach_recs'])): ?>
+                        <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No coach recommendations yet.</p>
+                    <?php else: ?>
+                    <table class="data-table">
+                        <thead><tr><th>Coach</th><th>Player</th><th>Role</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <?php foreach (($data['coach_recs'] ?? []) as $r): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($r->CoachName ?? ''); ?></td>
+                                <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
+                                <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
+                                <td style="max-width:220px;"><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
+                                <td><span class="badge-<?php echo htmlspecialchars($r->Status ?? 'pending'); ?>"><?php echo strtoupper((string)($r->Status ?? 'pending')); ?></span></td>
+                                <td>
+                                    <?php if (strcasecmp((string)($r->Status ?? ''), 'pending') === 0): ?>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/coach/approve_coach_recommendation/<?php echo (int)$t->TournamentID; ?>/<?php echo (int)($r->RecommendationID ?? 0); ?>" style="display:inline;">
+                                            <button type="submit" class="page-action-btn" style="background:#16a34a;color:#fff;border:0;cursor:pointer;">Approve</button>
+                                        </form>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/coach/reject_coach_recommendation/<?php echo (int)$t->TournamentID; ?>/<?php echo (int)($r->RecommendationID ?? 0); ?>" style="display:inline;">
+                                            <button type="submit" class="page-action-btn" style="background:#ef4444;color:#fff;border:0;cursor:pointer;">Reject</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span style="color:#94a3b8;">—</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Head coach review: trainer recommendations -->
+                <div class="panel-card">
+                    <div class="panel-hdr"><h3><i class="fas fa-dumbbell"></i> Trainer Recommendations (<?php echo count($data['trainer_recs'] ?? []); ?>)</h3></div>
+                    <?php if (empty($data['trainer_recs'])): ?>
+                        <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No trainer recommendations yet.</p>
+                    <?php else: ?>
+                    <table class="data-table">
+                        <thead><tr><th>Trainer</th><th>Player</th><th>Fitness</th><th>Comments</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <?php foreach (($data['trainer_recs'] ?? []) as $r): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($r->TrainerName ?? ''); ?></td>
+                                <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
+                                <td><?php echo htmlspecialchars($r->FitnessRecommended ?? '—'); ?></td>
+                                <td style="max-width:220px;"><small><?php echo htmlspecialchars($r->Comments ?? '—'); ?></small></td>
+                                <td><span class="badge-<?php echo htmlspecialchars($r->Status ?? 'pending'); ?>"><?php echo strtoupper((string)($r->Status ?? 'pending')); ?></span></td>
+                                <td>
+                                    <?php if (strcasecmp((string)($r->Status ?? ''), 'pending') === 0): ?>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/coach/approve_trainer_recommendation/<?php echo (int)$t->TournamentID; ?>/<?php echo (int)($r->RecommendationID ?? 0); ?>" style="display:inline;">
+                                            <button type="submit" class="page-action-btn" style="background:#16a34a;color:#fff;border:0;cursor:pointer;">Approve</button>
+                                        </form>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/coach/reject_trainer_recommendation/<?php echo (int)$t->TournamentID; ?>/<?php echo (int)($r->RecommendationID ?? 0); ?>" style="display:inline;">
+                                            <button type="submit" class="page-action-btn" style="background:#ef4444;color:#fff;border:0;cursor:pointer;">Reject</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span style="color:#94a3b8;">—</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>
 </div>
+
+<?php if (!empty($data['is_head_coach'])): ?>
+    <div class="modal" id="matchModal" style="display:none;">
+        <div class="modal-content" style="max-width:720px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add Match</h3>
+                <button class="modal-close" type="button" onclick="closeMatchModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="<?php echo URLROOT; ?>/coach/add_match/<?php echo (int)$t->TournamentID; ?>">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div style="grid-column:1/-1;">
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Match Name</label>
+                            <input name="name" type="text" required placeholder="e.g. League Match 1" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Date</label>
+                            <input name="match_date" type="date" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Venue</label>
+                            <input name="venue" type="text" placeholder="e.g. Main Ground" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+
+                        <div style="grid-column:1/-1;">
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Opponent Team</label>
+                            <input name="opponent_team" type="text" required placeholder="e.g. Thunder Warriors" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Result</label>
+                            <select name="result" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;">
+                                <?php foreach (['pending','win','loss','tie','draw','no-result','abandoned'] as $opt): ?>
+                                    <option value="<?php echo $opt; ?>"><?php echo strtoupper(str_replace('-', ' ', $opt)); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">DLS</label>
+                            <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;">
+                                <input type="checkbox" name="is_dls" value="1" />
+                                <span style="font-size:13px;color:#374151;">Applied</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Margin Value</label>
+                            <input name="margin_value" type="number" min="0" placeholder="e.g. 5" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Margin Type</label>
+                            <select name="margin_type" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;">
+                                <option value="">—</option>
+                                <?php foreach (['runs','wickets','super over','DLS','boundaries','forfeit'] as $opt): ?>
+                                    <option value="<?php echo $opt; ?>"><?php echo strtoupper($opt); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Our Runs</label>
+                            <input name="our_runs" type="number" min="0" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Our Wickets</label>
+                            <input name="our_wickets" type="number" min="0" max="10" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Opponent Runs</label>
+                            <input name="opponent_runs" type="number" min="0" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Opponent Wickets</label>
+                            <input name="opponent_wickets" type="number" min="0" max="10" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+                        </div>
+
+                        <div style="grid-column:1/-1;">
+                            <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">Summary Notes</label>
+                            <textarea name="summary_notes" rows="3" placeholder="Optional notes" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;resize:vertical;"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+                        <button type="button" class="page-action-btn" onclick="closeMatchModal()" style="background:#e2e8f0;color:#0f172a;border:0;cursor:pointer;">Cancel</button>
+                        <button type="submit" class="page-action-btn" style="background:#16a34a;color:#fff;border:0;cursor:pointer;">Save Match</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openMatchModal() {
+            var modal = document.getElementById('matchModal');
+            if (!modal) return;
+
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+        }
+        function closeMatchModal() {
+            var modal = document.getElementById('matchModal');
+            if (!modal) return;
+
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+
+            // Allow transition to play before fully hiding
+            window.setTimeout(function() {
+                modal.style.display = 'none';
+            }, 320);
+        }
+
+        // Close when clicking outside modal content
+        (function() {
+            var modal = document.getElementById('matchModal');
+            if (!modal) return;
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeMatchModal();
+            });
+        })();
+    </script>
+<?php endif; ?>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
