@@ -272,6 +272,7 @@ class M_Performance {
                     $strikeRate = $match->BallsFaced > 0 ?
                         round(($match->RunsScored / $match->BallsFaced) * 100, 2) : 0;
                     $battingData[] = [
+                        'match_id'    => $match->MatchID,
                         'match_date'  => $match->Date,
                         'opponent'    => $match->OpponentTeam,
                         'tournament'  => $match->TournamentName,
@@ -297,6 +298,7 @@ class M_Performance {
                     $economy = $match->OversBowled > 0 ?
                         round($match->RunsConceded / $match->OversBowled, 2) : 0;
                     $bowlingData[] = [
+                        'match_id'      => $match->MatchID,
                         'match_date'    => $match->Date,
                         'opponent'      => $match->OpponentTeam,
                         'tournament'    => $match->TournamentName,
