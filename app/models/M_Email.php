@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Email log model.
+ *
+ * The Mailer sends the email, while this model records whether an email was
+ * sent or failed. The log prevents duplicate payment/session emails.
+ */
 class M_Email
 {
     private $db;
@@ -12,6 +18,8 @@ class M_Email
     public function hasPaymentConfirmationBeenSent(string $orderId): bool
     {
         try {
+            // Duplicate guard: if a successful confirmation exists for this order,
+            // PaymentEmailService can skip sending the same receipt again.
             $this->db->query("SELECT EmailID FROM emaillog
                 WHERE EmailType = 'notification'
                   AND Subject LIKE :subject
@@ -33,6 +41,7 @@ class M_Email
         ?string $errorMessage = null
     ): bool {
         try {
+            // Store success/failure instead of crashing payment flow when SMTP fails.
             $this->db->query("INSERT INTO emaillog
                 (UserID, RecipientEmail, Subject, EmailType, Status, SentAt, ErrorMessage)
                 VALUES (:user_id, :recipient_email, :subject, 'notification', :status, :sent_at, :error_message)");
@@ -52,6 +61,7 @@ class M_Email
     public function hasSessionReminderBeenSent(int $bookingId): bool
     {
         try {
+            // Duplicate guard for session reminder emails.
             $this->db->query("SELECT EmailID FROM emaillog
                 WHERE EmailType = 'notification'
                   AND Subject LIKE :subject
@@ -74,6 +84,7 @@ class M_Email
         ?string $errorMessage = null
     ): bool {
         try {
+            // Record reminder delivery so future heartbeat runs can avoid duplicates.
             $this->db->query("INSERT INTO emaillog
                 (UserID, RecipientEmail, Subject, EmailType, Status, SentAt, ErrorMessage)
                 VALUES (:user_id, :recipient_email, :subject, 'notification', :status, :sent_at, :error_message)");

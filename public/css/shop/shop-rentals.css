@@ -49,6 +49,47 @@
     box-shadow: none;
 }
 
+.slot-style-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+#rentalsTable.slot-style-table,
+#returnsTable.slot-style-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#rentalsTable.slot-style-table thead tr,
+#returnsTable.slot-style-table thead tr {
+    background: #f8f9fa;
+}
+
+#rentalsTable.slot-style-table thead th,
+#returnsTable.slot-style-table thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#rentalsTable.slot-style-table tbody tr,
+#returnsTable.slot-style-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+#rentalsTable.slot-style-table tbody td,
+#returnsTable.slot-style-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+}
+
 /* Keep Equipment Rentals summary cards static (no hover/motion effects) */
 .summary-card,
 .summary-card::before,
@@ -96,6 +137,31 @@
 .notification {
     animation: none !important;
     transition: none !important;
+}
+
+.rentals-action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rentals-action-buttons .rental-view-btn {
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.rentals-action-buttons .rental-view-btn i {
+    font-size: 11px;
 }
 
 @media (max-width: 768px) {

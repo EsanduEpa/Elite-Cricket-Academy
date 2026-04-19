@@ -1,17 +1,13 @@
 // Admin Dashboard JavaScript - Elite Cricket Academy
-console.log('✅ dashboard.js file loaded successfully!');
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing dashboard...');
     initializeDashboard();
     initializeSidebar();
+    initializeActivityFilters();
     
     // Initialize custom calendar
     if (document.getElementById('monthView')) {
-        console.log('Calendar found, initializing...');
         initializeCalendar();
-    } else {
-        console.log('Calendar not found');
     }
     
     if (document.querySelector('.summary-card canvas')) {
@@ -34,6 +30,75 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update time every second
     setInterval(updateCurrentTime, 1000);
 });
+
+function initializeActivityFilters() {
+    const typeFilter = document.getElementById('activityTypeFilter');
+    const timeFilter = document.getElementById('activityTimeFilter');
+
+    if (typeFilter) typeFilter.addEventListener('change', filterActivities);
+    if (timeFilter) timeFilter.addEventListener('change', filterActivities);
+    filterActivities();
+}
+
+function filterActivities() {
+    const typeFilter = document.getElementById('activityTypeFilter')?.value || 'all';
+    const timeFilter = document.getElementById('activityTimeFilter')?.value || 'all';
+    const rows = document.querySelectorAll('#activityTableBody tr[data-activity-type]');
+    const emptyRow = document.getElementById('activityNoResultsRow');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const activityType = row.dataset.activityType || '';
+        const activityDate = row.dataset.activityDate || '';
+        let showRow = typeFilter === 'all' || activityType === typeFilter;
+
+        if (timeFilter !== 'all') {
+            showRow = showRow && matchesActivityTimeFilter(activityDate, timeFilter);
+        }
+
+        row.style.display = showRow ? '' : 'none';
+        if (showRow) visibleCount++;
+    });
+
+    if (emptyRow) {
+        emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+    }
+}
+
+function matchesActivityTimeFilter(activityDate, timeFilter) {
+    if (!activityDate) return false;
+
+    const rowDate = new Date(`${activityDate}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (Number.isNaN(rowDate.getTime())) return false;
+
+    if (timeFilter === 'today') {
+        return rowDate.getTime() === today.getTime();
+    }
+
+    if (timeFilter === 'week') {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return rowDate >= weekAgo && rowDate <= today;
+    }
+
+    if (timeFilter === 'month') {
+        return rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+    }
+
+    return true;
+}
+
+function clearActivityFilters() {
+    const typeFilter = document.getElementById('activityTypeFilter');
+    const timeFilter = document.getElementById('activityTimeFilter');
+
+    if (typeFilter) typeFilter.value = 'all';
+    if (timeFilter) timeFilter.value = 'all';
+    filterActivities();
+}
 
 // Dashboard Initialization
 function initializeDashboard() {

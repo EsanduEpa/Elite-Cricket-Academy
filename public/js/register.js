@@ -502,4 +502,58 @@ if (homeLink) {
         e.preventDefault();
         window.location.href = '/'; // Navigate back to home page
     });
-} 
+}
+
+// Membership plan modal.
+// The PHP view renders the plans from the database; this JavaScript only handles selection UI.
+(function initPlanDetailsModal() {
+    const modal = document.getElementById('planDetailsModal');
+    const openBtn = document.getElementById('seePlanDetailsBtn');
+    const closeBtn = document.getElementById('closePlanModal');
+    const dropdown = document.getElementById('membershipPlan');
+
+    if (!modal || !openBtn || !closeBtn || !dropdown) {
+        return;
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function highlightSelected() {
+        document.querySelectorAll('.plan-card').forEach(function (card) {
+            card.classList.toggle('plan-card-selected', card.getAttribute('data-plan-id') === dropdown.value);
+        });
+    }
+
+    openBtn.addEventListener('click', function () {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.plan-select-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            dropdown.value = this.getAttribute('data-plan-id');
+            highlightSelected();
+            closeModal();
+        });
+    });
+
+    dropdown.addEventListener('change', highlightSelected);
+    highlightSelected();
+}());

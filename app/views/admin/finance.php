@@ -1,7 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/finance.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Admin Dashboard Layout -->
     <div class="admin-layout">
@@ -81,7 +80,7 @@
         <!-- Main Content Area -->
         <div class="main-content" id="mainContent">
             <!-- Finance Header -->
-            <div class="finance-header">
+            <div class="finance-header finance-page-header">
                 <div class="header-content">
                     <div class="header-text">
                         <h1><i class="fas fa-chart-line"></i> Finance Management</h1>
@@ -223,40 +222,8 @@
                             </div>
                         </div>
 
-                        <div class="category-card return-fees">
-                            <div class="category-header">
-                                <div class="category-icon">
-                                    <i class="fas fa-rotate-left"></i>
-                                </div>
-                                <div class="category-info">
-                                    <h3><?php echo htmlspecialchars($data['revenueCategories']['return_fees']['label'] ?? 'Return Fees'); ?></h3>
-                                    <div class="category-amount">LKR <?php echo number_format($data['revenueCategories']['return_fees']['amount'] ?? 0); ?></div>
-                                </div>
-                                <div class="category-percentage"><?php echo $data['revenueCategories']['return_fees']['percentage'] ?? 0; ?>%</div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Revenue Chart -->
-                    <div class="revenue-chart-container">
-                        <div class="chart-header">
-                            <h3>Revenue Trends</h3>
-                            <div class="chart-controls">
-                                <button class="chart-type-btn active" data-type="line">
-                                    <i class="fas fa-chart-line"></i>
-                                </button>
-                                <button class="chart-type-btn" data-type="bar">
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
-                                <button class="chart-type-btn" data-type="pie">
-                                    <i class="fas fa-chart-pie"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -303,7 +270,10 @@
                         <tbody id="paymentsTableBody">
                             <?php if(!empty($data['recentTransactions'])): ?>
                                 <?php foreach ($data['recentTransactions'] as $payment): ?>
-                                <tr class="payment-row" data-status="<?php echo $payment['status']; ?>" data-type="<?php echo strtolower(str_replace(' ', '_', $payment['type'])); ?>">
+                                <tr class="payment-row"
+                                    data-payment-id="<?php echo htmlspecialchars($payment['id']); ?>"
+                                    data-status="<?php echo $payment['status']; ?>"
+                                    data-type="<?php echo strtolower(str_replace(' ', '_', $payment['type'])); ?>">
                                     <td class="payment-id"><?php echo htmlspecialchars($payment['id']); ?></td>
                                     <td class="payment-type">
                                         <span class="type-badge <?php echo strtolower(str_replace(' ', '-', $payment['type'])); ?>">
@@ -371,8 +341,8 @@
                     <?php if(!empty($data['topSources'])): ?>
                         <?php foreach ($data['topSources'] as $index => $item): ?>
                         <div class="performance-card rank-<?php echo $index + 1; ?>">
-                            <div class="rank-badge">#<?php echo $index + 1; ?></div>
                             <div class="item-info">
+                                <div class="item-rank">#<?php echo $index + 1; ?></div>
                                 <div class="item-name"><?php echo htmlspecialchars($item['item']); ?></div>
                                 <div class="item-category"><?php echo ucfirst(str_replace('_', ' ', $item['category'])); ?></div>
                             </div>
@@ -402,14 +372,7 @@
     <script src="<?php echo URLROOT; ?>/js/admin/finance.js"></script>
     
     <script>
-        // Initialize charts with data
-        const monthlyData = <?php echo json_encode($data['monthlyData']); ?>;
-        const revenueCategories = <?php echo json_encode($data['revenueCategories']); ?>;
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeFinanceCharts(monthlyData, revenueCategories);
-            initializeFilters();
-        });
+        document.addEventListener('DOMContentLoaded', initializeFilters);
     </script>
 </body>
 </html>

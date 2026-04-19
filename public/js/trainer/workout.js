@@ -65,7 +65,8 @@ function filterTable() {
         }
         
         const planName = row.querySelector('.plan-name strong').textContent.toLowerCase();
-        const frequency = row.querySelector('.frequency-badge').textContent.trim();
+        const frequencyBadge = row.querySelector('.frequency-badge');
+        const frequency = frequencyBadge ? frequencyBadge.textContent.trim() : (row.dataset.frequency || '').trim();
         
         const matchesSearch = planName.includes(searchTerm);
         const matchesFrequency = !frequencyFilter || frequency === frequencyFilter;
@@ -236,14 +237,14 @@ function viewPlan(planId) {
     const row = document.querySelector(`tr[data-plan-id="${planId}"]`);
     if (row) {
         const planName = row.querySelector('.plan-name strong').textContent;
-        const frequency = row.querySelector('.frequency-badge').textContent.trim();
+        const frequencyBadge = row.querySelector('.frequency-badge');
+        const frequency = frequencyBadge ? frequencyBadge.textContent.trim() : (row.dataset.frequency || '').trim();
         const statusText = row.querySelector('.status-badge') ? row.querySelector('.status-badge').textContent.trim() : '';
         const status = statusText || '-';
         // Safely read duration and created date by class selectors added to server-rendered rows
         const durationEl = row.querySelector('.duration');
-        const dateEl = row.querySelector('.table-cell-secondary') || row.querySelector('.date');
         const duration = durationEl ? durationEl.textContent.trim() : '';
-        const date = dateEl ? dateEl.textContent.trim() : '';
+        const date = (row.dataset.created || '').trim() || '-';
         const planIdFormatted = row.querySelector('.plan-id').textContent;
 
         const videoLinkEl = row.querySelector('a.video-link');
@@ -334,7 +335,7 @@ function prepareEditFromView(planId) {
     if (!row) return;
 
     const planName = row.querySelector('.plan-name strong') ? row.querySelector('.plan-name strong').textContent.trim() : '';
-    const frequency = row.querySelector('.frequency-badge') ? row.querySelector('.frequency-badge').textContent.trim() : '';
+    const frequency = row.querySelector('.frequency-badge') ? row.querySelector('.frequency-badge').textContent.trim() : ((row.dataset.frequency || '').trim());
     const durationText = row.querySelector('.duration') ? row.querySelector('.duration').textContent.trim() : '';
     const durationNumeric = parseInt(durationText.replace(/[^0-9]/g, ''), 10) || '';
     const durationDaysText = row.querySelector('.durationdays') ? row.querySelector('.durationdays').textContent.trim() : '';
@@ -348,7 +349,7 @@ function prepareEditFromView(planId) {
         duration: durationNumeric,
         durationdays: durationDaysNumeric,
         videolink: videolink,
-        intensity: row.querySelector('.intensity-badge') ? row.querySelector('.intensity-badge').textContent.trim() : 'Moderate',
+        intensity: row.querySelector('.intensity-badge') ? row.querySelector('.intensity-badge').textContent.trim() : ((row.dataset.intensity || 'Moderate').trim()),
         notsuitablefor: row.querySelector('.notsuitablefor') ? row.querySelector('.notsuitablefor').textContent.trim() : '',
         benefits: row.querySelector('.benefits') ? row.querySelector('.benefits').textContent.trim() : ''
     };

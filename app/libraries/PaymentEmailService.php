@@ -15,6 +15,8 @@ class PaymentEmailService
         string $paymentTitle,
         string $paymentDescription
     ): bool {
+        // Called after PayHere confirms a successful payment.
+        // Input: user/payment details. Output: true if SMTP accepted the email.
         if (!filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
             self::logAttempt($userId, $recipientEmail, $orderId, false, 'Skipped because recipient email is missing or invalid.');
             return false;
@@ -22,6 +24,7 @@ class PaymentEmailService
 
         $emailModel = new M_Email();
         if ($emailModel->hasPaymentConfirmationBeenSent($orderId)) {
+            // PayHere may send duplicate notifications, so we avoid duplicate receipts.
             return true;
         }
 
@@ -70,6 +73,8 @@ class PaymentEmailService
             </div>';
 
         try {
+            // Email is useful but non-critical. The payment must remain successful
+            // even if SMTP or the recipient mailbox fails.
             $sent = Mailer::send($recipientEmail, $subject, $htmlBody, $recipientName);
         } catch (Throwable $e) {
             error_log('Payment success email failed unexpectedly: ' . $e->getMessage());

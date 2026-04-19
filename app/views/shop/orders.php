@@ -38,13 +38,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="nav-link">
-                        <i class="fas fa-warehouse"></i>
-                        <span>Inventory</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
                     <a href="<?php echo URLROOT; ?>/shop/rentals" class="nav-link">
                         <i class="fas fa-tools"></i>
                         <span>Equipment Rentals</span>
@@ -200,8 +193,8 @@
                 </div>
             </div>
             
-            <div class="table-content" style="overflow-x: auto;">
-                <table id="ordersTable" class="dashboard-table" style="width: 100%; min-width: 900px;">
+            <div class="table-content slot-style-table-wrap" style="overflow-x: auto;">
+                <table id="ordersTable" class="dashboard-table slot-style-table" style="width: 100%; min-width: 900px;">
                     <thead>
                         <tr>
                             <th style="width: 120px;">Order ID</th>
@@ -239,34 +232,13 @@
                                         <span class="table-badge status-<?php echo strtolower($order->PaymentMethod); ?>"><?php echo ucfirst($order->PaymentMethod); ?></span>
                                     </td>
                                     <td>
-                                        <select class="status-dropdown" onchange="updateOrderStatus(<?php echo $order->OrderID; ?>, this.value)">
-                                            <option value="pending" <?php echo $order->Status === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                            <option value="processing" <?php echo $order->Status === 'processing' ? 'selected' : ''; ?>>Processing</option>
-                                            <option value="completed" <?php echo $order->Status === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                                            <option value="cancelled" <?php echo $order->Status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                                        </select>
+                                        <span class="table-badge status-<?php echo strtolower($order->Status); ?>"><?php echo ucfirst($order->Status); ?></span>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-small btn-primary" onclick="viewOrder(<?php echo $order->OrderID; ?>)">
-                                                <i class="fas fa-eye"></i>
+                                        <div class="order-action-buttons">
+                                            <button class="order-action-btn btn-view" onclick="viewOrder(<?php echo $order->OrderID; ?>)">
+                                                <i class="fas fa-eye"></i> View
                                             </button>
-                                            <button class="btn-small btn-secondary" onclick="printInvoice(<?php echo $order->OrderID; ?>)">
-                                                <i class="fas fa-print"></i>
-                                            </button>
-                                            <?php if($order->Status === 'pending'): ?>
-                                                <button class="btn-small btn-success" onclick="processPayment(<?php echo $order->OrderID; ?>)">
-                                                    <i class="fas fa-credit-card"></i>
-                                                </button>
-                                            <?php elseif($order->Status === 'processing'): ?>
-                                                <button class="btn-small btn-warning" onclick="trackDelivery(<?php echo $order->OrderID; ?>)">
-                                                    <i class="fas fa-truck"></i>
-                                                </button>
-                                            <?php elseif($order->Status === 'completed'): ?>
-                                                <button class="btn-small btn-info" onclick="requestReview(<?php echo $order->OrderID; ?>)">
-                                                    <i class="fas fa-star"></i>
-                                                </button>
-                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -485,6 +457,40 @@ function showNotification(message, type) {
 </script>
 
 <style>
+.slot-style-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+#ordersTable.slot-style-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#ordersTable.slot-style-table thead tr {
+    background: #f8f9fa;
+}
+
+#ordersTable.slot-style-table thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#ordersTable.slot-style-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+#ordersTable.slot-style-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+}
+
 .data-table .table-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -569,18 +575,32 @@ function showNotification(message, type) {
     border-color: #4A90E2;
 }
 
-.status-dropdown {
-    padding: 6px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.5);
-    outline: none;
-    font-size: 0.9rem;
+.order-action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
+.order-action-btn {
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+.order-action-btn i {
+    font-size: 11px;
+}
+
+.order-action-btn.btn-view {
+    background: #4a90e2;
 }
 
 /* Modal Styles */

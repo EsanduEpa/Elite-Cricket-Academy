@@ -65,11 +65,94 @@ class Nutrition extends Controller {
             'Recommended calories: ' . ($fields['recommended_calories'] ?? ''),
         ];
 
+        if (!empty($fields['supplements'])) {
+            $lines[] = 'Supplements: ' . $fields['supplements'];
+        }
+
         if (!empty($fields['description'])) {
             $lines[] = 'Description: ' . $fields['description'];
         }
 
         return implode("\n", array_filter($lines, static fn($line) => trim((string)$line) !== ''));
+    }
+
+    private function _extractDescriptionFromDietDetails($dietDetails): string {
+        $dietDetails = (string)$dietDetails;
+        if ($dietDetails === '') {
+            return '';
+        }
+
+        foreach (preg_split('/\r\n|\r|\n/', $dietDetails) as $line) {
+            if (stripos($line, 'Description:') === 0) {
+                return trim(substr($line, strlen('Description:')));
+            }
+        }
+
+        return '';
+    }
+
+    private function _extractDietDetailsFields($dietDetails): array {
+        $result = [
+            'plan_name' => '',
+            'protein_percentage' => null,
+            'carbohydrate_percentage' => null,
+            'fat_percentage' => null,
+            'recommended_calories' => null,
+            'supplements' => '',
+            'description' => '',
+        ];
+
+        $dietDetails = (string)$dietDetails;
+        if ($dietDetails === '') {
+            return $result;
+        }
+
+        foreach (preg_split('/\r\n|\r|\n/', $dietDetails) as $line) {
+            $line = trim((string)$line);
+            if ($line === '') {
+                continue;
+            }
+
+            if (stripos($line, 'Plan:') === 0) {
+                $result['plan_name'] = trim(substr($line, strlen('Plan:')));
+                continue;
+            }
+
+            if (stripos($line, 'Protein:') === 0) {
+                $value = trim(str_replace('%', '', substr($line, strlen('Protein:'))));
+                $result['protein_percentage'] = $this->_normalizeDecimal($value);
+                continue;
+            }
+
+            if (stripos($line, 'Carbohydrates:') === 0) {
+                $value = trim(str_replace('%', '', substr($line, strlen('Carbohydrates:'))));
+                $result['carbohydrate_percentage'] = $this->_normalizeDecimal($value);
+                continue;
+            }
+
+            if (stripos($line, 'Fat:') === 0) {
+                $value = trim(str_replace('%', '', substr($line, strlen('Fat:'))));
+                $result['fat_percentage'] = $this->_normalizeDecimal($value);
+                continue;
+            }
+
+            if (stripos($line, 'Recommended calories:') === 0) {
+                $value = trim(substr($line, strlen('Recommended calories:')));
+                $result['recommended_calories'] = $this->_normalizeInteger($value);
+                continue;
+            }
+
+            if (stripos($line, 'Supplements:') === 0) {
+                $result['supplements'] = trim(substr($line, strlen('Supplements:')));
+                continue;
+            }
+
+            if (stripos($line, 'Description:') === 0) {
+                $result['description'] = trim(substr($line, strlen('Description:')));
+            }
+        }
+
+        return $result;
     }
 
     // ── GET  nutrition  (index) ──────────────────────────────────────
@@ -159,6 +242,14 @@ class Nutrition extends Controller {
             flash('nutrition_message', 'Plan not found or access denied.', 'alert alert-danger');
             redirect('nutrition');
             return;
+        }
+
+        // Backward compatibility: if Supplements column is unavailable, hydrate from DietDetails.
+        if (empty($plan->Supplements) && empty($plan->supplements) && !empty($plan->DietDetails)) {
+            $legacyFields = $this->_extractDietDetailsFields($plan->DietDetails);
+            if (!empty($legacyFields['supplements'])) {
+                $plan->Supplements = (string)$legacyFields['supplements'];
+            }
         }
 
         $players = $model->getAllPlayers();
@@ -296,6 +387,9 @@ class Nutrition extends Controller {
     // ── Private: shared validation for create + update ───────────────
     // Returns [$errors, $sanitisedFields]
     private function _validate(array $post, $model = null, $existingPlan = null): array {
+        $isEdit = $existingPlan !== null;
+        $existingDietFields = $existingPlan ? $this->_extractDietDetailsFields($existingPlan->DietDetails ?? '') : [];
+
         $templateId = (int)($post['template_id'] ?? 0);
         $existingTemplateIdFromPost = (int)($post['existing_template_id'] ?? 0);
         $template = null;
@@ -321,43 +415,65 @@ class Nutrition extends Controller {
         }
 
         $planName = trim(htmlspecialchars($post['plan_name'] ?? '', ENT_QUOTES, 'UTF-8'));
-        if ($planName === '' && $template) {
-            $planName = htmlspecialchars((string)($template->PlanName ?? ''), ENT_QUOTES, 'UTF-8');
-        } elseif ($planName === '' && $existingPlan) {
+        if ($planName === '' && $existingPlan) {
             $planName = trim((string)($existingPlan->PlanName ?? $existingPlan->nutritionPlanName ?? ''));
+            if ($planName === '') {
+                $planName = trim((string)($existingDietFields['plan_name'] ?? ''));
+            }
+        } elseif ($planName === '' && $template) {
+            $planName = htmlspecialchars((string)($template->PlanName ?? ''), ENT_QUOTES, 'UTF-8');
         }
 
         $proteinPercentage = $this->_normalizeDecimal($post['protein_percentage'] ?? null);
-        if ($proteinPercentage === null && $template) {
-            $proteinPercentage = $this->_normalizeDecimal($template->ProteinPercentage ?? null);
-        } elseif ($proteinPercentage === null && $existingPlan) {
+        if ($proteinPercentage === null && $existingPlan) {
             $proteinPercentage = $this->_normalizeDecimal($existingPlan->ProteinPercentage ?? null);
+            if ($proteinPercentage === null) {
+                $proteinPercentage = $existingDietFields['protein_percentage'] ?? null;
+            }
+        } elseif ($proteinPercentage === null && $template) {
+            $proteinPercentage = $this->_normalizeDecimal($template->ProteinPercentage ?? null);
         }
 
         $carbohydratePercentage = $this->_normalizeDecimal($post['carbohydrate_percentage'] ?? null);
-        if ($carbohydratePercentage === null && $template) {
-            $carbohydratePercentage = $this->_normalizeDecimal($template->CarbohydratePercentage ?? null);
-        } elseif ($carbohydratePercentage === null && $existingPlan) {
+        if ($carbohydratePercentage === null && $existingPlan) {
             $carbohydratePercentage = $this->_normalizeDecimal($existingPlan->CarbohydratePercentage ?? null);
+            if ($carbohydratePercentage === null) {
+                $carbohydratePercentage = $existingDietFields['carbohydrate_percentage'] ?? null;
+            }
+        } elseif ($carbohydratePercentage === null && $template) {
+            $carbohydratePercentage = $this->_normalizeDecimal($template->CarbohydratePercentage ?? null);
         }
 
         $fatPercentage = $this->_normalizeDecimal($post['fat_percentage'] ?? null);
-        if ($fatPercentage === null && $template) {
-            $fatPercentage = $this->_normalizeDecimal($template->FatPercentage ?? null);
-        } elseif ($fatPercentage === null && $existingPlan) {
+        if ($fatPercentage === null && $existingPlan) {
             $fatPercentage = $this->_normalizeDecimal($existingPlan->FatPercentage ?? null);
+            if ($fatPercentage === null) {
+                $fatPercentage = $existingDietFields['fat_percentage'] ?? null;
+            }
+        } elseif ($fatPercentage === null && $template) {
+            $fatPercentage = $this->_normalizeDecimal($template->FatPercentage ?? null);
         }
 
         $recommendedCalories = $this->_normalizeInteger($post['recommended_calories'] ?? null);
-        if ($recommendedCalories === null && $template) {
-            $recommendedCalories = $this->_normalizeInteger($template->RecommendedCalories ?? null);
-        } elseif ($recommendedCalories === null && $existingPlan) {
+        if ($recommendedCalories === null && $existingPlan) {
             $recommendedCalories = $this->_normalizeInteger($existingPlan->RecommendedCalories ?? null);
+            if ($recommendedCalories === null) {
+                $recommendedCalories = $this->_normalizeInteger($existingDietFields['recommended_calories'] ?? null);
+            }
+        } elseif ($recommendedCalories === null && $template) {
+            $recommendedCalories = $this->_normalizeInteger($template->RecommendedCalories ?? null);
         }
 
         $description = trim(htmlspecialchars($post['description'] ?? '', ENT_QUOTES, 'UTF-8'));
         if ($description === '' && $existingPlan) {
-            $description = trim(htmlspecialchars((string)($existingPlan->Description ?? ''), ENT_QUOTES, 'UTF-8'));
+            $existingDescription = (string)($existingPlan->Description ?? $existingPlan->description ?? '');
+            if ($existingDescription === '') {
+                $existingDescription = (string)($existingDietFields['description'] ?? '');
+            }
+            if ($existingDescription === '') {
+                $existingDescription = $this->_extractDescriptionFromDietDetails($existingPlan->DietDetails ?? '');
+            }
+            $description = trim(htmlspecialchars($existingDescription, ENT_QUOTES, 'UTF-8'));
         }
 
         $assignmentMode = trim(strtolower($post['assignment_mode'] ?? 'individual'));
@@ -381,10 +497,32 @@ class Nutrition extends Controller {
         $playerGroup = trim($post['player_group'] ?? '');
 
         $supplements = trim(htmlspecialchars($post['supplements'] ?? '', ENT_QUOTES, 'UTF-8'));
-        $notes      = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
-        $duration    = trim($post['duration']    ?? '');
-        $status      = trim($post['status']      ?? 'active');
+        if ($isEdit && $supplements === '' && $existingPlan) {
+            $supplements = trim(htmlspecialchars((string)($existingPlan->Supplements ?? $existingPlan->supplements ?? ''), ENT_QUOTES, 'UTF-8'));
+            if ($supplements === '') {
+                $supplements = trim(htmlspecialchars((string)($existingDietFields['supplements'] ?? ''), ENT_QUOTES, 'UTF-8'));
+            }
+        }
+
+        $notes = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
+        if ($isEdit && $notes === '' && $existingPlan) {
+            $notes = trim(htmlspecialchars((string)($existingPlan->Notes ?? $existingPlan->notes ?? ''), ENT_QUOTES, 'UTF-8'));
+        }
+
+        $duration = trim($post['duration'] ?? '');
+        if ($isEdit && $duration === '' && $existingPlan) {
+            $duration = (string)($existingPlan->Duration ?? '');
+        }
+
+        $status = trim($post['status'] ?? 'active');
+        if ($isEdit && $status === '' && $existingPlan) {
+            $status = (string)($existingPlan->Status ?? 'active');
+        }
+
         $createdDate = trim($post['created_date'] ?? '');
+        if ($isEdit && $createdDate === '' && $existingPlan) {
+            $createdDate = !empty($existingPlan->CreatedDate) ? date('Y-m-d', strtotime($existingPlan->CreatedDate)) : '';
+        }
 
         $errors = [];
 
@@ -484,6 +622,7 @@ class Nutrition extends Controller {
                 'carbohydrate_percentage' => $carbohydratePercentage,
                 'fat_percentage' => $fatPercentage,
                 'recommended_calories' => $recommendedCalories,
+                'supplements' => $supplements,
                 'description' => $description,
             ]),
             'notes'        => $notes,
