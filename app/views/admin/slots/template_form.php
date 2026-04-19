@@ -259,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const maxParticipantsHint = document.getElementById('maxParticipantsHint');
     const pricePerSessionField = document.getElementById('pricePerSessionField');
     const pricePerSessionHint = document.getElementById('pricePerSessionHint');
+    const ageGroupField = document.querySelector('select[name="AgeGroup"]');
 
     if (!slotTypeField || !facilityField || !maxParticipantsField || !maxParticipantsHint || !pricePerSessionField || !pricePerSessionHint) {
         return;
@@ -296,11 +297,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function syncAgeGroupField() {
+        if (!ageGroupField) return;
+
+        // Private sessions don't use age-group filtering.
+        if (slotTypeField.value === 'private') {
+            ageGroupField.value = '';
+            ageGroupField.disabled = true;
+        } else {
+            ageGroupField.disabled = false;
+        }
+    }
+
     slotTypeField.addEventListener('change', syncMaxParticipantsHelp);
     slotTypeField.addEventListener('change', syncPricePerSession);
+    slotTypeField.addEventListener('change', syncAgeGroupField);
     facilityField.addEventListener('change', syncPricePerSession);
     syncMaxParticipantsHelp();
     syncPricePerSession();
+    syncAgeGroupField();
 });
 </script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

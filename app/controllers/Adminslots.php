@@ -206,6 +206,43 @@ class Adminslots extends Controller {
         // Only show coaches in the assignment matrix (exclude admins/managers)
         $coaches = $userModel->getAllCoachProfiles();
         $coachAssignments = $userModel->getCoachSkillAgeGroupAssignments();
+
+        $templateAgeGroup = trim((string)($template->AgeGroup ?? ''));
+        $templateCategory = strtolower(trim((string)($template->Category ?? '')));
+
+        $filteredCoaches = $coaches;
+        if ($templateAgeGroup !== '' || $templateCategory !== '') {
+            $allowedCoachIds = [];
+
+            foreach ($coachAssignments as $assignment) {
+                $coachingType = strtolower(trim((string)($assignment->CoachingType ?? '')));
+                if ($templateCategory !== '' && $coachingType !== $templateCategory) {
+                    continue;
+                }
+
+                if ($templateAgeGroup !== '') {
+                    $ageGroupsRaw = (string)($assignment->AgeGroups ?? '');
+                    $ageGroups = array_filter(array_map('trim', explode(',', $ageGroupsRaw)));
+                    $matched = false;
+                    foreach ($ageGroups as $ageGroup) {
+                        if (strcasecmp($ageGroup, $templateAgeGroup) === 0) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+
+                    if (!$matched) {
+                        continue;
+                    }
+                }
+
+                $allowedCoachIds[(int)$assignment->CoachID] = true;
+            }
+
+            $filteredCoaches = array_values(array_filter($coaches, function($coach) use ($allowedCoachIds) {
+                return isset($allowedCoachIds[(int)$coach->coach_id]);
+            }));
+        }
         $coachAssignedPlayers = [];
 
         foreach ($coaches as $coach) {
@@ -215,13 +252,17 @@ class Adminslots extends Controller {
             'title'     => 'Assign Staff — ' . ($template->temp_code ?? 'TMP') . ' · ' . $template->TemplateName,
             'template'  => $template,
             'staff'     => $model->getStaffForTemplate((int)$templateId),
-            'coaches'   => $coaches,
+            'coaches'   => $filteredCoaches,
             'coachAssignments' => $coachAssignments,
             'coachAssignedPlayers' => $coachAssignedPlayers,
             'trainers'  => $model->getAvailableTrainers(),
             'error'     => $error,
             'success'   => $success,
             'fromCreate' => $fromCreate,
+            'coachFilter' => [
+                'ageGroup' => $templateAgeGroup,
+                'category' => $templateCategory,
+            ],
         ];
         $this->view('admin/slots/admin_slots_staff', $data);
     }
