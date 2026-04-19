@@ -235,8 +235,8 @@
                 </div>
             </div>
             
-            <div class="table-content" style="overflow-x: auto;">
-                <table id="reviewsTable" class="dashboard-table">
+            <div class="table-content slot-style-table-wrap" style="overflow-x: auto;">
+                <table id="reviewsTable" class="dashboard-table slot-style-table" style="min-width: 1280px; width: 100%;">
                     <thead>
                         <tr>
                             <th style="width: 100px;">Review ID</th>
@@ -284,12 +284,9 @@
                                 <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(248)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="respondToReview(248)">
-                                        <i class="fas fa-reply"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(248)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -329,15 +326,9 @@
                                 <span class="table-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Pending</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(247)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="approveReview(247)">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="rejectReview(247)">
-                                        <i class="fas fa-times"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(247)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -377,12 +368,9 @@
                                 <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(246)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="respondToReview(246)">
-                                        <i class="fas fa-reply"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(246)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -422,15 +410,9 @@
                                 <span class="table-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Pending</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(245)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="approveReview(245)">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn-small btn-danger" onclick="rejectReview(245)">
-                                        <i class="fas fa-times"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(245)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -470,12 +452,9 @@
                                 <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(244)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="respondToReview(244)">
-                                        <i class="fas fa-reply"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(244)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -515,15 +494,9 @@
                                 <span class="table-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">Flagged</span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button class="btn-small btn-primary" onclick="viewReview(243)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-small btn-warning" onclick="contactCustomer(243)">
-                                        <i class="fas fa-phone"></i>
-                                    </button>
-                                    <button class="btn-small btn-success" onclick="respondToReview(243)">
-                                        <i class="fas fa-reply"></i>
+                                <div class="review-action-buttons">
+                                    <button class="review-action-btn btn-view" onclick="viewReview(243)">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
                                 </div>
                             </td>
@@ -558,6 +531,71 @@
 </div>
 
 <style>
+.slot-style-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+#reviewsTable.slot-style-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#reviewsTable.slot-style-table thead tr {
+    background: #f8f9fa;
+}
+
+#reviewsTable.slot-style-table thead th {
+    background: #f8f9fa;
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#reviewsTable.slot-style-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+#reviewsTable.slot-style-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+}
+
+.review-action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.review-action-btn {
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+.review-action-btn i {
+    font-size: 11px;
+}
+
+.review-action-btn.btn-view {
+    background: #4a90e2;
+}
+
 /* Reviews table action bar layout and compact export button */
 .data-table .table-header {
     display: grid;

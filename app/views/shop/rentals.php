@@ -241,8 +241,8 @@
                 </div>
             </div>
 
-            <div class="table-content">
-                <table id="rentalsTable" class="dashboard-table">
+            <div class="table-content slot-style-table-wrap" style="overflow-x:auto;">
+                <table id="rentalsTable" class="dashboard-table slot-style-table" style="min-width: 1080px; width: 100%;">
                     <thead>
                         <tr>
                             <th>Rental ID</th>
@@ -337,8 +337,8 @@
                 </div>
             </div>
 
-            <div class="table-content">
-                <table id="returnsTable" class="dashboard-table">
+            <div class="table-content slot-style-table-wrap" style="overflow-x:auto;">
+                <table id="returnsTable" class="dashboard-table slot-style-table" style="min-width: 1240px; width: 100%;">
                     <thead>
                         <tr>
                             <th>Return ID</th>
