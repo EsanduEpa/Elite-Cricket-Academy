@@ -244,8 +244,8 @@
                 </div>
             </div>
             
-            <div class="table-content">
-                <table id="productsTable" class="dashboard-table">
+            <div class="table-content slot-style-table-wrap" style="overflow-x: auto;">
+                <table id="productsTable" class="dashboard-table slot-style-table" style="min-width: 980px; width: 100%;">
                     <thead>
                         <tr>
                             <th>Image</th>
@@ -309,18 +309,15 @@
                                         <span class="table-badge status-<?php echo strtolower($product->Status); ?>"><?php echo ucfirst($product->Status); ?></span>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-small btn-primary" onclick="editProduct(<?php echo $product->ProductID; ?>)">
-                                                <i class="fas fa-edit"></i>
+                                        <div class="catalog-action-buttons">
+                                            <button class="catalog-action-btn btn-edit" onclick="editProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-edit"></i> Edit
                                             </button>
-                                            <button class="btn-small btn-secondary" onclick="viewProduct(<?php echo $product->ProductID; ?>)">
-                                                <i class="fas fa-eye"></i>
+                                            <button class="catalog-action-btn btn-view" onclick="viewProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-eye"></i> View
                                             </button>
-                                            <button class="btn-small btn-warning" onclick="duplicateProduct(<?php echo $product->ProductID; ?>)">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                            <button class="btn-small btn-danger" onclick="deleteProduct(<?php echo $product->ProductID; ?>)">
-                                                <i class="fas fa-trash"></i>
+                                            <button class="catalog-action-btn btn-delete" onclick="deleteProduct(<?php echo $product->ProductID; ?>)">
+                                                <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </div>
                                     </td>
@@ -452,6 +449,76 @@
 </div>
 
 <style>
+.slot-style-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+#productsTable.slot-style-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#productsTable.slot-style-table thead tr {
+    background: #f8f9fa;
+}
+
+#productsTable.slot-style-table thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#productsTable.slot-style-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+#productsTable.slot-style-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+}
+
+.catalog-action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.catalog-action-btn {
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+.catalog-action-btn i {
+    font-size: 11px;
+}
+
+.catalog-action-btn.btn-edit {
+    background: #4a90e2;
+}
+
+.catalog-action-btn.btn-view {
+    background: #16a085;
+}
+
+.catalog-action-btn.btn-delete {
+    background: #e74c3c;
+}
+
 /* Category badges */
 .category-badge {
     padding: 4px 8px;
@@ -753,5 +820,5 @@
 </style>
 
 <script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
-<script src="<?php echo URLROOT; ?>/js/shop/products.js"></script>
+<script src="<?php echo URLROOT; ?>/js/shop/products.js?v=20260419"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

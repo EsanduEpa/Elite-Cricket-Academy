@@ -305,10 +305,10 @@
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
+                                        <div class="action-buttons rentals-action-buttons">
                                             <?php if (!in_array($status, ['returned','cancelled'], true)) : ?>
-                                                <button class="btn-small btn-success js-set-return" type="button" data-rental-id="<?php echo $rid; ?>" title="Add Return">
-                                                    <i class="fas fa-undo"></i>
+                                                <button class="btn-small btn-primary js-set-return rental-view-btn" type="button" data-rental-id="<?php echo $rid; ?>" title="View Rental">
+                                                    <i class="fas fa-eye"></i> View
                                                 </button>
                                             <?php else : ?>
                                                 <span style="color:#7f8c8d; font-size:0.9rem;">—</span>

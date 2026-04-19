@@ -98,6 +98,31 @@
     transition: none !important;
 }
 
+.rentals-action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rentals-action-buttons .rental-view-btn {
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.rentals-action-buttons .rental-view-btn i {
+    font-size: 11px;
+}
+
 @media (max-width: 768px) {
     .data-table .table-header {
         align-items: flex-start;
