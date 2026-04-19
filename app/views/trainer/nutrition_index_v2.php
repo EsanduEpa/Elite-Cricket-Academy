@@ -113,7 +113,6 @@ $resolvePlanName = static function ($plan): string {
                                 <th><i class="fas fa-users"></i> Assigned Players</th>
                                 <th><i class="fas fa-capsules"></i> Supplements</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
-                                <th><i class="fas fa-calendar-alt"></i> Created</th>
                                 <th><i class="fas fa-cog"></i> Actions</th>
                             </tr>
                         </thead>
@@ -197,7 +196,6 @@ $resolvePlanName = static function ($plan): string {
                                             <?php echo ucfirst($s); ?>
                                         </span>
                                     </td>
-                                    <td><?php echo $createdText; ?></td>
                                     <td class="actions-col">
                                         <div class="nc-actions">
                                             <button

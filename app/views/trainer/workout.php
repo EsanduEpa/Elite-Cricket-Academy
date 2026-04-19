@@ -107,6 +107,7 @@
                                 <?php
                                     $isOwn        = isset($plan->is_own) ? (bool)$plan->is_own : true;
                                     $assignedCount = (int)($plan->assigned_count ?? 0);
+                                    $createdDateDisplay = !empty($plan->CreatedDate) ? date('M j, Y', strtotime($plan->CreatedDate)) : '—';
                                     $planStatus   = strtolower(trim((string)($plan->Status ?? 'active')));
                                     if ($planStatus === '') {
                                         $planStatus = 'active';
@@ -118,7 +119,7 @@
                                         'archived' => 'background:rgba(153,153,153,0.1);color:#999;border:1px solid rgba(153,153,153,0.3);',
                                     ];
                                 ?>
-                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>" data-frequency="<?php echo htmlspecialchars((string)$plan->frequency, ENT_QUOTES, 'UTF-8'); ?>" data-intensity="<?php echo htmlspecialchars((string)($plan->Intensity ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>" data-frequency="<?php echo htmlspecialchars((string)$plan->frequency, ENT_QUOTES, 'UTF-8'); ?>" data-intensity="<?php echo htmlspecialchars((string)($plan->Intensity ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-created="<?php echo htmlspecialchars($createdDateDisplay, ENT_QUOTES, 'UTF-8'); ?>">
                                         <td>
                                             <div class="table-cell-primary plan-id">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
                                         </td>
@@ -166,17 +167,17 @@
                                             </button>
                                         </td>
                                         <td>
-                                            <div class="profile-actions">
-                                                <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background:rgba(46,213,115,0.1);color:#2ed573;border-color:rgba(46,213,115,0.3);">
-                                                    <i class="fas fa-eye"></i>
+                                            <div class="workout-table-actions">
+                                                <button type="button" class="btn btn-secondary btn-sm" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details">
+                                                    <i class="fas fa-eye"></i> View
                                                 </button>
                                                 <?php if ($planStatus !== 'archived'): ?>
-                                                <button class="profile-btn" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player" style="background:rgba(74,144,226,0.1);color:#4A90E2;border-color:rgba(74,144,226,0.3);">
-                                                    <i class="fas fa-user-plus"></i>
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player">
+                                                    <i class="fas fa-user-plus"></i> Assign
                                                 </button>
                                                 <?php endif; ?>
                                                 <?php if ($isOwn): ?>
-                                                <button class="profile-btn"
+                                                <button type="button" class="btn btn-primary btn-sm"
                                                         data-plan-id="<?php echo (int)$plan->PlanID; ?>"
                                                         data-plan="<?php echo htmlspecialchars(json_encode([
                                                             'workoutname'   => $plan->workoutname,
@@ -189,12 +190,11 @@
                                                             'status'        => $planStatus
                                                         ]), ENT_QUOTES, 'UTF-8'); ?>"
                                                         onclick="openEditFromButton(this)"
-                                                        title="Edit Plan"
-                                                        style="background:rgba(255,159,67,0.1);color:#ff9f43;border-color:rgba(255,159,67,0.3);">
-                                                    <i class="fas fa-edit"></i>
+                                                        title="Edit Plan">
+                                                    <i class="fas fa-edit"></i> Edit
                                                 </button>
-                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background:rgba(255,107,107,0.1);color:#ff6b6b;border-color:rgba(255,107,107,0.3);">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan">
+                                                    <i class="fas fa-trash"></i> Delete
                                                 </button>
                                                 <?php endif; ?>
                                             </div>

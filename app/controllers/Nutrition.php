@@ -65,6 +65,10 @@ class Nutrition extends Controller {
             'Recommended calories: ' . ($fields['recommended_calories'] ?? ''),
         ];
 
+        if (!empty($fields['supplements'])) {
+            $lines[] = 'Supplements: ' . $fields['supplements'];
+        }
+
         if (!empty($fields['description'])) {
             $lines[] = 'Description: ' . $fields['description'];
         }
@@ -94,6 +98,7 @@ class Nutrition extends Controller {
             'carbohydrate_percentage' => null,
             'fat_percentage' => null,
             'recommended_calories' => null,
+            'supplements' => '',
             'description' => '',
         ];
 
@@ -134,6 +139,11 @@ class Nutrition extends Controller {
             if (stripos($line, 'Recommended calories:') === 0) {
                 $value = trim(substr($line, strlen('Recommended calories:')));
                 $result['recommended_calories'] = $this->_normalizeInteger($value);
+                continue;
+            }
+
+            if (stripos($line, 'Supplements:') === 0) {
+                $result['supplements'] = trim(substr($line, strlen('Supplements:')));
                 continue;
             }
 
@@ -232,6 +242,14 @@ class Nutrition extends Controller {
             flash('nutrition_message', 'Plan not found or access denied.', 'alert alert-danger');
             redirect('nutrition');
             return;
+        }
+
+        // Backward compatibility: if Supplements column is unavailable, hydrate from DietDetails.
+        if (empty($plan->Supplements) && empty($plan->supplements) && !empty($plan->DietDetails)) {
+            $legacyFields = $this->_extractDietDetailsFields($plan->DietDetails);
+            if (!empty($legacyFields['supplements'])) {
+                $plan->Supplements = (string)$legacyFields['supplements'];
+            }
         }
 
         $players = $model->getAllPlayers();
@@ -481,6 +499,9 @@ class Nutrition extends Controller {
         $supplements = trim(htmlspecialchars($post['supplements'] ?? '', ENT_QUOTES, 'UTF-8'));
         if ($isEdit && $supplements === '' && $existingPlan) {
             $supplements = trim(htmlspecialchars((string)($existingPlan->Supplements ?? $existingPlan->supplements ?? ''), ENT_QUOTES, 'UTF-8'));
+            if ($supplements === '') {
+                $supplements = trim(htmlspecialchars((string)($existingDietFields['supplements'] ?? ''), ENT_QUOTES, 'UTF-8'));
+            }
         }
 
         $notes = trim(htmlspecialchars($post['notes'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -601,6 +622,7 @@ class Nutrition extends Controller {
                 'carbohydrate_percentage' => $carbohydratePercentage,
                 'fat_percentage' => $fatPercentage,
                 'recommended_calories' => $recommendedCalories,
+                'supplements' => $supplements,
                 'description' => $description,
             ]),
             'notes'        => $notes,

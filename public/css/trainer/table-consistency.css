@@ -36,10 +36,18 @@
     text-transform: none;
 }
 
+.workout-page .dashboard-table th:last-child {
+    text-align: center;
+}
+
 .workout-page .dashboard-table td {
     padding: 12px 14px;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
+}
+
+.workout-page .dashboard-table td:last-child {
+    text-align: center;
 }
 
 .workout-page .dashboard-table tbody tr:hover {
@@ -56,6 +64,49 @@
     color: #111;
     font-weight: 600;
     font-size: .87rem;
+}
+
+.workout-page .workout-table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.workout-page .workout-table-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    padding: .3rem .75rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: none;
+}
+
+.workout-page .workout-table-actions .btn-secondary {
+    background: #8e9ba7;
+    color: #fff;
+}
+
+.workout-page .workout-table-actions .btn-primary {
+    background: #2ecc71;
+    color: #fff;
+}
+
+.workout-page .workout-table-actions .btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.workout-page .workout-table-actions .btn:hover {
+    filter: brightness(.96);
 }
 
 .workout-page .wk-pagination {

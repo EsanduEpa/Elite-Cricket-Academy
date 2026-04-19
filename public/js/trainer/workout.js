@@ -243,9 +243,8 @@ function viewPlan(planId) {
         const status = statusText || '-';
         // Safely read duration and created date by class selectors added to server-rendered rows
         const durationEl = row.querySelector('.duration');
-        const dateEl = row.querySelector('.table-cell-secondary') || row.querySelector('.date');
         const duration = durationEl ? durationEl.textContent.trim() : '';
-        const date = dateEl ? dateEl.textContent.trim() : '';
+        const date = (row.dataset.created || '').trim() || '-';
         const planIdFormatted = row.querySelector('.plan-id').textContent;
 
         const videoLinkEl = row.querySelector('a.video-link');
