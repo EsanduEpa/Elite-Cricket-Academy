@@ -266,6 +266,18 @@
     overflow: hidden;
 }
 
+.sidebar-nav .nav-link.is-disabled {
+    pointer-events: none;
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none;
+}
+
+.sidebar-nav .nav-link.is-disabled::before {
+    display: none;
+}
+
 .sidebar-nav .nav-link::before {
     content: '';
     position: absolute;
