@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const ageGroupFilter = document.getElementById('ageGroupFilter');
     const subscriptionFilter = document.getElementById('subscriptionFilter');
     const battingFilter = document.getElementById('battingFilter');
+    const pageSize = 10;
+    let currentPage = 1;
     
     // Search function
     if (searchInput) {
@@ -34,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         const statusValue = statusFilter ? statusFilter.value.toLowerCase() : 'all';
         const ageGroupValue = ageGroupFilter ? ageGroupFilter.value.toLowerCase() : 'all';
-        const subscriptionValue = subscriptionFilter ? subscriptionFilter.value.toLowerCase() : 'all';
+        const subscriptionValue = normalizeFilterValue(subscriptionFilter ? subscriptionFilter.value : 'all');
         const battingValue = battingFilter ? battingFilter.value.toLowerCase() : 'all';
         
-        const playerRows = document.querySelectorAll('.staff-table tbody tr');
+        const playerRows = document.querySelectorAll('#playersTableBody tr[data-player-age]');
         
         playerRows.forEach(row => {
             const playerName = row.querySelector('.staff-info h4')?.textContent.toLowerCase() || '';
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get subscription from badge in column 6
             const subscriptionCell = row.cells[6];
-            const playerSubscription = subscriptionCell ? subscriptionCell.textContent.trim().toLowerCase() : '';
+            const playerSubscription = row.dataset.playerSubscription || normalizeFilterValue(subscriptionCell ? subscriptionCell.textContent.trim() : '');
             
             // Get batting style from column 5
             const battingCell = row.cells[5];
@@ -92,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Apply subscription filter
-            if (subscriptionValue !== 'all' && playerSubscription !== subscriptionValue) {
+            if (subscriptionValue !== 'all' && !playerSubscription.split(/\s+/).includes(subscriptionValue)) {
                 showRow = false;
             }
             
@@ -101,17 +103,106 @@ document.addEventListener('DOMContentLoaded', function() {
                 showRow = false;
             }
             
-            row.style.display = showRow ? '' : 'none';
+            row.dataset.filterMatch = showRow ? '1' : '0';
         });
         
-        updateResultsCount();
+        currentPage = 1;
+        renderPlayerPage();
+    }
+
+    function normalizeFilterValue(value) {
+        return String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/_/g, '-')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
     }
     
-    function updateResultsCount() {
-        const allRows = document.querySelectorAll('.staff-table tbody tr');
-        const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
-        console.log(`Showing ${visibleRows.length} of ${allRows.length} players`);
+    function renderPlayerPage() {
+        const allRows = Array.from(document.querySelectorAll('#playersTableBody tr[data-player-age]'));
+        const matchedRows = allRows.filter(row => row.dataset.filterMatch !== '0');
+        const totalPages = Math.max(1, Math.ceil(matchedRows.length / pageSize));
+        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const visibleRows = matchedRows.slice(startIndex, endIndex);
+
+        allRows.forEach(row => {
+            row.style.display = visibleRows.includes(row) ? '' : 'none';
+        });
+
+        const showingStart = document.getElementById('showingStart');
+        const showingEnd = document.getElementById('showingEnd');
+        const totalPlayers = document.getElementById('totalPlayers');
+
+        if (showingStart) {
+            showingStart.textContent = matchedRows.length > 0 ? String(startIndex + 1) : '0';
+        }
+        if (showingEnd) {
+            showingEnd.textContent = String(Math.min(endIndex, matchedRows.length));
+        }
+        if (totalPlayers) {
+            totalPlayers.textContent = String(matchedRows.length);
+        }
+
+        renderPaginationControls(totalPages);
     }
+
+    function renderPaginationControls(totalPages) {
+        const pagination = document.getElementById('playersPagination');
+        if (!pagination) return;
+
+        pagination.innerHTML = '';
+        pagination.appendChild(createPageButton('prev', '<i class="fas fa-chevron-left"></i>', currentPage === 1, () => {
+            currentPage--;
+            renderPlayerPage();
+        }));
+
+        for (let page = 1; page <= totalPages; page++) {
+            if (page > 1 && page < totalPages && Math.abs(page - currentPage) > 1) {
+                if (!pagination.querySelector(`[data-ellipsis="${page < currentPage ? 'left' : 'right'}"]`)) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-ellipsis';
+                    ellipsis.dataset.ellipsis = page < currentPage ? 'left' : 'right';
+                    ellipsis.textContent = '...';
+                    pagination.appendChild(ellipsis);
+                }
+                continue;
+            }
+
+            pagination.appendChild(createPageButton(page, String(page), false, () => {
+                currentPage = page;
+                renderPlayerPage();
+            }, page === currentPage));
+        }
+
+        pagination.appendChild(createPageButton('next', '<i class="fas fa-chevron-right"></i>', currentPage === totalPages, () => {
+            currentPage++;
+            renderPlayerPage();
+        }));
+    }
+
+    function createPageButton(value, html, disabled, onClick, active = false) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = active ? 'page-btn active' : 'page-btn';
+        button.dataset.page = value;
+        button.innerHTML = html;
+        button.disabled = disabled;
+        button.addEventListener('click', onClick);
+        return button;
+    }
+
+    document.querySelectorAll('#playersTableBody tr[data-player-age]').forEach(row => {
+        row.dataset.filterMatch = '1';
+    });
+    renderPlayerPage();
+    window.renderPlayerPage = renderPlayerPage;
+    window.resetPlayerPagination = function() {
+        currentPage = 1;
+        renderPlayerPage();
+    };
 });
 
 // Reset Filters
@@ -122,12 +213,14 @@ function resetFilters() {
     document.getElementById('subscriptionFilter').value = 'all';
     document.getElementById('battingFilter').value = 'all';
     
-    const playerRows = document.querySelectorAll('.staff-table tbody tr');
+    const playerRows = document.querySelectorAll('#playersTableBody tr[data-player-age]');
     playerRows.forEach(row => {
-        row.style.display = '';
+        row.dataset.filterMatch = '1';
     });
-    
-    console.log('Filters reset');
+
+    if (typeof window.resetPlayerPagination === 'function') {
+        window.resetPlayerPagination();
+    }
 }
 
 // Suspend Player Modal
@@ -180,13 +273,6 @@ function confirmSuspend() {
         return;
     }
     
-    // In production, send AJAX request to backend
-    console.log('Suspending player:', {
-        playerId,
-        duration: duration === 'custom' ? `${customHours}h` : duration,
-        reason
-    });
-    
     // Show success message
     alert(`Player suspended successfully!\nDuration: ${duration === 'custom' ? customHours + ' hours' : duration}\nReason: ${reason}`);
     
@@ -199,9 +285,6 @@ function confirmSuspend() {
 // Unsuspend Player
 function unsuspendPlayer(playerId, playerName) {
     if (confirm(`Are you sure you want to unsuspend ${playerName}?`)) {
-        // In production, send AJAX request to backend
-        console.log('Unsuspending player:', playerId);
-        
         alert(`${playerName} has been unsuspended successfully!`);
         
         // In production, reload the page or update the player row
@@ -214,7 +297,7 @@ function openDeleteModal(playerId, playerName) {
     const modal = document.getElementById('deleteModal');
     document.getElementById('deletePlayerId').value = playerId;
     document.getElementById('deletePlayerName').textContent = playerName;
-    document.getElementById('confirmDeleteInput').value = '';
+    document.getElementById('deleteConfirmation').value = '';
     document.getElementById('confirmDeleteBtn').disabled = true;
     modal.style.display = 'flex';
 }
@@ -240,9 +323,6 @@ function confirmDelete() {
     const playerId = document.getElementById('deletePlayerId').value;
     const playerName = document.getElementById('deletePlayerName').textContent;
     
-    // In production, send AJAX request to backend
-    console.log('Deleting player:', playerId);
-    
     alert(`${playerName} has been permanently deleted from the system.`);
     
     closeDeleteModal();
@@ -253,15 +333,12 @@ function confirmDelete() {
 
 // View Player Statistics
 function viewPlayerStatistics(playerId) {
-    // Navigate to player statistics page
-    window.location.href = `/admin/player_statistics/${playerId}`;
+    const urlRoot = document.querySelector('.admin-layout')?.dataset.urlroot || '/Elite';
+    window.location.href = `${urlRoot}/admin/player_statistics/${playerId}`;
 }
 
 // Export Players Data
 function exportPlayers() {
-    // In production, generate and download CSV/Excel file
-    console.log('Exporting players data...');
-    
     // Sample CSV generation
     const headers = ['Player ID', 'Name', 'Email', 'Jersey', 'Batting Style', 'Subscription', 'Status', 'Performance'];
     const data = [];
@@ -303,7 +380,7 @@ function exportPlayers() {
 
 // Pagination
 function goToPage(page) {
-    console.log('Going to page:', page);
+    void page;
     // In production, load data for the specific page
     // This would typically involve an AJAX request to fetch paginated data
 }

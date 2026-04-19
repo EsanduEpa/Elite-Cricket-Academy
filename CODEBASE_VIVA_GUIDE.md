@@ -146,6 +146,52 @@ Purpose: registration form, membership plan selection, and client-side validatio
 
 Refactor note: membership-plan modal JavaScript was moved out of the PHP view into `public/js/register.js`.
 
+## Admin Section Flow
+
+### `app/controllers/Admin.php`
+
+Purpose: main controller for admin dashboards, staff management, player management, feedback, finance summaries, and player statistics.
+
+Viva answer: "The Admin controller protects all admin routes with `requireAuth(['Admin'])`, loads the needed models, prepares page data, and sends that data to admin views."
+
+### `app/views/admin/staff.php`, `public/js/admin/staff-management.js`, and `public/js/admin/staff-page.js`
+
+Purpose: staff listing, filters, add/edit/delete staff modals, and coach assignment helpers.
+
+Refactor note: page-specific staff actions and coach assignment JavaScript were moved into `staff-page.js`; filtering/export logic remains in `staff-management.js`.
+
+Viva answer: "PHP renders the staff rows from the database, then JavaScript reads row `data-*` attributes for modal actions and filter behavior."
+
+### `app/views/admin/players.php`, `public/js/admin/players-management.js`, and `public/js/admin/players-page.js`
+
+Purpose: player listing, player filters, add/edit/delete player actions, and navigation to player statistics.
+
+Refactor note: modal and AJAX actions were moved into `players-page.js`; table filtering/export helpers remain in `players-management.js`.
+
+Viva answer: "The player page separates server rendering from browser behavior: the controller sends player data, the view prints rows, and JavaScript handles user interaction."
+
+### `app/views/admin/feedback.php` and `public/js/admin/feedback.js`
+
+Purpose: admin feedback review page.
+
+Refactor note: inline feedback modal/filter/status/delete logic was moved into `feedback.js`. The view now passes endpoint URLs through `data-*` attributes and feedback messages through a JSON script block.
+
+Viva answer: "The feedback page lets admins filter feedback, open a details modal, mark feedback reviewed/resolved, or delete it using AJAX."
+
+### `app/views/admin/finance.php` and `public/js/admin/finance.js`
+
+Purpose: finance summary and recent transaction review.
+
+Refactor note: the `View Payment` modal now reads the clicked payment row, so it displays real transaction type, customer, amount, date, method, and status instead of placeholder data.
+
+Viva answer: "The finance page summarizes revenue categories and lists recent transactions. JavaScript provides table filtering and a transaction detail modal."
+
+### `app/views/admin/player_statistics.php`
+
+Purpose: player statistics/detail page opened from admin player management.
+
+Refactor note: the profile header now uses the real selected player record from `M_Users::getUserWithProfile()` instead of hardcoded demo values. Some performance chart values remain visual placeholders until a performance-results table is connected.
+
 ## Current Risks / Cleanup Notes
 
 - Several views still contain inline `<style>`, inline `<script>`, and many `style=""` attributes. These should be reviewed gradually to avoid breaking dynamic UI.

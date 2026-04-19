@@ -1,17 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-.badge-program        { background:#cce5ff;color:#004085;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-private        { background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-facility       { background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-coach          { background:#e2d9f3;color:#4a1e8c;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-trainer        { background:#fde2b8;color:#7a3d00;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-none           { background:#e9ecef;color:#495057;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-active         { background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.badge-inactive       { background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600; }
-.tbl-action-btn       { padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;text-decoration:none;display:inline-block; }
-.day-map              { font-size:11px;color:#888; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-list-tools.css">
 
 <?php
 $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -95,79 +84,135 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                     </a>
                 </div>
             <?php else: ?>
-            <div class="content-card" style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;">
+            <div class="admin-list-shell" data-admin-list data-page-size="10">
+                <div class="admin-list-toolbar">
+                    <div class="admin-list-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" data-list-filter="search" placeholder="Search template, code, facility...">
+                    </div>
+                    <select data-list-filter="type">
+                        <option value="all">All Types</option>
+                        <option value="program">Program</option>
+                        <option value="private">Private</option>
+                        <option value="facility_only">Facility Only</option>
+                    </select>
+                    <select data-list-filter="day">
+                        <option value="all">All Days</option>
+                        <?php for ($i = 1; $i <= 7; $i++): ?>
+                            <option value="<?php echo $i; ?>"><?php echo htmlspecialchars($dayNames[$i]); ?></option>
+                        <?php endfor; ?>
+                        <option value="any">Any Day</option>
+                    </select>
+                    <select data-list-filter="status">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <select data-list-filter="facility">
+                        <option value="all">All Facilities</option>
+                        <?php
+                            $facilities = array_values(array_unique(array_filter(array_map(fn($t) => trim((string)($t->FacilityName ?? '')), $data['templates']))));
+                            sort($facilities);
+                            foreach ($facilities as $facility):
+                        ?>
+                            <option value="<?php echo htmlspecialchars(strtolower($facility)); ?>"><?php echo htmlspecialchars($facility); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="button" class="admin-list-reset" data-list-reset>
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+                <div class="admin-list-table-wrap">
+                <table class="admin-compact-table">
                     <thead>
-                        <tr style="background:#f8f9fa;">
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Template</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Code</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Type</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Time Band</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Day</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Facility</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Status</th>
-                            <th style="padding:12px 14px;text-align:left;font-size:13px;color:#555;border-bottom:2px solid #dee2e6;">Actions</th>
+                        <tr>
+                            <th>Template</th>
+                            <th>Code</th>
+                            <th>Type</th>
+                            <th>Time Band</th>
+                            <th>Day</th>
+                            <th>Facility</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-list-body>
                         <?php foreach ($data['templates'] as $t): ?>
-                        <tr style="border-bottom:1px solid #f0f0f0;vertical-align:middle;">
-                            <td style="padding:12px 14px;">
-                                <div style="font-weight:600;color:#2c3e50;"><?= htmlspecialchars($t->TemplateName) ?></div>
-                                <?php if ($t->AgeGroup): ?><div style="font-size:11px;color:#888;"><?= htmlspecialchars($t->AgeGroup) ?><?= $t->Category ? ' · ' . htmlspecialchars($t->Category) : '' ?></div><?php endif; ?>
+                        <?php
+                            $dayKey = $t->DayOfWeek ? (string)(int)$t->DayOfWeek : 'any';
+                            $statusKey = $t->IsActive ? 'active' : 'inactive';
+                            $facilityKey = strtolower(trim((string)($t->FacilityName ?? '')));
+                            $searchText = trim(($t->TemplateName ?? '') . ' ' . ($t->temp_code ?? '') . ' ' . ($t->SlotType ?? '') . ' ' . ($t->SlotLabel ?? '') . ' ' . ($t->FacilityName ?? '') . ' ' . ($t->AgeGroup ?? '') . ' ' . ($t->Category ?? ''));
+                        ?>
+                        <tr data-list-row
+                            data-search="<?= htmlspecialchars(strtolower($searchText)) ?>"
+                            data-filter-type="<?= htmlspecialchars(strtolower((string)$t->SlotType)) ?>"
+                            data-filter-day="<?= htmlspecialchars($dayKey) ?>"
+                            data-filter-status="<?= htmlspecialchars($statusKey) ?>"
+                            data-filter-facility="<?= htmlspecialchars($facilityKey) ?>">
+                            <td>
+                                <span class="admin-list-primary"><?= htmlspecialchars($t->TemplateName) ?></span>
+                                <?php if ($t->AgeGroup): ?><span class="admin-list-muted"><?= htmlspecialchars($t->AgeGroup) ?><?= $t->Category ? ' · ' . htmlspecialchars($t->Category) : '' ?></span><?php endif; ?>
                             </td>
-                            <td style="padding:12px 14px;font-size:12px;color:#475467;font-weight:600;letter-spacing:.2px;">
+                            <td style="font-weight:700;letter-spacing:.2px;">
                                 <?= htmlspecialchars($t->temp_code ?? '—') ?>
                             </td>
-                            <td style="padding:12px 14px;">
-                                <?php
-                                $tc = ['program'=>'badge-program','private'=>'badge-private','facility_only'=>'badge-facility'];
-                                echo '<span class="' . ($tc[$t->SlotType] ?? 'badge-none') . '">' . ucfirst(str_replace('_',' ',$t->SlotType)) . '</span>';
-                                ?>
+                            <td>
+                                <span class="admin-pill pill-<?= htmlspecialchars($t->SlotType ?: 'neutral') ?>">
+                                    <?= htmlspecialchars(ucfirst(str_replace('_',' ', $t->SlotType))) ?>
+                                </span>
                             </td>
                             
-                            <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->SlotLabel ?? '—') ?></td>
-                            <td style="padding:12px 14px;font-size:13px;"><?= $t->DayOfWeek ? $dayNames[(int)$t->DayOfWeek] : '<span style="color:#aaa;">Any</span>' ?></td>
-                            <td style="padding:12px 14px;font-size:13px;"><?= htmlspecialchars($t->FacilityName ?? '—') ?></td>
+                            <td><?= htmlspecialchars($t->SlotLabel ?? '—') ?></td>
+                            <td><?= $t->DayOfWeek ? $dayNames[(int)$t->DayOfWeek] : '<span style="color:#aaa;">Any</span>' ?></td>
+                            <td><?= htmlspecialchars($t->FacilityName ?? '—') ?></td>
                            
-                            <td style="padding:12px 14px;">
+                            <td>
                                 <?php if ($t->IsActive): ?>
-                                    <span class="badge-active">Active</span>
+                                    <span class="admin-pill pill-active">Active</span>
                                 <?php else: ?>
-                                    <span class="badge-inactive">Inactive</span>
+                                    <span class="admin-pill pill-inactive">Inactive</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="padding:12px 14px;">
-                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                    <a href="<?php echo URLROOT; ?>/adminslots/template_detail/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#16a085;color:#fff;">
-                                        <i class="fas fa-eye"></i> View
+                            <td>
+                                <div class="admin-list-actions">
+                                    <a href="<?php echo URLROOT; ?>/adminslots/template_detail/<?= $t->TemplateID ?>" class="admin-list-action view" title="View">
+                                        <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#3498db;color:#fff;">
-                                        <i class="fas fa-edit"></i> Edit
+                                    <a href="<?php echo URLROOT; ?>/adminslots/edittemplate/<?= $t->TemplateID ?>" class="admin-list-action edit" title="Edit">
+                                        <i class="fas fa-edit"></i>
                                     </a>
                                     <?php if ($t->SlotType === 'facility_only'): ?>
-                                        <a class="tbl-action-btn" style="background:#ccc;color:#fff;pointer-events:none;opacity:0.6;" tabindex="-1" title="Staff assignment not available for facility-only templates">
-                                            <i class="fas fa-users"></i> Staff
+                                        <a class="admin-list-action disabled" tabindex="-1" title="Staff assignment not available for facility-only templates">
+                                            <i class="fas fa-users"></i>
                                         </a>
                                     <?php else: ?>
-                                        <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= $t->TemplateID ?>" class="tbl-action-btn" style="background:#9b59b6;color:#fff;">
-                                            <i class="fas fa-users"></i> Staff
+                                        <a href="<?php echo URLROOT; ?>/adminslots/staff/<?= $t->TemplateID ?>" class="admin-list-action staff" title="Assign Staff">
+                                            <i class="fas fa-users"></i>
                                         </a>
                                     <?php endif; ?>
                                     <form method="POST" style="display:inline;">
                                         <input type="hidden" name="toggle_template" value="<?= $t->TemplateID ?>">
                                         <?php if ($t->IsActive): ?>
-                                            <button type="submit" class="tbl-action-btn" style="background:#e74c3c;color:#fff;">Deactivate</button>
+                                            <button type="submit" class="admin-list-reset" style="background:#fee2e2;color:#991b1b;">Deactivate</button>
                                         <?php else: ?>
-                                            <button type="submit" class="tbl-action-btn" style="background:#27ae60;color:#fff;">Activate</button>
+                                            <button type="submit" class="admin-list-reset" style="background:#dcfce7;color:#166534;">Activate</button>
                                         <?php endif; ?>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <tr class="admin-list-empty-row" data-list-empty-row style="display:none;">
+                            <td colspan="8"><i class="fas fa-filter"></i> No templates match the selected filters.</td>
+                        </tr>
                     </tbody>
                 </table>
+                </div>
+                <div class="admin-list-footer">
+                    <div class="admin-list-count" data-list-count></div>
+                    <div class="admin-list-pagination" data-list-pagination></div>
+                </div>
             </div>
             <?php endif; ?>
         </div>
@@ -175,4 +220,5 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/admin/admin-list-tools.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
