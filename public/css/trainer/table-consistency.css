@@ -100,6 +100,16 @@
     color: #fff;
 }
 
+.workout-page .workout-table-actions .btn-assign {
+    background: #2ecc71;
+    color: #fff;
+}
+
+.workout-page .workout-table-actions .btn-edit {
+    background: #4A90E2;
+    color: #fff;
+}
+
 .workout-page .workout-table-actions .btn-danger {
     background: #e74c3c;
     color: #fff;
