@@ -268,7 +268,10 @@
                                         $statusClass = 'overdue';
                                     }
                                 ?>
-                                <tr data-rental-id="<?php echo $rid; ?>">
+                                <tr data-rental-id="<?php echo $rid; ?>"
+                                    data-status="<?php echo $escape($statusClass); ?>"
+                                    data-category="<?php echo $escape(strtolower((string)($rental->Category ?? ''))); ?>"
+                                    data-search="<?php echo $escape(strtolower(($rental->equipment_name ?? '') . ' ' . ($rental->Category ?? '') . ' ' . ($rental->renter_name ?? '') . ' ' . ($rental->renter_email ?? '') . ' ' . $rentalLabel($rid, $rental->RentalDate ?? ''))); ?>">
                                     <td>
                                         <div class="table-cell-primary"><?php echo $escape($rentalLabel($rid, $rental->RentalDate ?? '')); ?></div>
                                     </td>
@@ -537,7 +540,7 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
         e.preventDefault();
         document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
         this.classList.add('active');
-        filterRentalsByStatus(this.dataset.status);
+        applyRentalFilters();
     });
 });
 
@@ -545,7 +548,7 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
 const rentalSearch = document.getElementById('rentalSearch');
 if (rentalSearch) {
     rentalSearch.addEventListener('input', function() {
-        filterRentals(this.value);
+        applyRentalFilters();
     });
 }
 
@@ -553,52 +556,27 @@ if (rentalSearch) {
 const categoryFilter = document.getElementById('categoryFilter');
 if (categoryFilter) {
     categoryFilter.addEventListener('change', function() {
-        const category = this.value.toLowerCase();
-        const table = document.getElementById('rentalsTable');
-        if (!table) return;
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            if (category === 'all') {
-                row.style.display = '';
-            } else {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(category) ? '' : 'none';
-            }
-        });
+        applyRentalFilters();
     });
 }
 
-function filterRentalsByStatus(status) {
+function applyRentalFilters() {
     const table = document.getElementById('rentalsTable');
     if (!table) return;
+    const status = document.querySelector('.filter-tab.active')?.dataset.status || 'all';
+    const searchTerm = (document.getElementById('rentalSearch')?.value || '').toLowerCase();
+    const category = (document.getElementById('categoryFilter')?.value || 'all').toLowerCase();
     const rows = table.querySelectorAll('tbody tr');
 
     rows.forEach(row => {
-        if (status === 'all') {
-            row.style.display = '';
-            return;
-        }
-        const badge = row.querySelector('.table-badge');
-        if (badge) {
-            const hasStatus = badge.classList.contains('status-' + status) ||
-                badge.textContent.trim().toLowerCase() === status;
-            row.style.display = hasStatus ? '' : 'none';
-        } else {
-            row.style.display = 'none';
-        }
+        const rowStatus = row.dataset.status || '';
+        const rowCategory = row.dataset.category || '';
+        const rowSearch = row.dataset.search || row.textContent.toLowerCase();
+        const matchesStatus = status === 'all' || rowStatus === status;
+        const matchesCategory = category === 'all' || rowCategory === category;
+        const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+        row.style.display = matchesStatus && matchesCategory && matchesSearch ? '' : 'none';
     });
-}
-
-function filterRentals(searchTerm) {
-    const table = document.getElementById('rentalsTable');
-    if (!table) return;
-    const rows = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
-    }
 }
 
 // Return modal
@@ -765,5 +743,5 @@ function filterRentals(searchTerm) {
 .status-cancelled { background: rgba(156, 39, 176, 0.2); color: #7b1fa2; }
 </style>
 
-<script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

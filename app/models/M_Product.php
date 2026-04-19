@@ -134,14 +134,18 @@ class M_Product {
         $result = $this->db->single();
         $stats['low_stock'] = $result->total ?? 0;
         
-        // Products with average rating ≥ 4.5
+        // Products with average rating >= 4.5.
+        // The subquery first finds qualifying products; the outer query counts them.
         $this->db->query('
-            SELECT COUNT(DISTINCT p.ProductID) as total 
-            FROM product p
-            LEFT JOIN productreview pr ON p.ProductID = pr.ProductID AND pr.Status = "approved"
-            WHERE p.Status = "active"
-            GROUP BY p.ProductID
-            HAVING AVG(pr.Rating) >= 4.5
+            SELECT COUNT(*) as total
+            FROM (
+                SELECT p.ProductID
+                FROM product p
+                JOIN productreview pr ON p.ProductID = pr.ProductID AND pr.Status = "approved"
+                WHERE p.Status = "active"
+                GROUP BY p.ProductID
+                HAVING AVG(pr.Rating) >= 4.5
+            ) rated_products
         ');
         $result = $this->db->single();
         $stats['top_rated'] = $result->total ?? 0;

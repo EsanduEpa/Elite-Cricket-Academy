@@ -91,6 +91,19 @@
             <p>Manage cricket facilities, bookings, and maintenance schedules</p>
         </div>
 
+        <?php if (!empty($_SESSION['facility_success'])): ?>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <?php echo htmlspecialchars($_SESSION['facility_success']); unset($_SESSION['facility_success']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if (!empty($_SESSION['facility_error'])): ?>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <?php echo htmlspecialchars($_SESSION['facility_error']); unset($_SESSION['facility_error']); ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Facility Statistics -->
         <div class="summary-cards">
             <div class="summary-card">
@@ -265,10 +278,11 @@
                     <input type="text" class="search-box" placeholder="Search bookings..." id="bookingSearch">
                     <select class="filter-dropdown" id="facilityFilter">
                         <option value="all">All Facilities</option>
-                        <option value="nets">Practice Nets</option>
-                        <option value="ground">Main Ground</option>
-                        <option value="indoor">Indoor Facilities</option>
-                        <option value="gym">Gymnasium</option>
+                        <?php foreach (($data['facilities'] ?? []) as $facility): ?>
+                            <option value="<?php echo (int)$facility->FacilityID; ?>">
+                                <?php echo htmlspecialchars($facility->Name ?? 'Facility'); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                     <button class="btn btn-primary" onclick="exportBookings()">
                         <i class="fas fa-download"></i> Export
@@ -312,8 +326,25 @@
                                 $end = strtotime($endTime);
                                 $durationHours = ($end - $start) / 3600;
                                 $durationLabel = $durationHours == 1 ? '1 hour' : $durationHours . ' hours';
+
+                                $rawStatus = strtolower((string)($booking->Status ?? 'confirmed'));
+                                $statusClass = match ($rawStatus) {
+                                    'confirmed' => 'status-confirmed',
+                                    'attended', 'completed' => 'status-completed',
+                                    'missed', 'not_attended' => 'status-cancelled',
+                                    'cancelled' => 'status-cancelled',
+                                    default => 'status-active',
+                                };
+                                $statusLabel = match ($rawStatus) {
+                                    'attended', 'completed' => 'Completed',
+                                    'missed', 'not_attended' => 'Not Attended',
+                                    default => ucwords(str_replace('_', ' ', $rawStatus)),
+                                };
                         ?>
-                        <tr>
+                        <tr
+                            data-facility-id="<?php echo (int)($booking->FacilityID ?? 0); ?>"
+                            data-search="<?php echo htmlspecialchars(strtolower($facilityName . ' ' . $playerName . ' ' . $playerEmail . ' ' . $statusLabel)); ?>"
+                        >
                             <td>
                                 <div class="table-cell-primary">#FB-<?php echo str_pad($bookingId, 6, '0', STR_PAD_LEFT); ?></div>
                             </td>
@@ -335,21 +366,6 @@
                                 <div class="table-cell-primary">₨ <?php echo number_format($totalCost, 0); ?></div>
                             </td>
                             <td style="text-align: center;">
-                                <?php
-                                $rawStatus = strtolower((string)($booking->Status ?? 'confirmed'));
-                                $statusClass = match ($rawStatus) {
-                                    'confirmed' => 'status-confirmed',
-                                    'attended', 'completed' => 'status-completed',
-                                    'missed', 'not_attended' => 'status-cancelled',
-                                    'cancelled' => 'status-cancelled',
-                                    default => 'status-active',
-                                };
-                                $statusLabel = match ($rawStatus) {
-                                    'attended', 'completed' => 'Completed',
-                                    'missed', 'not_attended' => 'Not Attended',
-                                    default => ucwords(str_replace('_', ' ', $rawStatus)),
-                                };
-                                ?>
                                 <span class="table-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($statusLabel); ?></span>
                             </td>
                             <td>
@@ -397,10 +413,7 @@
                             <div class="form-group">
                                 <label for="playerId">Select Player</label>
                                 <select id="playerId" name="playerId" required>
-                                    <option value="">Choose Player</option>
-                                    <option value="1">Ashen Perera - P001</option>
-                                    <option value="2">Kavinda Silva - P002</option>
-                                    <option value="3">Nimal Fernando - P003</option>
+                                    <option value="">Use Counter Booking to search real players</option>
                                 </select>
                             </div>
                             
@@ -421,10 +434,15 @@
                                 <label for="facilityId">Facility</label>
                                 <select id="facilityId" name="facilityId" required>
                                     <option value="">Select Facility</option>
-                                    <option value="1" data-rate="2000" data-capacity="8">Practice Net 1 - ₨2,000/hour</option>
-                                    <option value="3" data-rate="3500" data-capacity="4">Bowling Machine Area - ₨3,500/hour</option>
-                                    <option value="5" data-rate="2500" data-capacity="15">Indoor Training Hall - ₨2,500/hour</option>
-                                    <option value="6" data-rate="4000" data-capacity="20">Gymnasium - ₨4,000/hour</option>
+                                    <?php foreach (($data['facilities'] ?? []) as $facility): ?>
+                                        <option
+                                            value="<?php echo (int)$facility->FacilityID; ?>"
+                                            data-rate="<?php echo htmlspecialchars((string)($facility->HourlyRate ?? 0)); ?>"
+                                            data-capacity="<?php echo (int)($facility->Capacity ?? 0); ?>"
+                                        >
+                                            <?php echo htmlspecialchars($facility->Name ?? 'Facility'); ?> - ₨<?php echo number_format((float)($facility->HourlyRate ?? 0), 0); ?>/hour
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             
@@ -509,7 +527,7 @@
                     <h3><i class="fas fa-building-plus"></i> Add New Facility</h3>
                     <span class="close" onclick="closeFacilityModal()">&times;</span>
                 </div>
-                <form id="addFacilityForm" class="modal-body">
+                <form id="addFacilityForm" class="modal-body" method="POST" action="<?php echo URLROOT; ?>/shop/addFacility">
                     <div class="form-group">
                         <label for="facilityName">Facility Name</label>
                         <input type="text" id="facilityName" name="facilityName" required placeholder="e.g., Practice Net 3">
@@ -616,7 +634,8 @@ document.getElementById('bookingDate').value = new Date().toISOString().split('T
 
 // Modal functions
 function openNewBookingModal() {
-    document.getElementById('newBookingModal').style.display = 'block';
+    // Real walk-in facility bookings are handled by the counter booking page.
+    window.location.href = '<?php echo URLROOT; ?>/shop/counter';
 }
 
 function closeNewBookingModal() {
@@ -635,11 +654,11 @@ function closeFacilityModal() {
 
 // Quick actions
 function viewSchedule() {
-    showNotification('Opening today\'s facility schedule', 'info');
+    document.getElementById('bookingsTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function generateFacilityReport() {
-    showNotification('Generating facility usage report', 'success');
+    exportBookings();
 }
 
 // Facility grid actions
@@ -650,10 +669,7 @@ function viewFacilityDetails(facilityId) {
 
 function quickBook(facilityId, event) {
     event.stopPropagation();
-    console.log('Quick booking for facility:', facilityId);
-    openNewBookingModal();
-    document.getElementById('facilityId').value = facilityId;
-    document.getElementById('facilityId').dispatchEvent(new Event('change'));
+    window.location.href = '<?php echo URLROOT; ?>/shop/counter';
 }
 
 function viewBooking(facilityId, event) {
@@ -675,17 +691,15 @@ function viewBookingDetails(bookingId) {
 }
 
 function extendBooking(bookingId) {
-    console.log('Extending booking:', bookingId);
-    if (confirm('Extend this booking by 30 minutes?')) {
-        showNotification(`Booking #${bookingId} extended`, 'success');
-    }
+    showNotification('Extensions must be handled by creating or adjusting a counter booking.', 'info');
 }
 
 function cancelBooking(bookingId) {
-    console.log('Cancelling booking:', bookingId);
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        showNotification(`Booking #${bookingId} cancelled`, 'warning');
+    if (!confirm('Mark this facility booking as not attended?')) {
+        return;
     }
+
+    submitFacilityStatus(bookingId, 'not_attended');
 }
 
 function checkInPlayer(bookingId) {
@@ -709,63 +723,102 @@ function addPlayerToGroup(bookingId) {
 }
 
 function exportBookings() {
-    console.log('Exporting bookings');
-    showNotification('Booking data exported successfully', 'success');
+    const rows = Array.from(document.querySelectorAll('#bookingsTable tbody tr'))
+        .filter(row => row.style.display !== 'none' && row.querySelectorAll('td').length > 1);
+
+    if (!rows.length) {
+        showNotification('No booking rows to export.', 'warning');
+        return;
+    }
+
+    const csvRows = [
+        ['Booking ID', 'Facility', 'Player', 'Time Slot', 'Duration', 'Cost', 'Status']
+    ];
+
+    rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td')).slice(0, 7);
+        csvRows.push(cells.map(cell => cell.textContent.replace(/\s+/g, ' ').trim()));
+    });
+
+    downloadCsv('facility_bookings.csv', csvRows);
+    showNotification('Visible booking data exported successfully.', 'success');
 }
 
 // Search functionality
 document.getElementById('bookingSearch').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const table = document.getElementById('bookingsTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    }
+    applyBookingFilters();
 });
 
 // Facility filter
 const facilityFilter = document.getElementById('facilityFilter');
 if (facilityFilter) {
-    facilityFilter.addEventListener('change', function() {
-        const facility = this.value.toLowerCase();
-        const table = document.getElementById('bookingsTable');
-        if (!table) return;
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            if (facility === 'all') {
-                row.style.display = '';
-            } else {
-                const facilityCell = row.querySelectorAll('td')[1];
-                const facilityText = facilityCell ? facilityCell.textContent.toLowerCase() : '';
-                row.style.display = facilityText.includes(facility) ? '' : 'none';
-            }
-        });
-    });
+    facilityFilter.addEventListener('change', applyBookingFilters);
 }
 
 // Form submissions
 document.getElementById('newBookingForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData(this);
-    console.log('New booking:', Object.fromEntries(formData));
-    showNotification('Facility booking confirmed successfully', 'success');
-    closeNewBookingModal();
+    window.location.href = '<?php echo URLROOT; ?>/shop/counter';
 });
 
 document.getElementById('addFacilityForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    console.log('New facility:', Object.fromEntries(formData));
-    showNotification('New facility added successfully', 'success');
-    closeFacilityModal();
+    const capacity = parseInt(document.getElementById('facilityCapacity').value, 10);
+    const rate = parseFloat(document.getElementById('facilityRate').value);
+
+    if (!document.getElementById('facilityName').value.trim() || capacity <= 0 || rate < 0) {
+        e.preventDefault();
+        showNotification('Please enter a valid facility name, capacity, and hourly rate.', 'error');
+    }
 });
+
+function applyBookingFilters() {
+    const searchTerm = (document.getElementById('bookingSearch')?.value || '').toLowerCase();
+    const selectedFacility = document.getElementById('facilityFilter')?.value || 'all';
+
+    document.querySelectorAll('#bookingsTable tbody tr').forEach(row => {
+        const searchText = row.dataset.search || row.textContent.toLowerCase();
+        const facilityId = row.dataset.facilityId || '';
+        const matchesSearch = !searchTerm || searchText.includes(searchTerm);
+        const matchesFacility = selectedFacility === 'all' || facilityId === selectedFacility;
+        row.style.display = matchesSearch && matchesFacility ? '' : 'none';
+    });
+}
+
+function submitFacilityStatus(bookingId, status) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '<?php echo URLROOT; ?>/shop/updateFacilityBookingStatus';
+
+    const bookingInput = document.createElement('input');
+    bookingInput.type = 'hidden';
+    bookingInput.name = 'booking_id';
+    bookingInput.value = bookingId;
+
+    const statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'booking_status';
+    statusInput.value = status;
+
+    form.appendChild(bookingInput);
+    form.appendChild(statusInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function downloadCsv(filename, rows) {
+    const csv = rows.map(row => row.map(value => {
+        const text = String(value).replace(/"/g, '""');
+        return `"${text}"`;
+    }).join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+}
 
 function showNotification(message, type) {
     const notification = document.createElement('div');

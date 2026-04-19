@@ -79,8 +79,17 @@ class Shop extends Controller {
             $input = json_decode(file_get_contents('php://input'), true);
             
             if (isset($input['orderId']) && isset($input['status'])) {
-                $orderId = $input['orderId'];
-                $status = $input['status'];
+                $orderId = (int)$input['orderId'];
+                $status = trim((string)$input['status']);
+                $validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+
+                if ($orderId <= 0 || !in_array($status, $validStatuses, true)) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Invalid order status update'
+                    ]);
+                    exit;
+                }
                 
                 // Update order status
                 if ($this->shopModel->updateOrderStatus($orderId, $status)) {
@@ -109,24 +118,36 @@ class Shop extends Controller {
         exit;
     }
 
+    public function getOrderDetails() {
+        requireAuth(['ShopEmployee', 'Shop']);
+        header('Content-Type: application/json');
+
+        $orderId = (int)($_GET['id'] ?? 0);
+        if ($orderId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid order ID']);
+            return;
+        }
+
+        $details = $this->shopModel->getOrderDetails($orderId);
+        if (empty($details['order'])) {
+            echo json_encode(['success' => false, 'message' => 'Order not found']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'order' => $details['order'],
+            'items' => $details['items'],
+        ]);
+    }
+
     public function inventory() {
         // Check authentication for shop employees
         requireAuth(['ShopEmployee', 'Shop']);
-        
-        // Get inventory statistics
-        $stats = $this->shopModel->getInventoryStats();
-        
-        // Get all inventory items
-        $inventory = $this->shopModel->getAllInventoryItems();
-        
-        $data = [
-            'title' => 'Inventory Management - Elite Cricket Gear',
-            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
-            'stats' => $stats,
-            'inventory' => $inventory
-        ];
-        
-        $this->view('shop/inventory', $data);
+
+        // There is no separate inventory view in this codebase.
+        // Product Management is the real inventory screen, so direct users there safely.
+        redirect('shop/products');
     }
 
     public function rentals() {
@@ -215,6 +236,7 @@ class Shop extends Controller {
         $todaysBookings = array_map(function($booking) {
             $row = new stdClass();
             $row->FacilityBookingID = (int) ($booking->BookingID ?? 0);
+            $row->FacilityID = (int) ($booking->FacilityID ?? 0);
             $row->facility_name = (string) ($booking->FacilityName ?? 'Unknown Facility');
             $row->player_name = (string) ($booking->PlayerName ?? 'Unknown Player');
             $row->player_email = (string) ($booking->PlayerEmail ?? 'N/A');
@@ -239,6 +261,43 @@ class Shop extends Controller {
         ];
 
         $this->view('shop/facilities', $data);
+    }
+
+    public function addFacility() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('shop/facilities');
+        }
+
+        $name = trim((string)($_POST['facilityName'] ?? ''));
+        $location = trim((string)($_POST['facilityLocation'] ?? ''));
+        $capacity = (int)($_POST['facilityCapacity'] ?? 0);
+        $hourlyRate = (float)($_POST['facilityRate'] ?? 0);
+
+        if ($name === '' || $capacity <= 0 || $hourlyRate < 0) {
+            $_SESSION['facility_error'] = 'Please enter a valid facility name, capacity, and hourly rate.';
+            redirect('shop/facilities');
+        }
+
+        $codePrefix = strtoupper(preg_replace('/[^A-Z0-9]/', '', substr($name, 0, 4))) ?: 'FAC';
+        $facilityCode = 'F-' . $codePrefix . '-' . time();
+
+        $created = $this->shopModel->createFacility([
+            'code' => $facilityCode,
+            'name' => $name,
+            'location' => $location,
+            'capacity' => $capacity,
+            'hourly_rate' => number_format($hourlyRate, 2, '.', ''),
+        ]);
+
+        if ($created) {
+            $_SESSION['facility_success'] = 'Facility added successfully.';
+        } else {
+            $_SESSION['facility_error'] = 'Could not add the facility. Please try again.';
+        }
+
+        redirect('shop/facilities');
     }
 
     public function products() {
@@ -390,6 +449,8 @@ class Shop extends Controller {
 
     // Profile Management
     public function profile() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         // Get comprehensive user profile data
         $userModel = $this->model('M_Users');
         $userId = $_SESSION['user_id'];
@@ -406,9 +467,11 @@ class Shop extends Controller {
 
     // Update Profile
     public function updateProfile() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Sanitize POST data
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             
             $userModel = $this->model('M_Users');
             $userId = $_SESSION['user_id'];
@@ -461,6 +524,8 @@ class Shop extends Controller {
 
     // Deactivate Account
     public function deactivateAccount() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $userModel = $this->model('M_Users');
             $userId = $_SESSION['user_id'];
@@ -498,6 +563,8 @@ class Shop extends Controller {
     }
     // Upload/Update Profile Image
     public function uploadProfileImage() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -591,6 +658,8 @@ class Shop extends Controller {
 
     // Delete Profile Image
     public function deleteProfileImage() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -626,6 +695,8 @@ class Shop extends Controller {
 
     // Upload Product Image
     public function uploadProductImage() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['productImage'])) {
@@ -700,6 +771,8 @@ class Shop extends Controller {
 
     // Delete Product Image
     public function deleteProductImage() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -740,6 +813,8 @@ class Shop extends Controller {
 
     // Add CRUD operations for products
     public function addProduct() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -837,6 +912,8 @@ class Shop extends Controller {
     }
 
     public function updateProductData() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -950,6 +1027,8 @@ class Shop extends Controller {
     }
 
     public function deleteProductData() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -984,6 +1063,8 @@ class Shop extends Controller {
     }
 
     public function getProduct() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         $productId = intval($_GET['id'] ?? 0);
@@ -1004,10 +1085,12 @@ class Shop extends Controller {
     }
 
     public function getProducts() {
+        requireAuth(['ShopEmployee', 'Shop']);
+
         header('Content-Type: application/json');
         
         $productModel = $this->model('M_Product');
-        $products = $productModel->getAllProducts();
+        $products = $productModel->getAllProductsWithDetails();
         
         echo json_encode(['success' => true, 'products' => $products]);
     }

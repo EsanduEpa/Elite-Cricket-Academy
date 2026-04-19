@@ -73,17 +73,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
                 </ul>
             </nav>
 
-            <!-- Simple Profile Section -->
-            <div class="profile-section">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-name"><?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Coach'; ?></div>
-                <div class="profile-role">Coach</div>
-                <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top: 15px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
         </div>
 
         <!-- Main Content Area -->

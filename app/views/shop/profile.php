@@ -235,6 +235,6 @@ if (!isset($data['user']) || !is_object($data['user'])) {
         </div>
     </div>
 
-<script src="<?php echo URLROOT; ?>/js/shop/dashboard.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <script src="<?php echo URLROOT; ?>/js/common/profile-image.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

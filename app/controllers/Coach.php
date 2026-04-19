@@ -412,20 +412,8 @@ class Coach extends Controller {
     }
     
     public function events() {
-        // Get event model
-        $eventModel = $this->model('Event');
-        
-        // Get upcoming and past events
-        $upcomingEvents = $eventModel->getUpcomingEvents(50);
-        $pastEvents = $eventModel->getPastEvents(50);
-        
-        $data = [
-            'title' => 'Events & Tournaments - Coach Dashboard',
-            'upcoming_events' => $upcomingEvents,
-            'past_events' => $pastEvents
-        ];
-        
-        $this->view('coach/events', $data);
+        // The old events view was removed. Tournaments is the active events area.
+        redirect('coach/tournaments');
     }
     
     // Update verification status for medical records
@@ -504,48 +492,8 @@ class Coach extends Controller {
     }
     
     public function reports() {
-        $coachId = $_SESSION['user_id'];
-        $userModel = $this->model('M_Users');
-        $medicalModel = $this->model('M_Medical');
-        
-        // Get real stats
-        $players = $userModel->getPlayersAssignedToCoach($coachId);
-        $allSessions = $this->getCoachSlotSessions(
-            $coachId,
-            date('Y-m-d', strtotime('-365 days')),
-            date('Y-m-d', strtotime('+365 days'))
-        );
-        $medicalRecords = $medicalModel->getAllMedicalRecordsWithPlayerInfo();
-        
-        $totalPlayers = count($players);
-        $totalSessions = count($allSessions);
-        $completedSessions = count(array_filter($allSessions, function($s) { return ($s->Status ?? '') === 'completed'; }));
-        $activeSessions = count(array_filter($allSessions, function($s) { return ($s->Status ?? '') === 'active'; }));
-        
-        // Session type breakdown
-        $privateSessions = count(array_filter($allSessions, function($s) { return ($s->SessionMode ?? '') === 'Private'; }));
-        $groupSessions = count(array_filter($allSessions, function($s) { return ($s->SessionMode ?? '') === 'Group'; }));
-        
-        // Medical stats
-        $totalMedical = count($medicalRecords);
-        $recoveredCount = count(array_filter($medicalRecords, function($m) { 
-            return isset($m->RecoveryStatus) && strtolower($m->RecoveryStatus) == 'recovered'; 
-        }));
-        
-        $data = [
-            'title' => 'Reports & Analytics - Elite Cricket Academy',
-            'totalPlayers' => $totalPlayers,
-            'totalSessions' => $totalSessions,
-            'completedSessions' => $completedSessions,
-            'activeSessions' => $activeSessions,
-            'privateSessions' => $privateSessions,
-            'groupSessions' => $groupSessions,
-            'totalMedical' => $totalMedical,
-            'recoveredCount' => $recoveredCount,
-            'players' => $players,
-            'sessions' => $allSessions
-        ];
-        $this->view('coach/reports', $data);
+        // The old reports view was removed. Performance is the active reporting page.
+        redirect('coach/performance');
     }
     
     public function requests() {
@@ -899,8 +847,19 @@ class Coach extends Controller {
     }
 
     // Cancel Session
-    public function cancel_session($id) {
+    public function cancel_session($id = null) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = (int)($id ?? ($_POST['id'] ?? 0));
+            header('Content-Type: application/json');
+
+            if ($id <= 0) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid session ID'
+                ]);
+                return;
+            }
+
             $reason = trim($_POST['reason'] ?? 'No reason provided');
 
             $slotStaffModel = $this->model('M_SlotStaff');
