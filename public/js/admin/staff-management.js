@@ -1,5 +1,5 @@
 // Staff Management JavaScript - Elite Cricket Academy
-console.log('✅ staff-management.js loaded successfully!');
+const STAFF_URL_ROOT = document.querySelector('.admin-layout')?.dataset.urlroot || '/Elite';
 
 // Date of Birth Validation Function
 function validateDateOfBirth(dateOfBirth) {
@@ -168,8 +168,6 @@ function declineRoleRequest(requestId) {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing staff management...');
-    
     // Render role requests
     renderRoleRequests();
     
@@ -206,21 +204,14 @@ function updateCurrentTime() {
 
 // Initialize Modals
 function initializeModals() {
-    console.log('🔧 Initializing modals...');
-    
     // Add Staff Modal with Wizard
     const addStaffBtn = document.getElementById('addStaffBtn');
     const addStaffModal = document.getElementById('addStaffModal');
     const modalOverlay = document.getElementById('modalOverlay');
     const cancelBtn = document.getElementById('cancelBtn');
     
-    console.log('Add Staff Button:', addStaffBtn);
-    console.log('Add Staff Modal:', addStaffModal);
-    
     if (addStaffBtn) {
-        console.log('✅ Add Staff button found, adding click listener');
         addStaffBtn.addEventListener('click', () => {
-            console.log('🎯 Add Staff button clicked!');
             addStaffModal.classList.add('active');
             const form = document.getElementById('addStaffForm');
             if (form) {
@@ -240,7 +231,6 @@ function initializeModals() {
     
     if (modalOverlay) {
         modalOverlay.addEventListener('click', () => {
-            console.log('Closing modal via overlay');
             addStaffModal.classList.remove('active');
             goToWizardStep(1); // Reset on close
         });
@@ -248,9 +238,8 @@ function initializeModals() {
     
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
-            console.log('Cancel button clicked - redirecting to staff page');
             // Redirect to staff management page
-            window.location.href = URLROOT + '/admin/staff';
+            window.location.href = STAFF_URL_ROOT + '/admin/staff';
         });
     }
     
@@ -258,12 +247,8 @@ function initializeModals() {
     const wizardNextBtn = document.getElementById('wizardNextBtn');
     const wizardPrevBtn = document.getElementById('wizardPrevBtn');
     
-    console.log('Wizard Next Button:', wizardNextBtn);
-    console.log('Wizard Prev Button:', wizardPrevBtn);
-    
     if (wizardNextBtn) {
         wizardNextBtn.addEventListener('click', () => {
-            console.log('Next button clicked');
             const currentStep = getCurrentWizardStep();
             if (validateWizardStep(currentStep)) {
                 if (currentStep < 4) {
@@ -275,7 +260,6 @@ function initializeModals() {
     
     if (wizardPrevBtn) {
         wizardPrevBtn.addEventListener('click', () => {
-            console.log('Previous button clicked');
             const currentStep = getCurrentWizardStep();
             if (currentStep > 1) {
                 goToWizardStep(currentStep - 1);
@@ -381,14 +365,10 @@ function createErrorElement(parent) {
 // Wizard Functions
 function getCurrentWizardStep() {
     const activeStep = document.querySelector('.wizard-step-content.active');
-    const currentStep = activeStep ? parseInt(activeStep.dataset.step) : 1;
-    console.log('Current wizard step:', currentStep);
-    return currentStep;
+    return activeStep ? parseInt(activeStep.dataset.step) : 1;
 }
 
 function goToWizardStep(step) {
-    console.log(`🔄 Going to wizard step ${step}`);
-    
     // Update step contents
     document.querySelectorAll('.wizard-step-content').forEach(content => {
         content.classList.remove('active');
@@ -396,7 +376,6 @@ function goToWizardStep(step) {
     const targetContent = document.querySelector(`.wizard-step-content[data-step="${step}"]`);
     if (targetContent) {
         targetContent.classList.add('active');
-        console.log(`✅ Step ${step} content activated`);
     } else {
         console.error(`❌ Step ${step} content not found!`);
     }
@@ -512,15 +491,8 @@ function handleAddStaff(e) {
     
     const formData = new FormData(e.target);
     
-    // Debug: Log form data
-    console.log('=== Submitting Staff Data ===');
-    for (let [key, value] of formData.entries()) {
-        console.log(`  ${key}: ${value}`);
-    }
-    
-    // Construct URL - using URLROOT from config
-    const url = '/Elite/admin/add_staff';
-    console.log('Request URL:', url);
+    // Construct URL from the page data attribute so this works in any local folder name.
+    const url = STAFF_URL_ROOT + '/admin/add_staff';
     
     // Show loading state
     const submitButton = e.target.querySelector('button[type="submit"]');
@@ -535,10 +507,6 @@ function handleAddStaff(e) {
         body: formData
     })
     .then(response => {
-        console.log('=== Response Received ===');
-        console.log('  Status:', response.status, response.statusText);
-        console.log('  Content-Type:', response.headers.get("content-type"));
-        
         // Check response status
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -560,9 +528,6 @@ function handleAddStaff(e) {
         return response.json();
     })
     .then(data => {
-        console.log('=== Parsed JSON Response ===');
-        console.log(data);
-        
         // Re-enable button
         if (submitButton) {
             submitButton.disabled = false;
@@ -571,8 +536,6 @@ function handleAddStaff(e) {
         
         // Check for success
         if (data.success || data.status === 'success') {
-            console.log('✅ Staff member added successfully!');
-            
             // Add to local array for immediate display
             const newStaff = {
                 id: data.userId || data.data?.id,
@@ -757,25 +720,44 @@ function initializeSearchAndFilters() {
 
 // Apply Filters
 function applyFilters() {
-    const searchTerm = document.getElementById('staffSearch').value.toLowerCase();
-    const roleFilter = document.getElementById('roleFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    
-    filteredStaff = staffMembers.filter(staff => {
-        const matchesSearch = 
-            staff.firstName.toLowerCase().includes(searchTerm) ||
-            staff.lastName.toLowerCase().includes(searchTerm) ||
-            staff.email.toLowerCase().includes(searchTerm) ||
-            staff.role.toLowerCase().includes(searchTerm);
-        
-        const matchesRole = roleFilter === 'all' || staff.role === roleFilter;
-        const matchesStatus = statusFilter === 'all' || staff.status === statusFilter;
-        
-        return matchesSearch && matchesRole && matchesStatus;
+    const searchTerm = (document.getElementById('staffSearch')?.value || '').trim().toLowerCase();
+    const roleFilter = document.getElementById('roleFilter')?.value || 'all';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const rows = document.querySelectorAll('#staffTableBody tr[data-staff-role]');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const rowSearch = row.dataset.staffSearch || row.textContent.toLowerCase();
+        const rowRole = row.dataset.staffRole || '';
+        const rowStatus = row.dataset.staffStatus || '';
+        const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+        const matchesRole = roleFilter === 'all' || rowRole === roleFilter;
+        const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+        const showRow = matchesSearch && matchesRole && matchesStatus;
+
+        row.style.display = showRow ? '' : 'none';
+        if (showRow) {
+            visibleCount++;
+        }
     });
-    
-    currentPage = 1;
-    renderStaffTable();
+
+    updateStaffDomCount(visibleCount, rows.length);
+}
+
+function updateStaffDomCount(visibleCount, totalCount) {
+    const showingStart = document.getElementById('showingStart');
+    const showingEnd = document.getElementById('showingEnd');
+    const totalStaff = document.getElementById('totalStaff');
+
+    if (showingStart) {
+        showingStart.textContent = visibleCount > 0 ? '1' : '0';
+    }
+    if (showingEnd) {
+        showingEnd.textContent = String(visibleCount);
+    }
+    if (totalStaff) {
+        totalStaff.textContent = String(totalCount);
+    }
 }
 
 // Render Staff Table
@@ -951,13 +933,12 @@ function updateStats() {
     const admins = staffMembers.filter(s => s.role === 'admin' && s.status === 'active').length;
     const shopkeepers = staffMembers.filter(s => s.role === 'shopkeeper' && s.status === 'active').length;
     
-    // Update stat cards if needed
-    console.log('Stats:', { coaches: coaches + headCoaches, trainers, admins, shopkeepers });
+    // These values are available if the stat cards are reconnected to JS later.
 }
 
 // Export Staff Data
 function exportStaffData() {
-    const csvContent = generateCSV();
+    const csvContent = generateStaffCsvFromDom();
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -967,6 +948,28 @@ function exportStaffData() {
     window.URL.revokeObjectURL(url);
     
     showNotification('Staff data exported successfully!', 'success');
+}
+
+function generateStaffCsvFromDom() {
+    const headers = ['Name', 'Role', 'Email', 'Phone', 'Join Date', 'Status'];
+    const rows = Array.from(document.querySelectorAll('#staffTableBody tr[data-staff-role]'))
+        .filter(row => row.style.display !== 'none')
+        .map(row => {
+            const cells = row.querySelectorAll('td');
+            return [
+                row.querySelector('.staff-info h4')?.textContent.trim() || '',
+                cells[2]?.textContent.trim() || '',
+                cells[3]?.textContent.trim() || '',
+                cells[4]?.textContent.trim() || '',
+                cells[5]?.textContent.trim() || '',
+                cells[6]?.textContent.trim() || '',
+            ];
+        });
+
+    return [
+        headers.join(','),
+        ...rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
 }
 
 // Generate CSV

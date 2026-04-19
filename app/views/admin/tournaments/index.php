@@ -1,15 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; text-transform:uppercase; }
-.status-created { background:#e2e8f0; color:#475569; }
-.status-registration_open { background:#dcfce7; color:#166534; }
-.status-registration_closed { background:#fef9c3; color:#854d0e; }
-.status-team_announced { background:#dbeafe; color:#1e40af; }
-.status-ongoing { background:#fde68a; color:#92400e; }
-.status-completed { background:#d1fae5; color:#065f46; }
-.status-cancelled { background:#fee2e2; color:#991b1b; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-list-tools.css">
 
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
@@ -77,57 +68,118 @@
                     <p>No tournaments yet. <a href="<?php echo URLROOT; ?>/admin/create_tournament" style="color:#3498db;text-decoration:none;">Create the first one.</a></p>
                 </div>
             <?php else: ?>
-                <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);">
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead style="background:#f8fafc;">
+                <div class="admin-list-shell" data-admin-list data-page-size="10">
+                    <div class="admin-list-toolbar">
+                        <div class="admin-list-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" data-list-filter="search" placeholder="Search tournament, location, format...">
+                        </div>
+                        <select data-list-filter="status">
+                            <option value="all">All Status</option>
+                            <option value="created">Created</option>
+                            <option value="registration_open">Registration Open</option>
+                            <option value="registration_closed">Registration Closed</option>
+                            <option value="team_announced">Team Announced</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <select data-list-filter="team">
+                            <option value="all">All Team States</option>
+                            <option value="announced">Team Announced</option>
+                            <option value="not-announced">Not Announced</option>
+                        </select>
+                        <select data-list-filter="period">
+                            <option value="all">All Dates</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="past">Past</option>
+                        </select>
+                        <select data-list-filter="format">
+                            <option value="all">All Formats</option>
+                            <?php
+                                $formats = array_values(array_unique(array_filter(array_map(fn($t) => trim((string)($t->Format ?? '')), $data['tournaments']))));
+                                sort($formats);
+                                foreach ($formats as $format):
+                            ?>
+                                <option value="<?php echo htmlspecialchars(strtolower($format)); ?>"><?php echo htmlspecialchars($format); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="button" class="admin-list-reset" data-list-reset>
+                            <i class="fas fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                    <div class="admin-list-table-wrap">
+                    <table class="admin-compact-table">
+                        <thead>
                             <tr>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Tournament</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Age Group</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Format</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Date</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Status</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Team</th>
-                                <th style="padding:12px 16px;text-align:left;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600;">Actions</th>
+                                <th>Tournament</th>
+                                <th>Age Group</th>
+                                <th>Format</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Team</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody data-list-body>
                             <?php foreach ($data['tournaments'] as $t): ?>
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:12px 16px;">
-                                    <strong><?php echo htmlspecialchars($t->Name); ?></strong><br>
-                                    <small style="color:#94a3b8;"><?php echo htmlspecialchars($t->Location ?? '—'); ?></small>
+                            <?php
+                                $dateValue = !empty($t->tdate) ? date('Y-m-d', strtotime($t->tdate)) : '';
+                                $period = ($dateValue && $dateValue < date('Y-m-d')) ? 'past' : 'upcoming';
+                                $teamState = !empty($t->IsTeamAnnounced) ? 'announced' : 'not-announced';
+                                $searchText = trim(($t->Name ?? '') . ' ' . ($t->Location ?? '') . ' ' . ($t->AgeGroup ?? '') . ' ' . ($t->Format ?? '') . ' ' . ($t->Status ?? ''));
+                            ?>
+                            <tr data-list-row
+                                data-search="<?php echo htmlspecialchars(strtolower($searchText)); ?>"
+                                data-filter-status="<?php echo htmlspecialchars(strtolower($t->Status ?? '')); ?>"
+                                data-filter-team="<?php echo htmlspecialchars($teamState); ?>"
+                                data-filter-period="<?php echo htmlspecialchars($period); ?>"
+                                data-filter-format="<?php echo htmlspecialchars(strtolower((string)($t->Format ?? ''))); ?>">
+                                <td>
+                                    <span class="admin-list-primary"><?php echo htmlspecialchars($t->Name); ?></span>
+                                    <span class="admin-list-muted"><?php echo htmlspecialchars($t->Location ?? '—'); ?></span>
                                 </td>
-                                <td style="padding:12px 16px;"><?php echo htmlspecialchars($t->AgeGroup ?? '—'); ?></td>
-                                <td style="padding:12px 16px;"><?php echo htmlspecialchars($t->Format ?? '—'); ?></td>
-                                <td style="padding:12px 16px;"><?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : '—'; ?></td>
-                                <td style="padding:12px 16px;">
-                                    <span class="tournament-status status-<?php echo $t->Status; ?>">
+                                <td><?php echo htmlspecialchars($t->AgeGroup ?? '—'); ?></td>
+                                <td><?php echo htmlspecialchars($t->Format ?? '—'); ?></td>
+                                <td><?php echo $t->tdate ? date('d M Y', strtotime($t->tdate)) : '—'; ?></td>
+                                <td>
+                                    <span class="tournament-status status-<?php echo htmlspecialchars($t->Status); ?>">
                                         <?php echo str_replace('_', ' ', $t->Status); ?>
                                     </span>
                                 </td>
-                                <td style="padding:12px 16px;">
+                                <td>
                                     <?php if ($t->IsTeamAnnounced): ?>
                                         <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Announced</span>
                                     <?php else: ?>
                                         <span style="color:#94a3b8;">Not announced</span>
                                     <?php endif; ?>
                                 </td>
-                                <td style="padding:12px 16px;">
-                                    <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?php echo $t->TournamentID; ?>" style="color:#3b82f6;margin-right:8px;" title="View"><i class="fas fa-eye"></i></a>
+                                <td>
+                                    <div class="admin-list-actions">
+                                    <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?php echo $t->TournamentID; ?>" class="admin-list-action view" title="View"><i class="fas fa-eye"></i></a>
                                     <?php if (!in_array($t->Status, ['ongoing','completed','cancelled'])): ?>
-                                        <a href="<?php echo URLROOT; ?>/admin/edit_tournament/<?php echo $t->TournamentID; ?>" style="color:#f59e0b;margin-right:8px;" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <a href="<?php echo URLROOT; ?>/admin/edit_tournament/<?php echo $t->TournamentID; ?>" class="admin-list-action edit" title="Edit"><i class="fas fa-edit"></i></a>
                                     <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
+                            <tr class="admin-list-empty-row" data-list-empty-row style="display:none;">
+                                <td colspan="7"><i class="fas fa-filter"></i> No tournaments match the selected filters.</td>
+                            </tr>
                         </tbody>
                     </table>
+                    </div>
+                    <div class="admin-list-footer">
+                        <div class="admin-list-count" data-list-count></div>
+                        <div class="admin-list-pagination" data-list-pagination></div>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/admin/admin-list-tools.js"></script>
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
-</body>
-</html>

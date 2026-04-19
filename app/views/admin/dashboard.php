@@ -142,21 +142,6 @@
 
             <!-- Academy Calendar - Weekly View -->
             <div class="calendar-section" style="margin-top:30px;">
-                <style>
-                    .week-cal-cell      { border:1px solid #e0e0e0; vertical-align:top; min-height:200px; width:14.28%; padding:10px; background:#fff; }
-                    .week-cal-today     { background:#fffde7; border:2px solid #ffc107; }
-                    .week-cal-day-hdr   { display:flex; flex-direction:column; align-items:center; margin-bottom:10px; }
-                    .week-cal-day-name  { font-weight:700; font-size:13px; color:#333; }
-                    .week-cal-day-date  { font-size:11px; color:#666; margin-top:2px; }
-                    .week-cal-card      { border-radius:6px; padding:6px 8px; margin-bottom:6px; font-size:11px; cursor:pointer; text-decoration:none; display:block; overflow:hidden; }
-                    .week-cal-card-title { font-weight:600; margin-bottom:2px; }
-                    .week-cal-program   { background:#cce5ff; color:#004085; border-left:3px solid #004085; }
-                    .week-cal-private   { background:#fff3cd; color:#856404; border-left:3px solid #856404; }
-                    .week-cal-facility  { background:#d4edda; color:#155724; border-left:3px solid #155724; }
-                    .week-cal-cancelled { background:#e9ecef; color:#6c757d; border-left:3px solid #aaa; text-decoration:line-through; }
-                    .week-cal-adhoc     { background:#f3e5f5; color:#4a1e8c; border-left:3px solid #9b59b6; }
-                    .week-cal-tournament { background:#fff1d6; color:#8a4b00; border-left:3px solid #e67e22; }
-                </style>
                 <div class="calendar-header">
                     <h3><i class="fas fa-calendar-alt"></i> Academy Calendar - Weekly View</h3>
                     <div class="calendar-controls">
@@ -306,9 +291,29 @@
                         <tbody id="activityTableBody">
                             <?php if(!empty($data['recentActivities'])): ?>
                                 <?php foreach($data['recentActivities'] as $activity): ?>
-                                    <tr>
+                                    <?php
+                                        // Recent activity filters use these normalized values instead of parsing text.
+                                        $activityText = strtolower(($activity->action ?? '') . ' ' . ($activity->details ?? ''));
+                                        $activityType = 'maintenance';
+                                        if (strpos($activityText, 'register') !== false || strpos($activityText, 'created') !== false || strpos($activityText, 'player') !== false) {
+                                            $activityType = 'registration';
+                                        } elseif (strpos($activityText, 'event') !== false || strpos($activityText, 'tournament') !== false || strpos($activityText, 'slot') !== false || strpos($activityText, 'session') !== false) {
+                                            $activityType = 'event';
+                                        } elseif (strpos($activityText, 'feedback') !== false || strpos($activityText, 'review') !== false) {
+                                            $activityType = 'feedback';
+                                        } elseif (strpos($activityText, 'payment') !== false || strpos($activityText, 'payhere') !== false || strpos($activityText, 'subscription') !== false || strpos($activityText, 'order') !== false || strpos($activityText, 'rental') !== false) {
+                                            $activityType = 'payment';
+                                        } elseif (strpos($activityText, 'staff') !== false || strpos($activityText, 'coach') !== false || strpos($activityText, 'trainer') !== false || strpos($activityText, 'admin') !== false) {
+                                            $activityType = 'staff';
+                                        }
+
+                                        $activityTimestamp = $activity->timestamp ?? '';
+                                        $activityTimeValue = !empty($activityTimestamp) ? strtotime($activityTimestamp) : false;
+                                        $activityDate = $activityTimeValue ? date('Y-m-d', $activityTimeValue) : '';
+                                    ?>
+                                    <tr data-activity-type="<?php echo htmlspecialchars($activityType); ?>" data-activity-date="<?php echo htmlspecialchars($activityDate); ?>">
                                         <td>
-                                            <span class="activity-badge <?php echo strtolower($activity->action); ?>">
+                                            <span class="activity-badge <?php echo htmlspecialchars($activityType); ?>">
                                                 <i class="fas fa-<?php 
                                                     // Map activity action to icon
                                                     $icon = 'info-circle'; // default
@@ -335,41 +340,13 @@
                                     </td>
                                 </tr>
                             <?php endif; ?>
+                            <tr id="activityNoResultsRow" style="display:none;">
+                                <td colspan="4" style="text-align: center; padding: 20px; color: #999;">
+                                    <i class="fas fa-filter"></i> No activities match the selected filters
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Quick Actions - 3 Buttons Per Row, 2 Rows -->
-            <div class="quick-actions-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-                </div>
-                <div class="quick-actions-grid">
-                    <a href="<?php echo URLROOT; ?>/admin/players" class="action-btn primary">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Add New Player</span>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/admin/events" class="action-btn secondary">
-                        <i class="fas fa-calendar-plus"></i>
-                        <span>Schedule Event</span>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/admin/reports" class="action-btn success">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Generate Report</span>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/admin/staff" class="action-btn warning">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Add New Staff</span>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/admin/finance" class="action-btn info">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Manage Finance</span>
-                    </a>
-                    <a href="<?php echo URLROOT; ?>/admin/feedback" class="action-btn danger">
-                        <i class="fas fa-comments"></i>
-                        <span>Review Feedback</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -382,67 +359,6 @@
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/common/tournaments.js"></script>
     <script src="<?php echo URLROOT; ?>/js/admin/dashboard.js"></script>
-    
-    <!-- Activity Filters JavaScript -->
-    <script>
-        // Activity Filter Functions
-        function filterActivities() {
-            const typeFilter = document.getElementById('activityTypeFilter').value;
-            const timeFilter = document.getElementById('activityTimeFilter').value;
-            const rows = document.querySelectorAll('#activityTableBody tr');
-            
-            rows.forEach(row => {
-                let showRow = true;
-                
-                // Type filter
-                if (typeFilter !== 'all') {
-                    const activityType = row.querySelector('.activity-badge').textContent.trim().toLowerCase();
-                    if (!activityType.includes(typeFilter.toLowerCase())) {
-                        showRow = false;
-                    }
-                }
-                
-                // Time filter
-                if (timeFilter !== 'all' && showRow) {
-                    const dateText = row.cells[2].textContent.trim();
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    // Parse the date from cell text (expect formats like "Feb 17, 2026" or "2026-02-17")
-                    const rowDate = new Date(dateText);
-                    if (!isNaN(rowDate.getTime())) {
-                        rowDate.setHours(0, 0, 0, 0);
-                        if (timeFilter === 'today') {
-                            showRow = rowDate.getTime() === today.getTime();
-                        } else if (timeFilter === 'week') {
-                            const weekAgo = new Date(today);
-                            weekAgo.setDate(weekAgo.getDate() - 7);
-                            showRow = rowDate >= weekAgo && rowDate <= today;
-                        } else if (timeFilter === 'month') {
-                            showRow = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
-                        }
-                    }
-                }
-                
-                row.style.display = showRow ? '' : 'none';
-            });
-        }
-        
-        function clearActivityFilters() {
-            document.getElementById('activityTypeFilter').value = 'all';
-            document.getElementById('activityTimeFilter').value = 'all';
-            filterActivities();
-        }
-        
-        // Add event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const typeFilter = document.getElementById('activityTypeFilter');
-            const timeFilter = document.getElementById('activityTimeFilter');
-            
-            if (typeFilter) typeFilter.addEventListener('change', filterActivities);
-            if (timeFilter) timeFilter.addEventListener('change', filterActivities);
-        });
-    </script>
 </body>
 
 </html>
