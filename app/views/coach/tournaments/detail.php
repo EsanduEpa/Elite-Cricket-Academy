@@ -20,13 +20,6 @@
                 <li class="nav-item"><a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests"><i class="fas fa-clipboard-list"></i><span>Requests</span></a></li>
             </ul>
         </nav>
-        <div class="profile-section">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <div class="profile-name"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Coach'); ?></div>
-            <div class="profile-role">Cricket Coach<?php echo $data['is_head_coach'] ? ' · Head Coach' : ''; ?></div>
-            <a href="<?php echo URLROOT; ?>/coach/profile" class="action-btn" style="margin-top:10px;"><i class="fas fa-user-cog"></i> Profile</a>
-            <a href="<?php echo URLROOT; ?>/login/logout" class="action-btn" style="margin-top:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
     </div>
 
     <main class="main-content" id="mainContent">
@@ -203,6 +196,5 @@
     </main>
 </div>
 
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
-</body>
-</html>

@@ -1,0 +1,52 @@
+.filter-section {
+    display: flex;
+    gap: 16px;
+    margin: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: .95rem;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: .88rem;
+    background: #fff;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #4A90E2;
+}
+
+.btn-reset-filter {
+    padding: 8px 14px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .88rem;
+    color: #333;
+}
+
+.btn-reset-filter:hover {
+    background: #e0e0e0;
+}
+
+.t-card.hidden {
+    display: none;
+}

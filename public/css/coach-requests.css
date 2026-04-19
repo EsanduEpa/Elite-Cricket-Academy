@@ -35,6 +35,18 @@
     flex-wrap: wrap;
 }
 
+.coach-request-tabs {
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow-x: auto;
+    padding: 4px 0 18px;
+}
+
+.coach-request-tabs .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
 .tab-btn {
     padding: 12px 20px;
     border: 2px solid #e2e8f0;

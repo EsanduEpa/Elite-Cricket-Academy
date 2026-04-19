@@ -4,71 +4,7 @@
 
     <!-- Coach Dashboard Layout -->
     <div class="coach-layout">
-        <!-- Left Sidebar Panel -->
-        <div class="coach-sidebar" id="coachSidebar">
-            <div class="sidebar-header">
-                <div class="coach-logo">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <h3>Coach Panel</h3>
-                </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-angle-left"></i>
-                </button>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/dashboard" class="nav-link" data-tooltip="Dashboard">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/staffslots/calendar" class="nav-link" data-tooltip="My Slot Sessions">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>My Slot Sessions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/players" class="nav-link" data-tooltip="Players">
-                            <i class="fas fa-users"></i>
-                            <span>Players</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/performance" class="nav-link" data-tooltip="Performance">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Performance</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/tournaments" class="nav-link" data-tooltip="Tournaments">
-                            <i class="fas fa-trophy"></i>
-                            <span>Tournaments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/health" class="nav-link" data-tooltip="Health & Injury">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Health & Injury</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="<?php echo URLROOT; ?>/coach/communication" class="nav-link" data-tooltip="Communication">
-                            <i class="fas fa-comments"></i>
-                            <span>Communication</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="<?php echo URLROOT; ?>/coach/requests" class="nav-link" data-tooltip="Requests">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span>Requests</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        <?php $activeCoachNav = 'communication'; require APPROOT . '/views/inc/components/coach_sidebar.php'; ?>
 
         <!-- Main Content Area -->
         <div class="main-content">
@@ -83,14 +19,14 @@
                         <p class="coach-communication-subtitle">Message players, trainers, and admins</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn-primary" id="newMessageBtn">
-                            <i class="fas fa-plus"></i>
-                            New Message
-                        </button>
-                        <button class="btn-primary" id="newAnnouncementBtn">
-                            <i class="fas fa-bullhorn"></i>
-                            Send Announcement
-                        </button>
+                        <a class="btn-primary" href="<?php echo URLROOT; ?>/coach/requests">
+                            <i class="fas fa-clipboard-list"></i>
+                            View Requests
+                        </a>
+                        <a class="btn-primary" href="<?php echo URLROOT; ?>/notifications">
+                            <i class="fas fa-bell"></i>
+                            Notifications
+                        </a>
                     </div>
                 </div>
             </div>
@@ -160,6 +96,5 @@
     </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
-<script src="<?php echo URLROOT; ?>/js/coach/communication.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
