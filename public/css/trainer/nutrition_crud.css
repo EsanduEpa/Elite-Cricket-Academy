@@ -662,6 +662,143 @@
     color: #6c757d;
 }
 
+.nc-assigned-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .32rem .72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(74,144,226,.32);
+    background: rgba(74,144,226,.10);
+    color: #4A90E2;
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.nc-assigned-btn:hover {
+    background: rgba(74,144,226,.16);
+}
+
+.nc-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1200;
+}
+
+.nc-modal-panel {
+    width: min(640px, 100%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 45px rgba(0,0,0,.22);
+    overflow: hidden;
+}
+
+.nc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .9rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.nc-modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.nc-modal-close {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #475467;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.nc-modal-body {
+    padding: 1rem;
+}
+
+.nc-assigned-table-wrap {
+    max-height: 340px;
+    overflow: auto;
+}
+
+.nc-assigned-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.nc-assigned-table thead tr {
+    background: #f8f9fa;
+}
+
+.nc-assigned-table th,
+.nc-assigned-table td {
+    padding: .7rem .8rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f5;
+    color: #334155;
+    font-size: .85rem;
+}
+
+.nc-assigned-table th {
+    font-size: .78rem;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nc-assigned-empty {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.nc-plan-view-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem 1.1rem;
+    margin-bottom: .9rem;
+}
+
+.nc-plan-view-grid div {
+    font-size: .86rem;
+    color: #334155;
+}
+
+.nc-plan-view-details {
+    margin-top: .75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: .75rem;
+}
+
+.nc-plan-view-details strong {
+    display: block;
+    margin-bottom: .45rem;
+    color: #1f2937;
+    font-size: .84rem;
+}
+
+.nc-plan-view-details pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #334155;
+    font-size: .82rem;
+    line-height: 1.4;
+    font-family: inherit;
+}
+
 .nc-assignment-mode-panel .form-control {
     border-radius: 12px;
 }

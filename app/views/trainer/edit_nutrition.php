@@ -12,8 +12,56 @@ $old    = $data['old']    ?? [];       // repopulated after failed submit
 $errors = $data['errors'] ?? [];
 $templates = $data['nutrition_templates'] ?? [];
 
+$dietFallback = [
+    'plan_name' => '',
+    'protein_percentage' => '',
+    'carbohydrate_percentage' => '',
+    'fat_percentage' => '',
+    'recommended_calories' => '',
+    'description' => '',
+];
+
+$dietDetailsRaw = (string)($plan->DietDetails ?? '');
+if ($dietDetailsRaw !== '') {
+    foreach (preg_split('/\r\n|\r|\n/', $dietDetailsRaw) as $line) {
+        $line = trim((string)$line);
+        if ($line === '') {
+            continue;
+        }
+
+        if (stripos($line, 'Plan:') === 0) {
+            $dietFallback['plan_name'] = trim(substr($line, strlen('Plan:')));
+            continue;
+        }
+
+        if (stripos($line, 'Protein:') === 0) {
+            $dietFallback['protein_percentage'] = trim(str_replace('%', '', substr($line, strlen('Protein:'))));
+            continue;
+        }
+
+        if (stripos($line, 'Carbohydrates:') === 0) {
+            $dietFallback['carbohydrate_percentage'] = trim(str_replace('%', '', substr($line, strlen('Carbohydrates:'))));
+            continue;
+        }
+
+        if (stripos($line, 'Fat:') === 0) {
+            $dietFallback['fat_percentage'] = trim(str_replace('%', '', substr($line, strlen('Fat:'))));
+            continue;
+        }
+
+        if (stripos($line, 'Recommended calories:') === 0) {
+            $dietFallback['recommended_calories'] = trim(substr($line, strlen('Recommended calories:')));
+            continue;
+        }
+
+        if (stripos($line, 'Description:') === 0) {
+            $dietFallback['description'] = trim(substr($line, strlen('Description:')));
+        }
+    }
+}
+
 // Helper: return old (post) value if available, otherwise DB value
-$val = function(string $k, string $dbCol = '') use ($old, $plan) {
+$val = function(string $k, string $dbCol = '') use ($old, $plan, $dietFallback) {
     if (isset($old[$k])) return htmlspecialchars(html_entity_decode((string)$old[$k], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES);
     $col = $dbCol;
     if (!$col) {
@@ -24,7 +72,12 @@ $val = function(string $k, string $dbCol = '') use ($old, $plan) {
             $col = $k;
         }
     }
-    return htmlspecialchars(html_entity_decode((string)($plan->$col ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES);
+    $value = (string)($plan->$col ?? '');
+    if ($value === '' && isset($dietFallback[$k])) {
+        $value = (string)$dietFallback[$k];
+    }
+
+    return htmlspecialchars(html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES);
 };
 $err = fn(string $k) => $errors[$k] ?? '';
 $cls = fn(string $k) => isset($errors[$k]) ? ' is-invalid' : '';
@@ -712,35 +765,51 @@ document.addEventListener('DOMContentLoaded', function () {
             valid = false;
         }
 
+        function getNumericInput(id) {
+            const field = document.getElementById(id);
+            const raw = field ? String(field.value || '').trim() : '';
+            const normalized = raw.replace(',', '.');
+            const value = normalized === '' ? NaN : Number(normalized);
+            return { field, raw, value };
+        }
+
         const templateId  = templateSelect ? templateSelect.value.trim() : '';
         const planName    = document.getElementById('plan_name').value.trim();
         const mode        = assignmentMode ? assignmentMode.value : 'individual';
         const groupValue  = document.getElementById('player_group') ? document.getElementById('player_group').value : '';
         const selectedPlayers = playerCheckboxes.filter(input => input.checked).map(input => input.value).filter(Boolean);
         const notes       = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
-            const supplements = document.getElementById('supplements') ? document.getElementById('supplements').value.trim() : '';
-        const protein     = document.getElementById('protein_percentage').value.trim();
-        const carbs       = document.getElementById('carbohydrate_percentage').value.trim();
-        const fat         = document.getElementById('fat_percentage').value.trim();
-        const calories    = document.getElementById('recommended_calories').value.trim();
+        const supplements = document.getElementById('supplements') ? document.getElementById('supplements').value.trim() : '';
+        const proteinInput = getNumericInput('protein_percentage');
+        const carbsInput = getNumericInput('carbohydrate_percentage');
+        const fatInput = getNumericInput('fat_percentage');
+        const caloriesInput = getNumericInput('recommended_calories');
         const description = document.getElementById('description').value.trim();
         const duration    = document.getElementById('duration').value.trim();
         const createdDate = document.getElementById('created_date').value.trim();
 
         // Template selection is optional on edit; keep existing template/value set when not chosen.
         if (!planName) addError('plan_name', 'Plan name is required.');
-        if (!protein || isNaN(protein) || +protein < 0 || +protein > 100) addError('protein_percentage', 'Enter a valid percentage between 0 and 100.');
-        if (!carbs || isNaN(carbs) || +carbs < 0 || +carbs > 100) addError('carbohydrate_percentage', 'Enter a valid percentage between 0 and 100.');
-        if (!fat || isNaN(fat) || +fat < 0 || +fat > 100) addError('fat_percentage', 'Enter a valid percentage between 0 and 100.');
-        if (protein && carbs && fat && !isNaN(protein) && !isNaN(carbs) && !isNaN(fat)) {
-            const total = (+protein) + (+carbs) + (+fat);
+        if (proteinInput.raw === '' || !Number.isFinite(proteinInput.value) || proteinInput.value < 0 || proteinInput.value > 100) {
+            addError('protein_percentage', 'Enter a valid percentage between 0 and 100.');
+        }
+        if (carbsInput.raw === '' || !Number.isFinite(carbsInput.value) || carbsInput.value < 0 || carbsInput.value > 100) {
+            addError('carbohydrate_percentage', 'Enter a valid percentage between 0 and 100.');
+        }
+        if (fatInput.raw === '' || !Number.isFinite(fatInput.value) || fatInput.value < 0 || fatInput.value > 100) {
+            addError('fat_percentage', 'Enter a valid percentage between 0 and 100.');
+        }
+        if (Number.isFinite(proteinInput.value) && Number.isFinite(carbsInput.value) && Number.isFinite(fatInput.value)) {
+            const total = proteinInput.value + carbsInput.value + fatInput.value;
             if (Math.abs(total - 100) > 0.01) {
-                addError('fat_percentage', 'Protein (' + protein + '%) + Carbohydrate (' + carbs + '%) + Fat (' + fat + '%) = ' + total.toFixed(2) + '%. They must total exactly 100%.');
+                addError('fat_percentage', 'Protein (' + proteinInput.value + '%) + Carbohydrate (' + carbsInput.value + '%) + Fat (' + fatInput.value + '%) = ' + total.toFixed(2) + '%. They must total exactly 100%.');
             }
         }
-        if (!calories || isNaN(calories) || +calories < 500 || +calories > 10000) addError('recommended_calories', 'Calories must be between 500 and 10000.');
+        if (caloriesInput.raw === '' || !Number.isFinite(caloriesInput.value) || caloriesInput.value < 500 || caloriesInput.value > 10000) {
+            addError('recommended_calories', 'Calories must be between 500 and 10000.');
+        }
         if (description.length > 2000) addError('description', 'Description must be 2000 characters or fewer.');
-            if (supplements.length > 2000) addError('supplements', 'Supplements must be 2000 characters or fewer.');
+        if (supplements.length > 2000) addError('supplements', 'Supplements must be 2000 characters or fewer.');
         if (mode === 'group') {
             if (!groupValue) addError('player_group', 'Please select a player group.');
         } else if (!selectedPlayers.length) {
