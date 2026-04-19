@@ -20,6 +20,28 @@ if ($templates instanceof Traversable) {
 if (!is_array($templates)) {
     $templates = [];
 }
+
+$resolvePlanName = static function ($plan): string {
+    $name = trim((string)($plan->PlanName ?? $plan->nutritionPlanName ?? ''));
+    if ($name !== '') {
+        return $name;
+    }
+
+    $dietDetails = (string)($plan->DietDetails ?? '');
+    if ($dietDetails !== '') {
+        foreach (preg_split('/\r\n|\r|\n/', $dietDetails) as $line) {
+            $line = trim((string)$line);
+            if (stripos($line, 'Plan:') === 0) {
+                $parsed = trim(substr($line, strlen('Plan:')));
+                if ($parsed !== '') {
+                    return $parsed;
+                }
+            }
+        }
+    }
+
+    return 'Untitled Plan';
+};
 ?>
 
 <div class="player-layout nc-page">
@@ -87,7 +109,6 @@ if (!is_array($templates)) {
                             <tr>
                                 <th><i class="fas fa-tag"></i> Plan Name</th>
                                 <th><i class="fas fa-user"></i> Player</th>
-                                <th><i class="fas fa-utensils"></i> Diet Details</th>
                                 <th><i class="fas fa-capsules"></i> Supplements</th>
                                 <th><i class="fas fa-hourglass-half"></i> Duration</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
@@ -99,15 +120,10 @@ if (!is_array($templates)) {
                             <?php foreach ($plans as $plan): ?>
                                 <tr>
                                     <td>
-                                        <span class="nc-plan-name"><?php echo htmlspecialchars($plan->PlanName ?? 'Untitled Plan'); ?></span>
+                                        <span class="nc-plan-name"><?php echo htmlspecialchars($resolvePlanName($plan)); ?></span>
                                         <span class="nc-plan-id">#<?php echo (int)($plan->PlanID ?? 0); ?></span>
                                     </td>
                                     <td><?php echo htmlspecialchars($plan->player_name ?? '—'); ?></td>
-                                    <td>
-                                        <span class="nc-diet-preview" title="<?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>">
-                                            <?php echo htmlspecialchars((string)($plan->DietDetails ?? '')); ?>
-                                        </span>
-                                    </td>
                                     <td>
                                         <?php $supplements = trim((string)($plan->Supplements ?? $plan->supplements ?? '')); ?>
                                         <?php if ($supplements !== ''): ?>
