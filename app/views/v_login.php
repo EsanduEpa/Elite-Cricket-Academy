@@ -1,4 +1,8 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php
+// Login view: renders the public login form.
+// The Login controller validates submitted credentials and creates the session.
+require_once APPROOT . '/views/inc/components/header.php';
+?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/home.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/login.css">
 
@@ -114,76 +118,7 @@
         </div>
     </div>
 
-    <script>
-        // Forgot Password Modal
-        document.addEventListener('DOMContentLoaded', function() {
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-            const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-            const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
-            const cancelForgotPassword = document.getElementById('cancelForgotPassword');
-            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-
-            // Open modal
-            if (forgotPasswordLink) {
-                forgotPasswordLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    forgotPasswordModal.classList.add('active');
-                });
-            }
-
-            // Close modal
-            if (closeForgotPasswordModal) {
-                closeForgotPasswordModal.addEventListener('click', function() {
-                    forgotPasswordModal.classList.remove('active');
-                });
-            }
-
-            if (cancelForgotPassword) {
-                cancelForgotPassword.addEventListener('click', function() {
-                    forgotPasswordModal.classList.remove('active');
-                });
-            }
-
-            // Close modal on backdrop click
-            forgotPasswordModal.addEventListener('click', function(e) {
-                if (e.target === forgotPasswordModal) {
-                    forgotPasswordModal.classList.remove('active');
-                }
-            });
-
-            // Form validation
-            if (forgotPasswordForm) {
-                forgotPasswordForm.addEventListener('submit', function(e) {
-                    const newPassword = document.getElementById('new_password').value;
-                    const confirmPassword = document.getElementById('confirm_password').value;
-
-                    if (newPassword !== confirmPassword) {
-                        e.preventDefault();
-                        showMessage('Passwords do not match!', 'error');
-                        return false;
-                    }
-
-                    if (newPassword.length < 6) {
-                        e.preventDefault();
-                        showMessage('Password must be at least 6 characters long!', 'error');
-                        return false;
-                    }
-                });
-            }
-
-            function showMessage(message, type) {
-                const messageContainer = document.getElementById('forgotPasswordMessage');
-                messageContainer.textContent = message;
-                messageContainer.className = 'message-container ' + (type === 'error' ? 'error-message' : 'success-message');
-                messageContainer.style.display = 'block';
-                
-                setTimeout(() => {
-                    messageContainer.style.display = 'none';
-                }, 5000);
-            }
-        });
-    </script>
+    <script src="<?php echo URLROOT; ?>/js/login.js"></script>
 </body>
 </html>
-
 
