@@ -3,6 +3,13 @@ class M_SlotPlayer {
 
     private $db;
 
+    private array $activePlanNameCache = [];
+    private array $weeklySlotCountCache = [];
+    private array $weeklyFacilityCountCache = [];
+    private array $entitlementCache = [];
+    private array $medicalCache = [];
+    private array $busyIntervalsCache = [];
+
     public function __construct() {
         $this->db = new Database();
     }
@@ -17,6 +24,10 @@ class M_SlotPlayer {
     }
 
     private function getActivePlanName(int $playerId): string {
+        if (isset($this->activePlanNameCache[$playerId])) {
+            return $this->activePlanNameCache[$playerId];
+        }
+
         $this->db->query(
             'SELECT LOWER(TRIM(mp.PlanName)) AS PlanName
              FROM playersubscription ps
@@ -29,19 +40,101 @@ class M_SlotPlayer {
         $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
         $subscription = $this->db->single();
 
-        return !empty($subscription) ? $this->normalizePlanName((string)($subscription->PlanName ?? '')) : '';
+        $planName = !empty($subscription) ? $this->normalizePlanName((string)($subscription->PlanName ?? '')) : '';
+        $this->activePlanNameCache[$playerId] = $planName;
+        return $planName;
     }
 
     public function getActivePlanKey(int $playerId): string {
         return $this->getActivePlanName($playerId);
     }
 
-    public function getAllPrivateCoachOccurrences(int $playerId): array {
+    public function getPlayerModuleSessions(int $playerId): array {
+        $visibleSlotTypes = $this->getVisibleSlotTypes($playerId);
+        $slotTypeList = "'" . implode("','", $visibleSlotTypes) . "'";
+
+        $this->db->query(
+            "SELECT sb.BookingID, sb.Status, sb.BookingSource, sb.ParticipantCount,
+                    sb.AmountCharged, sb.PaymentStatus, sb.PaymentMethod, sb.CreatedAt,
+                    so.OccurrenceID, so.OccurrenceDate, so.Status AS OccurrenceStatus,
+                    so.OccurrenceDate AS Date,
+                    so.OccurrenceDate AS date,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    COALESCE(st.TemplateName, 'Session') AS TemplateName,
+                    COALESCE(st.SlotType, 'program') AS SlotType,
+                    COALESCE(st.StaffType, '') AS StaffType,
+                    COALESCE(st.PricePerSession, 0) AS PricePerSession,
+                    COALESCE(f.Name, 'Academy') AS FacilityName,
+                    IF(
+                        EXISTS (
+                            SELECT 1 FROM slot_occurrence_staff_override ov0
+                            WHERE ov0.OccurrenceID = so.OccurrenceID
+                        ),
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, ' ', u.LastName) ORDER BY u.FirstName SEPARATOR ', ')
+                         FROM slot_occurrence_staff_override ov
+                         JOIN user u ON u.UserID = ov.UserID
+                         WHERE ov.OccurrenceID = so.OccurrenceID),
+                        (SELECT GROUP_CONCAT(CONCAT(u.FirstName, ' ', u.LastName) ORDER BY u.FirstName SEPARATOR ', ')
+                         FROM slot_template_staff ts
+                         JOIN user u ON u.UserID = ts.UserID
+                         WHERE ts.TemplateID = so.TemplateID)
+                    ) AS StaffNames
+             FROM slot_booking sb
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             WHERE sb.PlayerID = :pid
+               AND COALESCE(st.SlotType, 'program') IN (" . $slotTypeList . ")
+             ORDER BY so.OccurrenceDate ASC, tb.StartTime ASC"
+        );
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $rows = $this->db->resultSet();
+
+        $this->appendFacilityBookingsToSchedule($rows, $playerId);
+
+        $coachSessionSlotTypes = $this->getCoachSessionSlotTypes($playerId);
+        if (!empty($coachSessionSlotTypes)) {
+            foreach ($this->getAssignedCoachOccurrences($playerId, $coachSessionSlotTypes) as $assignedSession) {
+                $rows[] = (object) [
+                    'BookingID' => null,
+                    'Status' => 'scheduled',
+                    'BookingSource' => 'system',
+                    'ParticipantCount' => null,
+                    'AmountCharged' => 0,
+                    'PaymentStatus' => 'not_required',
+                    'PaymentMethod' => null,
+                    'CreatedAt' => null,
+                    'OccurrenceID' => $assignedSession->OccurrenceID,
+                    'OccurrenceDate' => $assignedSession->OccurrenceDate,
+                    'Date' => $assignedSession->OccurrenceDate,
+                    'date' => $assignedSession->OccurrenceDate,
+                    'OccurrenceStatus' => 'scheduled',
+                    'SlotLabel' => $assignedSession->SlotLabel,
+                    'StartTime' => $assignedSession->StartTime,
+                    'EndTime' => $assignedSession->EndTime,
+                    'TemplateName' => $assignedSession->TemplateName,
+                    'SlotType' => $assignedSession->SlotType ?? 'program',
+                    'StaffType' => $assignedSession->StaffType ?? 'coach',
+                    'PricePerSession' => $assignedSession->PricePerSession ?? 0,
+                    'FacilityName' => $assignedSession->FacilityName ?? 'Academy',
+                    'StaffNames' => $assignedSession->CoachName ?? null,
+                ];
+            }
+        }
+
+        $rows = $this->dedupeScheduleRows($rows);
+        $this->sortScheduleRows($rows);
+
+        return $rows;
+    }
+
+    public function getAllPrivateCoachOccurrences(int $playerId, ?string $toDate = null): array {
         if (!$this->canSeePrivateSessions($playerId)) {
             return [];
         }
 
-        $this->db->query(
+        $sql =
             'SELECT DISTINCT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
                     so.Notes,
                     st.TemplateID,
@@ -52,8 +145,9 @@ class M_SlotPlayer {
                     st.RequiredPlanFeature,
                     st.MaxParticipants AS TplMax,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
-                    f.Name AS FacilityName,
+                    f.FacilityID, f.Name AS FacilityName,
                     CONCAT(c.FirstName, " ", c.LastName) AS CoachName,
+                    COUNT(DISTINCT sb.BookingID) AS BookedCount,
                     EXISTS (
                         SELECT 1 FROM slot_booking sb2
                         WHERE sb2.OccurrenceID = so.OccurrenceID
@@ -66,14 +160,46 @@ class M_SlotPlayer {
              LEFT JOIN facility f ON f.FacilityID = so.FacilityID
              LEFT JOIN slot_template_staff ts ON ts.TemplateID = st.TemplateID
              LEFT JOIN user c ON c.UserID = ts.UserID
+             LEFT JOIN slot_booking sb ON sb.OccurrenceID = so.OccurrenceID
+                    AND sb.Status != "cancelled"
              WHERE so.Status IN ("scheduled", "active")
-               AND so.OccurrenceDate >= CURDATE()
-               AND st.IsActive = 1
+               AND so.OccurrenceDate >= CURDATE()'
+               . ($toDate !== null ? ' AND so.OccurrenceDate <= :to_date' : '') .
+             ' AND st.IsActive = 1
                AND COALESCE(st.SlotType, "private") = "private"
-             ORDER BY so.OccurrenceDate, tb.StartTime'
-        );
+             GROUP BY so.OccurrenceID
+             ORDER BY so.OccurrenceDate, tb.StartTime';
+
+        $this->db->query($sql);
         $this->db->bind(':pid_exists', $playerId, PDO::PARAM_INT);
+        if ($toDate !== null) {
+            $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
+        }
         $rows = $this->db->resultSet();
+
+        $planName = $this->getActivePlanName($playerId);
+        $weeklyPrivateCount = null;
+        if ($planName === 'private') {
+            $weeklyPrivateCount = $this->getWeeklySlotBookingCount($playerId, 'private');
+        }
+
+        $minDate = null;
+        $maxDate = null;
+        foreach ($rows as $row) {
+            $d = (string) ($row->OccurrenceDate ?? '');
+            if ($d === '') {
+                continue;
+            }
+            if ($minDate === null || $d < $minDate) {
+                $minDate = $d;
+            }
+            if ($maxDate === null || $d > $maxDate) {
+                $maxDate = $d;
+            }
+        }
+        $busyIntervals = ($minDate !== null && $maxDate !== null)
+            ? $this->loadBusyIntervals($playerId, $minDate, $maxDate)
+            : [];
 
         foreach ($rows as $row) {
             $row->blocked = false;
@@ -86,7 +212,7 @@ class M_SlotPlayer {
             }
 
             if (!empty($row->TemplateID)) {
-                $ent = SlotBookingService::validateEntitlement($playerId, (int) $row->TemplateID);
+                $ent = $this->validateEntitlementCached($playerId, (int) $row->TemplateID);
                 if (!$ent['ok']) {
                     $row->blocked = true;
                     $row->blockReason = $ent['code'];
@@ -94,17 +220,34 @@ class M_SlotPlayer {
                 }
             }
 
-            $med = SlotBookingService::checkMedicalFlag($playerId, $row->OccurrenceDate);
+            $med = $this->checkMedicalFlagCached($playerId, (string) $row->OccurrenceDate);
             if (!$med['ok']) {
                 $row->blocked = true;
                 $row->blockReason = $med['code'];
                 continue;
             }
 
-            $cap = SlotBookingService::checkCapacity($row->OccurrenceID);
+            $cap = $this->computeCapacityFromRow($row);
             if (!$cap['ok']) {
                 $row->blocked = true;
                 $row->blockReason = $cap['code'];
+                continue;
+            }
+
+            if ($this->hasTimeConflictInIntervals(
+                $busyIntervals,
+                (string) $row->OccurrenceDate,
+                (string) ($row->StartTime ?? '00:00:00'),
+                (string) ($row->EndTime ?? '00:00:00')
+            )) {
+                $row->blocked = true;
+                $row->blockReason = 'time_conflict';
+                continue;
+            }
+
+            if ($weeklyPrivateCount !== null && $weeklyPrivateCount >= 2) {
+                $row->blocked = true;
+                $row->blockReason = 'weekly_private_limit';
                 continue;
             }
 
@@ -150,6 +293,11 @@ class M_SlotPlayer {
     }
 
     private function getWeeklySlotBookingCount(int $playerId, string $slotType): int {
+        $slotType = strtolower(trim($slotType));
+        if (isset($this->weeklySlotCountCache[$playerId]) && array_key_exists($slotType, $this->weeklySlotCountCache[$playerId])) {
+            return (int) $this->weeklySlotCountCache[$playerId][$slotType];
+        }
+
         $this->db->query(
             'SELECT COUNT(*) AS cnt
              FROM slot_booking sb
@@ -164,10 +312,17 @@ class M_SlotPlayer {
         $this->db->bind(':slot_type', $slotType, PDO::PARAM_STR);
         $row = $this->db->single();
 
-        return (int)($row->cnt ?? 0);
+        $count = (int)($row->cnt ?? 0);
+        $this->weeklySlotCountCache[$playerId] ??= [];
+        $this->weeklySlotCountCache[$playerId][$slotType] = $count;
+        return $count;
     }
 
     private function getWeeklyFacilityBookingCount(int $playerId): int {
+        if (array_key_exists($playerId, $this->weeklyFacilityCountCache)) {
+            return (int) $this->weeklyFacilityCountCache[$playerId];
+        }
+
         $this->db->query(
             'SELECT (
                 COALESCE((SELECT COUNT(*)
@@ -190,7 +345,149 @@ class M_SlotPlayer {
         $this->db->bind(':pid2', $playerId, PDO::PARAM_INT);
         $row = $this->db->single();
 
-        return (int)($row->cnt ?? 0);
+        $count = (int)($row->cnt ?? 0);
+        $this->weeklyFacilityCountCache[$playerId] = $count;
+        return $count;
+    }
+
+    private function validateEntitlementCached(int $playerId, int $templateId): array {
+        $key = $playerId . ':' . $templateId;
+        if (isset($this->entitlementCache[$key])) {
+            return $this->entitlementCache[$key];
+        }
+        $res = SlotBookingService::validateEntitlement($playerId, $templateId);
+        $this->entitlementCache[$key] = $res;
+        return $res;
+    }
+
+    private function checkMedicalFlagCached(int $playerId, string $occurrenceDate): array {
+        $key = $playerId . ':' . $occurrenceDate;
+        if (isset($this->medicalCache[$key])) {
+            return $this->medicalCache[$key];
+        }
+        $res = SlotBookingService::checkMedicalFlag($playerId, $occurrenceDate);
+        $this->medicalCache[$key] = $res;
+        return $res;
+    }
+
+    private function computeCapacityFromRow(object $row): array {
+        $slotType = strtolower((string) ($row->SlotType ?? ''));
+        $bookedCount = (int) ($row->BookedCount ?? 0);
+
+        $max = null;
+        if (property_exists($row, 'OccMax') && $row->OccMax !== null) {
+            $max = (int) $row->OccMax;
+        } elseif (property_exists($row, 'TplMax') && $row->TplMax !== null) {
+            $max = (int) $row->TplMax;
+        }
+
+        // Program capacity has special rules; fall back to canonical check.
+        if ($slotType === 'program' && !empty($row->TemplateID)) {
+            return SlotBookingService::checkCapacity((int) ($row->OccurrenceID ?? 0));
+        }
+
+        if ($max !== null && (int)$max <= 0) {
+            return ['ok' => false, 'code' => 'full', 'spots_left' => 0, 'group_capacity' => $max];
+        }
+
+        if (in_array($slotType, ['facility_only', 'private', 'program'], true)) {
+            $bookingLimit = $slotType === 'program' ? (int)($max ?? 1) : 1;
+            if ($bookedCount >= $bookingLimit) {
+                return ['ok' => false, 'code' => 'full', 'spots_left' => 0, 'group_capacity' => $max];
+            }
+        }
+
+        return [
+            'ok' => true,
+            'spots_left' => $max !== null ? max(0, (int)$max - $bookedCount) : 1,
+            'group_capacity' => $max !== null ? (int)$max : null,
+        ];
+    }
+
+    private function loadBusyIntervals(int $playerId, string $fromDate, string $toDate): array {
+        $cacheKey = $playerId . ':' . $fromDate . ':' . $toDate;
+        if (isset($this->busyIntervalsCache[$cacheKey])) {
+            return $this->busyIntervalsCache[$cacheKey];
+        }
+
+        $intervals = [];
+
+        $this->db->query(
+            'SELECT so.OccurrenceDate AS D, tb.StartTime AS S, tb.EndTime AS E
+             FROM slot_booking sb
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             WHERE sb.PlayerID = :pid
+               AND sb.Status != \'cancelled\'
+               AND so.Status != \'cancelled\'
+               AND so.OccurrenceDate BETWEEN :from_date AND :to_date'
+        );
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':from_date', $fromDate, PDO::PARAM_STR);
+        $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
+        foreach ($this->db->resultSet() as $row) {
+            $date = (string) ($row->D ?? '');
+            if ($date === '') {
+                continue;
+            }
+            $startTs = strtotime($date . ' ' . (string) ($row->S ?? '00:00:00'));
+            $endTs = strtotime($date . ' ' . (string) ($row->E ?? '00:00:00'));
+            if ($startTs === false || $endTs === false) {
+                continue;
+            }
+            $intervals[$date][] = [$startTs, $endTs];
+        }
+
+        $this->db->query(
+            'SELECT fb.BookingDate AS D, fb.StartTime AS S, fb.EndTime AS E
+             FROM facilitybooking fb
+             WHERE fb.PlayerID = :pid
+               AND fb.Status != \'cancelled\'
+               AND fb.BookingDate BETWEEN :from_date AND :to_date'
+        );
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        $this->db->bind(':from_date', $fromDate, PDO::PARAM_STR);
+        $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
+        foreach ($this->db->resultSet() as $row) {
+            $date = (string) ($row->D ?? '');
+            if ($date === '') {
+                continue;
+            }
+            $startTs = strtotime($date . ' ' . (string) ($row->S ?? '00:00:00'));
+            $endTs = strtotime($date . ' ' . (string) ($row->E ?? '00:00:00'));
+            if ($startTs === false || $endTs === false) {
+                continue;
+            }
+            $intervals[$date][] = [$startTs, $endTs];
+        }
+
+        $this->busyIntervalsCache[$cacheKey] = $intervals;
+        return $intervals;
+    }
+
+    private function hasTimeConflictInIntervals(array $intervalsByDate, string $date, string $startTime, string $endTime): bool {
+        if (empty($intervalsByDate[$date])) {
+            return false;
+        }
+
+        $reqStart = strtotime($date . ' ' . $startTime);
+        $reqEnd = strtotime($date . ' ' . $endTime);
+        if ($reqStart === false || $reqEnd === false) {
+            return false;
+        }
+
+        foreach ($intervalsByDate[$date] as $interval) {
+            $busyStart = $interval[0] ?? null;
+            $busyEnd = $interval[1] ?? null;
+            if ($busyStart === null || $busyEnd === null) {
+                continue;
+            }
+            if ($busyStart < $reqEnd && $busyEnd > $reqStart) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function playerHasTimeConflict(int $playerId, string $date, string $startTime, string $endTime): bool {
@@ -228,6 +525,7 @@ class M_SlotPlayer {
         return (object) [
             'BookingID' => $booking->BookingID ?? null,
             'OccurrenceID' => null,
+            'OccurrenceDate' => $booking->BookingDate ?? $booking->date ?? null,
             'Date' => $booking->BookingDate ?? $booking->date ?? null,
             'date' => $booking->BookingDate ?? $booking->date ?? null,
             'StartTime' => $booking->StartTime ?? null,
@@ -247,6 +545,10 @@ class M_SlotPlayer {
             'SlotLabel' => $booking->facility_name ?? 'Facility Booking',
             'TemplateName' => $booking->facility_name ?? 'Facility Booking',
             'FacilityName' => $booking->facility_name ?? 'Academy',
+            'SlotType' => 'facility_only',
+            'StaffType' => '',
+            'PricePerSession' => $booking->TotalCost ?? 0,
+            'StaffNames' => null,
         ];
     }
 
@@ -333,11 +635,11 @@ class M_SlotPlayer {
      * Each row gets $row->blocked (bool) and $row->blockReason (string|null)
      * set in PHP after the gate checks so the view can grey blocked rows.
      */
-    public function getAvailableOccurrences(int $playerId): array {
+    public function getAvailableOccurrences(int $playerId, ?string $toDate = null): array {
         $visibleSlotTypes = $this->getVisibleSlotTypes($playerId);
         $slotTypeList = "'" . implode("','", $visibleSlotTypes) . "'";
 
-        $this->db->query(
+        $sql =
             'SELECT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
                     so.Notes,
                     st.TemplateID,
@@ -349,7 +651,7 @@ class M_SlotPlayer {
                     st.MaxParticipants AS TplMax,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     f.Name AS FacilityName,
-                    COUNT(sb.BookingID) AS BookedCount,
+                    COUNT(DISTINCT sb.BookingID) AS BookedCount,
                     EXISTS (
                         SELECT 1 FROM slot_booking sb2
                         WHERE sb2.OccurrenceID = so.OccurrenceID
@@ -363,15 +665,38 @@ class M_SlotPlayer {
              LEFT JOIN slot_booking sb ON sb.OccurrenceID = so.OccurrenceID
                     AND sb.Status != \'cancelled\'
              WHERE so.Status IN (\'scheduled\', \'active\')
-               AND so.OccurrenceDate >= CURDATE()
-               AND (st.IsActive = 1 OR so.TemplateID IS NULL)
+               AND so.OccurrenceDate >= CURDATE()'
+               . ($toDate !== null ? ' AND so.OccurrenceDate <= :to_date' : '') .
+             ' AND (st.IsActive = 1 OR so.TemplateID IS NULL)
                              AND (so.TemplateID IS NULL OR st.SlotType IN (\'program\', \'facility_only\'))
                              AND COALESCE(st.SlotType, \'program\') IN (' . $slotTypeList . ')
              GROUP BY so.OccurrenceID
-             ORDER BY so.OccurrenceDate, tb.StartTime'
-        );
+             ORDER BY so.OccurrenceDate, tb.StartTime';
+
+        $this->db->query($sql);
         $this->db->bind(':pid_exists', $playerId, PDO::PARAM_INT);
+        if ($toDate !== null) {
+            $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
+        }
         $rows = $this->db->resultSet();
+
+        $minDate = null;
+        $maxDate = null;
+        foreach ($rows as $row) {
+            $d = (string) ($row->OccurrenceDate ?? '');
+            if ($d === '') {
+                continue;
+            }
+            if ($minDate === null || $d < $minDate) {
+                $minDate = $d;
+            }
+            if ($maxDate === null || $d > $maxDate) {
+                $maxDate = $d;
+            }
+        }
+        $busyIntervals = ($minDate !== null && $maxDate !== null)
+            ? $this->loadBusyIntervals($playerId, $minDate, $maxDate)
+            : [];
 
         // Run gate checks and annotate each row
         foreach ($rows as $row) {
@@ -394,7 +719,7 @@ class M_SlotPlayer {
 
             // Private sessions (no template) skip subscription entitlement check
             if ($row->TemplateID !== null) {
-                $ent = SlotBookingService::validateEntitlement($playerId, (int) $row->TemplateID);
+                $ent = $this->validateEntitlementCached($playerId, (int) $row->TemplateID);
                 if (!$ent['ok']) {
                     $row->blocked     = true;
                     $row->blockReason = $ent['code'];
@@ -402,17 +727,28 @@ class M_SlotPlayer {
                 }
             }
 
-            $med = SlotBookingService::checkMedicalFlag($playerId, $row->OccurrenceDate);
+            $med = $this->checkMedicalFlagCached($playerId, (string) $row->OccurrenceDate);
             if (!$med['ok']) {
                 $row->blocked     = true;
                 $row->blockReason = $med['code'];
                 continue;
             }
 
-            $cap = SlotBookingService::checkCapacity($row->OccurrenceID);
+            $cap = $this->computeCapacityFromRow($row);
             if (!$cap['ok']) {
                 $row->blocked     = true;
                 $row->blockReason = $cap['code'];
+                continue;
+            }
+
+            if ($this->hasTimeConflictInIntervals(
+                $busyIntervals,
+                (string) $row->OccurrenceDate,
+                (string) ($row->StartTime ?? '00:00:00'),
+                (string) ($row->EndTime ?? '00:00:00')
+            )) {
+                $row->blocked     = true;
+                $row->blockReason = 'time_conflict';
                 continue;
             }
 
@@ -424,7 +760,7 @@ class M_SlotPlayer {
         return $rows;
     }
 
-    public function getAssignedCoachOccurrences(int $playerId, ?array $slotTypes = null): array {
+    public function getAssignedCoachOccurrences(int $playerId, ?array $slotTypes = null, ?string $toDate = null): array {
         $slotTypes = $slotTypes ?? $this->getCoachSessionSlotTypes($playerId);
 
         if (empty($slotTypes)) {
@@ -433,46 +769,79 @@ class M_SlotPlayer {
 
         $slotTypeList = "'" . implode("','", array_map([$this, 'normalizePlanName'], $slotTypes)) . "'";
 
-        $this->db->query(
-            'SELECT DISTINCT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
-                    so.Notes,
-                    st.TemplateID,
-                    COALESCE(st.TemplateName, "Group Session") AS TemplateName,
-                    COALESCE(st.SlotType, "program") AS SlotType,
-                    COALESCE(st.StaffType, "coach") AS StaffType,
-                    COALESCE(st.PricePerSession, 0) AS PricePerSession,
-                    st.RequiredPlanFeature,
-                    st.MaxParticipants AS TplMax,
-                    tb.SlotLabel, tb.StartTime, tb.EndTime,
-                    f.Name AS FacilityName,
-                    CONCAT(c.FirstName, " ", c.LastName) AS CoachName,
+                $sql =
+                        'SELECT DISTINCT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax,
+                                        so.Notes,
+                                        st.TemplateID,
+                                        COALESCE(st.TemplateName, "Group Session") AS TemplateName,
+                                        COALESCE(st.SlotType, "program") AS SlotType,
+                                        COALESCE(st.StaffType, "coach") AS StaffType,
+                                        COALESCE(st.PricePerSession, 0) AS PricePerSession,
+                                        st.RequiredPlanFeature,
+                                        st.MaxParticipants AS TplMax,
+                                        tb.SlotLabel, tb.StartTime, tb.EndTime,
+                                        f.Name AS FacilityName,
+                                        CONCAT(c.FirstName, " ", c.LastName) AS CoachName,
                                         psca.AgeGroup AS PlayerAgeGroup,
+                                        COUNT(DISTINCT sb.BookingID) AS BookedCount,
                                         EXISTS (
                                                 SELECT 1 FROM slot_booking sb2
                                                 WHERE sb2.OccurrenceID = so.OccurrenceID
                                                     AND sb2.PlayerID = :pid_exists
                                                     AND sb2.Status != "cancelled"
                                         ) AS AlreadyBooked
-             FROM slot_occurrence so
-             JOIN slot_template st ON st.TemplateID = so.TemplateID
-             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
-             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
-             JOIN slot_template_staff ts ON ts.TemplateID = st.TemplateID
-             JOIN user c ON c.UserID = ts.UserID
-             JOIN player_skill_coach_assignment psca
-               ON psca.PlayerID = :pid
-              AND psca.CoachID = c.UserID
-             WHERE so.Status IN ("scheduled", "active")
-               AND so.OccurrenceDate >= CURDATE()
-               AND st.IsActive = 1
-               AND COALESCE(st.SlotType, "program") IN (' . $slotTypeList . ')
-               AND LOWER(TRIM(psca.AgeGroup)) = LOWER(TRIM(COALESCE(st.AgeGroup, "")))
-               AND LOWER(TRIM(psca.CoachingType)) = LOWER(TRIM(COALESCE(st.Category, "")))
-             ORDER BY so.OccurrenceDate, tb.StartTime'
-        );
+                         FROM slot_occurrence so
+                         JOIN slot_template st ON st.TemplateID = so.TemplateID
+                         JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+                         LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+                         JOIN slot_template_staff ts ON ts.TemplateID = st.TemplateID
+                         JOIN user c ON c.UserID = ts.UserID
+                         JOIN player_skill_coach_assignment psca
+                             ON psca.PlayerID = :pid
+                            AND psca.CoachID = c.UserID
+                         LEFT JOIN slot_booking sb ON sb.OccurrenceID = so.OccurrenceID
+                                        AND sb.Status != "cancelled"
+                         WHERE so.Status IN ("scheduled", "active")
+                             AND so.OccurrenceDate >= CURDATE()'
+                             . ($toDate !== null ? ' AND so.OccurrenceDate <= :to_date' : '') .
+                         ' AND st.IsActive = 1
+                             AND COALESCE(st.SlotType, "program") IN (' . $slotTypeList . ')
+                             AND LOWER(TRIM(psca.AgeGroup)) = LOWER(TRIM(COALESCE(st.AgeGroup, "")))
+                             AND LOWER(TRIM(psca.CoachingType)) = LOWER(TRIM(COALESCE(st.Category, "")))
+                         GROUP BY so.OccurrenceID
+                         ORDER BY so.OccurrenceDate, tb.StartTime';
+
+                $this->db->query($sql);
         $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
         $this->db->bind(':pid_exists', $playerId, PDO::PARAM_INT);
+                if ($toDate !== null) {
+                        $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
+                }
         $rows = $this->db->resultSet();
+
+                $planName = $this->getActivePlanName($playerId);
+                $weeklyPrivateCount = null;
+                if ($planName === 'private') {
+                        $weeklyPrivateCount = $this->getWeeklySlotBookingCount($playerId, 'private');
+                }
+
+                $minDate = null;
+                $maxDate = null;
+                foreach ($rows as $row) {
+                        $d = (string) ($row->OccurrenceDate ?? '');
+                        if ($d === '') {
+                                continue;
+                        }
+                        if ($minDate === null || $d < $minDate) {
+                                $minDate = $d;
+                        }
+                        if ($maxDate === null || $d > $maxDate) {
+                                $maxDate = $d;
+                        }
+                }
+                $busyIntervals = ($minDate !== null && $maxDate !== null)
+                        ? $this->loadBusyIntervals($playerId, $minDate, $maxDate)
+                        : [];
 
         foreach ($rows as $row) {
             $slotType = strtolower((string) ($row->SlotType ?? 'program'));
@@ -494,7 +863,7 @@ class M_SlotPlayer {
             }
 
             if (!empty($row->TemplateID)) {
-                $ent = SlotBookingService::validateEntitlement($playerId, (int) $row->TemplateID);
+                $ent = $this->validateEntitlementCached($playerId, (int) $row->TemplateID);
                 if (!$ent['ok']) {
                     $row->blocked = true;
                     $row->blockReason = $ent['code'];
@@ -502,17 +871,36 @@ class M_SlotPlayer {
                 }
             }
 
-            $med = SlotBookingService::checkMedicalFlag($playerId, $row->OccurrenceDate);
+            $med = $this->checkMedicalFlagCached($playerId, (string) $row->OccurrenceDate);
             if (!$med['ok']) {
                 $row->blocked = true;
                 $row->blockReason = $med['code'];
                 continue;
             }
 
-            $cap = SlotBookingService::checkCapacity($row->OccurrenceID);
+            $cap = $this->computeCapacityFromRow($row);
             if (!$cap['ok']) {
                 $row->blocked = true;
                 $row->blockReason = $cap['code'];
+                continue;
+            }
+
+            if ($this->hasTimeConflictInIntervals(
+                $busyIntervals,
+                (string) $row->OccurrenceDate,
+                (string) ($row->StartTime ?? '00:00:00'),
+                (string) ($row->EndTime ?? '00:00:00')
+            )) {
+                $row->blocked = true;
+                $row->blockReason = 'time_conflict';
+                continue;
+            }
+
+            if ($slotType === 'private'
+                && $weeklyPrivateCount !== null
+                && $weeklyPrivateCount >= 2) {
+                $row->blocked = true;
+                $row->blockReason = 'weekly_private_limit';
                 continue;
             }
 
@@ -603,11 +991,11 @@ class M_SlotPlayer {
         $cap = SlotBookingService::checkCapacity($occurrenceId);
         if (!$cap['ok']) return $cap['code'];
 
-        if ($occ->SlotType === 'private' && $planName === 'private' && $this->getWeeklySlotBookingCount($playerId, 'private') >= 3) {
+        if ($occ->SlotType === 'private' && $planName === 'private' && $this->getWeeklySlotBookingCount($playerId, 'private') >= 2) {
             return 'weekly_private_limit';
         }
 
-        if ($occ->SlotType === 'facility_only' && $this->getWeeklyFacilityBookingCount($playerId) >= 6) {
+        if ($occ->SlotType === 'facility_only' && $this->getWeeklyFacilityBookingCount($playerId) >= 3) {
             return 'weekly_facility_limit';
         }
 
@@ -1103,7 +1491,7 @@ class M_SlotPlayer {
 
     public function bookFacility(array $data): int|string|false {
         $playerId = (int)($data['player_id'] ?? 0);
-        if ($playerId > 0 && $this->getWeeklyFacilityBookingCount($playerId) >= 6) {
+        if ($playerId > 0 && $this->getWeeklyFacilityBookingCount($playerId) >= 3) {
             return 'weekly_facility_limit';
         }
 
@@ -1165,9 +1553,13 @@ class M_SlotPlayer {
         // Load booking + occurrence date
         $this->db->query(
             'SELECT sb.BookingID, sb.PlayerID, sb.Status,
-                    so.OccurrenceDate
+                    so.OccurrenceDate,
+                    tb.StartTime,
+                    COALESCE(st.SlotType, "program") AS SlotType
              FROM slot_booking sb
              JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN slot_template st ON st.TemplateID = so.TemplateID
              WHERE sb.BookingID = :bid'
         );
         $this->db->bind(':bid', $bookingId, PDO::PARAM_INT);
@@ -1177,9 +1569,9 @@ class M_SlotPlayer {
         if ((int)$row->PlayerID !== $playerId) return 'forbidden';
         if ($row->Status === 'cancelled') return 'already_cancelled';
 
-        // 24-hour cancellation window
-        $hoursUntil = (strtotime($row->OccurrenceDate) - time()) / 3600;
-        if ($hoursUntil < 24)             return 'window_closed';
+        $hoursUntil = (strtotime($row->OccurrenceDate . ' ' . ($row->StartTime ?? '00:00:00')) - time()) / 3600;
+        $windowHours = ($this->getActivePlanName($playerId) === 'private') ? 48 : 24;
+        if ($hoursUntil < $windowHours)   return 'window_closed';
 
         $this->db->query(
             'UPDATE slot_booking
@@ -1234,7 +1626,7 @@ class M_SlotPlayer {
     }
 
     /**
-     * Returns upcoming facility_only / private occurrences with optional filters.
+     * Returns upcoming facility_only occurrences with optional filters.
      * Pass 0 / '' to skip a filter dimension.
      * Each row is annotated with ->blocked (bool) and ->blockReason (string|null).
      */
@@ -1242,17 +1634,19 @@ class M_SlotPlayer {
         int    $playerId,
         int    $facilityId = 0,
         string $date       = '',
-        int    $slotId     = 0
+        int    $slotId     = 0,
+        ?string $toDate    = null
     ): array {
 
         $conditions = [
             "so.Status     IN ('scheduled','active')",
             "so.OccurrenceDate >= CURDATE()",
             "st.IsActive   = 1",
-            "st.SlotType   IN ('facility_only','private')",
+            "st.SlotType   = 'facility_only'",
         ];
         if ($facilityId > 0) $conditions[] = 'so.FacilityID = :fid';
         if ($date !== '')    $conditions[] = 'so.OccurrenceDate = :date';
+        if ($date === '' && $toDate !== null) $conditions[] = 'so.OccurrenceDate <= :to_date';
         if ($slotId  > 0)    $conditions[] = 'tb.SlotID = :slotid';
         $where = implode(' AND ', $conditions);
 
@@ -1283,9 +1677,30 @@ class M_SlotPlayer {
         $this->db->bind(':pid_exists', $playerId, PDO::PARAM_INT);
         if ($facilityId > 0) $this->db->bind(':fid',    $facilityId, PDO::PARAM_INT);
         if ($date !== '')    $this->db->bind(':date',   $date);
+        if ($date === '' && $toDate !== null) $this->db->bind(':to_date', $toDate, PDO::PARAM_STR);
         if ($slotId  > 0)    $this->db->bind(':slotid', $slotId,     PDO::PARAM_INT);
 
         $rows = $this->db->resultSet();
+
+        $weeklyFacilityCount = $this->getWeeklyFacilityBookingCount($playerId);
+
+        $minDate = null;
+        $maxDate = null;
+        foreach ($rows as $row) {
+            $d = (string) ($row->OccurrenceDate ?? '');
+            if ($d === '') {
+                continue;
+            }
+            if ($minDate === null || $d < $minDate) {
+                $minDate = $d;
+            }
+            if ($maxDate === null || $d > $maxDate) {
+                $maxDate = $d;
+            }
+        }
+        $busyIntervals = ($minDate !== null && $maxDate !== null)
+            ? $this->loadBusyIntervals($playerId, $minDate, $maxDate)
+            : [];
 
         foreach ($rows as $row) {
             if ($row->AlreadyBooked) {
@@ -1294,24 +1709,41 @@ class M_SlotPlayer {
                 continue;
             }
 
-            $ent = SlotBookingService::validateEntitlement($playerId, (int) $row->TemplateID);
+            $ent = $this->validateEntitlementCached($playerId, (int) $row->TemplateID);
             if (!$ent['ok']) {
                 $row->blocked     = true;
                 $row->blockReason = $ent['code'];
                 continue;
             }
 
-            $med = SlotBookingService::checkMedicalFlag($playerId, $row->OccurrenceDate);
+            $med = $this->checkMedicalFlagCached($playerId, (string) $row->OccurrenceDate);
             if (!$med['ok']) {
                 $row->blocked     = true;
                 $row->blockReason = $med['code'];
                 continue;
             }
 
-            $cap = SlotBookingService::checkCapacity($row->OccurrenceID);
+            $cap = $this->computeCapacityFromRow($row);
             if (!$cap['ok']) {
                 $row->blocked     = true;
                 $row->blockReason = $cap['code'];
+                continue;
+            }
+
+            if ($this->hasTimeConflictInIntervals(
+                $busyIntervals,
+                (string) $row->OccurrenceDate,
+                (string) ($row->StartTime ?? '00:00:00'),
+                (string) ($row->EndTime ?? '00:00:00')
+            )) {
+                $row->blocked     = true;
+                $row->blockReason = 'time_conflict';
+                continue;
+            }
+
+            if ($weeklyFacilityCount >= 3) {
+                $row->blocked     = true;
+                $row->blockReason = 'weekly_facility_limit';
                 continue;
             }
 
@@ -1321,6 +1753,92 @@ class M_SlotPlayer {
         }
 
         return $rows;
+    }
+
+    public function getFacilityOccurrenceById(int $playerId, int $occurrenceId): ?object {
+        $this->db->query(
+            "SELECT so.OccurrenceID, so.OccurrenceDate, so.MaxParticipants AS OccMax, so.Notes,
+                    st.TemplateID, st.TemplateName, st.SlotType, st.PricePerSession,
+                    st.RequiredPlanFeature, st.MaxParticipants AS TplMax,
+                    tb.SlotID, tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    f.FacilityID, f.Name AS FacilityName, f.Location AS FacilityLocation,
+                    f.HourlyRate, f.Capacity AS FacilityCapacity, f.facilityImage,
+                    COUNT(sb.BookingID) AS BookedCount,
+                    EXISTS (
+                        SELECT 1 FROM slot_booking sb2
+                        WHERE sb2.OccurrenceID = so.OccurrenceID
+                          AND sb2.PlayerID     = :pid_exists
+                          AND sb2.Status      != 'cancelled'
+                    ) AS AlreadyBooked
+             FROM slot_occurrence so
+             JOIN slot_template   st ON st.TemplateID = so.TemplateID
+             JOIN slot_time_band  tb ON tb.SlotID     = so.SlotID
+             JOIN facility         f ON f.FacilityID  = so.FacilityID
+             LEFT JOIN slot_booking sb ON sb.OccurrenceID = so.OccurrenceID
+                    AND sb.Status != 'cancelled'
+             WHERE so.OccurrenceID = :oid
+               AND so.Status IN ('scheduled','active')
+               AND so.OccurrenceDate >= CURDATE()
+               AND st.IsActive = 1
+               AND st.SlotType = 'facility_only'
+             GROUP BY so.OccurrenceID
+             LIMIT 1"
+        );
+        $this->db->bind(':oid', $occurrenceId, PDO::PARAM_INT);
+        $this->db->bind(':pid_exists', $playerId, PDO::PARAM_INT);
+        $row = $this->db->single();
+        if (!$row) {
+            return null;
+        }
+
+        if (!empty($row->AlreadyBooked)) {
+            $row->blocked = true;
+            $row->blockReason = 'already_booked';
+            return $row;
+        }
+
+        $ent = $this->validateEntitlementCached($playerId, (int) $row->TemplateID);
+        if (!$ent['ok']) {
+            $row->blocked = true;
+            $row->blockReason = $ent['code'];
+            return $row;
+        }
+
+        $med = $this->checkMedicalFlagCached($playerId, (string) $row->OccurrenceDate);
+        if (!$med['ok']) {
+            $row->blocked = true;
+            $row->blockReason = $med['code'];
+            return $row;
+        }
+
+        $cap = $this->computeCapacityFromRow($row);
+        if (!$cap['ok']) {
+            $row->blocked = true;
+            $row->blockReason = $cap['code'];
+            return $row;
+        }
+
+        if ($this->playerHasTimeConflict(
+            $playerId,
+            (string) $row->OccurrenceDate,
+            (string) ($row->StartTime ?? '00:00:00'),
+            (string) ($row->EndTime ?? '00:00:00')
+        )) {
+            $row->blocked = true;
+            $row->blockReason = 'time_conflict';
+            return $row;
+        }
+
+        if ($this->getWeeklyFacilityBookingCount($playerId) >= 3) {
+            $row->blocked = true;
+            $row->blockReason = 'weekly_facility_limit';
+            return $row;
+        }
+
+        $row->blocked = false;
+        $row->blockReason = null;
+        $row->spotsLeft = $cap['spots_left'];
+        return $row;
     }
 
     // =========================================================
@@ -1364,7 +1882,7 @@ class M_SlotPlayer {
                     so.OccurrenceID, so.OccurrenceDate,
                     tb.SlotLabel, tb.StartTime, tb.EndTime,
                     st.TemplateName, st.SlotType,
-                    f.Name AS FacilityName,
+                    f.FacilityID, f.Name AS FacilityName,
                     CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
              FROM slot_booking sb
              JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID

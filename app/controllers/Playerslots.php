@@ -24,143 +24,368 @@ class Playerslots extends Controller {
         require_once APPROOT . '/libraries/SlotBookingService.php';
     }
 
-    // ── Helpers ────────────────────────────────────────────────
-
     private function playerId(): int {
-        // Current player ID comes from the login session created by Login controller.
-        return (int)$_SESSION['user_id'];
+        return (int) ($_SESSION['user_id'] ?? 0);
     }
 
     private function playerData(): array {
-        // Common player summary passed to slot-related views.
-        // The view uses this for headings/profile display, not for security decisions.
-        $userId    = $this->playerId();
+        $userId = $this->playerId();
         $userModel = $this->model('M_Users');
-        $user      = $userModel->getUserWithProfile($userId) ?: $userModel->getUserById($userId);
+        $user = $userModel->getUserWithProfile($userId) ?: $userModel->getUserById($userId);
+        $planKey = $this->slotModel->getActivePlanKey($userId);
 
-        if ($user) {
-            // Membership level comes from payment/subscription data.
-            // If no subscription row exists, the UI falls back to "Standard".
-            $sub = $this->model('M_Payment')->getPlayerSubscription($userId);
-            return [
-                'id'               => $user->UserID,
-                'name'             => $user->Name,
-                'membership_level' => $sub->PlanName ?? 'Standard',
-            ];
-        }
-        return ['id' => $userId, 'name' => 'Player', 'membership_level' => 'Standard'];
+        return [
+            'id' => (int) ($user->UserID ?? $userId),
+            'name' => $user->Name ?? 'Player',
+            'membership_level' => $planKey ?: 'general',
+        ];
     }
 
-    // ── Routes ─────────────────────────────────────────────────
+    private function filterOccurrencesToNextThreeWeeks(array $occurrences): array {
+        $from = (new DateTimeImmutable('today'))->setTime(0, 0, 0)->getTimestamp();
+        $to = (new DateTimeImmutable('today'))->modify('+21 days')->setTime(23, 59, 59)->getTimestamp();
 
-    private function renderSessionCatalog(?string $staffType = null): void {
-        // Shared renderer for coach sessions, trainer sessions, and all available sessions.
-        // $staffType:
-        // - "coach" means show coach sessions allowed by membership.
-        // - "trainer" means filter trainer-led sessions.
-        // - null means show general available occurrences.
-        $playerId    = $this->playerId();
-        if ($staffType === 'coach') {
-            // Membership rules control which coach session types the player can see.
-            $planKey = $this->slotModel->getActivePlanKey($playerId);
-
-            if ($planKey === 'facility_only') {
-                $_SESSION['slot_error'] = 'Facility-only members cannot access coach sessions.';
-                redirect('playerslots/bookings');
+        return array_values(array_filter($occurrences, function ($occ) use ($from, $to) {
+            $dateStr = (string) ($occ->OccurrenceDate ?? '');
+            if ($dateStr === '') {
+                return false;
             }
 
-            $slotTypes = match ($planKey) {
-                // General members can book program sessions.
-                'general' => ['program'],
-                // Private members can book private sessions.
-                'private' => ['private'],
-                // Pro members can access both program and private sessions.
-                'pro' => ['program', 'private'],
-                default => [],
-            };
+            $startTime = (string) ($occ->StartTime ?? '00:00:00');
+            $ts = strtotime($dateStr . ' ' . $startTime);
+            if ($ts === false) {
+                $ts = strtotime($dateStr);
+            }
 
-            // Private-only players can choose from private coach occurrences.
-            // Other plans are restricted to assigned coaches and allowed slot types.
-            $occurrences = $planKey === 'private'
-                ? $this->slotModel->getAllPrivateCoachOccurrences($playerId)
-                : $this->slotModel->getAssignedCoachOccurrences($playerId, $slotTypes);
-        } else {
-            $occurrences = $this->slotModel->getAvailableOccurrences($playerId);
+            return $ts !== false && $ts >= $from && $ts <= $to;
+        }));
+    }
+
+    private function getPlanMeta(int $playerId): array {
+        $planKey = $this->slotModel->getActivePlanKey($playerId);
+
+        $plans = [
+            'general' => [
+                'key' => 'general',
+                'label' => 'General Subscription',
+                'coach_enabled' => false,
+                'trainer_enabled' => false,
+                'facility_enabled' => true,
+                'private_weekly_limit' => null,
+                'facility_weekly_limit' => 3,
+                'cancel_window_hours' => 24,
+                'summary' => 'Assigned coach and trainer sessions appear in My Sessions. Facility slots can be paid and booked separately.',
+            ],
+            'private' => [
+                'key' => 'private',
+                'label' => 'Private Only',
+                'coach_enabled' => true,
+                'trainer_enabled' => true,
+                'facility_enabled' => true,
+                'private_weekly_limit' => 2,
+                'facility_weekly_limit' => 3,
+                'cancel_window_hours' => 48,
+                'summary' => 'Private members can book coach and trainer sessions, up to 2 private sessions per week, plus facility slots.',
+            ],
+            'facility_only' => [
+                'key' => 'facility_only',
+                'label' => 'Facility Only',
+                'coach_enabled' => false,
+                'trainer_enabled' => false,
+                'facility_enabled' => true,
+                'private_weekly_limit' => null,
+                'facility_weekly_limit' => 3,
+                'cancel_window_hours' => 24,
+                'summary' => 'Facility members can only see and book facility slots.',
+            ],
+            'pro' => [
+                'key' => 'pro',
+                'label' => 'Pro',
+                'coach_enabled' => true,
+                'trainer_enabled' => true,
+                'facility_enabled' => true,
+                'private_weekly_limit' => null,
+                'facility_weekly_limit' => 3,
+                'cancel_window_hours' => 24,
+                'summary' => 'All booking areas are available for this plan.',
+            ],
+        ];
+
+        return $plans[$planKey] ?? $plans['general'];
+    }
+
+    private function getSubNav(string $activeTab, array $planMeta): array {
+        $tabs = [
+            [
+                'key' => 'my_sessions',
+                'label' => 'My Sessions',
+                'icon' => 'fa-list-alt',
+                'href' => URLROOT . '/playerslots/bookings',
+                'enabled' => true,
+            ],
+            [
+                'key' => 'coach_booking',
+                'label' => 'Coach Booking',
+                'icon' => 'fa-user-tie',
+                'href' => URLROOT . '/playerslots/coach',
+                'enabled' => (bool) $planMeta['coach_enabled'],
+            ],
+            [
+                'key' => 'trainer_booking',
+                'label' => 'Trainer Booking',
+                'icon' => 'fa-dumbbell',
+                'href' => URLROOT . '/playerslots/trainer',
+                'enabled' => (bool) $planMeta['trainer_enabled'],
+            ],
+            [
+                'key' => 'facility_booking',
+                'label' => 'Facility Booking',
+                'icon' => 'fa-building',
+                'href' => URLROOT . '/playerslots/facilities',
+                'enabled' => (bool) $planMeta['facility_enabled'],
+            ],
+        ];
+
+        foreach ($tabs as &$tab) {
+            $tab['active'] = $tab['key'] === $activeTab;
         }
 
-        if ($staffType !== null && $staffType !== 'coach') {
-            // For trainer route, remove facility-only slots and keep only matching staff type.
-            $occurrences = array_values(array_filter($occurrences, function ($occ) use ($staffType) {
-                return ($occ->SlotType ?? '') !== 'facility_only'
-                    && strcasecmp((string)($occ->StaffType ?? ''), $staffType) === 0;
+        return $tabs;
+    }
+
+    private function redirectForTab(string $tab): void {
+        $routes = [
+            'coach_booking' => 'playerslots/coach',
+            'trainer_booking' => 'playerslots/trainer',
+            'facility_booking' => 'playerslots/facilities',
+            'my_sessions' => 'playerslots/bookings',
+        ];
+
+        redirect($routes[$tab] ?? 'playerslots/bookings');
+    }
+
+    private function ensureTabAccess(string $tab, array $planMeta): void {
+        if ($tab === 'coach_booking' && !$planMeta['coach_enabled']) {
+            $_SESSION['slot_error'] = 'Coach booking is not available for your current membership plan.';
+            redirect('playerslots/bookings');
+        }
+
+        if ($tab === 'trainer_booking' && !$planMeta['trainer_enabled']) {
+            $_SESSION['slot_error'] = 'Trainer booking is not available for your current membership plan.';
+            redirect('playerslots/bookings');
+        }
+    }
+
+    private function splitModuleSessions(array $rows): array {
+        $now = time();
+        $upcoming = [];
+        $history = [];
+
+        foreach ($rows as $row) {
+            $date = $row->OccurrenceDate ?? $row->Date ?? $row->date ?? null;
+            $startTime = $row->StartTime ?? '00:00:00';
+            $endTime = $row->EndTime ?? $startTime;
+            $startTimestamp = $date ? strtotime($date . ' ' . $startTime) : false;
+            $endTimestamp = $date ? strtotime($date . ' ' . $endTime) : false;
+
+            if ($endTimestamp !== false && $endTimestamp <= $now) {
+                $history[] = $row;
+            } elseif ($startTimestamp !== false) {
+                $upcoming[] = $row;
+            } else {
+                $history[] = $row;
+            }
+        }
+
+        return ['upcoming' => $upcoming, 'history' => $history];
+    }
+
+    private function getPageNumber(string $key): int {
+        $page = (int) ($_GET[$key] ?? 1);
+        return max(1, $page);
+    }
+
+    private function paginateRows(array $rows, int $page, int $perPage = 8): array {
+        $totalRows = count($rows);
+        $totalPages = max(1, (int) ceil($totalRows / $perPage));
+        $page = min($page, $totalPages);
+        $offset = ($page - 1) * $perPage;
+
+        return [
+            'rows' => array_slice($rows, $offset, $perPage),
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_rows' => $totalRows,
+            'total_pages' => $totalPages,
+            'has_multiple_pages' => $totalPages > 1,
+        ];
+    }
+
+    private function getCatalogOccurrences(int $playerId, string $tab): array {
+        if ($tab === 'facility_booking') {
+            $facilityId = (int) ($_GET['facility'] ?? 0);
+            $date = trim((string) ($_GET['date'] ?? ''));
+            $slotId = (int) ($_GET['slot'] ?? 0);
+            $maxDate = date('Y-m-d', strtotime('+21 days'));
+
+            if ($date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                $date = '';
+            }
+            if ($date !== '' && $date < date('Y-m-d')) {
+                $date = date('Y-m-d');
+            }
+            if ($date !== '' && $date > $maxDate) {
+                $_SESSION['slot_error'] = 'Slots can only be viewed up to 3 weeks ahead.';
+                $date = $maxDate;
+            }
+
+            return [
+                'rows' => $this->filterOccurrencesToNextThreeWeeks(
+                    $this->slotModel->getFacilityOccurrences($playerId, $facilityId, $date, $slotId, $maxDate)
+                ),
+                'filter' => [
+                    'facility' => $facilityId,
+                    'date' => $date,
+                    'slot' => $slotId,
+                ],
+                'maxDate' => $maxDate,
+                'facilities' => $this->slotModel->getAllFacilities(),
+                'timeBands' => $this->slotModel->getTimeBands(),
+            ];
+        }
+
+        if ($tab === 'coach_booking' || $tab === 'trainer_booking') {
+            $staffType = $tab === 'coach_booking' ? 'coach' : 'trainer';
+            $maxDate = date('Y-m-d', strtotime('+21 days'));
+            $rows = $this->slotModel->getAllPrivateCoachOccurrences($playerId, $maxDate);
+            $rows = array_values(array_filter($rows, function ($row) use ($staffType) {
+                return strtolower((string) ($row->SlotType ?? '')) === 'private'
+                    && strtolower((string) ($row->StaffType ?? 'coach')) === $staffType;
             }));
+
+            return ['rows' => $this->filterOccurrencesToNextThreeWeeks($rows)];
         }
 
-        $titles = [
-            'coach' => 'Coach Sessions',
-            'trainer' => 'Trainer Bookings',
-            null => 'Book a Session',
-        ];
+        return ['rows' => []];
+    }
 
-        $descriptions = [
-            'coach' => 'See the sessions available through your assigned coaches.',
-            'trainer' => 'Browse available trainer-led sessions and book your next appointment.',
-            null => 'Browse available training slots and book your next session.',
-        ];
+    private function getPageContent(string $tab, int $playerId, array $planMeta): array {
+        if ($tab === 'my_sessions') {
+            $sessionRows = $this->slotModel->getPlayerModuleSessions($playerId);
+            $sessionRows = array_values(array_filter($sessionRows, function ($row) {
+                return !empty($row->OccurrenceDate) || !empty($row->Date) || !empty($row->date);
+            }));
+            $splitSessions = $this->splitModuleSessions($sessionRows);
 
-        $this->view('player/slots', [
-            // The same view is reused for multiple booking pages.
-            // These values customize the title, description, and displayed slot list.
-            'title' => $titles[$staffType] ?? $titles[null],
+            return [
+                'title' => 'My Sessions',
+                'description' => 'See your assigned sessions, confirmed private bookings, and facility bookings in one place.',
+                'sessions' => [
+                    'upcoming' => $this->paginateRows($splitSessions['upcoming'], $this->getPageNumber('upcoming_page')),
+                    'history' => $this->paginateRows($splitSessions['history'], $this->getPageNumber('history_page')),
+                ],
+            ];
+        }
+
+        if ($tab === 'coach_booking') {
+            $catalog = $this->getCatalogOccurrences($playerId, $tab);
+            $catalog['pagination'] = $this->paginateRows($catalog['rows'] ?? [], $this->getPageNumber('catalog_page'));
+
+            return [
+                'title' => 'Coach Booking',
+                'description' => 'Browse private coach sessions available under your membership plan.',
+                'catalog' => $catalog,
+            ];
+        }
+
+        if ($tab === 'trainer_booking') {
+            $catalog = $this->getCatalogOccurrences($playerId, $tab);
+            $catalog['pagination'] = $this->paginateRows($catalog['rows'] ?? [], $this->getPageNumber('catalog_page'));
+
+            return [
+                'title' => 'Trainer Booking',
+                'description' => 'Browse private trainer sessions available under your membership plan.',
+                'catalog' => $catalog,
+            ];
+        }
+
+        $catalog = $this->getCatalogOccurrences($playerId, 'facility_booking');
+        $catalog['pagination'] = $this->paginateRows($catalog['rows'] ?? [], $this->getPageNumber('catalog_page'));
+
+        return [
+            'title' => 'Facility Booking',
+            'description' => 'Facility booking is shared across all player membership plans.',
+            'catalog' => $catalog,
+        ];
+    }
+
+    private function renderModule(string $tab): void {
+        $playerId = $this->playerId();
+        $planMeta = $this->getPlanMeta($playerId);
+
+        $this->ensureTabAccess($tab, $planMeta);
+
+        $page = $this->getPageContent($tab, $playerId, $planMeta);
+
+        $this->view('player/slots_module', [
+            'title' => $page['title'],
+            'page_description' => $page['description'],
             'player' => $this->playerData(),
-            'occurrences' => $occurrences,
-            'booking_type' => $staffType,
-            'page_description' => $descriptions[$staffType] ?? $descriptions[null],
+            'plan' => $planMeta,
+            'current_tab' => $tab,
+            'subnav' => $this->getSubNav($tab, $planMeta),
+            'sessions' => $page['sessions'] ?? [
+                'upcoming' => $this->paginateRows([], 1),
+                'history' => $this->paginateRows([], 1),
+            ],
+            'catalog' => $page['catalog'] ?? [
+                'rows' => [],
+                'pagination' => $this->paginateRows([], 1),
+            ],
         ]);
     }
 
-    /** GET /playerslots */
     public function index() {
         $this->bookings();
     }
 
-    /** GET /playerslots/available */
     public function available() {
-        $this->renderSessionCatalog();
+        redirect('playerslots/bookings');
     }
 
-    /** GET /playerslots/coach */
+    public function bookings() {
+        $this->renderModule('my_sessions');
+    }
+
     public function coach() {
-        if ($this->slotModel->getActivePlanKey($this->playerId()) === 'facility_only') {
-            $_SESSION['slot_error'] = 'Facility-only members cannot access coach sessions.';
-            redirect('playerslots/bookings');
-        }
-
-        $this->renderSessionCatalog('coach');
+        $this->renderModule('coach_booking');
     }
 
-    /** GET /playerslots/trainer */
     public function trainer() {
-        $this->renderSessionCatalog('trainer');
+        $this->renderModule('trainer_booking');
     }
 
-    /** POST /playerslots/book */
+    public function facilities() {
+        $this->renderModule('facility_booking');
+    }
+
     public function book() {
         // Handles normal coach/trainer session booking.
         // Validation and business rules live in M_SlotPlayer::createBooking().
         // This controller only collects POST data and translates model result codes
         // into user-friendly messages.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            redirect('playerslots/available');
+            redirect('playerslots/bookings');
         }
 
-        $occurrenceId     = (int)($_POST['occurrence_id'] ?? 0);
-        $playerId         = $this->playerId();
-        $participantCount = max(1, (int)($_POST['participant_count'] ?? 1));
+        $occurrenceId = (int) ($_POST['occurrence_id'] ?? 0);
+        $playerId = $this->playerId();
+        $participantCount = max(1, (int) ($_POST['participant_count'] ?? 1));
+        $redirectTab = trim((string) ($_POST['redirect_tab'] ?? 'my_sessions'));
 
         if ($occurrenceId <= 0) {
             $_SESSION['slot_error'] = 'Invalid session selected.';
-            redirect('playerslots/available');
+            $this->redirectForTab($redirectTab);
         }
 
         $result = $this->slotModel->createBooking(
@@ -168,113 +393,38 @@ class Playerslots extends Controller {
             $occurrenceId,
             // PlayerID identifies who owns this booking.
             $playerId,
-            'self',           // source
-            $playerId,        // bookedBy = player themselves
-            null,             // subscriptionId  — model resolves via entitlement check
-            0.0,              // amount (subscription covers cost)
-            null,             // payMethod
-            'not_required',   // payStatus
+            'self',
+            $playerId,
+            null,
+            0.0,
+            null,
+            'not_required',
             $participantCount
         );
 
         if ($result === true) {
-            // Create in-app notifications for both the player and assigned staff.
-            $this->createSessionBookedNotification($playerId, $occurrenceId);
-            $_SESSION['slot_success'] = 'Session booked successfully!';
+            $_SESSION['slot_success'] = 'Booking confirmed successfully.';
             redirect('playerslots/bookings');
         }
 
         $messages = [
-            // These keys are returned by M_SlotPlayer::createBooking().
-            // Keeping messages here separates business logic from presentation wording.
-            'duplicate'       => 'You have already booked this session.',
-            'full'            => 'This session is fully booked.',
-            'time_conflict'   => 'You already have another booking at the same date and time.',
-            'active_injury'   => 'You have an active medical flag. Please see the admin before booking.',
+            'duplicate' => 'You have already booked this session.',
+            'full' => 'This session is fully booked.',
+            'time_conflict' => 'You already have another booking at the same time.',
+            'active_injury' => 'You have an active medical flag. Please contact the academy before booking.',
             'no_subscription' => 'You need an active subscription to book this session.',
-            'plan_mismatch'   => 'Your current plan does not include this session type.',
-            'weekly_private_limit' => 'Private-only members can book at most 3 private sessions per week.',
-            'weekly_facility_limit' => 'You can book facilities at most 6 times per week.',
-            'not_found'       => 'Session not found.',
-            'window_closed'   => 'Bookings for this session are closed.',
-            'error'           => 'An unexpected error occurred. Please try again.',
+            'plan_mismatch' => 'This booking type is not included in your current membership plan.',
+            'weekly_private_limit' => 'Private-only members can book at most 2 private sessions per week.',
+            'weekly_facility_limit' => 'Players can book at most 3 facility slots per week.',
+            'not_found' => 'Session not found.',
+            'window_closed' => 'Bookings for this session are closed.',
+            'error' => 'An unexpected error occurred. Please try again.',
         ];
 
         $_SESSION['slot_error'] = $messages[$result] ?? $messages['error'];
-        redirect('playerslots/available');
+        $this->redirectForTab($redirectTab);
     }
 
-    /** GET /playerslots/bookings */
-    public function bookings() {
-        // Shows the player's bookings split into upcoming and past groups.
-        // This page is shown at /playerslots/bookings.
-        $playerId = $this->playerId();
-        $bookings = $this->slotModel->getPlayerBookings($playerId);
-
-        // Split into upcoming and past using the full occurrence datetime.
-        $now      = time();
-        $upcoming = [];
-        $past     = [];
-
-        foreach ($bookings as $b) {
-            // Combine date + start time so the system can compare against current time.
-            $sessionDateTime = !empty($b->OccurrenceDate)
-                ? strtotime($b->OccurrenceDate . ' ' . ($b->StartTime ?? '00:00:00'))
-                : false;
-
-            if ($sessionDateTime !== false && $sessionDateTime >= $now && $b->Status !== 'cancelled') {
-                $upcoming[] = $b;
-            } else {
-                $past[] = $b;
-            }
-        }
-
-        $this->view('player/slot_bookings', [
-            'title'    => 'My Session Bookings',
-            'player'   => $this->playerData(),
-            'upcoming' => $upcoming,
-            'past'     => $past,
-        ]);
-    }
-
-    /** GET /playerslots/facilities[?facility=N&date=YYYY-MM-DD&slot=N] */
-    public function facilities() {
-        // Facility booking page supports filters by facility, date, and time band.
-        // Filters come from the query string, for example:
-        // /playerslots/facilities?facility=2&date=2026-04-18&slot=4
-        $playerId   = $this->playerId();
-        $facilityId = (int)($_GET['facility'] ?? 0);
-        $date       = trim($_GET['date'] ?? '');
-        $slotId     = (int)($_GET['slot'] ?? 0);
-
-        // Sanitise date input
-        // Only accept YYYY-MM-DD. Invalid dates are ignored instead of trusted.
-        if ($date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            $date = '';
-        }
-        if ($date !== '' && $date < date('Y-m-d')) {
-            $date = date('Y-m-d');
-        }
-
-        $facilities  = $this->slotModel->getAllFacilities();
-        $timeBands   = $this->slotModel->getTimeBands();
-        $occurrences = $this->slotModel->getFacilityOccurrences($playerId, $facilityId, $date, $slotId);
-
-        $this->view('player/facility_slots', [
-            'title'       => 'Facility Booking',
-            'player'      => $this->playerData(),
-            'facilities'  => $facilities,
-            'timeBands'   => $timeBands,
-            'occurrences' => $occurrences,
-            'filter'      => [
-                'facility' => $facilityId,
-                'date'     => $date,
-                'slot'     => $slotId,
-            ],
-        ]);
-    }
-
-    /** POST /playerslots/bookfacility */
     public function bookfacility() {
         // Facility booking is similar to session booking, but may include a payment amount.
         // At this point, the current implementation records the payment status in the booking.
@@ -282,12 +432,12 @@ class Playerslots extends Controller {
             redirect('playerslots/facilities');
         }
 
-        $occurrenceId     = (int)($_POST['occurrence_id'] ?? 0);
-        $playerId         = $this->playerId();
-        $amount           = max(0.0, (float)($_POST['amount'] ?? 0.0));
-        $participantCount = max(1, (int)($_POST['participant_count'] ?? 1));
-        $payStatus        = $amount > 0.0 ? 'paid'         : 'not_required';
-        $payMethod        = $amount > 0.0 ? 'card'         : null;
+        $occurrenceId = (int) ($_POST['occurrence_id'] ?? 0);
+        $playerId = $this->playerId();
+        $amount = max(0.0, (float) ($_POST['amount'] ?? 0.0));
+        $participantCount = max(1, (int) ($_POST['participant_count'] ?? 1));
+        $payStatus = $amount > 0.0 ? 'paid' : 'not_required';
+        $payMethod = $amount > 0.0 ? 'card' : null;
 
         if ($occurrenceId <= 0) {
             $_SESSION['slot_error'] = 'Invalid slot selected.';
@@ -307,84 +457,35 @@ class Playerslots extends Controller {
         );
 
         if ($result === true) {
-            $this->createSessionBookedNotification($playerId, $occurrenceId);
-            $_SESSION['slot_success'] = 'Facility slot booked successfully!';
+            $_SESSION['slot_success'] = 'Facility booking confirmed successfully.';
             redirect('playerslots/bookings');
         }
 
         $messages = [
-            'duplicate'       => 'You have already booked this slot.',
-            'full'            => 'This slot is fully booked.',
-            'time_conflict'   => 'You already have another booking at the same date and time.',
-            'active_injury'   => 'You have an active medical flag. Please see the admin before booking.',
-            'no_subscription' => 'You need an active subscription to book this slot.',
-            'plan_mismatch'   => 'Your current plan does not include facility access. Please upgrade your plan.',
-            'weekly_private_limit' => 'Private-only members can book at most 3 private sessions per week.',
-            'weekly_facility_limit' => 'You can book facilities at most 6 times per week.',
-            'not_found'       => 'Slot not found.',
-            'error'           => 'An unexpected error occurred. Please try again.',
+            'duplicate' => 'You have already booked this facility slot.',
+            'full' => 'This facility slot is fully booked.',
+            'time_conflict' => 'You already have another booking at the same time.',
+            'active_injury' => 'You have an active medical flag. Please contact the academy before booking.',
+            'no_subscription' => 'You need an active subscription to book this facility slot.',
+            'plan_mismatch' => 'Facility booking is not available in your current plan.',
+            'weekly_private_limit' => 'Private-only members can book at most 2 private sessions per week.',
+            'weekly_facility_limit' => 'Players can book at most 3 facility slots per week.',
+            'not_found' => 'Slot not found.',
+            'error' => 'An unexpected error occurred. Please try again.',
         ];
+
         $_SESSION['slot_error'] = $messages[$result] ?? $messages['error'];
         redirect('playerslots/facilities');
     }
 
-    private function createSessionBookedNotification(int $playerId, int $occurrenceId): void {
-        // Notification failure should never block the booking itself.
-        // That is why all notification logic is inside try/catch.
-        if ($playerId <= 0 || $occurrenceId <= 0) {
-            return;
-        }
-
-        try {
-            // Read extra details so the notification message is useful to the user.
-            $details = $this->slotModel->getOccurrenceNotificationDetails($occurrenceId);
-            $sessionName = (string)($details->TemplateName ?? 'Session');
-            $date = (string)($details->OccurrenceDate ?? '');
-            $startTime = (string)($details->StartTime ?? '');
-            $displayDate = $date !== '' ? date('D, d M Y', strtotime($date)) : 'the selected date';
-            $displayTime = $startTime !== '' ? date('g:i A', strtotime($startTime)) : 'the selected time';
-            $facility = (string)($details->FacilityName ?? 'Academy');
-
-            $notificationModel = $this->model('M_Notification');
-            // Player notification: confirms their own booking.
-            // The unique key prevents duplicate notifications if the same flow is retried.
-            $notificationModel->createOnceForOrder(
-                $playerId,
-                'slot-booked-' . $playerId . '-' . $occurrenceId,
-                'session',
-                'Session booked successfully',
-                "{$sessionName} has been booked for {$displayDate} at {$displayTime} at {$facility}.",
-                URLROOT . '/playerslots/bookings'
-            );
-
-            $staffIds = $this->slotModel->getOccurrenceStaffUserIds($occurrenceId);
-            // Staff IDs usually come from assigned coach/trainer users for the slot.
-            $player = $this->playerData();
-            $playerName = (string)($player['name'] ?? 'A player');
-            // Staff notification: informs coaches/trainers when a player books their session.
-            // createOnceForUsers() sends the same alert to each staff user safely.
-            $notificationModel->createOnceForUsers(
-                $staffIds,
-                'staff-slot-booked-' . $playerId . '-' . $occurrenceId,
-                'session',
-                'New session booking',
-                "{$playerName} booked {$sessionName} for {$displayDate} at {$displayTime}.",
-                URLROOT . '/staffslots/occurrence/' . $occurrenceId
-            );
-        } catch (Throwable $e) {
-            error_log('Session booking notification failed: ' . $e->getMessage());
-        }
-    }
-
-    /** POST /playerslots/cancel */
     public function cancel() {
         // Players can cancel only their own bookings and only within the allowed window.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/bookings');
         }
 
-        $bookingId = (int)($_POST['booking_id'] ?? 0);
-        $playerId  = $this->playerId();
+        $bookingId = (int) ($_POST['booking_id'] ?? 0);
+        $playerId = $this->playerId();
 
         $result = $this->slotModel->cancelBooking($bookingId, $playerId);
 
@@ -392,11 +493,11 @@ class Playerslots extends Controller {
             $_SESSION['slot_success'] = 'Booking cancelled successfully.';
         } else {
             $messages = [
-                'not_found'        => 'Booking not found.',
-                'forbidden'        => 'You are not authorised to cancel this booking.',
-                'already_cancelled'=> 'This booking has already been cancelled.',
-                'window_closed'    => 'Cancellations must be made at least 24 hours before the session.',
-                'error'            => 'An error occurred. Please try again.',
+                'not_found' => 'Booking not found.',
+                'forbidden' => 'You are not authorised to cancel this booking.',
+                'already_cancelled' => 'This booking has already been cancelled.',
+                'window_closed' => 'This booking can no longer be cancelled because the cancellation window has closed.',
+                'error' => 'An error occurred. Please try again.',
             ];
             $_SESSION['slot_error'] = $messages[$result] ?? $messages['error'];
         }

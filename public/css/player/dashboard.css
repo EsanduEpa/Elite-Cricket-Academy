@@ -899,6 +899,12 @@ body {
     cursor: pointer;
 }
 
+.quick-btn.is-disabled {
+    pointer-events: none;
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .quick-btn:hover {
     background: #3a7bc8;
 }

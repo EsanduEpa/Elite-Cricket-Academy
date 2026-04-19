@@ -6,6 +6,16 @@ $upcomingBookings = $data['upcomingBookings'] ?? [];
 $todayDate = date('Y-m-d');
 $upcomingCutoffDate = date('Y-m-d', strtotime('+7 days'));
 
+$subscriptionLocked = (bool)($data['player']['subscription_locked'] ?? false);
+
+$dashboardLinkAttrs = static function (bool $locked): string {
+    if (!$locked) {
+        return '';
+    }
+
+    return ' aria-disabled="true" tabindex="-1" title="Complete your membership payment to unlock." onclick="return false;"';
+};
+
 $dashboardFormatDuration = static function ($startTime, $endTime) {
     if (empty($startTime) || empty($endTime)) {
         return 'Time not set';
@@ -265,7 +275,7 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                                 <h4>Book Training</h4>
                                 <p>Schedule a training session</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/playerslots/available" class="quick-btn">Book</a>
+                            <a href="<?php echo $subscriptionLocked ? '#' : (URLROOT . '/playerslots/available'); ?>" class="quick-btn<?php echo $subscriptionLocked ? ' is-disabled' : ''; ?>"<?php echo $dashboardLinkAttrs($subscriptionLocked); ?>>Book</a>
                         </div>
 
                         <div class="quick-action-card">
@@ -276,7 +286,7 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                                 <h4>Performance</h4>
                                 <p>View detailed statistics</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/performance" class="quick-btn">View</a>
+                            <a href="<?php echo $subscriptionLocked ? '#' : (URLROOT . '/performance'); ?>" class="quick-btn<?php echo $subscriptionLocked ? ' is-disabled' : ''; ?>"<?php echo $dashboardLinkAttrs($subscriptionLocked); ?>>View</a>
                         </div>
 
                         <div class="quick-action-card">
@@ -287,7 +297,7 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                                 <h4>Medical</h4>
                                 <p>Health records & checkup</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/player/medical" class="quick-btn">Update</a>
+                            <a href="<?php echo $subscriptionLocked ? '#' : (URLROOT . '/player/medical'); ?>" class="quick-btn<?php echo $subscriptionLocked ? ' is-disabled' : ''; ?>"<?php echo $dashboardLinkAttrs($subscriptionLocked); ?>>Update</a>
                         </div>
 
                         <div class="quick-action-card">
@@ -298,7 +308,7 @@ $futureBookings = array_values(array_filter($upcomingBookings, static function (
                                 <h4>Equipment</h4>
                                 <p>Rent cricket gear</p>
                             </div>
-                            <a href="<?php echo URLROOT; ?>/player/shopping" class="quick-btn">Shop</a>
+                            <a href="<?php echo $subscriptionLocked ? '#' : (URLROOT . '/player/shopping'); ?>" class="quick-btn<?php echo $subscriptionLocked ? ' is-disabled' : ''; ?>"<?php echo $dashboardLinkAttrs($subscriptionLocked); ?>>Shop</a>
                         </div>
                     </div>
                 </div>

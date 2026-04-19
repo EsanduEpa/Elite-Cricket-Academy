@@ -145,8 +145,8 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="<?php echo URLROOT; ?>/shop/analytics" class="view-all-link">
-                        <i class="fas fa-arrow-right"></i> View Analytics
+                    <a href="<?php echo URLROOT; ?>/shop/orders" class="view-all-link">
+                        <i class="fas fa-arrow-right"></i> View Orders
                     </a>
                 </div>
             </div>
@@ -221,7 +221,7 @@
                             <?php foreach($data['stats']['low_stock_items'] as $item): ?>
                                 <div class="info-item">
                                     <i class="fas fa-dot-circle"></i>
-                                    <span><?php echo $item->Name; ?> (<?php echo $item->StockQuantity; ?> left)</span>
+                                    <span><?php echo htmlspecialchars($item->Name ?? 'Product'); ?> (<?php echo (int)($item->StockQuantity ?? 0); ?> left)</span>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -231,7 +231,7 @@
                             </div>
                         <?php endif; ?>
                     </div>
-                    <a href="<?php echo URLROOT; ?>/shop/inventory" class="card-action-btn">Manage Inventory</a>
+                    <a href="<?php echo URLROOT; ?>/shop/products" class="card-action-btn">Manage Inventory</a>
                 </div>
             </div>
             
@@ -247,7 +247,7 @@
                             <?php foreach($data['stats']['pending_review_items'] as $review): ?>
                                 <div class="info-item">
                                     <i class="fas fa-star"></i>
-                                    <span><?php echo $review->product_name; ?> - <?php echo $review->Rating; ?> stars</span>
+                                    <span><?php echo htmlspecialchars($review->product_name ?? 'Product'); ?> - <?php echo (int)($review->Rating ?? 0); ?> stars</span>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -339,6 +339,6 @@ function updateDateTime() {
 updateDateTime();
 setInterval(updateDateTime, 60000);
 </script>
-<script src="<?php echo URLROOT; ?>/js/admin/admin-dashboard.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>

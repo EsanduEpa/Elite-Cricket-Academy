@@ -2041,6 +2041,11 @@ class Admin extends Controller {
                         'economy_rate'    => !empty($stats['er']) ? (float)$stats['er'] : null,
                     ]);
                 }
+            } else {
+                // If no manual stats were submitted, auto-calculate from match performances.
+                // This keeps playertournamentstats consistent and avoids blank/zero stats.
+                $M_Result->recalculatePlayerTournamentStatsFromPerformance((int)$tournamentId, true);
+                $M_Result->updateResultAwardsFromPerformance((int)$tournamentId, true);
             }
 
             // Auto-complete tournament
@@ -2054,7 +2059,13 @@ class Admin extends Controller {
             $data['tournament'] = $tournament;
             $data['team']       = $M_Tournament->getTeam($tournamentId);
             $data['result']     = $M_Result->getResult($tournamentId);
-            $data['stats']      = $M_Result->getAllStatsForTournament($tournamentId);
+            $stats = $M_Result->getAllStatsForTournament($tournamentId);
+            if (empty($stats)) {
+                $M_Result->recalculatePlayerTournamentStatsFromPerformance((int)$tournamentId, true);
+                $M_Result->updateResultAwardsFromPerformance((int)$tournamentId, true);
+                $stats = $M_Result->getAllStatsForTournament($tournamentId);
+            }
+            $data['stats'] = $stats;
             $this->view('admin/tournaments/results', $data);
         }
     }

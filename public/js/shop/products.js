@@ -4,8 +4,10 @@
 let currentProductId = null;
 let currentProductImage = null;
 
-// Get base URL from the page
-const URLROOT = window.location.origin + '/Elite';
+// Get base URL from the page so the script still works if the project folder changes.
+const URLROOT = document.querySelector('.admin-layout')?.dataset.urlroot || (window.location.origin + '/Elite');
+let activeCategoryFilter = 'all';
+let activeSearchTerm = '';
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -91,21 +93,23 @@ function renderProductsTable(products) {
     }
     
     tbody.innerHTML = products.map(product => `
-        <tr data-product-id="${product.ProductID}">
+        <tr data-product-id="${product.ProductID}"
+            data-search="${escapeAttribute([product.Name, product.Description, product.Brand, product.Category].filter(Boolean).join(' ').toLowerCase())}"
+            data-category="${escapeAttribute(String(product.Category || '').toLowerCase())}">
             <td>
                 <div class="product-image">
-                    <img src="${product.ProductImage ? URLROOT + '/' + product.ProductImage : URLROOT + '/images/default-product.png'}" 
-                         alt="${product.Name}" 
+                    <img src="${product.ProductImage ? URLROOT + '/' + escapeAttribute(product.ProductImage) : URLROOT + '/images/default-product.png'}"
+                         alt="${escapeAttribute(product.Name || 'Product')}"
                          style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"
                          onerror="this.src='${URLROOT + '/images/default-product.png'}">
                 </div>
             </td>
             <td>
-                <div class="table-cell-title">${product.Name}</div>
-                <div class="table-cell-details">${product.Description || 'No description'}</div>
+                <div class="table-cell-title">${escapeHtml(product.Name || 'Product')}</div>
+                <div class="table-cell-details">${escapeHtml(product.Description || 'No description')}</div>
             </td>
             <td style="text-align: center;">
-                <span class="category-badge category-${product.Category ? product.Category.toLowerCase() : 'other'}">${product.Category || 'Other'}</span>
+                <span class="category-badge category-${escapeAttribute(product.Category ? product.Category.toLowerCase() : 'other')}">${escapeHtml(product.Category || 'Other')}</span>
             </td>
             <td>
                 <div class="table-cell-primary">₨ ${parseFloat(product.Price).toLocaleString()}</div>
@@ -115,8 +119,8 @@ function renderProductsTable(products) {
             </td>
             <td>
                 <div class="rating">
-                    <span class="stars">★★★★☆</span>
-                    <small>(4.5)</small>
+                    <span class="stars">${renderStars(product.avg_rating || 0)}</span>
+                    <small>(${Number(product.avg_rating || 0).toFixed(1)})</small>
                 </div>
             </td>
             <td style="text-align: center;">
@@ -144,6 +148,24 @@ function getStockClass(quantity) {
     if (quantity > 20) return 'stock-high';
     if (quantity > 5) return 'stock-medium';
     return 'stock-low';
+}
+
+function renderStars(rating) {
+    const rounded = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+    return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function escapeAttribute(value) {
+    return escapeHtml(value).replace(/`/g, '&#096;');
 }
 
 // Handle product form submission
@@ -420,6 +442,11 @@ function openAddProductModal() {
     currentProductImage = null;
     document.getElementById('modalTitle').textContent = 'Add New Product';
     document.getElementById('productForm').reset();
+    document.querySelectorAll('#productForm input, #productForm select, #productForm textarea').forEach(field => {
+        field.disabled = false;
+    });
+    const submitButton = document.querySelector('button[form="productForm"]');
+    if (submitButton) submitButton.style.display = '';
     
     // Clear all errors
     clearAllErrors();
@@ -452,6 +479,11 @@ function editProduct(productId) {
     currentProductId = productId;
     currentProductImage = null;
     document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.querySelectorAll('#productForm input, #productForm select, #productForm textarea').forEach(field => {
+        field.disabled = false;
+    });
+    const submitButton = document.querySelector('button[form="productForm"]');
+    if (submitButton) submitButton.style.display = '';
     
     // Fetch product data
     fetch(`${URLROOT}/shop/getProduct?id=${productId}`)
@@ -528,8 +560,45 @@ function editProduct(productId) {
 
 // View product
 function viewProduct(productId) {
-    // Implement product view modal
-    showNotification('Product view coming soon', 'info');
+    currentProductId = null;
+    currentProductImage = null;
+    fetch(`${URLROOT}/shop/getProduct?id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success || !data.product) {
+                showNotification(data.message || 'Product not found', 'error');
+                return;
+            }
+
+            const product = data.product;
+            document.getElementById('modalTitle').textContent = 'View Product';
+            document.getElementById('productName').value = product.Name || '';
+            document.getElementById('productDescription').value = product.Description || '';
+            document.getElementById('productCategory').value = product.Category || '';
+            document.getElementById('productBrand').value = product.Brand || '';
+            document.getElementById('productPrice').value = product.Price || '';
+            document.getElementById('productStock').value = product.StockQuantity || 0;
+            document.getElementById('productStatus').value = product.Status || 'active';
+            document.getElementById('productWeight').value = product.Weight || '';
+            document.getElementById('productDimensions').value = product.Dimensions || '';
+
+            clearAllErrors();
+            document.querySelectorAll('#productForm input, #productForm select, #productForm textarea').forEach(field => {
+                field.disabled = true;
+            });
+            const submitButton = document.querySelector('button[form="productForm"]');
+            if (submitButton) submitButton.style.display = 'none';
+
+            const previewArea = document.querySelector('.image-upload-area');
+            if (previewArea) {
+                previewArea.innerHTML = product.ProductImage
+                    ? `<img src="${URLROOT}/${escapeAttribute(product.ProductImage)}" style="max-width: 100%; max-height: 200px; border-radius: 8px;"><p style="margin-top: 1rem;">Current product image</p>`
+                    : '<p>No product image uploaded.</p>';
+            }
+
+            document.getElementById('productModal').style.display = 'block';
+        })
+        .catch(() => showNotification('Failed to load product data', 'error'));
 }
 
 // Duplicate product
@@ -570,6 +639,11 @@ function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
     currentProductId = null;
     currentProductImage = null;
+    document.querySelectorAll('#productForm input, #productForm select, #productForm textarea').forEach(field => {
+        field.disabled = false;
+    });
+    const submitButton = document.querySelector('button[form="productForm"]');
+    if (submitButton) submitButton.style.display = '';
     
     // Clear errors
     clearAllErrors();
@@ -595,32 +669,24 @@ function closeProductModal() {
 
 // Filter functions
 function filterProductsByCategory(category) {
-    const rows = document.querySelectorAll('#productsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (category === 'all') {
-            row.style.display = '';
-        } else {
-            const categoryBadge = row.querySelector('.category-badge');
-            if (categoryBadge && categoryBadge.textContent.toLowerCase() === category.toLowerCase()) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        }
-    });
+    activeCategoryFilter = String(category || 'all').toLowerCase();
+    applyProductFilters();
 }
 
 function filterProducts(searchTerm) {
+    activeSearchTerm = String(searchTerm || '').toLowerCase();
+    applyProductFilters();
+}
+
+function applyProductFilters() {
     const rows = document.querySelectorAll('#productsTable tbody tr');
-    
+
     rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm.toLowerCase())) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        const category = row.dataset.category || '';
+        const searchText = row.dataset.search || row.textContent.toLowerCase();
+        const matchesCategory = activeCategoryFilter === 'all' || category === activeCategoryFilter;
+        const matchesSearch = !activeSearchTerm || searchText.includes(activeSearchTerm);
+        row.style.display = matchesCategory && matchesSearch ? '' : 'none';
     });
 }
 
@@ -632,18 +698,22 @@ function sortProducts(sortBy) {
     if (rows.length <= 1) return;
     
     rows.sort((a, b) => {
-        if (sortBy === 'name-asc' || sortBy === 'name-desc') {
+        if (sortBy === 'name' || sortBy === 'name-asc' || sortBy === 'name-desc') {
             const nameA = (a.querySelector('.table-cell-title')?.textContent || '').toLowerCase();
             const nameB = (b.querySelector('.table-cell-title')?.textContent || '').toLowerCase();
-            return sortBy === 'name-asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-        } else if (sortBy === 'price-low' || sortBy === 'price-high') {
+            return sortBy === 'name-desc' ? nameB.localeCompare(nameA) : nameA.localeCompare(nameB);
+        } else if (sortBy === 'price_low' || sortBy === 'price_high' || sortBy === 'price-low' || sortBy === 'price-high') {
             const priceA = parseFloat((a.querySelector('.table-cell-primary')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
             const priceB = parseFloat((b.querySelector('.table-cell-primary')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
-            return sortBy === 'price-low' ? priceA - priceB : priceB - priceA;
-        } else if (sortBy === 'stock-low' || sortBy === 'stock-high') {
+            return (sortBy === 'price_low' || sortBy === 'price-low') ? priceA - priceB : priceB - priceA;
+        } else if (sortBy === 'stock' || sortBy === 'stock-low' || sortBy === 'stock-high') {
             const stockA = parseInt((a.querySelector('.stock-level')?.textContent || '0').replace(/[^\d]/g, '')) || 0;
             const stockB = parseInt((b.querySelector('.stock-level')?.textContent || '0').replace(/[^\d]/g, '')) || 0;
-            return sortBy === 'stock-low' ? stockA - stockB : stockB - stockA;
+            return sortBy === 'stock-high' ? stockB - stockA : stockA - stockB;
+        } else if (sortBy === 'rating') {
+            const ratingA = parseFloat((a.querySelector('.rating small')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
+            const ratingB = parseFloat((b.querySelector('.rating small')?.textContent || '0').replace(/[^\d.]/g, '')) || 0;
+            return ratingB - ratingA;
         } else if (sortBy === 'newest') {
             return 0; // Keep original order (newest from DB)
         }
@@ -674,7 +744,7 @@ function showNotification(message, type = 'info') {
             <i class="fas fa-${icon}"></i>
         </div>
         <div class="notification-content">
-            <div class="notification-message">${message}</div>
+            <div class="notification-message">${escapeHtml(message)}</div>
         </div>
     `;
     

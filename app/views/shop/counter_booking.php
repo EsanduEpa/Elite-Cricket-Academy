@@ -195,9 +195,6 @@ $counterBookingStatusOptions = [
                 </div>
             </div>
         </div>
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
     </div>
 
     <!-- Main Content -->

@@ -9,6 +9,17 @@ class M_TournamentResult
         $this->db = new Database();
     }
 
+    private function hasPerformanceVerificationColumns(): bool
+    {
+        try {
+            $this->db->query("SHOW COLUMNS FROM playermatchperformance LIKE 'VerifiedStatus'");
+            $row = $this->db->single();
+            return $row !== false && $row !== null;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
     public function getResult($tournamentId)
     {
         $this->db->query(
@@ -118,5 +129,131 @@ class M_TournamentResult
         $this->db->bind(':tid', $tournamentId);
         $row = $this->db->single();
         return $row && $row->cnt > 0;
+    }
+
+    public function recalculatePlayerTournamentStatsFromPerformance(int $tournamentId, bool $onlyVerified = true): bool
+    {
+        if ($tournamentId <= 0) {
+            return false;
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->query('DELETE FROM playertournamentstats WHERE TournamentID = :tid');
+            $this->db->bind(':tid', $tournamentId);
+            if (!$this->db->execute()) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $verificationClause = '';
+            if ($onlyVerified && $this->hasPerformanceVerificationColumns()) {
+                $verificationClause = ' AND pmp.VerifiedStatus = "verified"';
+            }
+
+            $this->db->query(
+                'INSERT INTO playertournamentstats
+                    (TournamentID, PlayerID, MatchesPlayed, TotalRuns, TotalWickets,
+                     BattingAverage, BowlingAverage, StrikeRate, EconomyRate)
+                 SELECT
+                    :tid AS TournamentID,
+                    tp.PlayerID,
+                    COUNT(DISTINCT pmp.MatchID) AS MatchesPlayed,
+                    SUM(COALESCE(pmp.RunsScored, 0)) AS TotalRuns,
+                    SUM(COALESCE(pmp.WicketsTaken, 0)) AS TotalWickets,
+                    CASE
+                        WHEN COUNT(DISTINCT pmp.MatchID) = 0 THEN 0.00
+                        ELSE ROUND(SUM(COALESCE(pmp.RunsScored, 0)) / COUNT(DISTINCT pmp.MatchID), 2)
+                    END AS BattingAverage,
+                    CASE
+                        WHEN SUM(COALESCE(pmp.WicketsTaken, 0)) = 0 THEN 0.00
+                        ELSE ROUND(SUM(COALESCE(pmp.RunsConceded, 0)) / SUM(COALESCE(pmp.WicketsTaken, 0)), 2)
+                    END AS BowlingAverage,
+                    CASE
+                        WHEN SUM(COALESCE(pmp.BallsFaced, 0)) = 0 THEN 0.00
+                        ELSE ROUND((SUM(COALESCE(pmp.RunsScored, 0)) / SUM(COALESCE(pmp.BallsFaced, 0))) * 100, 2)
+                    END AS StrikeRate,
+                    CASE
+                        WHEN SUM(COALESCE(pmp.OversBowled, 0)) = 0 THEN 0.00
+                        ELSE ROUND(SUM(COALESCE(pmp.RunsConceded, 0)) / SUM(COALESCE(pmp.OversBowled, 0)), 2)
+                    END AS EconomyRate
+                 FROM tournamentplayer tp
+                 JOIN crimatch cm ON cm.TournamentID = tp.TournamentID
+                 JOIN playermatchperformance pmp
+                    ON pmp.MatchID = cm.MatchID AND pmp.PlayerID = tp.PlayerID
+                 WHERE tp.TournamentID = :tid' . $verificationClause . '
+                 GROUP BY tp.PlayerID'
+            );
+            $this->db->bind(':tid', $tournamentId);
+
+            if (!$this->db->execute()) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Throwable $e) {
+            error_log('recalculatePlayerTournamentStatsFromPerformance failed: ' . $e->getMessage());
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+    public function updateResultAwardsFromPerformance(int $tournamentId, bool $onlyVerified = true): bool
+    {
+        if ($tournamentId <= 0) {
+            return false;
+        }
+
+        try {
+            $verificationClause = '';
+            if ($onlyVerified && $this->hasPerformanceVerificationColumns()) {
+                $verificationClause = ' AND pmp.VerifiedStatus = "verified"';
+            }
+
+            $this->db->query(
+                'SELECT pmp.PlayerID
+                 FROM playermatchperformance pmp
+                 JOIN crimatch cm ON cm.MatchID = pmp.MatchID
+                 JOIN tournamentplayer tp ON tp.TournamentID = cm.TournamentID AND tp.PlayerID = pmp.PlayerID
+                 WHERE cm.TournamentID = :tid' . $verificationClause . '
+                 GROUP BY pmp.PlayerID
+                 ORDER BY SUM(COALESCE(pmp.RunsScored, 0)) DESC, pmp.PlayerID ASC
+                 LIMIT 1'
+            );
+            $this->db->bind(':tid', $tournamentId);
+            $bestBatsmanRow = $this->db->single();
+            $bestBatsmanId = $bestBatsmanRow ? (int)$bestBatsmanRow->PlayerID : null;
+
+            $this->db->query(
+                'SELECT pmp.PlayerID
+                 FROM playermatchperformance pmp
+                 JOIN crimatch cm ON cm.MatchID = pmp.MatchID
+                 JOIN tournamentplayer tp ON tp.TournamentID = cm.TournamentID AND tp.PlayerID = pmp.PlayerID
+                 WHERE cm.TournamentID = :tid' . $verificationClause . '
+                 GROUP BY pmp.PlayerID
+                 ORDER BY SUM(COALESCE(pmp.WicketsTaken, 0)) DESC, pmp.PlayerID ASC
+                 LIMIT 1'
+            );
+            $this->db->bind(':tid', $tournamentId);
+            $bestBowlerRow = $this->db->single();
+            $bestBowlerId = $bestBowlerRow ? (int)$bestBowlerRow->PlayerID : null;
+
+            $this->db->query(
+                'UPDATE tournament_result
+                 SET BestBatsman = :batsman,
+                     BestBowler = :bowler
+                 WHERE TournamentID = :tid'
+            );
+            $this->db->bind(':batsman', $bestBatsmanId);
+            $this->db->bind(':bowler', $bestBowlerId);
+            $this->db->bind(':tid', $tournamentId);
+            return (bool)$this->db->execute();
+        } catch (Throwable $e) {
+            error_log('updateResultAwardsFromPerformance failed: ' . $e->getMessage());
+            return false;
+        }
     }
 }

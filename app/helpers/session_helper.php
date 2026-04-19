@@ -221,6 +221,118 @@ function enforceRouteAccess(string $controller, string $method = 'index'): void 
     if ($allowedRoles && !in_array($_SESSION['user_role'] ?? '', $allowedRoles, true)) {
         handleUnauthorizedAccess();
     }
+
+    if (($_SESSION['user_role'] ?? '') === 'Player') {
+        $playerId = (int)($_SESSION['user_id'] ?? 0);
+        if ($playerId > 0 && function_exists('isPlayerInitialSubscriptionPaymentOutstanding') && isPlayerInitialSubscriptionPaymentOutstanding($playerId)) {
+            $controllerKey = strtolower($controller);
+            $methodKey = strtolower($method ?: 'index');
+
+            $allowedWhenUnpaid = [
+                'player' => [
+                    'index',
+                    'payments',
+                    'subscription_payhere_checkout',
+                    'payhere_gateway',
+                    'payhere_return',
+                    'payhere_cancel',
+                    'pay_return_fee',
+                ],
+            ];
+
+            $isAllowed = isset($allowedWhenUnpaid[$controllerKey])
+                && in_array($methodKey, $allowedWhenUnpaid[$controllerKey], true);
+
+            if (!$isAllowed) {
+                $message = 'Please complete your initial membership payment to unlock the player dashboard.';
+
+                if (isAjaxOrJsonRequest()) {
+                    header('Content-Type: application/json');
+                    http_response_code(402);
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => $message,
+                    ]);
+                    exit();
+                }
+
+                flash('payment_required', $message, 'alert alert-warning');
+                redirect('player/payments');
+            }
+        }
+    }
+}
+
+/**
+ * Returns true if the player has an active membership plan that requires billing,
+ * but has not completed ANY subscription payment yet (initial membership payment outstanding).
+ */
+function isPlayerInitialSubscriptionPaymentOutstanding(int $playerId): bool {
+    static $cache = [];
+
+    if ($playerId <= 0) {
+        return false;
+    }
+
+    if (array_key_exists($playerId, $cache)) {
+        return (bool)$cache[$playerId];
+    }
+
+    try {
+        $db = new Database();
+
+        $db->query('SELECT ps.SubscriptionID, ps.MonthlyFee AS SubscriptionFee, mp.PlanName
+            FROM playersubscription ps
+            JOIN membershipplan mp ON ps.PlanID = mp.PlanID
+            WHERE ps.PlayerID = :player_id
+              AND ps.Status = "active"
+            ORDER BY ps.StartDate DESC
+            LIMIT 1');
+        $db->bind(':player_id', $playerId, PDO::PARAM_INT);
+        $subscription = $db->single();
+
+        if (!$subscription || empty($subscription->SubscriptionID)) {
+            $cache[$playerId] = false;
+            return false;
+        }
+
+        $planName = strtolower(trim((string)($subscription->PlanName ?? '')));
+        $fee = (float)($subscription->SubscriptionFee ?? 0);
+
+        if ($planName === 'facility_only' || $fee <= 0) {
+            $cache[$playerId] = false;
+            return false;
+        }
+
+        $db->query('SELECT 1 AS has_any
+            FROM subscriptionpayment
+            WHERE SubscriptionID = :subscription_id
+            LIMIT 1');
+        $db->bind(':subscription_id', (int)$subscription->SubscriptionID, PDO::PARAM_INT);
+        $anyRow = $db->single();
+
+        if (empty($anyRow)) {
+            $cache[$playerId] = false;
+            return false;
+        }
+
+        $db->query('SELECT 1 AS has_paid
+            FROM subscriptionpayment
+            WHERE SubscriptionID = :subscription_id
+              AND Status = "completed"
+            LIMIT 1');
+        $db->bind(':subscription_id', (int)$subscription->SubscriptionID, PDO::PARAM_INT);
+        $paidRow = $db->single();
+
+        $outstanding = empty($paidRow);
+        $cache[$playerId] = $outstanding;
+        return $outstanding;
+    } catch (Throwable $e) {
+        // Fail open to avoid locking users out due to transient DB/schema issues.
+        $cache[$playerId] = false;
+        return false;
+    }
 }
 
 // Controller-level guard for methods that need stricter checks inside the controller.

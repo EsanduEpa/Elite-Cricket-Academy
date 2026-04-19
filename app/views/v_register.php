@@ -63,7 +63,7 @@ if (!function_exists('flash')) {
                          <div class="form-group form-group-address">
                             <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
                             <div class="input-icon-wrap"><i class="fas fa-map-marker-alt field-icon"></i>
-                            <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>" required></div>
+                                     <input type="text" id="address" name="address" placeholder="e.g., 123/4 Flower Road, Nugegoda" value="<?php echo $data['address']; ?>"></div>
                             <small class="form-hint">Use this format: house number / street / town</small>
                             <div class="error-message <?php echo (!empty($data['address_err'])) ? 'show' : ''; ?>" id="addressError"><?php echo $data['address_err']; ?></div>
                         </div>
@@ -92,7 +92,7 @@ if (!function_exists('flash')) {
                         <div class="form-group">
                             <label for="school"><i class="fas fa-school"></i> School / Institution</label>
                             <div class="input-icon-wrap"><i class="fas fa-school field-icon"></i>
-                            <input type="text" id="school" name="school" placeholder="Enter your school" value="<?php echo $data['school']; ?>" required></div>
+                            <input type="text" id="school" name="school" placeholder="Enter your school" value="<?php echo $data['school']; ?>"></div>
                             <div class="error-message <?php echo (!empty($data['school_err'])) ? 'show' : ''; ?>" id="schoolError"><?php echo $data['school_err']; ?></div>
                         </div>
                         <div class="form-group">

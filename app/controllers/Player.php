@@ -1715,13 +1715,7 @@ class Player extends Controller {
             redirect('playerslots/facilities');
         }
 
-        $occurrence = null;
-        foreach ($this->slotPlayerModel->getFacilityOccurrences($playerId) as $row) {
-            if ((int)($row->OccurrenceID ?? 0) === $occurrenceId) {
-                $occurrence = $row;
-                break;
-            }
-        }
+        $occurrence = $this->slotPlayerModel->getFacilityOccurrenceById($playerId, $occurrenceId);
 
         if (!$occurrence || !empty($occurrence->blocked)) {
             $_SESSION['slot_error'] = 'Selected slot is no longer available. Please choose another one.';
@@ -1767,6 +1761,140 @@ class Player extends Controller {
                 'hash'        => PayHere::buildHash($orderId, $amount, $currency),
                 'return_url'  => URLROOT . '/player/payhere_return',
                 'cancel_url'  => URLROOT . '/player/payhere_cancel',
+                'notify_url'  => URLROOT . '/player/payhere_notify',
+                'first_name'  => $nameParts[0] ?? 'Player',
+                'last_name'   => $nameParts[1] ?? '',
+                'email'       => $playerData['email'],
+                'phone'       => $playerData['phone'] ?: '0000000000',
+                'address'     => $playerData['address'] ?: 'N/A',
+                'city'        => 'Colombo',
+                'country'     => 'Sri Lanka',
+            ],
+        ];
+
+        $this->view('player/payhere_gateway', $data);
+    }
+    /** POST /player/slot_payhere_checkout — PayHere checkout for paid session bookings */
+    public function slot_payhere_checkout() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('playerslots/bookings');
+        }
+
+        require_once APPROOT . '/libraries/PayHere.php';
+
+        $playerData   = $this->getPlayerData();
+        $playerId     = (int)($playerData['id'] ?? 0);
+        $occurrenceId = (int)($_POST['occurrence_id'] ?? 0);
+        $bookingType  = strtolower(trim((string)($_POST['booking_type'] ?? '')));
+
+        if ($playerId <= 0 || $occurrenceId <= 0) {
+            $_SESSION['slot_error'] = 'Invalid session selected. Please try again.';
+            redirect('playerslots/bookings');
+        }
+
+        // Rebuild the same catalog list used by Playerslots so we only allow checkout for visible/entitled sessions.
+        $occurrences = [];
+        $toDate = (new DateTimeImmutable('today'))->modify('+1 month')->format('Y-m-d');
+        if ($bookingType === 'coach') {
+            $planKey = $this->slotPlayerModel->getActivePlanKey($playerId);
+            if ($planKey === 'facility_only') {
+                $_SESSION['slot_error'] = 'Facility-only members cannot access coach sessions.';
+                redirect('playerslots/bookings');
+            }
+
+            $slotTypes = match ($planKey) {
+                'general' => ['program'],
+                'private' => ['private'],
+                'pro' => ['program', 'private'],
+                default => [],
+            };
+
+            $occurrences = $planKey === 'private'
+                ? $this->slotPlayerModel->getAllPrivateCoachOccurrences($playerId, $toDate)
+                : $this->slotPlayerModel->getAssignedCoachOccurrences($playerId, $slotTypes, $toDate);
+        } else {
+            $occurrences = $this->slotPlayerModel->getAvailableOccurrences($playerId, $toDate);
+        }
+
+        if ($bookingType !== '' && $bookingType !== 'coach') {
+            $occurrences = array_values(array_filter($occurrences, function ($occ) use ($bookingType) {
+                return ($occ->SlotType ?? '') !== 'facility_only'
+                    && strcasecmp((string)($occ->StaffType ?? ''), $bookingType) === 0;
+            }));
+        }
+
+        // Keep consistent with the 1-month listing rule.
+        $from = (new DateTimeImmutable('today'))->setTime(0, 0, 0)->getTimestamp();
+        $to   = (new DateTimeImmutable('today'))->modify('+1 month')->setTime(23, 59, 59)->getTimestamp();
+        $occurrences = array_values(array_filter($occurrences, function ($occ) use ($from, $to) {
+            $dateStr = (string)($occ->OccurrenceDate ?? '');
+            if ($dateStr === '') {
+                return false;
+            }
+            $startTime = (string)($occ->StartTime ?? '00:00:00');
+            $ts = strtotime($dateStr . ' ' . $startTime);
+            if ($ts === false) {
+                $ts = strtotime($dateStr);
+            }
+            return $ts !== false && $ts >= $from && $ts <= $to;
+        }));
+
+        $occurrence = null;
+        foreach ($occurrences as $row) {
+            if ((int)($row->OccurrenceID ?? 0) === $occurrenceId) {
+                $occurrence = $row;
+                break;
+            }
+        }
+
+        if (!$occurrence || !empty($occurrence->blocked)) {
+            $_SESSION['slot_error'] = 'Selected session is no longer available. Please choose another one.';
+            redirect($bookingType ? 'playerslots/' . $bookingType : 'playerslots/bookings');
+        }
+
+        $amount   = number_format((float)($occurrence->PricePerSession ?? 0), 2, '.', '');
+        $currency = 'LKR';
+
+        if ((float)$amount <= 0) {
+            $_SESSION['slot_error'] = 'This session does not require payment. Please confirm the booking instead.';
+            redirect($bookingType ? 'playerslots/' . $bookingType : 'playerslots/bookings');
+        }
+
+        $nameParts = explode(' ', trim($playerData['name'] ?? 'Player'), 2);
+        $orderId   = 'ELITE-SLOT-' . $playerId . '-' . $occurrenceId . '-' . time();
+
+        $_SESSION['payhere_pending_order'] = $orderId;
+        unset($_SESSION['payhere_pending_shop_payment']);
+        unset($_SESSION['payhere_pending_rental_payment']);
+        unset($_SESSION['payhere_pending_subscription_payment']);
+        unset($_SESSION['payhere_pending_return_fee_payment']);
+        unset($_SESSION['payhere_pending_facility_booking']);
+        $_SESSION['payhere_pending_slot_booking'] = [
+            'order_id'       => $orderId,
+            'occurrence_id'  => $occurrenceId,
+            'player_id'      => $playerId,
+            'amount'         => (float)$amount,
+            'booking_type'   => $bookingType,
+        ];
+
+        $itemsLabel = trim((string)($occurrence->TemplateName ?? 'Session Booking'));
+        if (!empty($occurrence->SlotLabel)) {
+            $itemsLabel .= ' - ' . $occurrence->SlotLabel;
+        }
+
+        $data = [
+            'title'   => 'Redirecting to PayHere...',
+            'player'  => $playerData,
+            'gateway' => [
+                'merchant_id' => PayHere::MERCHANT_ID,
+                'gateway_url' => PayHere::GATEWAY_URL,
+                'order_id'    => $orderId,
+                'amount'      => $amount,
+                'currency'    => $currency,
+                'items'       => $itemsLabel,
+                'hash'        => PayHere::buildHash($orderId, $amount, $currency),
+                'return_url'  => URLROOT . '/player/payhere_return?payment_type=slot',
+                'cancel_url'  => URLROOT . '/player/payhere_cancel?payment_type=slot',
                 'notify_url'  => URLROOT . '/player/payhere_notify',
                 'first_name'  => $nameParts[0] ?? 'Player',
                 'last_name'   => $nameParts[1] ?? '',
@@ -1952,6 +2080,66 @@ class Player extends Controller {
             unset($_SESSION['payhere_pending_return_fee_payment']);
             unset($_SESSION['payhere_pending_order']);
         } else {
+            $pendingSlotBooking = $_SESSION['payhere_pending_slot_booking'] ?? null;
+            if (is_array($pendingSlotBooking) && !empty($pendingSlotBooking['order_id'])
+                && ($orderId === '' || $pendingSlotBooking['order_id'] === $orderId)) {
+                $occurrenceId = (int)($pendingSlotBooking['occurrence_id'] ?? 0);
+                $amount       = max(0.0, (float)($pendingSlotBooking['amount'] ?? 0));
+                $bookingType  = strtolower(trim((string)($pendingSlotBooking['booking_type'] ?? '')));
+
+                $primaryUrl = URLROOT . '/playerslots/bookings';
+                $primaryLabel = 'View My Bookings';
+                $secondaryUrl = URLROOT . '/playerslots/bookings';
+                $secondaryLabel = 'Back to Booking Home';
+
+                if ($bookingType === 'coach') {
+                    $secondaryUrl = URLROOT . '/playerslots/coach';
+                    $secondaryLabel = 'Back to Coach Sessions';
+                } elseif ($bookingType === 'trainer') {
+                    $secondaryUrl = URLROOT . '/playerslots/trainer';
+                    $secondaryLabel = 'Back to Trainer Sessions';
+                }
+
+                if ($occurrenceId > 0) {
+                    $bookingResult = $this->slotPlayerModel->createBooking(
+                        $occurrenceId,
+                        (int)$playerData['id'],
+                        'self',
+                        (int)$playerData['id'],
+                        null,
+                        $amount,
+                        'payhere',
+                        'paid',
+                        1
+                    );
+
+                    if ($bookingResult === true || $bookingResult === 'duplicate') {
+                        $message = 'Your session booking has been confirmed successfully.';
+                        $this->createPaymentSuccessNotification(
+                            (int)$playerData['id'],
+                            (string)($pendingSlotBooking['order_id'] ?? ''),
+                            'session',
+                            'Session booking payment successful',
+                            'Your PayHere payment was received and your booking is confirmed.',
+                            URLROOT . '/playerslots/bookings'
+                        );
+                        $this->createSessionBookedNotification(
+                            (int)$playerData['id'],
+                            $occurrenceId
+                        );
+                    } else {
+                        $message = 'Your payment was received, but the booking could not be finalized. Please contact support.';
+                    }
+                }
+
+                unset($_SESSION['payhere_pending_slot_booking']);
+                unset($_SESSION['payhere_pending_shop_payment']);
+                unset($_SESSION['payhere_pending_subscription_payment']);
+                unset($_SESSION['payhere_pending_rental_payment']);
+                unset($_SESSION['payhere_pending_return_fee_payment']);
+                unset($_SESSION['payhere_pending_facility_booking']);
+                unset($_SESSION['payhere_pending_order']);
+            } else {
             $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
             if (is_array($pendingSubscriptionPayment) && !empty($pendingSubscriptionPayment['order_id'])) {
                 $subscriptionOrderId = (string)$pendingSubscriptionPayment['order_id'];
@@ -1977,6 +2165,11 @@ class Player extends Controller {
 
                     unset($_SESSION['payhere_pending_subscription_payment']);
                     unset($_SESSION['payhere_pending_order']);
+
+                    if ($paymentCompleted) {
+                        flash('payment_success', $message, 'alert alert-success');
+                        redirect('player');
+                    }
                 }
             } else {
                 $pendingReturnFeePayment = $_SESSION['payhere_pending_return_fee_payment'] ?? null;
@@ -2081,6 +2274,7 @@ class Player extends Controller {
                 }
                 }
             }
+            }
         }
 
         $data = [
@@ -2100,6 +2294,7 @@ class Player extends Controller {
     public function payhere_cancel() {
         $paymentType = strtolower(trim((string)($_GET['payment_type'] ?? '')));
         $pendingFacilityBooking = $_SESSION['payhere_pending_facility_booking'] ?? null;
+        $pendingSlotBooking = $_SESSION['payhere_pending_slot_booking'] ?? null;
         $pendingSubscriptionPayment = $_SESSION['payhere_pending_subscription_payment'] ?? null;
         $pendingShopPayment = $_SESSION['payhere_pending_shop_payment'] ?? null;
         $pendingRentalPayment = $_SESSION['payhere_pending_rental_payment'] ?? null;
@@ -2107,6 +2302,7 @@ class Player extends Controller {
         $pendingReturnFeePayment = $_SESSION['payhere_pending_return_fee_payment'] ?? null;
 
         unset($_SESSION['payhere_pending_facility_booking']);
+        unset($_SESSION['payhere_pending_slot_booking']);
         unset($_SESSION['payhere_pending_shop_payment']);
         unset($_SESSION['payhere_pending_subscription_payment']);
         unset($_SESSION['payhere_pending_rental_payment']);
@@ -2122,6 +2318,18 @@ class Player extends Controller {
         if (is_array($pendingFacilityBooking)) {
             $_SESSION['slot_error'] = 'Payment was cancelled. Please choose the facility slot again.';
             redirect('playerslots/facilities');
+        }
+
+        if (is_array($pendingSlotBooking) || $paymentType === 'slot') {
+            $_SESSION['slot_error'] = 'Payment was cancelled. Please choose the session again.';
+            $bookingType = strtolower(trim((string)($pendingSlotBooking['booking_type'] ?? '')));
+            if ($bookingType === 'coach') {
+                redirect('playerslots/coach');
+            }
+            if ($bookingType === 'trainer') {
+                redirect('playerslots/trainer');
+            }
+            redirect('playerslots/bookings');
         }
 
         if (is_array($pendingRentalPayment) || $paymentType === 'rental') {
@@ -2735,6 +2943,11 @@ class Player extends Controller {
             // Get subscription info
             $paymentModel = $this->model('M_Payment');
             $subscription = $paymentModel->getPlayerSubscription($userId);
+
+            $subscriptionLocked = false;
+            if (function_exists('isPlayerInitialSubscriptionPaymentOutstanding')) {
+                $subscriptionLocked = isPlayerInitialSubscriptionPaymentOutstanding((int)$userId);
+            }
             
             return [
                 'id' => $user->UserID,
@@ -2746,14 +2959,16 @@ class Player extends Controller {
                 'date_of_birth' => $user->DateOfBirth ?? '',
                 'address' => $user->Address ?? '',
                 'membership_level' => $subscription->PlanName ?? 'Standard',
-                'joined_date' => $user->DateJoined ?? date('Y-m-d')
+                'joined_date' => $user->DateJoined ?? date('Y-m-d'),
+                'subscription_locked' => $subscriptionLocked,
             ];
         }
         return [
             'id' => $userId, 'name' => 'Player', 'email' => '', 'phone' => '',
             'roles' => 'Cricket Player', 'profile_picture' => 'default-profile.jpg',
             'date_of_birth' => '', 'address' => '', 'membership_level' => 'Standard',
-            'joined_date' => date('Y-m-d')
+            'joined_date' => date('Y-m-d'),
+            'subscription_locked' => false,
         ];
     }
 
