@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition_crud.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/table-consistency.css?v=<?php echo time(); ?>">
 <?php $trainerSidebarActive = 'nutrition'; ?>
 
 <?php
@@ -93,7 +94,7 @@ $resolvePlanName = static function ($plan): string {
         <?php flash('nutrition_message'); ?>
 
         <!-- Plans table card -->
-        <div class="nc-card">
+        <div class="nc-card nc-workout-style-table">
             <div class="nc-card-header">
                 <h2><i class="fas fa-list-ul"></i> All Nutrition Plans
                     <span style="font-weight:400;color:#adb5bd;font-size:.85rem;margin-left:.5rem;">
@@ -104,13 +105,13 @@ $resolvePlanName = static function ($plan): string {
 
             <?php if (!empty($plans)): ?>
                 <div class="nc-table-wrap">
-                    <table class="nc-table">
+                    <table class="nc-table nc-table-workout-look">
                         <thead>
                             <tr>
+                                <th><i class="fas fa-hashtag"></i> Plan ID</th>
                                 <th><i class="fas fa-tag"></i> Plan Name</th>
-                                <th><i class="fas fa-user"></i> Player</th>
+                                <th><i class="fas fa-users"></i> Assigned Players</th>
                                 <th><i class="fas fa-capsules"></i> Supplements</th>
-                                <th><i class="fas fa-hourglass-half"></i> Duration</th>
                                 <th><i class="fas fa-circle"></i> Status</th>
                                 <th><i class="fas fa-calendar-alt"></i> Created</th>
                                 <th><i class="fas fa-cog"></i> Actions</th>
@@ -118,14 +119,68 @@ $resolvePlanName = static function ($plan): string {
                         </thead>
                         <tbody>
                             <?php foreach ($plans as $plan): ?>
+                                <?php
+                                    $planName = $resolvePlanName($plan);
+                                    $assignedCount = (int)($plan->assigned_player_count ?? 0);
+                                    $assignedNames = array_values(array_filter(array_map('trim', explode(',', (string)($plan->assigned_player_names ?? ''))), static fn($v) => $v !== ''));
+                                    $assignedEmails = array_values(array_filter(array_map('trim', explode(',', (string)($plan->assigned_player_emails ?? ''))), static fn($v) => $v !== ''));
+
+                                    // Fallback for older rows where only a single PlayerID/name exists.
+                                    if ($assignedCount <= 0 && !empty($plan->player_name)) {
+                                        $assignedCount = 1;
+                                        $assignedNames = [trim((string)$plan->player_name)];
+                                        $fallbackEmail = trim((string)($plan->player_email ?? ''));
+                                        if ($fallbackEmail !== '') {
+                                            $assignedEmails = [$fallbackEmail];
+                                        }
+                                    }
+
+                                    $assignedPlayers = [];
+                                    foreach ($assignedNames as $idx => $name) {
+                                        $assignedPlayers[] = [
+                                            'name' => $name,
+                                            'email' => $assignedEmails[$idx] ?? '',
+                                        ];
+                                    }
+
+                                    if ($assignedCount <= 0) {
+                                        $assignedCount = count($assignedPlayers);
+                                    }
+
+                                    $supplements = trim((string)($plan->Supplements ?? $plan->supplements ?? ''));
+                                    $durationText = (int)($plan->Duration ?? 0) . ' day' . (((int)($plan->Duration ?? 0) !== 1) ? 's' : '');
+                                    $createdText = !empty($plan->CreatedDate) ? date('M j, Y', strtotime($plan->CreatedDate)) : '—';
+                                    $statusText = '';
+                                    $statusRaw = strtolower(trim((string)($plan->Status ?? 'inactive')));
+                                    if ($statusRaw === 'active' || $statusRaw === 'inactive') {
+                                        $statusText = ucfirst($statusRaw);
+                                    } else {
+                                        $statusText = 'Inactive';
+                                    }
+
+                                    $dietDetailsRaw = trim((string)($plan->DietDetails ?? ''));
+                                    $descriptionRaw = trim((string)($plan->Description ?? ''));
+                                    $notesRaw = trim((string)($plan->Notes ?? ''));
+                                    $fullDetails = $descriptionRaw !== '' ? $descriptionRaw : ($dietDetailsRaw !== '' ? $dietDetailsRaw : ($notesRaw !== '' ? $notesRaw : 'No additional details available.'));
+                                ?>
                                 <tr>
+                                    <td><span class="nc-plan-id-strong">#<?php echo (int)($plan->PlanID ?? 0); ?></span></td>
                                     <td>
-                                        <span class="nc-plan-name"><?php echo htmlspecialchars($resolvePlanName($plan)); ?></span>
-                                        <span class="nc-plan-id">#<?php echo (int)($plan->PlanID ?? 0); ?></span>
+                                        <span class="nc-plan-name"><?php echo htmlspecialchars($planName); ?></span>
                                     </td>
-                                    <td><?php echo htmlspecialchars($plan->player_name ?? '—'); ?></td>
                                     <td>
-                                        <?php $supplements = trim((string)($plan->Supplements ?? $plan->supplements ?? '')); ?>
+                                        <button
+                                            type="button"
+                                            class="nc-assigned-btn"
+                                            onclick="openNutritionAssignedPlayersModal(this)"
+                                            data-plan-name="<?php echo htmlspecialchars($planName, ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-assigned-players="<?php echo htmlspecialchars(json_encode($assignedPlayers), ENT_QUOTES, 'UTF-8'); ?>"
+                                        >
+                                            <i class="fas fa-users"></i>
+                                            <?php echo (int)$assignedCount; ?> player<?php echo ((int)$assignedCount === 1) ? '' : 's'; ?>
+                                        </button>
+                                    </td>
+                                    <td>
                                         <?php if ($supplements !== ''): ?>
                                             <span class="nc-diet-preview" title="<?php echo htmlspecialchars($supplements); ?>">
                                                 <?php echo htmlspecialchars($supplements); ?>
@@ -134,7 +189,6 @@ $resolvePlanName = static function ($plan): string {
                                             <span style="color:#9ca3af;">Not required</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?php echo (int)($plan->Duration ?? 0); ?> day<?php echo ((int)($plan->Duration ?? 0) !== 1) ? 's' : ''; ?></td>
                                     <td>
                                         <?php $s = strtolower(trim((string)($plan->Status ?? 'inactive'))); ?>
                                         <?php if ($s !== 'active' && $s !== 'inactive') { $s = 'inactive'; } ?>
@@ -143,9 +197,25 @@ $resolvePlanName = static function ($plan): string {
                                             <?php echo ucfirst($s); ?>
                                         </span>
                                     </td>
-                                    <td><?php echo !empty($plan->CreatedDate) ? date('M j, Y', strtotime($plan->CreatedDate)) : '—'; ?></td>
+                                    <td><?php echo $createdText; ?></td>
                                     <td class="actions-col">
                                         <div class="nc-actions">
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary btn-sm"
+                                                title="View full plan details"
+                                                onclick="openNutritionPlanViewModal(this)"
+                                                data-plan-id="<?php echo (int)($plan->PlanID ?? 0); ?>"
+                                                data-plan-name="<?php echo htmlspecialchars($planName, ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-supplements="<?php echo htmlspecialchars($supplements !== '' ? $supplements : 'Not required', ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-duration="<?php echo htmlspecialchars($durationText, ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-status="<?php echo htmlspecialchars($statusText, ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-created="<?php echo htmlspecialchars($createdText, ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-details="<?php echo htmlspecialchars($fullDetails, ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-assigned-count="<?php echo (int)$assignedCount; ?>"
+                                            >
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
                                             <a href="<?php echo URLROOT; ?>/nutrition/edit/<?php echo (int)($plan->PlanID ?? 0); ?>"
                                                class="btn btn-primary btn-sm" title="Edit plan">
                                                 <i class="fas fa-edit"></i> Edit
@@ -221,6 +291,56 @@ $resolvePlanName = static function ($plan): string {
     </div><!-- /.main-content -->
 </div><!-- /.player-layout -->
 
+<div id="nutritionPlanViewModal" class="nc-modal" style="display:none;">
+    <div class="nc-modal-panel">
+        <div class="nc-modal-header">
+            <h3 id="nutritionPlanViewTitle">Nutrition Plan Details</h3>
+            <button type="button" class="nc-modal-close" onclick="closeNutritionPlanViewModal()" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="nc-modal-body">
+            <div class="nc-plan-view-grid">
+                <div><strong>Plan ID:</strong> <span id="nutritionViewPlanId">-</span></div>
+                <div><strong>Plan Name:</strong> <span id="nutritionViewPlanName">-</span></div>
+                <div><strong>Supplements:</strong> <span id="nutritionViewSupplements">-</span></div>
+                <div><strong>Duration:</strong> <span id="nutritionViewDuration">-</span></div>
+                <div><strong>Status:</strong> <span id="nutritionViewStatus">-</span></div>
+                <div><strong>Created:</strong> <span id="nutritionViewCreated">-</span></div>
+                <div><strong>Assigned Players:</strong> <span id="nutritionViewAssigned">-</span></div>
+            </div>
+            <div class="nc-plan-view-details">
+                <strong>Full Plan Details</strong>
+                <pre id="nutritionViewDetails">-</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="nutritionAssignedPlayersModal" class="nc-modal" style="display:none;">
+    <div class="nc-modal-panel">
+        <div class="nc-modal-header">
+            <h3 id="nutritionAssignedPlayersTitle">Assigned Players</h3>
+            <button type="button" class="nc-modal-close" onclick="closeNutritionAssignedPlayersModal()" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="nc-modal-body">
+            <div class="nc-assigned-table-wrap">
+                <table class="nc-assigned-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nutritionAssignedPlayersBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const toggle  = document.getElementById('sidebarToggle');
@@ -233,10 +353,122 @@ document.addEventListener('DOMContentLoaded', function () {
             main.classList.toggle('expanded');
         });
     }
+
+    const assignedPlayersModal = document.getElementById('nutritionAssignedPlayersModal');
+    const planViewModal = document.getElementById('nutritionPlanViewModal');
+    if (assignedPlayersModal) {
+        assignedPlayersModal.addEventListener('click', function (event) {
+            if (event.target === assignedPlayersModal) {
+                closeNutritionAssignedPlayersModal();
+            }
+        });
+    }
+
+    if (planViewModal) {
+        planViewModal.addEventListener('click', function (event) {
+            if (event.target === planViewModal) {
+                closeNutritionPlanViewModal();
+            }
+        });
+    }
 });
 
 function confirmDelete() {
     return confirm('Are you sure you want to permanently delete this nutrition plan?\nThis action cannot be undone.');
+}
+
+function openNutritionAssignedPlayersModal(button) {
+    const modal = document.getElementById('nutritionAssignedPlayersModal');
+    const title = document.getElementById('nutritionAssignedPlayersTitle');
+    const body = document.getElementById('nutritionAssignedPlayersBody');
+
+    if (!modal || !title || !body || !button) {
+        return;
+    }
+
+    const planName = button.getAttribute('data-plan-name') || 'Nutrition Plan';
+    const raw = button.getAttribute('data-assigned-players') || '[]';
+
+    let players = [];
+    try {
+        players = JSON.parse(raw);
+    } catch (e) {
+        players = [];
+    }
+
+    title.textContent = 'Assigned Players - ' + planName;
+
+    if (!Array.isArray(players) || players.length === 0) {
+        body.innerHTML = '<tr><td colspan="2" class="nc-assigned-empty">No players assigned.</td></tr>';
+    } else {
+        body.innerHTML = players.map((player) => {
+            const name = escapeHtml((player && player.name) ? String(player.name) : '-');
+            const email = escapeHtml((player && player.email) ? String(player.email) : '-');
+            return '<tr><td>' + name + '</td><td>' + email + '</td></tr>';
+        }).join('');
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeNutritionAssignedPlayersModal() {
+    const modal = document.getElementById('nutritionAssignedPlayersModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openNutritionPlanViewModal(button) {
+    const modal = document.getElementById('nutritionPlanViewModal');
+    if (!modal || !button) {
+        return;
+    }
+
+    const setText = function (id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = (value && String(value).trim() !== '') ? String(value) : '-';
+        }
+    };
+
+    const planName = button.getAttribute('data-plan-name') || 'Nutrition Plan';
+    const title = document.getElementById('nutritionPlanViewTitle');
+    if (title) {
+        title.textContent = 'Nutrition Plan Details - ' + planName;
+    }
+
+    setText('nutritionViewPlanId', '#' + (button.getAttribute('data-plan-id') || '-'));
+    setText('nutritionViewPlanName', planName);
+    setText('nutritionViewSupplements', button.getAttribute('data-supplements') || '-');
+    setText('nutritionViewDuration', button.getAttribute('data-duration') || '-');
+    setText('nutritionViewStatus', button.getAttribute('data-status') || '-');
+    setText('nutritionViewCreated', button.getAttribute('data-created') || '-');
+
+    const assignedCount = parseInt(button.getAttribute('data-assigned-count') || '0', 10);
+    setText('nutritionViewAssigned', assignedCount + ' player' + (assignedCount === 1 ? '' : 's'));
+
+    const detailsNode = document.getElementById('nutritionViewDetails');
+    if (detailsNode) {
+        detailsNode.textContent = button.getAttribute('data-details') || '-';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeNutritionPlanViewModal() {
+    const modal = document.getElementById('nutritionPlanViewModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 </script>
 
