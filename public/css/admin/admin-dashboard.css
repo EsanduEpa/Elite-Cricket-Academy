@@ -2162,3 +2162,90 @@ body {
 .alert-fade-out {
     animation: fadeOut 0.5s ease-out forwards;
 }
+
+/* Admin weekly academy calendar */
+.week-cal-cell {
+    border: 1px solid #e0e0e0;
+    vertical-align: top;
+    min-height: 200px;
+    width: 14.28%;
+    padding: 10px;
+    background: #fff;
+}
+
+.week-cal-today {
+    background: #fffde7;
+    border: 2px solid #ffc107;
+}
+
+.week-cal-day-hdr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.week-cal-day-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: #333;
+}
+
+.week-cal-day-date {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.week-cal-card {
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+}
+
+.week-cal-card-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.week-cal-program {
+    background: #cce5ff;
+    color: #004085;
+    border-left: 3px solid #004085;
+}
+
+.week-cal-private {
+    background: #fff3cd;
+    color: #856404;
+    border-left: 3px solid #856404;
+}
+
+.week-cal-facility {
+    background: #d4edda;
+    color: #155724;
+    border-left: 3px solid #155724;
+}
+
+.week-cal-cancelled {
+    background: #e9ecef;
+    color: #6c757d;
+    border-left: 3px solid #aaa;
+    text-decoration: line-through;
+}
+
+.week-cal-adhoc {
+    background: #f3e5f5;
+    color: #4a1e8c;
+    border-left: 3px solid #9b59b6;
+}
+
+.week-cal-tournament {
+    background: #fff1d6;
+    color: #8a4b00;
+    border-left: 3px solid #e67e22;
+}

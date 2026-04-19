@@ -20,6 +20,8 @@ class PayHere {
     // ── Hash for checkout form ────────────────────────────
     // Formula: strtoupper( md5( merchant_id + order_id + amount + currency + strtoupper(md5(secret)) ) )
     public static function buildHash(string $orderId, string $amount, string $currency): string {
+        // PayHere uses this hash to confirm that the checkout request was created
+        // by our application and that the amount/order values were not changed.
         return strtoupper(md5(
             self::MERCHANT_ID .
             $orderId .
@@ -32,6 +34,8 @@ class PayHere {
     // ── Verify server-to-server notify signature ──────────
     // Returns true only when signature matches AND status_code == 2 (success)
     public static function verifyNotify(array $post): bool {
+        // notify_url requests come from PayHere, not from the user's browser.
+        // We verify the signature before marking any payment as successful.
         $merchantId  = $post['merchant_id']     ?? '';
         $orderId     = $post['order_id']         ?? '';
         $amount      = $post['payhere_amount']   ?? '';
@@ -57,6 +61,7 @@ class PayHere {
 
     // ── Log helper (optional, used by notify handlers) ────
     public static function log(string $logFile, string $message): void {
+        // Simple file log for payment gateway callbacks and troubleshooting.
         file_put_contents($logFile, date('Y-m-d H:i:s') . ' | ' . $message . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 }

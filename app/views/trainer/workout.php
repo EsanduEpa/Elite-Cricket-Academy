@@ -1,6 +1,7 @@
 ﻿<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/table-consistency.css?v=<?php echo time(); ?>">
 <?php $trainerSidebarActive = 'workout'; ?>
 <!-- Mobile-specific meta tags -->
 <meta name="theme-color" content="#2c3e50">
@@ -94,8 +95,6 @@
                                 <th>Workout Name</th>
                                 <th>Trainer</th>
                                 <th>Status</th>
-                                <th>Frequency</th>
-                                <th>Intensity</th>
                                 <th>Duration (min)</th>
                                 <th>Video Link</th>
                                 <th>Assigned Players</th>
@@ -108,6 +107,7 @@
                                 <?php
                                     $isOwn        = isset($plan->is_own) ? (bool)$plan->is_own : true;
                                     $assignedCount = (int)($plan->assigned_count ?? 0);
+                                    $createdDateDisplay = !empty($plan->CreatedDate) ? date('M j, Y', strtotime($plan->CreatedDate)) : '—';
                                     $planStatus   = strtolower(trim((string)($plan->Status ?? 'active')));
                                     if ($planStatus === '') {
                                         $planStatus = 'active';
@@ -119,7 +119,7 @@
                                         'archived' => 'background:rgba(153,153,153,0.1);color:#999;border:1px solid rgba(153,153,153,0.3);',
                                     ];
                                 ?>
-                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>">
+                                    <tr data-plan-id="<?php echo $plan->PlanID; ?>" data-frequency="<?php echo htmlspecialchars((string)$plan->frequency, ENT_QUOTES, 'UTF-8'); ?>" data-intensity="<?php echo htmlspecialchars((string)($plan->Intensity ?? ''), ENT_QUOTES, 'UTF-8'); ?>" data-created="<?php echo htmlspecialchars($createdDateDisplay, ENT_QUOTES, 'UTF-8'); ?>">
                                         <td>
                                             <div class="table-cell-primary plan-id">#<?php echo str_pad($plan->PlanID, 4, '0', STR_PAD_LEFT); ?></div>
                                         </td>
@@ -130,12 +130,11 @@
                                         </td>
                                         <td>
                                             <?php if ($isOwn): ?>
-                                                <span class="table-badge" style="background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);">
-                                                    <i class="fas fa-user-tie"></i> You
+                                                <span class="workout-trainer-text" title="Assigned trainer">
+                                                    You
                                                 </span>
                                             <?php else: ?>
-                                                <span class="table-badge" style="background:rgba(156,39,176,0.1);color:#9c27b0;border:1px solid rgba(156,39,176,0.3);" title="<?php echo htmlspecialchars($plan->trainer_name ?? ''); ?>">
-                                                    <i class="fas fa-users"></i>
+                                                <span class="workout-trainer-text" title="<?php echo htmlspecialchars($plan->trainer_name ?? ''); ?>">
                                                     <?php echo htmlspecialchars(substr($plan->trainer_name ?? 'Other', 0, 14)); ?>
                                                 </span>
                                             <?php endif; ?>
@@ -144,35 +143,6 @@
                                             <span class="table-badge status-badge" style="<?php echo $statusColors[$planStatus] ?? $statusColors['active']; ?>">
                                                 <?php echo ucfirst($planStatus); ?>
                                             </span>
-                                        </td>
-                                        <td>
-                                            <span class="table-badge frequency-badge" style="
-                                                <?php 
-                                                    $freqColors = [
-                                                        'Daily'     => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);',
-                                                        'Weekly'    => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
-                                                        'Bi-weekly' => 'background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);'
-                                                    ];
-                                                    echo $freqColors[$plan->frequency] ?? $freqColors['Weekly'];
-                                                ?>">
-                                                <?php echo htmlspecialchars($plan->frequency); ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <?php if (!empty($plan->Intensity)): ?>
-                                                <span class="table-badge intensity-badge" style="
-                                                    <?php 
-                                                        $intensityColors = [
-                                                            'High'     => 'background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3);',
-                                                            'Moderate' => 'background:rgba(255,159,67,0.1);color:#ff9f43;border:1px solid rgba(255,159,67,0.3);',
-                                                            'Low'      => 'background:rgba(46,213,115,0.1);color:#2ed573;border:1px solid rgba(46,213,115,0.3);'
-                                                        ];
-                                                        echo $intensityColors[$plan->Intensity] ?? $intensityColors['Moderate'];
-                                                    ?>">
-                                                    <?php echo htmlspecialchars($plan->Intensity); ?>
-                                                </span>
-                                            <?php else: ?><span style="color:#999;">-</span>
-                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <div class="table-cell-primary duration">
@@ -197,17 +167,17 @@
                                             </button>
                                         </td>
                                         <td>
-                                            <div class="profile-actions">
-                                                <button class="profile-btn" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details" style="background:rgba(46,213,115,0.1);color:#2ed573;border-color:rgba(46,213,115,0.3);">
-                                                    <i class="fas fa-eye"></i>
+                                            <div class="workout-table-actions">
+                                                <button type="button" class="btn btn-secondary btn-sm" onclick="viewPlan(<?php echo $plan->PlanID; ?>)" title="View Details">
+                                                    <i class="fas fa-eye"></i> View
                                                 </button>
                                                 <?php if ($planStatus !== 'archived'): ?>
-                                                <button class="profile-btn" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player" style="background:rgba(74,144,226,0.1);color:#4A90E2;border-color:rgba(74,144,226,0.3);">
-                                                    <i class="fas fa-user-plus"></i>
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="openAssignModal(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Assign to Player">
+                                                    <i class="fas fa-user-plus"></i> Assign
                                                 </button>
                                                 <?php endif; ?>
                                                 <?php if ($isOwn): ?>
-                                                <button class="profile-btn"
+                                                <button type="button" class="btn btn-primary btn-sm"
                                                         data-plan-id="<?php echo (int)$plan->PlanID; ?>"
                                                         data-plan="<?php echo htmlspecialchars(json_encode([
                                                             'workoutname'   => $plan->workoutname,
@@ -220,12 +190,11 @@
                                                             'status'        => $planStatus
                                                         ]), ENT_QUOTES, 'UTF-8'); ?>"
                                                         onclick="openEditFromButton(this)"
-                                                        title="Edit Plan"
-                                                        style="background:rgba(255,159,67,0.1);color:#ff9f43;border-color:rgba(255,159,67,0.3);">
-                                                    <i class="fas fa-edit"></i>
+                                                        title="Edit Plan">
+                                                    <i class="fas fa-edit"></i> Edit
                                                 </button>
-                                                <button class="profile-btn" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan" style="background:rgba(255,107,107,0.1);color:#ff6b6b;border-color:rgba(255,107,107,0.3);">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="deletePlan(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')" title="Delete Plan">
+                                                    <i class="fas fa-trash"></i> Delete
                                                 </button>
                                                 <?php endif; ?>
                                             </div>
@@ -234,7 +203,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="12" style="text-align:center;padding:40px 20px;">
+                                    <td colspan="8" style="text-align:center;padding:40px 20px;">
                                         <div style="color: #666; display: flex; flex-direction: column; align-items: center; gap: 15px;">
                                             <i class="fas fa-dumbbell" style="font-size: 3rem; color: #4A90E2; margin-bottom: 15px;"></i>
                                             <h3 style="color: #4A90E2; margin-bottom: 8px;">No workout plans found</h3>

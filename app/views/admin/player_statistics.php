@@ -1,4 +1,17 @@
-<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
+<?php
+require_once APPROOT . '/views/inc/components/header.php';
+
+// The controller passes the selected player's real user/profile record here.
+// These helper variables keep the HTML readable and avoid hardcoded demo values.
+$player = $data['player'] ?? null;
+$playerName = trim(($player->FirstName ?? '') . ' ' . ($player->LastName ?? '')) ?: 'Selected Player';
+$initials = strtoupper(substr($player->FirstName ?? 'P', 0, 1) . substr($player->LastName ?? '', 0, 1));
+$jerseyNumber = $player->JerseyNumber ?: 'N/A';
+$subscription = $player->SubscriptionType ?: 'Not Assigned';
+$joinedDate = !empty($player->DateJoined) ? date('M d, Y', strtotime($player->DateJoined)) : 'Not Available';
+$battingStyle = $player->BattingStyle ?: 'Not Set';
+$bowlingStyle = $player->BowlingStyle ?: 'Not Set';
+?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/player-statistics.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -91,14 +104,14 @@
             <div class="player-profile-header">
                 <div class="player-header-left">
                     <div class="player-avatar-large">
-                        <span>JS</span>
+                        <span><?php echo htmlspecialchars($initials); ?></span>
                     </div>
                     <div class="player-info-main">
-                        <h1 class="player-name">John Smith</h1>
+                        <h1 class="player-name"><?php echo htmlspecialchars($playerName); ?></h1>
                         <div class="player-badges-inline">
-                            <span class="badge badge-jersey"><i class="fas fa-tshirt"></i> #07</span>
-                            <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
-                            <span class="badge badge-role"><i class="fas fa-cricket"></i> All-Rounder</span>
+                            <span class="badge badge-jersey"><i class="fas fa-tshirt"></i> #<?php echo htmlspecialchars($jerseyNumber); ?></span>
+                            <span class="badge badge-premium"><i class="fas fa-crown"></i> <?php echo htmlspecialchars($subscription); ?></span>
+                            <span class="badge badge-role"><i class="fas fa-cricket"></i> Player</span>
                         </div>
                     </div>
                 </div>
@@ -108,21 +121,21 @@
                             <i class="fas fa-envelope"></i>
                             <div class="info-details">
                                 <span class="info-label">Email</span>
-                                <span class="info-value">john.smith@elite.com</span>
+                                <span class="info-value"><?php echo htmlspecialchars($player->Email ?? 'Not Available'); ?></span>
                             </div>
                         </div>
                         <div class="info-item">
                             <i class="fas fa-phone"></i>
                             <div class="info-details">
                                 <span class="info-label">Phone</span>
-                                <span class="info-value">+1 234 567 8900</span>
+                                <span class="info-value"><?php echo htmlspecialchars($player->PhoneNumber ?? 'Not Available'); ?></span>
                             </div>
                         </div>
                         <div class="info-item">
                             <i class="fas fa-calendar-alt"></i>
                             <div class="info-details">
                                 <span class="info-label">Joined</span>
-                                <span class="info-value">Jan 15, 2024</span>
+                                <span class="info-value"><?php echo htmlspecialchars($joinedDate); ?></span>
                             </div>
                         </div>
                     </div>
@@ -148,7 +161,7 @@
                     </div>
                     <div class="detail-content">
                         <span class="detail-label">Batting Style</span>
-                        <span class="detail-value">Right-Handed</span>
+                        <span class="detail-value"><?php echo htmlspecialchars($battingStyle); ?></span>
                     </div>
                 </div>
                 <div class="detail-card">
@@ -157,7 +170,7 @@
                     </div>
                     <div class="detail-content">
                         <span class="detail-label">Bowling Style</span>
-                        <span class="detail-value">Fast Medium</span>
+                        <span class="detail-value"><?php echo htmlspecialchars($bowlingStyle); ?></span>
                     </div>
                 </div>
                 <div class="detail-card">
@@ -166,7 +179,7 @@
                     </div>
                     <div class="detail-content">
                         <span class="detail-label">Specialization</span>
-                        <span class="detail-value">All-Rounder</span>
+                        <span class="detail-value"><?php echo htmlspecialchars($subscription); ?></span>
                     </div>
                 </div>
                 <div class="detail-card">
@@ -189,7 +202,9 @@
                 </div>
             </div>
 
-            <!-- Key Performance Metrics - 4 Cards in Single Row -->
+            <!-- Key Performance Metrics - 4 Cards in Single Row
+                 These cards are still visual/demo metrics. The player identity above is real,
+                 and these numbers can be connected later to a performance table if needed. -->
             <div class="performance-metrics">
                 <div class="metric-card metric-purple">
                     <div class="metric-icon-wrapper">

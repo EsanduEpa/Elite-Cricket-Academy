@@ -1,9 +1,24 @@
 <?php
+/**
+ * Player session/facility booking controller.
+ *
+ * This controller is only for logged-in players. It shows available sessions,
+ * creates bookings, shows booking history, and cancels eligible bookings.
+ *
+ * Main flow:
+ * 1. Player opens available coach/trainer/facility slots.
+ * 2. Controller asks M_SlotPlayer for valid occurrences based on plan/rules.
+ * 3. Player submits a booking form.
+ * 4. M_SlotPlayer validates and inserts the booking.
+ * 5. Controller creates notifications and redirects back with a flash message.
+ */
 class Playerslots extends Controller {
 
     private $slotModel;
 
     public function __construct() {
+        // Security: Core already checks route access, but this keeps the controller safe
+        // if a method is called directly from another route.
         requireAuth(['Player']);
         $this->slotModel = $this->model('M_SlotPlayer');
         require_once APPROOT . '/libraries/SlotBookingService.php';
@@ -354,6 +369,10 @@ class Playerslots extends Controller {
     }
 
     public function book() {
+        // Handles normal coach/trainer session booking.
+        // Validation and business rules live in M_SlotPlayer::createBooking().
+        // This controller only collects POST data and translates model result codes
+        // into user-friendly messages.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/bookings');
         }
@@ -369,7 +388,9 @@ class Playerslots extends Controller {
         }
 
         $result = $this->slotModel->createBooking(
+            // OccurrenceID identifies the exact session date/time being booked.
             $occurrenceId,
+            // PlayerID identifies who owns this booking.
             $playerId,
             'self',
             $playerId,
@@ -404,6 +425,8 @@ class Playerslots extends Controller {
     }
 
     public function bookfacility() {
+        // Facility booking is similar to session booking, but may include a payment amount.
+        // At this point, the current implementation records the payment status in the booking.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/facilities');
         }
@@ -455,6 +478,7 @@ class Playerslots extends Controller {
     }
 
     public function cancel() {
+        // Players can cancel only their own bookings and only within the allowed window.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('playerslots/bookings');
         }

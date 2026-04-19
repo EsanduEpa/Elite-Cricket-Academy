@@ -796,10 +796,10 @@ class M_SlotAdmin {
                 
                 $this->db->query(
                     'INSERT INTO slot_template
-                     (TemplateName, temp_code, SlotID, SlotType, StaffType, MaxParticipants, 
-                      FacilityID, Status, Notes, CreatedBy, CreatedAt)
-                     VALUES (:name, :code, :slotid, \'private\', :stafftype, :max, 
-                             :fid, \'active\', :notes, :createdby, NOW())'
+                     (TemplateName, temp_code, SlotID, SlotType, StaffType, MaxParticipants,
+                      FacilityID, Description, CreatedBy, CreatedAt)
+                     VALUES (:name, :code, :slotid, \'private\', :stafftype, :max,
+                             :fid, :description, :createdby, NOW())'
                 );
                 $this->db->bind(':name', $templateName);
                 $this->db->bind(':code', $templateCode);
@@ -807,7 +807,7 @@ class M_SlotAdmin {
                 $this->db->bind(':stafftype', $request->StaffType);
                 $this->db->bind(':max', isset($request->MaxParticipants) ? (int) $request->MaxParticipants : 10, PDO::PARAM_INT);
                 $this->db->bind(':fid', isset($request->FacilityID) ? (int) $request->FacilityID : null);
-                $this->db->bind(':notes', 'Approved from private session request #' . $requestId);
+                $this->db->bind(':description', 'Approved from private session request #' . $requestId);
                 $this->db->bind(':createdby', $reviewedBy, PDO::PARAM_INT);
                 if (!$this->db->execute()) {
                     throw new RuntimeException('Unable to create template');
@@ -837,13 +837,14 @@ class M_SlotAdmin {
                 // Assign the requesting staff to this template
                 $this->db->query(
                     'INSERT INTO slot_template_staff
-                     (TemplateID, UserID, StaffType)
-                     VALUES (:templateid, :uid, :stype)
+                     (TemplateID, UserID, StaffType, AssignedBy)
+                     VALUES (:templateid, :uid, :stype, :assignedby)
                      ON DUPLICATE KEY UPDATE StaffType = :stype'
                 );
                 $this->db->bind(':templateid', $approvedTemplateId, PDO::PARAM_INT);
                 $this->db->bind(':uid', (int) $request->RequesterUserID, PDO::PARAM_INT);
                 $this->db->bind(':stype', $request->StaffType);
+                $this->db->bind(':assignedby', $reviewedBy, PDO::PARAM_INT);
                 if (!$this->db->execute()) {
                     throw new RuntimeException('Unable to assign staff to template');
                 }

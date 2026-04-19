@@ -1,285 +1,7 @@
 // Finance Management JavaScript
 
-let revenueChart = null;
-
-// Initialize finance charts
-function initializeFinanceCharts(monthlyData, revenueCategories) {
-    const chartCanvas = document.getElementById('revenueChart');
-    if (!chartCanvas || typeof Chart === 'undefined') {
-        return;
-    }
-
-    const ctx = chartCanvas.getContext('2d');
-    
-    // Prepare data
-    const months = Object.keys(monthlyData);
-    const revenues = Object.values(monthlyData);
-    
-    // Create line chart by default
-    revenueChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: months,
-            datasets: [{
-                label: 'Monthly Revenue (LKR)',
-                data: revenues,
-                borderColor: '#2E7D32',
-                backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#2E7D32',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 6,
-                pointHoverRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    cornerRadius: 8,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            return 'Revenue: LKR ' + context.parsed.y.toLocaleString();
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return 'LKR ' + (value / 1000) + 'K';
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            }
-        }
-    });
-
-    // Chart type switcher
-    document.querySelectorAll('.chart-type-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Update active state
-            document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            const chartType = this.getAttribute('data-type');
-            updateChartType(chartType, monthlyData, revenueCategories);
-        });
-    });
-}
-
-// Update chart type
-function updateChartType(type, monthlyData, revenueCategories) {
-    if (revenueChart) {
-        revenueChart.destroy();
-    }
-    
-    const chartCanvas = document.getElementById('revenueChart');
-    if (!chartCanvas || typeof Chart === 'undefined') {
-        return;
-    }
-
-    const ctx = chartCanvas.getContext('2d');
-    
-    if (type === 'pie') {
-        // Create pie chart for revenue categories
-        const categoryLabels = Object.values(revenueCategories).map(cat => cat.label || 'Revenue');
-        const categoryData = Object.values(revenueCategories).map(cat => cat.amount);
-        const categoryColors = ['#2E7D32', '#1976D2', '#F57C00', '#7B1FA2', '#C2410C'];
-        
-        revenueChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: categoryLabels,
-                datasets: [{
-                    data: categoryData,
-                    backgroundColor: categoryColors,
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: function(context) {
-                                const percentage = ((context.parsed / categoryData.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
-                                return context.label + ': LKR ' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    } else if (type === 'bar') {
-        // Create bar chart
-        const months = Object.keys(monthlyData);
-        const revenues = Object.values(monthlyData);
-        
-        revenueChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: 'Monthly Revenue (LKR)',
-                    data: revenues,
-                    backgroundColor: 'rgba(46, 125, 50, 0.8)',
-                    borderColor: '#2E7D32',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        cornerRadius: 8,
-                        displayColors: false,
-                        callbacks: {
-                            label: function(context) {
-                                return 'Revenue: LKR ' + context.parsed.y.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return 'LKR ' + (value / 1000) + 'K';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    } else {
-        // Create line chart (default)
-        const months = Object.keys(monthlyData);
-        const revenues = Object.values(monthlyData);
-        
-        revenueChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: 'Monthly Revenue (LKR)',
-                    data: revenues,
-                    borderColor: '#2E7D32',
-                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#2E7D32',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        cornerRadius: 8,
-                        displayColors: false,
-                        callbacks: {
-                            label: function(context) {
-                                return 'Revenue: LKR ' + context.parsed.y.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return 'LKR ' + (value / 1000) + 'K';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                }
-            }
-        });
-    }
-}
+let paymentCurrentPage = 1;
+const paymentPageSize = 10;
 
 // Initialize filters and search
 function initializeFilters() {
@@ -288,69 +10,135 @@ function initializeFilters() {
     const statusFilter = document.getElementById('statusFilter');
     
     // Search functionality
-    searchInput.addEventListener('input', function() {
-        filterPayments();
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            paymentCurrentPage = 1;
+            filterPayments();
+        });
+    }
     
     // Type filter
-    typeFilter.addEventListener('change', function() {
-        filterPayments();
-    });
+    if (typeFilter) {
+        typeFilter.addEventListener('change', function() {
+            paymentCurrentPage = 1;
+            filterPayments();
+        });
+    }
     
     // Status filter
-    statusFilter.addEventListener('change', function() {
-        filterPayments();
-    });
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            paymentCurrentPage = 1;
+            filterPayments();
+        });
+    }
     
     // Period selector
     const periodSelector = document.getElementById('revenuePeriod');
-    periodSelector.addEventListener('change', function() {
-        // Here you would normally fetch new data based on the selected period
-        console.log('Period changed to:', this.value);
-        showNotification('Revenue data updated for ' + this.options[this.selectedIndex].text, 'success');
-    });
+    if (periodSelector) {
+        periodSelector.addEventListener('change', function() {
+            showNotification('Revenue period selector is ready; backend period filtering can be connected next.', 'info');
+        });
+    }
+
+    filterPayments();
 }
 
 // Filter payments table
 function filterPayments() {
-    const searchTerm = document.getElementById('paymentSearch').value.toLowerCase();
-    const typeFilter = document.getElementById('paymentFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
+    const searchTerm = (document.getElementById('paymentSearch')?.value || '').toLowerCase();
+    const typeFilter = document.getElementById('paymentFilter')?.value || 'all';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
     
-    const rows = document.querySelectorAll('.payment-row');
-    let visibleCount = 0;
-    
-    rows.forEach(row => {
-        const customerName = row.querySelector('.customer-name').textContent.toLowerCase();
-        const paymentId = row.querySelector('.payment-id').textContent.toLowerCase();
-        const paymentType = row.getAttribute('data-type');
-        const paymentStatus = row.getAttribute('data-status');
+    const rows = Array.from(document.querySelectorAll('.payment-row'));
+    const matchedRows = rows.filter(row => {
+        const customerName = row.querySelector('.customer-name')?.textContent.toLowerCase() || '';
+        const paymentId = row.querySelector('.payment-id')?.textContent.toLowerCase() || '';
+        const paymentType = row.getAttribute('data-type') || '';
+        const paymentStatus = row.getAttribute('data-status') || '';
         
         const matchesSearch = customerName.includes(searchTerm) || paymentId.includes(searchTerm);
         const matchesType = typeFilter === 'all' || paymentType === typeFilter;
         const matchesStatus = statusFilter === 'all' || paymentStatus === statusFilter;
-        
-        if (matchesSearch && matchesType && matchesStatus) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
-        }
+
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(matchedRows.length / paymentPageSize));
+    paymentCurrentPage = Math.min(Math.max(paymentCurrentPage, 1), totalPages);
+    const start = (paymentCurrentPage - 1) * paymentPageSize;
+    const end = start + paymentPageSize;
+    const visibleRows = matchedRows.slice(start, end);
+
+    rows.forEach(row => {
+        row.style.display = visibleRows.includes(row) ? '' : 'none';
     });
     
-    // Update pagination info
     const paginationInfo = document.querySelector('.pagination-info');
     if (paginationInfo) {
-        paginationInfo.textContent = `Showing 1-${visibleCount} of ${visibleCount} transactions`;
+        const from = matchedRows.length ? start + 1 : 0;
+        const to = Math.min(end, matchedRows.length);
+        paginationInfo.textContent = `Showing ${from}-${to} of ${matchedRows.length} transactions`;
     }
+
+    renderPaymentPagination(totalPages);
+}
+
+function renderPaymentPagination(totalPages) {
+    const pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+
+    pagination.innerHTML = '';
+    pagination.appendChild(createPaymentPageButton('prev', '<i class="fas fa-chevron-left"></i>', paymentCurrentPage === 1, () => {
+        paymentCurrentPage--;
+        filterPayments();
+    }));
+
+    for (let page = 1; page <= totalPages; page++) {
+        if (page > 1 && page < totalPages && Math.abs(page - paymentCurrentPage) > 1) {
+            const side = page < paymentCurrentPage ? 'left' : 'right';
+            if (!pagination.querySelector(`[data-ellipsis="${side}"]`)) {
+                const ellipsis = document.createElement('span');
+                ellipsis.className = 'page-ellipsis';
+                ellipsis.dataset.ellipsis = side;
+                ellipsis.textContent = '...';
+                pagination.appendChild(ellipsis);
+            }
+            continue;
+        }
+
+        pagination.appendChild(createPaymentPageButton(page, String(page), false, () => {
+            paymentCurrentPage = page;
+            filterPayments();
+        }, page === paymentCurrentPage));
+    }
+
+    pagination.appendChild(createPaymentPageButton('next', '<i class="fas fa-chevron-right"></i>', paymentCurrentPage === totalPages, () => {
+        paymentCurrentPage++;
+        filterPayments();
+    }));
+}
+
+function createPaymentPageButton(value, html, disabled, onClick, active = false) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = active ? 'page-btn active' : 'page-btn';
+    button.dataset.page = value;
+    button.innerHTML = html;
+    button.disabled = disabled;
+    button.addEventListener('click', onClick);
+    return button;
 }
 
 // Payment action functions
 function viewPayment(paymentId) {
-    showNotification(`Viewing details for payment ${paymentId}`, 'info');
-    
-    // Create and show modal with payment details
-    const modal = createPaymentModal(paymentId);
+    const payment = getPaymentDetailsFromRow(paymentId);
+    if (!payment) {
+        showNotification(`Payment ${paymentId} was not found in the current table.`, 'error');
+        return;
+    }
+
+    const modal = createPaymentModal(payment);
     document.body.appendChild(modal);
     
     // Add close functionality
@@ -390,55 +178,71 @@ function downloadReceipt(paymentId) {
     }, 1000);
 }
 
+function getPaymentDetailsFromRow(paymentId) {
+    const escapedPaymentId = window.CSS?.escape ? CSS.escape(paymentId) : String(paymentId).replace(/"/g, '\\"');
+    const row = document.querySelector(`.payment-row[data-payment-id="${escapedPaymentId}"]`);
+    if (!row) return null;
+
+    return {
+        id: row.querySelector('.payment-id')?.textContent.trim() || paymentId,
+        type: row.querySelector('.payment-type')?.textContent.trim() || '-',
+        customer: row.querySelector('.customer-name')?.textContent.trim() || '-',
+        amount: row.querySelector('.payment-amount')?.textContent.trim() || '-',
+        date: row.querySelector('.payment-date')?.textContent.trim() || '-',
+        method: row.querySelector('.payment-method')?.textContent.trim() || '-',
+        status: row.querySelector('.payment-status')?.textContent.trim() || '-'
+    };
+}
+
 // Create payment details modal
-function createPaymentModal(paymentId) {
+function createPaymentModal(payment) {
     const modal = document.createElement('div');
     modal.className = 'payment-modal';
     modal.innerHTML = `
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Payment Details - ${paymentId}</h3>
+                <h3>Payment Details - ${escapeHtml(payment.id)}</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="payment-details-grid">
                     <div class="detail-group">
                         <label>Payment ID:</label>
-                        <span>${paymentId}</span>
+                        <span>${escapeHtml(payment.id)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Type:</label>
-                        <span>Equipment Purchase</span>
+                        <span>${escapeHtml(payment.type)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Customer:</label>
-                        <span>John Doe</span>
+                        <span>${escapeHtml(payment.customer)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Amount:</label>
-                        <span>LKR 15,750</span>
+                        <span>${escapeHtml(payment.amount)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Date:</label>
-                        <span>Sep 16, 2025</span>
+                        <span>${escapeHtml(payment.date)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Payment Method:</label>
-                        <span>Credit Card</span>
+                        <span>${escapeHtml(payment.method)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Status:</label>
-                        <span class="status-completed">Completed</span>
+                        <span class="status-completed">${escapeHtml(payment.status)}</span>
                     </div>
                     <div class="detail-group">
                         <label>Transaction ID:</label>
-                        <span>TXN123456789</span>
+                        <span>${escapeHtml(payment.id)}</span>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" onclick="downloadReceipt('${paymentId}')">
+                <button class="btn btn-primary" onclick="downloadReceipt('${escapeAttribute(payment.id)}')">
                     <i class="fas fa-download"></i> Download Receipt
                 </button>
                 <button class="btn btn-secondary modal-close">Close</button>
@@ -583,28 +387,35 @@ function createPaymentModal(paymentId) {
     return modal;
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function escapeAttribute(value) {
+    return String(value ?? '').replace(/'/g, "\\'");
+}
+
 // Report generation functions
 document.addEventListener('DOMContentLoaded', function() {
     const generateReportBtn = document.getElementById('generateReportBtn');
     const exportDataBtn = document.getElementById('exportDataBtn');
     
-    generateReportBtn.addEventListener('click', function() {
-        showNotification('Generating financial report...', 'info');
-        
-        setTimeout(() => {
-            showNotification('Financial report generated successfully!', 'success');
-            // Here you would normally trigger the actual report generation
-        }, 2000);
-    });
+    if (generateReportBtn) {
+        generateReportBtn.addEventListener('click', function() {
+            showNotification('Financial report generation can be connected to a backend export endpoint next.', 'info');
+        });
+    }
     
-    exportDataBtn.addEventListener('click', function() {
-        showNotification('Exporting financial data...', 'info');
-        
-        setTimeout(() => {
-            showNotification('Financial data exported to CSV successfully!', 'success');
-            // Here you would normally trigger the actual data export
-        }, 1500);
-    });
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', function() {
+            showNotification('Finance CSV export can be connected to real table data next.', 'info');
+        });
+    }
 });
 
 // Notification system

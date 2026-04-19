@@ -148,52 +148,25 @@ class Login extends Controller {
                     $_SESSION['user_role'] = $loggedInUser->Role;        // For access control
                     $_SESSION['last_activity'] = time();                 // Inactivity timeout clock
                     
-                    // STEP 11: DEBUG OUTPUT (Remove in production)
-                    // Shows authentication details before redirect
-                    echo "<div style='background: #d4edda; color: #155724; padding: 15px; margin: 20px; border: 1px solid #c3e6cb; border-radius: 5px;'>";
-                    echo "<h3>✅ Login Successful - Debug Info</h3>";
-                    echo "<p><strong>User:</strong> " . $loggedInUser->Name . "</p>";
-                    echo "<p><strong>Role:</strong> " . $loggedInUser->Role . "</p>";
-                    echo "<p><strong>Should redirect to:</strong> ";
-                    
-                    // STEP 12: ROLE-BASED REDIRECT
+                    // STEP 11: ROLE-BASED REDIRECT
                     // Different user roles access different dashboards
                     // This implements Role-Based Access Control (RBAC)
+                    // Important: do not echo output before redirect(), because redirects use HTTP headers.
                     switch($loggedInUser->Role) {
                         case 'Admin':
-                            echo "admin/dashboard";
-                            echo "</p>";
-                            echo "<p><a href='" . URLROOT . "/admin/dashboard'>Click here if redirect doesn't work →</a></p>";
-                            echo "</div>";
                             redirect('admin/dashboard');
                             break;
                         case 'Coach':
-                            echo "coach/dashboard";
-                            echo "</p>";
-                            echo "<p><a href='" . URLROOT . "/coach/dashboard'>Click here if redirect doesn't work →</a></p>";
-                            echo "</div>";
                             redirect('coach/dashboard');
                             break;
                         case 'Trainer':
-                            echo "trainer/dashboard";
-                            echo "</p>";
-                            echo "<p><a href='" . URLROOT . "/trainer/dashboard'>Click here if redirect doesn't work →</a></p>";
-                            echo "</div>";
                             redirect('trainer/dashboard');
                             break;
                         case 'ShopEmployee':
-                            echo "shop/dashboard";
-                            echo "</p>";
-                            echo "<p><a href='" . URLROOT . "/shop/dashboard'>Click here if redirect doesn't work →</a></p>";
-                            echo "</div>";
                             redirect('shop/dashboard');
                             break;
                         case 'Player':
                         default:
-                            echo "player/dashboard";
-                            echo "</p>";
-                            echo "<p><a href='" . URLROOT . "/player/dashboard'>Click here if redirect doesn't work →</a></p>";
-                            echo "</div>";
                             redirect('player/dashboard');
                             break;
                     }
