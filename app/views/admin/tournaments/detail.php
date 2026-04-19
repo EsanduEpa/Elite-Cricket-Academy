@@ -60,6 +60,17 @@
     <main class="main-content" id="mainContent">
         <?php $t = $data['tournament']; ?>
 
+        <?php
+        $pendingJoinRequestCount = 0;
+        if (!empty($data['join_requests'])) {
+            foreach ($data['join_requests'] as $jr) {
+                if (($jr->Status ?? '') === 'pending') {
+                    $pendingJoinRequestCount++;
+                }
+            }
+        }
+        ?>
+
         <!-- Header -->
         <div class="events-header">
             <div class="header-content">
@@ -163,7 +174,7 @@
                 <!-- Tab buttons -->
                 <div style="display:flex;gap:8px;margin-bottom:16px;">
                     <button class="tab-btn active" onclick="showTab('join_requests',this)">
-                        Join Requests <span style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count(array_filter($data['join_requests'], fn($r) => $r->Status === 'pending')); ?></span>
+                        Join Requests <span style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo (int)$pendingJoinRequestCount; ?></span>
                     </button>
                     <button class="tab-btn" onclick="showTab('coach_recs',this)">Coach Recs <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count($data['coach_recs']); ?></span></button>
                     <button class="tab-btn" onclick="showTab('trainer_recs',this)">Trainer Recs <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count($data['trainer_recs']); ?></span></button>
@@ -181,19 +192,13 @@
                             <p style="padding:20px;color:#94a3b8;text-align:center;">No join requests yet.</p>
                         <?php else: ?>
                         <table class="data-table">
-                            <thead><tr><th>Player</th><th>Message</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Player</th><th>Message</th><th>Status</th></tr></thead>
                             <tbody>
                             <?php foreach ($data['join_requests'] as $r): ?>
                             <tr>
                                 <td><strong><?php echo htmlspecialchars($r->Name); ?></strong><br><small style="color:#94a3b8;"><?php echo htmlspecialchars($r->Email ?? ''); ?></small></td>
                                 <td style="max-width:220px;"><small><?php echo htmlspecialchars($r->Message ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
-                                <td>
-                                    <?php if ($r->Status === 'pending'): ?>
-                                    <button onclick="reviewRequest(<?php echo $r->RequestID; ?>,'approved')" style="background:#16a34a;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;margin-right:4px;">Approve</button>
-                                    <button onclick="reviewRequest(<?php echo $r->RequestID; ?>,'rejected')" style="background:#ef4444;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;">Reject</button>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                             <?php endforeach; ?>
                             </tbody>
@@ -308,18 +313,6 @@ function showTab(id, btn) {
     document.querySelector('#tab-' + id).style.display = 'block';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-}
-
-function reviewRequest(requestId, action) {
-    const label = action === 'approved' ? 'approve' : 'reject';
-    if (!confirm('Are you sure you want to ' + label + ' this join request?')) return;
-    fetch('<?php echo URLROOT; ?>/admin/' + (action === 'approved' ? 'approve' : 'reject') + '_join_request/' + requestId, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'notes='
-    })
-    .then(r => r.json())
-    .then(d => { if (d.success) location.reload(); else alert(d.message); });
 }
 </script>
 

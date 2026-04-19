@@ -86,6 +86,41 @@ class M_TrainerTournamentRecommendation
         return $this->db->execute();
     }
 
+    public function updateStatusForTournament($recId, $tournamentId, $status, $reviewedBy)
+    {
+        $recId = (int)$recId;
+        $tournamentId = (int)$tournamentId;
+        $reviewedBy = (int)$reviewedBy;
+        $status = strtolower(trim((string)$status));
+
+        if ($recId <= 0 || $tournamentId <= 0 || $reviewedBy <= 0) {
+            return false;
+        }
+
+        if (!in_array($status, ['approved', 'rejected'], true)) {
+            return false;
+        }
+
+        $this->db->query(
+            'UPDATE trainer_tournament_recommendations
+             SET Status = :status, ReviewedBy = :reviewer, DateReviewed = NOW()
+             WHERE RecommendationID = :id
+               AND TournamentID = :tid
+               AND Status = "pending"'
+        );
+        $this->db->bind(':status', $status);
+        $this->db->bind(':reviewer', $reviewedBy);
+        $this->db->bind(':id', $recId);
+        $this->db->bind(':tid', $tournamentId);
+
+        $ok = $this->db->execute();
+        if (!$ok) {
+            return false;
+        }
+
+        return $this->db->rowCount() > 0;
+    }
+
     public function checkDuplicate($tournamentId, $playerId, $trainerId)
     {
         $this->db->query(

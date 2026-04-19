@@ -424,6 +424,46 @@ class M_CoachTournamentRecommendation
         }
     }
 
+    // Head coach/admin updates recommendation status for a tournament (only pending)
+    public function updateStatusForTournament($recommendationId, $tournamentId, $status, $reviewedBy, $feedback = null)
+    {
+        $recommendationId = (int)$recommendationId;
+        $tournamentId = (int)$tournamentId;
+        $reviewedBy = (int)$reviewedBy;
+        $status = strtolower(trim((string)$status));
+
+        if ($recommendationId <= 0 || $tournamentId <= 0 || $reviewedBy <= 0) {
+            return false;
+        }
+
+        if (!in_array($status, ['approved', 'rejected'], true)) {
+            return false;
+        }
+
+        $this->db->query(
+            'UPDATE coach_tournament_recommendations
+             SET Status = :status,
+                 ReviewedBy = :reviewer,
+                 DateReviewed = NOW(),
+                 AdminFeedback = :feedback
+             WHERE RecommendationID = :id
+               AND TournamentID = :tid
+               AND Status = "pending"'
+        );
+        $this->db->bind(':status', $status);
+        $this->db->bind(':reviewer', $reviewedBy);
+        $this->db->bind(':feedback', $feedback !== '' ? $feedback : null);
+        $this->db->bind(':id', $recommendationId);
+        $this->db->bind(':tid', $tournamentId);
+
+        $ok = $this->db->execute();
+        if (!$ok) {
+            return false;
+        }
+
+        return $this->db->rowCount() > 0;
+    }
+
     /**
      * Check if a duplicate recommendation exists
      * 
