@@ -1003,6 +1003,38 @@ class M_Shop {
         
         return $this->db->execute();
     }
+
+    public function getOrderDetails(int $orderId): array {
+        $this->db->query('
+            SELECT po.OrderID, po.OrderDate, po.TotalAmount, po.PaymentMethod, po.Status,
+                   CONCAT(u.FirstName, " ", u.LastName) AS CustomerName,
+                   u.Email, u.PhoneNumber, u.Address
+            FROM productorder po
+            JOIN user u ON po.PlayerID = u.UserID
+            WHERE po.OrderID = :order_id
+        ');
+        $this->db->bind(':order_id', $orderId, PDO::PARAM_INT);
+        $order = $this->db->single();
+
+        if (!$order) {
+            return ['order' => null, 'items' => []];
+        }
+
+        $this->db->query('
+            SELECT poi.OrderItemID, poi.Quantity, poi.UnitPrice, poi.SubTotal,
+                   p.Name AS ProductName, p.Category
+            FROM productorderitem poi
+            JOIN product p ON poi.ProductID = p.ProductID
+            WHERE poi.OrderID = :order_id
+            ORDER BY poi.OrderItemID ASC
+        ');
+        $this->db->bind(':order_id', $orderId, PDO::PARAM_INT);
+
+        return [
+            'order' => $order,
+            'items' => $this->db->resultSet(),
+        ];
+    }
     
     // Inventory Management Methods
     
@@ -1286,7 +1318,8 @@ class M_Shop {
 
     // Get all product reviews with details
     public function getAllProductReviews() {
-        $this->db->query('SELECT pr.*, p.Name AS product_name, CONCAT(u.FirstName, \' \', u.LastName) AS customer_name
+        $this->db->query('SELECT pr.*, p.Name AS product_name, u.Email,
+                CONCAT(u.FirstName, \' \', u.LastName) AS customer_name
             FROM productreview pr 
             JOIN product p ON pr.ProductID = p.ProductID 
             JOIN user u ON pr.UserID = u.UserID 
@@ -1298,6 +1331,17 @@ class M_Shop {
     public function getAllFacilities() {
         $this->db->query('SELECT * FROM facility ORDER BY Name ASC');
         return $this->db->resultSet();
+    }
+
+    public function createFacility(array $data): bool {
+        $this->db->query('INSERT INTO facility (f_code, Name, Location, Capacity, AvailabilityStatus, HourlyRate)
+            VALUES (:code, :name, :location, :capacity, "available", :hourly_rate)');
+        $this->db->bind(':code', $data['code']);
+        $this->db->bind(':name', $data['name']);
+        $this->db->bind(':location', $data['location']);
+        $this->db->bind(':capacity', $data['capacity'], PDO::PARAM_INT);
+        $this->db->bind(':hourly_rate', $data['hourly_rate']);
+        return $this->db->execute();
     }
 
     public function getFacilityById(int $id) {
@@ -1615,7 +1659,13 @@ class M_Shop {
     // Get today's facility bookings count
     public function getTodaysFacilityBookings() {
         $today = date('Y-m-d');
-        $this->db->query('SELECT COUNT(*) as count FROM facilitybooking WHERE DATE(BookingDate) = :date');
+        $this->db->query('SELECT COUNT(*) as count
+            FROM slot_booking sb
+            JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+            JOIN slot_template st ON st.TemplateID = so.TemplateID
+            WHERE st.SlotType = "facility_only"
+              AND so.OccurrenceDate = :date
+              AND sb.Status != "cancelled"');
         $this->db->bind(':date', $today);
         $result = $this->db->single();
         return $result->count ?? 0;
@@ -1624,7 +1674,13 @@ class M_Shop {
     // Get today's facility revenue
     public function getTodaysFacilityRevenue() {
         $today = date('Y-m-d');
-        $this->db->query('SELECT SUM(CAST(TotalCost AS DECIMAL(10,2))) as revenue FROM facilitybooking WHERE DATE(BookingDate) = :date');
+        $this->db->query('SELECT COALESCE(SUM(sb.AmountCharged), 0) as revenue
+            FROM slot_booking sb
+            JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+            JOIN slot_template st ON st.TemplateID = so.TemplateID
+            WHERE st.SlotType = "facility_only"
+              AND so.OccurrenceDate = :date
+              AND sb.Status != "cancelled"');
         $this->db->bind(':date', $today);
         $result = $this->db->single();
         return (float)($result->revenue ?? 0);

@@ -1,6 +1,29 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/shop/shop-reviews.css">
+<?php
+$reviews = $data['reviews'] ?? [];
+$reviewCount = count($reviews);
+$averageRating = $reviewCount
+    ? array_sum(array_map(fn($review) => (float)($review->Rating ?? 0), $reviews)) / $reviewCount
+    : 0;
+$pendingCount = count(array_filter($reviews, fn($review) => strtolower((string)($review->Status ?? '')) === 'pending'));
+$positiveCount = count(array_filter($reviews, fn($review) => (float)($review->Rating ?? 0) >= 4));
+$positivePercent = $reviewCount ? round(($positiveCount / $reviewCount) * 100) : 0;
+$ratingDistribution = [];
+for ($rating = 5; $rating >= 1; $rating--) {
+    $count = count(array_filter($reviews, fn($review) => (int)round((float)($review->Rating ?? 0)) === $rating));
+    $ratingDistribution[] = [
+        'stars' => $rating,
+        'count' => $count,
+        'percentage' => $reviewCount ? round(($count / $reviewCount) * 100) : 0,
+    ];
+}
+$renderStars = function ($rating) {
+    $full = max(0, min(5, (int)round((float)$rating)));
+    return str_repeat('<i class="fas fa-star"></i>', $full) . str_repeat('<i class="far fa-star"></i>', 5 - $full);
+};
+?>
 
 <div class="admin-layout">
     <!-- Shop Sidebar -->
@@ -102,7 +125,7 @@
                     <h3>Average Rating</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">4.6</span>
+                            <span class="number"><?php echo number_format($averageRating, 1); ?></span>
                             <span class="label">Out of 5.0</span>
                         </div>
                     </div>
@@ -117,7 +140,7 @@
                     <h3>Total Reviews</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">248</span>
+                            <span class="number"><?php echo (int)$reviewCount; ?></span>
                             <span class="label">All Time</span>
                         </div>
                     </div>
@@ -132,7 +155,7 @@
                     <h3>Pending Reviews</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number urgent">5</span>
+                            <span class="number urgent"><?php echo (int)$pendingCount; ?></span>
                             <span class="label">Need Response</span>
                         </div>
                     </div>
@@ -147,7 +170,7 @@
                     <h3>Positive Reviews</h3>
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="number">92%</span>
+                            <span class="number"><?php echo (int)$positivePercent; ?>%</span>
                             <span class="label">4-5 Stars</span>
                         </div>
                     </div>
@@ -163,13 +186,7 @@
             </h2>
             <div style="display: grid; gap: 12px;">
                 <?php 
-                $ratings = [
-                    ['stars' => 5, 'count' => 156, 'percentage' => 63],
-                    ['stars' => 4, 'count' => 72, 'percentage' => 29],
-                    ['stars' => 3, 'count' => 12, 'percentage' => 5],
-                    ['stars' => 2, 'count' => 5, 'percentage' => 2],
-                    ['stars' => 1, 'count' => 3, 'percentage' => 1]
-                ];
+                $ratings = $ratingDistribution;
                 foreach ($ratings as $rating): ?>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="min-width: 80px; display: flex; align-items: center; gap: 6px;">
@@ -198,10 +215,11 @@
                     <input type="text" class="search-box" placeholder="Search reviews..." id="reviewSearch">
                     <select class="filter-dropdown" id="productFilter">
                         <option value="all">All Products</option>
-                        <option value="bats">Cricket Bats</option>
-                        <option value="balls">Cricket Balls</option>
-                        <option value="protective">Protective Gear</option>
-                        <option value="clothing">Clothing</option>
+                        <?php foreach (array_unique(array_filter(array_map(fn($review) => (string)($review->product_name ?? ''), $reviews))) as $productName): ?>
+                            <option value="<?php echo htmlspecialchars(strtolower($productName), ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php echo htmlspecialchars($productName); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                     <button class="btn btn-primary" onclick="exportReviews()">
                         <i class="fas fa-download"></i> Export
@@ -243,257 +261,61 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Review 1 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-248</div></td>
-                            <td>
-                                <div class="table-cell-title">Kasun Silva</div>
-                                <div class="table-cell-details">kasun@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Professional Cricket Bat</div>
-                                <div class="table-cell-details">English Willow</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">5.0</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Excellent bat! The balance and pick-up are perfect. Great quality willow. Highly recommend for serious players."
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 20, 2025</div>
-                                <div class="table-cell-secondary">2 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(248)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Review 2 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-247</div></td>
-                            <td>
-                                <div class="table-cell-title">Nimal Perera</div>
-                                <div class="table-cell-details">nimal@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Cricket Helmet Elite</div>
-                                <div class="table-cell-details">Safety Gear</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">4.0</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Good quality helmet. Comfortable fit and provides excellent protection. Only downside is it's a bit heavy."
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 19, 2025</div>
-                                <div class="table-cell-secondary">3 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Pending</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(247)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Review 3 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-246</div></td>
-                            <td>
-                                <div class="table-cell-title">Amila Fernando</div>
-                                <div class="table-cell-details">amila@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Batting Gloves Pro</div>
-                                <div class="table-cell-details">Premium Quality</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">5.0</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Best gloves I've ever used! Great grip, comfortable padding, and excellent durability. Worth every rupee!"
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 18, 2025</div>
-                                <div class="table-cell-secondary">4 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(246)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Review 4 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-245</div></td>
-                            <td>
-                                <div class="table-cell-title">Ruwan Jayasinghe</div>
-                                <div class="table-cell-details">ruwan@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Cricket Ball - Red Leather</div>
-                                <div class="table-cell-details">Match Quality</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">3.0</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Average quality. The ball loses shine quickly. Expected better quality for the price."
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 17, 2025</div>
-                                <div class="table-cell-secondary">5 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Pending</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(245)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Review 5 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-244</div></td>
-                            <td>
-                                <div class="table-cell-title">Sachini Wijesinghe</div>
-                                <div class="table-cell-details">sachini@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Cricket Shoes Pro</div>
-                                <div class="table-cell-details">All-Weather</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">4.5</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Excellent shoes! Great grip on the field and very comfortable. Sizing is accurate. Fast delivery too!"
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 16, 2025</div>
-                                <div class="table-cell-secondary">6 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Approved</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(244)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Review 6 -->
-                        <tr>
-                            <td><div class="table-cell-primary">#REV-243</div></td>
-                            <td>
-                                <div class="table-cell-title">Dinesh Kumar</div>
-                                <div class="table-cell-details">dinesh@email.com</div>
-                            </td>
-                            <td>
-                                <div class="table-cell-title">Leg Guards Premium</div>
-                                <div class="table-cell-details">Professional Grade</div>
-                            </td>
-                            <td>
-                                <div style="color: #FFD700; font-size: 16px;">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <div style="font-size: 12px; color: #666;">2.0</div>
-                            </td>
-                            <td>
-                                <div style="color: #333; font-size: 14px; line-height: 1.4;">
-                                    "Not satisfied. Straps broke after just 2 uses. Poor quality for the price. Would not recommend."
-                                </div>
-                            </td>
-                            <td>
-                                <div class="table-cell-primary">Oct 15, 2025</div>
-                                <div class="table-cell-secondary">7 days ago</div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="table-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">Flagged</span>
-                            </td>
-                            <td>
-                                <div class="review-action-buttons">
-                                    <button class="review-action-btn btn-view" onclick="viewReview(243)">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php if (!empty($reviews)): ?>
+                            <?php foreach ($reviews as $review): ?>
+                                <?php
+                                    $reviewId = (int)($review->ReviewID ?? 0);
+                                    $ratingValue = (float)($review->Rating ?? 0);
+                                    $status = strtolower((string)($review->Status ?? 'pending'));
+                                    $statusColor = $status === 'approved' ? '#10b981' : ($status === 'rejected' || $status === 'flagged' ? '#ef4444' : '#f59e0b');
+                                    $statusBg = $status === 'approved' ? 'rgba(16, 185, 129, 0.15)' : ($status === 'rejected' || $status === 'flagged' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)');
+                                    $reviewText = (string)($review->Comment ?? $review->ReviewText ?? $review->Content ?? '');
+                                    $reviewDate = $review->ReviewDate ?? $review->CreatedAt ?? '';
+                                ?>
+                                <tr data-review-id="<?php echo $reviewId; ?>"
+                                    data-rating="<?php echo htmlspecialchars((string)$ratingValue, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-status="<?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-product="<?php echo htmlspecialchars(strtolower((string)($review->product_name ?? '')), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <td><div class="table-cell-primary">#REV-<?php echo $reviewId; ?></div></td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($review->customer_name ?? 'Unknown Customer'); ?></div>
+                                        <div class="table-cell-details"><?php echo htmlspecialchars($review->Email ?? ''); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo htmlspecialchars($review->product_name ?? 'Product'); ?></div>
+                                        <div class="table-cell-details">Product review</div>
+                                    </td>
+                                    <td>
+                                        <div style="color: #FFD700; font-size: 16px;"><?php echo $renderStars($ratingValue); ?></div>
+                                        <div style="font-size: 12px; color: #666;"><?php echo number_format($ratingValue, 1); ?></div>
+                                    </td>
+                                    <td>
+                                        <div style="color: #333; font-size: 14px; line-height: 1.4;">
+                                            "<?php echo htmlspecialchars($reviewText !== '' ? $reviewText : 'No written review provided.'); ?>"
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-primary"><?php echo $reviewDate ? date('M d, Y', strtotime($reviewDate)) : '-'; ?></div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="table-badge" style="background: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>;"><?php echo htmlspecialchars(ucfirst($status)); ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="review-action-buttons">
+                                            <button class="review-action-btn btn-view" onclick="viewReview(<?php echo $reviewId; ?>)">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align:center; padding: 2rem; color:#7f8c8d;">
+                                    No product reviews found.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -829,8 +651,7 @@ if (productFilter) {
             if (product === 'all' || !product) {
                 row.style.display = '';
             } else {
-                const productCell = row.querySelectorAll('td')[2];
-                const productText = productCell ? productCell.textContent.trim().toLowerCase() : '';
+                const productText = row.dataset.product || '';
                 row.style.display = productText.includes(product) ? '' : 'none';
             }
         });
@@ -849,12 +670,8 @@ function filterReviews(rating) {
         }
         
         // Get the rating value from the row
-        const ratingText = row.querySelectorAll('td')[3];
-        if (!ratingText) { row.style.display = 'none'; return; }
-        
-        const ratingValue = ratingText.textContent.trim();
-        const statusCell = row.querySelectorAll('td')[6];
-        const statusText = statusCell ? statusCell.textContent.trim().toLowerCase() : '';
+        const ratingValue = row.dataset.rating || '0';
+        const statusText = row.dataset.status || '';
         
         if (rating === 'pending') {
             row.style.display = statusText.includes('pending') ? '' : 'none';
@@ -885,28 +702,34 @@ function searchReviews(searchTerm) {
 }
 
 function viewReview(reviewId) {
-    console.log('Viewing review:', reviewId);
+    const row = document.querySelector(`tr[data-review-id="${reviewId}"]`);
+    if (!row) {
+        showNotification('Review details could not be found', 'error');
+        return;
+    }
+    const cells = row.querySelectorAll('td');
+    const customer = cells[1]?.querySelector('.table-cell-title')?.textContent.trim() || '-';
+    const email = cells[1]?.querySelector('.table-cell-details')?.textContent.trim() || '-';
+    const product = cells[2]?.querySelector('.table-cell-title')?.textContent.trim() || '-';
+    const rating = row.dataset.rating || '0';
+    const reviewText = cells[4]?.textContent.trim() || 'No written review provided.';
     document.getElementById('reviewDetails').innerHTML = `
         <div style="padding: 20px;">
             <h3 style="color: #333; margin-bottom: 20px;">Review #REV-${reviewId}</h3>
             <div style="background: rgba(74, 144, 226, 0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                 <h4 style="color: #4A90E2; margin-bottom: 10px;">Customer Information</h4>
-                <p><strong>Name:</strong> Kasun Silva</p>
-                <p><strong>Email:</strong> kasun@email.com</p>
-                <p><strong>Product:</strong> Professional Cricket Bat</p>
+                <p><strong>Name:</strong> ${escapeHtml(customer)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+                <p><strong>Product:</strong> ${escapeHtml(product)}</p>
             </div>
             <div style="background: rgba(74, 144, 226, 0.05); padding: 20px; border-radius: 10px;">
                 <h4 style="color: #4A90E2; margin-bottom: 10px;">Review Content</h4>
                 <div style="color: #FFD700; margin-bottom: 10px;">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <span style="color: #333; margin-left: 10px; font-weight: 600;">5.0</span>
+                    ${renderStars(Number(rating))}
+                    <span style="color: #333; margin-left: 10px; font-weight: 600;">${escapeHtml(Number(rating).toFixed(1))}</span>
                 </div>
                 <p style="line-height: 1.6; color: #666;">
-                    "Excellent bat! The balance and pick-up are perfect. Great quality willow. Highly recommend for serious players."
+                    ${escapeHtml(reviewText)}
                 </p>
             </div>
             <div style="margin-top: 20px;">
@@ -944,14 +767,38 @@ function contactCustomer(reviewId) {
 }
 
 function saveResponse() {
-    console.log('Saving response');
-    showNotification('Response sent successfully', 'success');
+    showNotification('Response storage is not enabled in the current database, so this is saved as a demo response only.', 'info');
     closeReviewModal();
 }
 
 function exportReviews() {
-    console.log('Exporting reviews');
+    const rows = Array.from(document.querySelectorAll('#reviewsTable tbody tr'))
+        .filter(row => row.style.display !== 'none')
+        .map(row => Array.from(row.children).slice(0, 7).map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`).join(','));
+    const csv = ['Review ID,Customer,Product,Rating,Review,Date,Status', ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'shop_reviews.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
     showNotification('Reviews exported successfully', 'success');
+}
+
+function renderStars(rating) {
+    const full = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+    return '<i class="fas fa-star"></i>'.repeat(full) + '<i class="far fa-star"></i>'.repeat(5 - full);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function showNotification(message, type) {
@@ -976,5 +823,5 @@ function showNotification(message, type) {
 }
 </script>
 
-<script src="<?php echo URLROOT; ?>/js/admin/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
