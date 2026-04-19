@@ -139,6 +139,18 @@
 
                     <div style="margin-bottom:16px;">
                         <label style="display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;">Select Person</label>
+                        <?php if (!empty($data['coachFilter']) && (!empty($data['coachFilter']['ageGroup']) || !empty($data['coachFilter']['category']))): ?>
+                            <p style="font-size:11px;color:#888;margin:-2px 0 8px;">
+                                Coach list filtered by template:
+                                <?php if (!empty($data['coachFilter']['ageGroup'])): ?>
+                                    Age Group = <strong><?= htmlspecialchars($data['coachFilter']['ageGroup']) ?></strong>
+                                <?php endif; ?>
+                                <?php if (!empty($data['coachFilter']['category'])): ?>
+                                    <?php if (!empty($data['coachFilter']['ageGroup'])): ?>·<?php endif; ?>
+                                    Category = <strong><?= htmlspecialchars(ucfirst($data['coachFilter']['category'])) ?></strong>
+                                <?php endif; ?>
+                            </p>
+                        <?php endif; ?>
                         <select name="user_id" id="coachList" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
                             <?php if (empty($data['coaches'])): ?>
                                 <option value="">No coaches available</option>
