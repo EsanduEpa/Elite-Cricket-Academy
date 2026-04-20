@@ -287,6 +287,7 @@ class Trainer extends Controller {
                 'intensity'      => !empty($_POST['intensity'])      ? trim($_POST['intensity'])       : 'Moderate',
                 'notsuitablefor' => !empty($_POST['notsuitablefor']) ? trim($_POST['notsuitablefor'])  : 'None (General)',
                 'benefits'       => !empty($_POST['benefits'])       ? trim($_POST['benefits'])        : null,
+                'status'         => isset($_POST['status'])          ? trim(strtolower($_POST['status'])) : 'active',
             ];
 
             if (empty($data['workoutname']) || empty($data['frequency']) || empty($data['duration'])) {
@@ -308,6 +309,8 @@ class Trainer extends Controller {
                 'Shoulder Instability', 'Acute Ankle Sprain', 'Heart Conditions', 'Concussion Protocol'
             ])) {
                 flash('workout_message', 'Invalid contraindication selected', 'alert alert-danger');
+            } else if (!in_array($data['status'], ['active', 'inactive'], true)) {
+                flash('workout_message', 'Invalid workout status selected', 'alert alert-danger');
             } else {
                 if ($trainerModel->addWorkoutPlan($data)) {
                     flash('workout_message', 'Workout plan added successfully!', 'alert alert-success');

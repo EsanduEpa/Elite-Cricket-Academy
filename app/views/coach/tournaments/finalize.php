@@ -58,7 +58,6 @@
             $pid = $r->PlayerID;
             if (!isset($recMap[$pid])) $recMap[$pid] = ['coach' => 0, 'trainer' => 0, 'role' => null];
             $recMap[$pid]['trainer']++;
-            if (!$recMap[$pid]['role'] && !empty($r->RecommendedRole)) $recMap[$pid]['role'] = $r->RecommendedRole;
         }
 
         // Sort join_requests by total recommendation count descending

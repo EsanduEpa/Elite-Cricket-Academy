@@ -311,6 +311,92 @@ $getOccurrenceCountLabel = static function($occ) use ($getOccurrenceDisplayCount
                     </tbody>
                 </table>
             </div>
+
+            <?php
+            $upcomingActivities = [];
+            $todayKey = date('Y-m-d');
+
+            foreach (($data['byDate'] ?? []) as $dateKey => $occs) {
+                if ($dateKey < $todayKey) {
+                    continue;
+                }
+
+                foreach ($occs as $occ) {
+                    if (strtolower((string)($occ->Status ?? '')) === 'cancelled') {
+                        continue;
+                    }
+
+                    $timePart = (string)($occ->StartTime ?? '00:00:00');
+                    $sortTs = strtotime($dateKey . ' ' . $timePart);
+                    if ($sortTs === false) {
+                        $sortTs = strtotime($dateKey . ' 00:00:00');
+                    }
+
+                    $upcomingActivities[] = [
+                        'sortTs' => $sortTs,
+                        'dateKey' => $dateKey,
+                        'occ' => $occ,
+                    ];
+                }
+            }
+
+            usort($upcomingActivities, static function ($a, $b) {
+                return ($a['sortTs'] <=> $b['sortTs']);
+            });
+
+            $upcomingActivities = array_slice($upcomingActivities, 0, 8);
+            ?>
+
+            <div style="margin-top:20px; background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.08); overflow:hidden;">
+                <div style="padding:14px 16px; border-bottom:1px solid #eef2f7; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                    <h3 style="margin:0; font-size:16px; color:#2c3e50; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-bolt" style="color:#2e7d32;"></i> Upcoming Activities
+                    </h3>
+                    <span style="font-size:12px; color:#6b7280;">Next <?php echo count($upcomingActivities); ?> activities</span>
+                </div>
+
+                <?php if (empty($upcomingActivities)): ?>
+                    <div style="padding:20px; color:#94a3b8; font-size:13px; text-align:center;">
+                        No upcoming activities scheduled for this week.
+                    </div>
+                <?php else: ?>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px; padding:14px;">
+                        <?php foreach ($upcomingActivities as $item): ?>
+                            <?php
+                            $occ = $item['occ'];
+                            $statusKey = strtolower((string)($occ->Status ?? 'scheduled'));
+                            $statusLabel = ucfirst(str_replace('_', ' ', $statusKey));
+                            $isPrivate = (($occ->SlotType ?? '') === 'private' || ($occ->SessionName ?? '') === 'Private Session');
+                            ?>
+                            <a href="<?php echo URLROOT; ?>/staffslots/occurrence/<?php echo (int)$occ->OccurrenceID; ?>" style="text-decoration:none; color:inherit; border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:<?php echo $isPrivate ? '#f0fff4' : '#f8fbff'; ?>;">
+                                <div style="font-weight:700; font-size:14px; color:#1f2937; margin-bottom:4px;">
+                                    <?php echo htmlspecialchars($occ->SessionName ?? 'Session'); ?>
+                                </div>
+                                <div style="font-size:12px; color:#4b5563; margin-bottom:2px;">
+                                    <i class="fas fa-calendar-alt" style="font-size:11px;"></i>
+                                    <?php echo date('D, j M', strtotime($item['dateKey'])); ?>
+                                    <?php if (!empty($occ->SlotLabel)): ?>
+                                        - <?php echo htmlspecialchars($occ->SlotLabel); ?>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if (!empty($occ->FacilityName)): ?>
+                                    <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
+                                        <i class="fas fa-map-marker-alt" style="font-size:11px;"></i>
+                                        <?php echo htmlspecialchars($occ->FacilityName); ?>
+                                    </div>
+                                <?php endif; ?>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;">
+                                    <span style="font-size:11px; color:#374151;">
+                                        <i class="fas fa-users" style="font-size:10px;"></i>
+                                        <?php echo htmlspecialchars($getOccurrenceCountLabel($occ)); ?>
+                                    </span>
+                                    <span class="cal-status-badge cal-status-<?php echo htmlspecialchars($statusKey); ?>"><?php echo htmlspecialchars($statusLabel); ?></span>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </main>
 </div>

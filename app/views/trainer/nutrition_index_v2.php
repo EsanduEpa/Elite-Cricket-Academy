@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/nutrition_crud.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/table-consistency.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css?v=<?php echo time(); ?>">
 <?php $trainerSidebarActive = 'nutrition'; ?>
 
 <?php
@@ -45,7 +46,7 @@ $resolvePlanName = static function ($plan): string {
 };
 ?>
 
-<div class="player-layout nc-page">
+<div class="trainer-layout nc-page">
 
     <!-- ── Sidebar ─────────────────────────────────────────────── -->
     <div class="trainer-sidebar" id="trainerSidebar">
@@ -218,13 +219,13 @@ $resolvePlanName = static function ($plan): string {
                                                class="btn btn-primary btn-sm" title="Edit plan">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <form method="POST"
-                                                  action="<?php echo URLROOT; ?>/nutrition/delete/<?php echo (int)($plan->PlanID ?? 0); ?>"
-                                                  onsubmit="return confirmDelete(this)">
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete plan">
-                                                    <i class="fas fa-trash-alt"></i> Delete
-                                                </button>
-                                            </form>
+                                            <button
+                                                type="button"
+                                                class="btn btn-danger btn-sm"
+                                                title="Delete plan"
+                                                onclick="openNutritionDeleteModal(<?php echo htmlspecialchars(json_encode(URLROOT . '/nutrition/delete/' . (int)($plan->PlanID ?? 0)), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($planName), ENT_QUOTES, 'UTF-8'); ?>)">
+                                                <i class="fas fa-trash-alt"></i> Delete
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -287,7 +288,7 @@ $resolvePlanName = static function ($plan): string {
         </div>
 
     </div><!-- /.main-content -->
-</div><!-- /.player-layout -->
+</div><!-- /.trainer-layout -->
 
 <div id="nutritionPlanViewModal" class="nc-modal" style="display:none;">
     <div class="nc-modal-panel">
@@ -339,6 +340,32 @@ $resolvePlanName = static function ($plan): string {
     </div>
 </div>
 
+<div id="nutritionDeleteModal" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+            <h2><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+            <span class="close" onclick="closeNutritionDeleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 15px;"></i>
+                <p style="margin-bottom: 10px; color: #374151;">Are you sure you want to delete the nutrition plan "<span id="nutritionDeletePlanName" style="font-weight: 600; color: #4A90E2;"></span>"?</p>
+                <p style="color: #ff6b6b; font-weight: 600; font-size: 14px;">This action cannot be undone.</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" onclick="closeNutritionDeleteModal()" style="background: #e5e7eb; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                Cancel
+            </button>
+            <form id="nutritionDeleteForm" method="POST" style="display: inline;">
+                <button type="submit" style="background: #ff6b6b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-trash"></i>Delete Plan
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const toggle  = document.getElementById('sidebarToggle');
@@ -369,10 +396,45 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    const deleteModal = document.getElementById('nutritionDeleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (event) {
+            if (event.target === deleteModal) {
+                closeNutritionDeleteModal();
+            }
+        });
+    }
 });
 
-function confirmDelete() {
-    return confirm('Are you sure you want to permanently delete this nutrition plan?\nThis action cannot be undone.');
+function openNutritionDeleteModal(actionUrl, planName) {
+    const modal = document.getElementById('nutritionDeleteModal');
+    const form = document.getElementById('nutritionDeleteForm');
+    const nameNode = document.getElementById('nutritionDeletePlanName');
+
+    if (!modal || !form || !nameNode) {
+        return;
+    }
+
+    form.action = actionUrl;
+    nameNode.textContent = (planName && String(planName).trim() !== '') ? String(planName) : 'this plan';
+
+    modal.style.display = 'block';
+    setTimeout(function () {
+        modal.classList.add('show');
+    }, 10);
+}
+
+function closeNutritionDeleteModal() {
+    const modal = document.getElementById('nutritionDeleteModal');
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('show');
+    setTimeout(function () {
+        modal.style.display = 'none';
+    }, 250);
 }
 
 function openNutritionAssignedPlayersModal(button) {

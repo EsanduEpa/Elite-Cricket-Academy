@@ -1,5 +1,5 @@
 ﻿<?php require_once APPROOT . '/views/inc/components/header.php'; ?>
-<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/player/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/dashboard.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/trainer/table-consistency.css?v=<?php echo time(); ?>">
 <?php $trainerSidebarActive = 'workout'; ?>
@@ -99,6 +99,7 @@
                                 <th>Video Link</th>
                                 <th>Assigned Players</th>
                                 <th>Actions</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -149,6 +150,7 @@
                                                 <i class="fas fa-clock"></i> <?php echo $plan->Duration; ?> mins
                                             </div>
                                         </td>
+                                        
                                         <td>
                                             <?php if (!empty($plan->VideoLink)): ?>
                                                 <a href="<?php echo htmlspecialchars($plan->VideoLink); ?>" target="_blank" rel="noopener noreferrer"
@@ -185,7 +187,7 @@
                                                             'duration'      => $plan->Duration,
                                                             'videolink'     => $plan->VideoLink ?? '',
                                                             'intensity'     => $plan->Intensity ?? 'Moderate',
-                                                            'notsuitablefor'=> $plan->NotSuitableFor ?? '',
+                                                           
                                                             'benefits'      => $plan->Benefits ?? '',
                                                             'status'        => $planStatus
                                                         ]), ENT_QUOTES, 'UTF-8'); ?>"
@@ -247,7 +249,7 @@
                             <span id="workoutname-counter">0</span>/255 characters
                         </small>
                     </div>
-
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label for="frequency" style="color: #333; font-weight: 600; margin-bottom: 8px; display: block;">
@@ -349,6 +351,9 @@
                         </select>
                         <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Select the primary contraindication for this plan</small>
                     </div>
+                    
+                
+
                 </div>
 
                 <div class="modal-footer" style="background: #f8fafc; padding: 20px 25px; display: flex; justify-content: flex-end; gap: 12px;">

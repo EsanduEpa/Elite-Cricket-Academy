@@ -92,8 +92,6 @@ if ($trainerDisplayName === '') {
                             <th>Player</th>
                             <th>Injury Details</th>
                             <th>Diagnosis</th>
-                            <th>At Academy</th>
-                            <th>Rest Days</th>
                             <th>Receipt</th>
                             <th>Recovery Status</th>
                             <th>Verify Status</th>
@@ -124,21 +122,6 @@ if ($trainerDisplayName === '') {
                                         <div class="table-cell-details">
                                             <?php echo htmlspecialchars($record->Diagnosis); ?>
                                         </div>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <?php if ($record->HappenedAtAcademy == 'yes'): ?>
-                                            <span class="table-badge" style="background-color: #ffc107; color: #333;">
-                                                <i class="fas fa-school"></i> Yes
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="table-badge" style="background-color: #6c757d; color: white;">
-                                                <i class="fas fa-home"></i> No
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div class="table-cell-primary"><?php echo intval($record->RestDaysNeeded); ?></div>
-                                        <div class="table-cell-secondary">days</div>
                                     </td>
                                     <td style="text-align: center;">
                                         <?php if (!empty($record->DiagnosisReceiptURL)): ?>
@@ -172,7 +155,7 @@ if ($trainerDisplayName === '') {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" style="text-align:center; color:#888;">No medical reports found.</td>
+                                <td colspan="8" style="text-align:center; color:#888;">No medical reports found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
