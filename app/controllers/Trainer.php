@@ -1,10 +1,19 @@
 <?php
 class Trainer extends Controller {
+    protected $trainerModel;
+
     public function __construct() {
         // Check authentication for all trainer pages
         requireAuth(['Trainer']);
         // $this->trainerModel = $this->model('M_Trainer');
         // Comment out model for development to avoid database dependencies
+    }
+
+    private function getTrainerModel() {
+        if (!$this->trainerModel) {
+            $this->trainerModel = $this->model('M_Trainer');
+        }
+        return $this->trainerModel;
     }
 
     public function index() {
@@ -480,25 +489,22 @@ class Trainer extends Controller {
 
         error_log("Record ID: $recordId, Status: $verifyStatus");
 
-        // Validate verify status (UI uses 'verified'; DB enum uses 'approved')
-        $allowedStatuses = ['pending', 'verified', 'approved', 'rejected'];
+        // DB enum is ('pending','verified','rejected') — pass the value directly.
+        $verifyStatus = strtolower(trim($verifyStatus));
+        $allowedStatuses = ['pending', 'verified', 'rejected'];
         if (!in_array($verifyStatus, $allowedStatuses, true)) {
             error_log("Error: Invalid verification status: $verifyStatus");
             echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
             return;
         }
 
-        $verifyStatus = strtolower($verifyStatus);
-        $verifyStatusDb = ($verifyStatus === 'verified') ? 'approved' : $verifyStatus;
-        $verifyStatusForUi = ($verifyStatusDb === 'approved') ? 'verified' : $verifyStatusDb;
-
         try {
             // Initialize medical model
             $medicalModel = $this->model('M_Medical');
             error_log("Medical model initialized");
-            
+
             // Update verify status
-            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatusDb, $verifyComments);
+            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
             error_log("Update result: " . ($result ? 'true' : 'false'));
             
             if ($result) {
@@ -506,7 +512,7 @@ class Trainer extends Controller {
                     'success' => true, 
                     'message' => 'Verification status updated successfully',
                     'record_id' => $recordId,
-                    'new_status' => $verifyStatusForUi
+                    'new_status' => $verifyStatus
                 ]);
             } else {
                 error_log("Error: Database execute returned false");
@@ -528,7 +534,7 @@ class Trainer extends Controller {
             return;
         }
 
-        $sessions = $this->trainerModel->getSessionsForCalendar($_SESSION['user_id']);
+        $sessions = $this->getTrainerModel()->getSessionsForCalendar($_SESSION['user_id']);
         echo json_encode($sessions);
     }
 
@@ -553,7 +559,7 @@ class Trainer extends Controller {
                 'status' => $_POST['status'] ?? 'scheduled'
             ];
 
-            if ($this->trainerModel->updateSession($data)) {
+            if ($this->getTrainerModel()->updateSession($data)) {
                 echo json_encode(['success' => true, 'message' => 'Session updated successfully']);
             } else {
                 echo json_encode(['error' => 'Failed to update session']);
@@ -572,7 +578,7 @@ class Trainer extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $session_id = $_POST['session_id'];
             
-            if ($this->trainerModel->deleteSession($session_id, $_SESSION['user_id'])) {
+            if ($this->getTrainerModel()->deleteSession($session_id, $_SESSION['user_id'])) {
                 echo json_encode(['success' => true, 'message' => 'Session deleted successfully']);
             } else {
                 echo json_encode(['error' => 'Failed to delete session']);

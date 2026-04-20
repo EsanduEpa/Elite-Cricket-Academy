@@ -442,33 +442,30 @@ class Coach extends Controller {
 
         error_log("Record ID: $recordId, Status: $verifyStatus");
 
-        // Validate verify status (UI uses 'verified'; DB enum uses 'approved')
-        $allowedStatuses = ['pending', 'verified', 'approved', 'rejected'];
+        // DB enum is ('pending','verified','rejected') — pass the value directly.
+        $verifyStatus = strtolower(trim($verifyStatus));
+        $allowedStatuses = ['pending', 'verified', 'rejected'];
         if (!in_array($verifyStatus, $allowedStatuses, true)) {
             error_log("Error: Invalid verification status: $verifyStatus");
             echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
             return;
         }
 
-        $verifyStatus = strtolower($verifyStatus);
-        $verifyStatusDb = ($verifyStatus === 'verified') ? 'approved' : $verifyStatus;
-        $verifyStatusForUi = ($verifyStatusDb === 'approved') ? 'verified' : $verifyStatusDb;
-
         try {
             // Initialize medical model
             $medicalModel = $this->model('M_Medical');
             error_log("Medical model initialized");
-            
+
             // Update verify status
-            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatusDb, $verifyComments);
+            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
             error_log("Update result: " . ($result ? 'true' : 'false'));
-            
+
             if ($result) {
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'message' => 'Verification status updated successfully',
                     'record_id' => $recordId,
-                    'new_status' => $verifyStatusForUi
+                    'new_status' => $verifyStatus
                 ]);
             } else {
                 error_log("Error: Database execute returned false");

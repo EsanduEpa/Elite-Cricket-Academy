@@ -35,7 +35,9 @@ class M_Medical {
             RestDaysNeeded,
             DiagnosisReceiptURL,
             ReportedDate,
-            ReportedBy
+            ReportedBy,
+            Dr_reference
+
         ) VALUES (
             :player_id,
             :body_area,
@@ -47,7 +49,8 @@ class M_Medical {
             :rest_days_needed,
             :diagnosis_receipt_url,
             :reported_date,
-            :reported_by
+            :reported_by,
+            :dr_reference
         )');
 
         // Bind values
@@ -62,6 +65,7 @@ class M_Medical {
         $this->db->bind(':diagnosis_receipt_url', $data['diagnosis_receipt_url']);
         $this->db->bind(':reported_date', $data['reported_date']);
         $this->db->bind(':reported_by', $data['reported_by']);
+        $this->db->bind(':dr_reference', $data['dr_reference']);
         
         // Execute
         if ($this->db->execute()) {
@@ -95,7 +99,8 @@ class M_Medical {
             InjuryDate         = :injury_date,
             HappenedAtAcademy  = :happened_at_academy,
             RestDaysNeeded     = :rest_days_needed,
-            ReportedDate       = :reported_date
+            ReportedDate       = :reported_date,
+            Dr_reference       = :dr_reference
             WHERE RecordID = :record_id');
 
         $this->db->bind(':record_id',           $recordId);
@@ -107,6 +112,7 @@ class M_Medical {
         $this->db->bind(':happened_at_academy', $data['happened_at_academy']);
         $this->db->bind(':rest_days_needed',    $data['rest_days_needed']);
         $this->db->bind(':reported_date',       $data['reported_date']);
+        $this->db->bind(':dr_reference',       $data['dr_reference']);
 
         return $this->db->execute();
     }
@@ -170,15 +176,15 @@ class M_Medical {
         error_log("=== M_Medical::updateVerifyStatus called ===");
         error_log("Record ID: $recordId, Status: $verifyStatus, Comments: $comments");
 
-        // DB enum is currently ('pending','approved','rejected') in live schema.
-        // UI uses 'verified' language, so map it to 'approved' for storage.
+        // DB enum is ('pending','verified','rejected') — write 'verified' directly.
         $verifyStatus = strtolower(trim((string)$verifyStatus));
-        if ($verifyStatus === 'verified') {
-            $verifyStatus = 'approved';
+        // Accept 'approved' as alias in case old callers still send it.
+        if ($verifyStatus === 'approved') {
+            $verifyStatus = 'verified';
         }
 
         // Only allow writing actual DB enum values to avoid MySQL coercing to ''.
-        if (!in_array($verifyStatus, ['pending', 'approved', 'rejected'], true)) {
+        if (!in_array($verifyStatus, ['pending', 'verified', 'rejected'], true)) {
             error_log("ERROR: Invalid verifyStatus value for DB: $verifyStatus");
             return false;
         }

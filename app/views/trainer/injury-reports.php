@@ -115,7 +115,7 @@ if ($trainerDisplayName === '') {
                                     </td>
                                     <td>
                                         <div class="table-cell-details">
-                                            <?php echo htmlspecialchars($record->InjuryDetails); ?>
+                                            <strong><?php echo htmlspecialchars($record->bodyarea ?? 'N/A'); ?></strong>
                                         </div>
                                     </td>
                                     <td>
@@ -162,7 +162,7 @@ if ($trainerDisplayName === '') {
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <button class="action-btn verify-btn" onclick='openVerifyModal(<?php echo (int)$record->RecordID; ?>, <?php echo htmlspecialchars(json_encode($record->player_name ?? 'Unknown'), ENT_QUOTES, "UTF-8"); ?>, <?php echo htmlspecialchars(json_encode($record->InjuryDetails ?? ''), ENT_QUOTES, "UTF-8"); ?>)'>
+                                        <button class="action-btn verify-btn" onclick='openVerifyModal(<?php echo (int)$record->RecordID; ?>, <?php echo htmlspecialchars(json_encode($record->player_name ?? 'Unknown'), ENT_QUOTES, "UTF-8"); ?>, <?php echo htmlspecialchars(json_encode(($record->bodyarea ?? '') . ' — ' . ($record->Diagnosis ?? '')), ENT_QUOTES, "UTF-8"); ?>)'>
                                             <i class="fas fa-check-circle"></i> Verify
                                         </button>
                                     </td>
@@ -194,14 +194,14 @@ if ($trainerDisplayName === '') {
                 <p id="verify_player_name"></p>
             </div>
             <div class="form-group">
-                <label><strong>Injury Details:</strong></label>
+                <label><strong>Body Area &amp; Diagnosis:</strong></label>
                 <p id="verify_injury_details"></p>
             </div>
             <div class="form-group">
                 <label for="verify_status">Verification Status:</label>
                 <select id="verify_status" class="form-control" required>
                     <option value="">-- Select Status --</option>
-                    <option value="approved">Verified</option>
+                    <option value="verified">Verified</option>
                     <option value="rejected">Rejected</option>
                     <option value="pending">Pending</option>
                 </select>

@@ -34,7 +34,8 @@
                             <table class="dashboard-table medical-records-table">
                                 <thead>
                                     <tr>
-                                        <th>Injury Details</th>
+                                        <th>Injury Date details</th>
+                                        <th>Dr Referenced?</th>
                                         <th>Body Area</th>
                                         <th>Diagnosis</th>
                                         <th>Treatment</th>
@@ -57,6 +58,13 @@
                                                     <small>Reported: <?php echo date('M d, Y', strtotime($record->ReportedDate)); ?></small>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td> 
+                                             <div class="injury-info">
+                                                <div class="Dr-reference-info">
+                                                <span ><?php echo htmlspecialchars($record->Dr_reference) ; ?></span>
+                                                </div>
+                                    </div>
                                         </td>
                                         <td>
                                             <div class="body-area-cell">
@@ -434,6 +442,15 @@
                             <option value="Observation">Observation</option>
                         </select>
                     </div>
+                    </div>
+                     <div class="form-group medical-form-group medical-form-group--tight app-form-group">
+                        <label for="dr_reference" class="app-form-label app-form-label--strong">
+                            <i class="fas fa-user-injured medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Did you receive a referral to a doctor? *
+                        </label>
+                        <select id="dr_reference" name="dr_reference" class="form-control app-form-control app-form-control--lg app-form-select" required>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
+                        </select>
                     </div>
 
                     <div class="medical-form-row app-form-row">

@@ -19,7 +19,7 @@ class Player extends Controller {
 
         // Enable database for achievement functionality
         $this->userModel = $this->model('M_Users');
-        // $this->medicalModel = $this->model('M_Medical');
+         $this->medicalModel = $this->model('M_Medical');
         $this->achievementModel = $this->model('M_Achievement');
         $this->productModel = $this->model('M_Product');
         $this->shopModel = $this->model('M_Shop');
@@ -243,7 +243,8 @@ class Player extends Controller {
                 'rest_days_needed' => intval($_POST['rest_days_needed']) ?: 0,
                 'diagnosis_receipt_url' => $diagnosisReceiptURL,
                 'reported_date' => $_POST['reported_date'],
-                'reported_by' => $reportedBy
+                'reported_by' => $reportedBy,
+                'dr_reference' => trim($_POST['dr_reference'] ?? '')
             ];
 
             // Validate data
