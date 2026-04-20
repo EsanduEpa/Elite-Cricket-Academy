@@ -37,7 +37,9 @@ function initializeFilters() {
     const periodSelector = document.getElementById('revenuePeriod');
     if (periodSelector) {
         periodSelector.addEventListener('change', function() {
-            showNotification('Revenue period selector is ready; backend period filtering can be connected next.', 'info');
+            const url = new URL(window.location.href);
+            url.searchParams.set('period', this.value);
+            window.location.href = url.toString();
         });
     }
 
@@ -51,18 +53,7 @@ function filterPayments() {
     const statusFilter = document.getElementById('statusFilter')?.value || 'all';
     
     const rows = Array.from(document.querySelectorAll('.payment-row'));
-    const matchedRows = rows.filter(row => {
-        const customerName = row.querySelector('.customer-name')?.textContent.toLowerCase() || '';
-        const paymentId = row.querySelector('.payment-id')?.textContent.toLowerCase() || '';
-        const paymentType = row.getAttribute('data-type') || '';
-        const paymentStatus = row.getAttribute('data-status') || '';
-        
-        const matchesSearch = customerName.includes(searchTerm) || paymentId.includes(searchTerm);
-        const matchesType = typeFilter === 'all' || paymentType === typeFilter;
-        const matchesStatus = statusFilter === 'all' || paymentStatus === statusFilter;
-
-        return matchesSearch && matchesType && matchesStatus;
-    });
+    const matchedRows = rows.filter(row => rowMatchesPaymentFilters(row, searchTerm, typeFilter, statusFilter));
 
     const totalPages = Math.max(1, Math.ceil(matchedRows.length / paymentPageSize));
     paymentCurrentPage = Math.min(Math.max(paymentCurrentPage, 1), totalPages);
@@ -82,6 +73,19 @@ function filterPayments() {
     }
 
     renderPaymentPagination(totalPages);
+}
+
+function rowMatchesPaymentFilters(row, searchTerm, typeFilter, statusFilter) {
+    const customerName = row.querySelector('.customer-name')?.textContent.toLowerCase() || '';
+    const paymentId = row.querySelector('.payment-id')?.textContent.toLowerCase() || '';
+    const paymentType = row.getAttribute('data-type') || '';
+    const paymentStatus = row.getAttribute('data-status') || '';
+
+    const matchesSearch = customerName.includes(searchTerm) || paymentId.includes(searchTerm);
+    const matchesType = typeFilter === 'all' || paymentType === typeFilter;
+    const matchesStatus = statusFilter === 'all' || paymentStatus === statusFilter;
+
+    return matchesSearch && matchesType && matchesStatus;
 }
 
 function renderPaymentPagination(totalPages) {
@@ -400,23 +404,75 @@ function escapeAttribute(value) {
     return String(value ?? '').replace(/'/g, "\\'");
 }
 
-// Report generation functions
+// Export functions
 document.addEventListener('DOMContentLoaded', function() {
-    const generateReportBtn = document.getElementById('generateReportBtn');
     const exportDataBtn = document.getElementById('exportDataBtn');
     
-    if (generateReportBtn) {
-        generateReportBtn.addEventListener('click', function() {
-            showNotification('Financial report generation can be connected to a backend export endpoint next.', 'info');
-        });
-    }
-    
     if (exportDataBtn) {
-        exportDataBtn.addEventListener('click', function() {
-            showNotification('Finance CSV export can be connected to real table data next.', 'info');
-        });
+        exportDataBtn.addEventListener('click', exportFilteredFinanceData);
     }
 });
+
+function exportFilteredFinanceData() {
+    const rows = getFilteredPaymentRows();
+
+    if (rows.length === 0) {
+        showNotification('No transactions match the selected filters.', 'error');
+        return;
+    }
+
+    const csvRows = [
+        ['Payment ID', 'Type', 'Customer', 'Amount (LKR)', 'Date', 'Method', 'Status']
+    ];
+
+    rows.forEach(row => {
+        csvRows.push([
+            row.querySelector('.payment-id')?.textContent.trim() || '',
+            row.querySelector('.payment-type')?.textContent.trim() || '',
+            row.querySelector('.customer-name')?.textContent.trim() || '',
+            row.getAttribute('data-amount') || cleanAmount(row.querySelector('.payment-amount')?.textContent || ''),
+            row.getAttribute('data-date') || row.querySelector('.payment-date')?.textContent.trim() || '',
+            row.getAttribute('data-method') || row.querySelector('.payment-method')?.textContent.trim() || '',
+            row.getAttribute('data-status') || row.querySelector('.payment-status')?.textContent.trim() || ''
+        ]);
+    });
+
+    const csvContent = csvRows.map(columns => columns.map(escapeCsvValue).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const today = new Date().toISOString().slice(0, 10);
+
+    link.href = url;
+    link.download = `finance_transactions_${today}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    showNotification(`${rows.length} transaction${rows.length === 1 ? '' : 's'} exported successfully.`, 'success');
+}
+
+function getFilteredPaymentRows() {
+    const searchTerm = (document.getElementById('paymentSearch')?.value || '').toLowerCase();
+    const typeFilter = document.getElementById('paymentFilter')?.value || 'all';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+
+    return Array.from(document.querySelectorAll('.payment-row'))
+        .filter(row => rowMatchesPaymentFilters(row, searchTerm, typeFilter, statusFilter));
+}
+
+function cleanAmount(value) {
+    return String(value || '').replace(/[^\d.-]/g, '');
+}
+
+function escapeCsvValue(value) {
+    const text = String(value ?? '');
+    if (/[",\n\r]/.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+    return text;
+}
 
 // Notification system
 function showNotification(message, type = 'info') {

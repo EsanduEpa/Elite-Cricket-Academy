@@ -147,17 +147,10 @@
                     <div class="calendar-controls">
                         <div class="calendar-nav">
                             <?php
-                            // Calculate current week
-                            $today = time();
-                            $currentDow = (int) date('N', $today);
-                            $weekStartTs = strtotime('-' . ($currentDow - 1) . ' days', $today);
-                            $weekEndTs = strtotime('+6 days', $weekStartTs);
-                            
-                            // Check for week offset from query parameter
-                            $weekOffset = isset($_GET['week_offset']) ? (int)$_GET['week_offset'] : 0;
-                            $displayStartTs = strtotime("+{$weekOffset} weeks", $weekStartTs);
-                            $displayEndTs = strtotime("+{$weekOffset} weeks", $weekEndTs);
-                            
+                            // Controller calculates these dates and loads matching database records.
+                            $weekOffset = (int)($data['weekOffset'] ?? 0);
+                            $displayStartTs = (int)($data['displayStartTs'] ?? time());
+                            $displayEndTs = (int)($data['displayEndTs'] ?? strtotime('+6 days', $displayStartTs));
                             $prevWeekOffset = $weekOffset - 1;
                             $nextWeekOffset = $weekOffset + 1;
                             ?>
@@ -174,14 +167,13 @@
                     </div>
                 </div>
 
-                <div style="display:flex;gap:12px;margin:12px 0 16px;flex-wrap:wrap;font-size:12px;">
-                    <span style="background:#cce5ff;color:#004085;padding:3px 10px;border-radius:10px;">Program</span>
-                    <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:10px;">Private</span>
-                    <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;">Facility Only</span>
-                    <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Ad-hoc</span>
-                    <span style="background:#fff1d6;color:#8a4b00;padding:3px 10px;border-radius:10px;">Tournament</span>
-                    <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
-                </div>
+	                <div style="display:flex;gap:12px;margin:12px 0 16px;flex-wrap:wrap;font-size:12px;">
+	                    <span style="background:#cce5ff;color:#004085;padding:3px 10px;border-radius:10px;">Program</span>
+	                    <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:10px;">Private</span>
+	                    <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:10px;">Facility Only</span>
+	                    <span style="background:#f3e5f5;color:#4a1e8c;padding:3px 10px;border-radius:10px;">Ad-hoc</span>
+	                    <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:10px;text-decoration:line-through;">Cancelled</span>
+	                </div>
 
                 <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;max-height:600px;overflow-y:auto;">
                     <table style="width:100%;border-collapse:collapse;">
@@ -196,22 +188,21 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <?php for ($dayIdx = 0; $dayIdx < 7; $dayIdx++):
-                                    $dayTs = strtotime("+{$dayIdx} days", $displayStartTs);
-                                    $dayKey = date('Y-m-d', $dayTs);
-                                    $isToday = ($dayKey === date('Y-m-d'));
-                                    $soccs = $data['slotByDate'][$dayKey] ?? [];
-                                    $tournaments = $data['tournamentsByDate'][$dayKey] ?? [];
-                                ?>
+	                                <?php for ($dayIdx = 0; $dayIdx < 7; $dayIdx++):
+	                                    $dayTs = strtotime("+{$dayIdx} days", $displayStartTs);
+	                                    $dayKey = date('Y-m-d', $dayTs);
+	                                    $isToday = ($dayKey === date('Y-m-d'));
+	                                    $soccs = $data['slotByDate'][$dayKey] ?? [];
+	                                ?>
                                 <td class="week-cal-cell<?= $isToday ? ' week-cal-today' : '' ?>">
                                     <div class="week-cal-day-hdr">
                                         <div class="week-cal-day-name"><?= date('d', $dayTs) ?></div>
                                         <div class="week-cal-day-date"><?= date('M', $dayTs) ?></div>
                                     </div>
 
-                                    <?php if (empty($soccs) && empty($tournaments)): ?>
-                                        <div style="color:#ccc;font-size:12px;text-align:center;padding-top:30px;">&mdash; No events &mdash;</div>
-                                    <?php else: ?>
+	                                    <?php if (empty($soccs)): ?>
+	                                        <div style="color:#ccc;font-size:12px;text-align:center;padding-top:30px;">&mdash; No events &mdash;</div>
+	                                    <?php else: ?>
                                         <?php foreach ($soccs as $socc):
                                             if ($socc->Status === 'cancelled') {
                                                 $scls = 'week-cal-cancelled';
@@ -226,25 +217,16 @@
                                             <div class="week-cal-card-title"><?= htmlspecialchars(substr($socc->TemplateName ?? 'Ad-hoc', 0, 20)) ?></div>
                                             <?php if (!empty($socc->SlotLabel)): ?>
                                                 <div style="font-size:10px;opacity:.8;"><?= htmlspecialchars(substr($socc->SlotLabel, 0, 18)) ?></div>
-                                            <?php endif; ?>
+	                                    <?php endif; ?>
                                             <?php if (!empty($socc->FacilityName)): ?>
                                                 <div style="font-size:10px;margin-top:2px;"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars(substr($socc->FacilityName, 0, 15)) ?></div>
                                             <?php endif; ?>
                                             <div style="font-size:10px;margin-top:2px;">
                                                 <i class="fas fa-users"></i> <?= (int)$socc->BookingCount ?> booked
-                                            </div>
+	                    </div>
                                         </a>
                                         <?php endforeach; ?>
-
-                                        <?php foreach ($tournaments as $tournament): ?>
-                                        <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?= (int)$tournament->TournamentID ?>" class="week-cal-card week-cal-tournament" title="<?= htmlspecialchars($tournament->Name) ?>">
-                                            <div class="week-cal-card-title"><i class="fas fa-trophy"></i> <?= htmlspecialchars(substr($tournament->Name, 0, 16)) ?></div>
-                                            <?php if (!empty($tournament->AgeGroup) || !empty($tournament->Format)): ?>
-                                                <div style="font-size:10px;opacity:.8;"><?= htmlspecialchars(substr(trim(($tournament->AgeGroup ?? '') . (!empty($tournament->Format) ? ' · ' . $tournament->Format : '')), 0, 18)) ?></div>
-                                            <?php endif; ?>
-                                        </a>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+	                                    <?php endif; ?>
                                 </td>
                                 <?php endfor; ?>
                             </tr>
@@ -273,10 +255,7 @@
                             <option value="week">This Week</option>
                             <option value="month">This Month</option>
                         </select>
-                        <button class="btn-filter-clear" onclick="clearActivityFilters()">
-                            <i class="fas fa-redo"></i> Clear
-                        </button>
-                    </div>
+	                    </div>
                 </div>
                 <div class="table-responsive" style="max-height:500px;overflow-y:auto;border-radius:8px;border:1px solid #e0e0e0;">
                     <table class="activity-table">
@@ -307,9 +286,9 @@
                                             $activityType = 'staff';
                                         }
 
-                                        $activityTimestamp = $activity->timestamp ?? '';
-                                        $activityTimeValue = !empty($activityTimestamp) ? strtotime($activityTimestamp) : false;
-                                        $activityDate = $activityTimeValue ? date('Y-m-d', $activityTimeValue) : '';
+	                                        $activityTimestamp = $activity->raw_timestamp ?? '';
+	                                        $activityTimeValue = !empty($activityTimestamp) ? strtotime($activityTimestamp) : false;
+	                                        $activityDate = $activityTimeValue ? date('Y-m-d', $activityTimeValue) : '';
                                     ?>
                                     <tr data-activity-type="<?php echo htmlspecialchars($activityType); ?>" data-activity-date="<?php echo htmlspecialchars($activityDate); ?>">
                                         <td>

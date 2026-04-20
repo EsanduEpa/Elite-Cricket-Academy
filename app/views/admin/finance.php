@@ -87,9 +87,6 @@
                         <p>Track revenue, monitor income streams, and manage financial transactions</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-primary" id="generateReportBtn">
-                            <i class="fas fa-file-pdf"></i> Generate Report
-                        </button>
                         <button class="btn btn-secondary" id="exportDataBtn">
                             <i class="fas fa-download"></i> Export Data
                         </button>
@@ -159,10 +156,11 @@
                     <h2><i class="fas fa-chart-pie"></i> Revenue Breakdown by Category</h2>
                     <div class="section-controls">
                         <select class="period-selector" id="revenuePeriod">
-                            <option value="current_month">This Month</option>
-                            <option value="last_month">Last Month</option>
-                            <option value="current_year" selected>This Year</option>
-                            <option value="last_year">Last Year</option>
+                            <option value="current_month" <?php echo (($data['selectedPeriod'] ?? '') === 'current_month') ? 'selected' : ''; ?>>This Month</option>
+                            <option value="last_month" <?php echo (($data['selectedPeriod'] ?? '') === 'last_month') ? 'selected' : ''; ?>>Last Month</option>
+                            <option value="current_year" <?php echo (($data['selectedPeriod'] ?? 'current_year') === 'current_year') ? 'selected' : ''; ?>>This Year</option>
+                            <option value="last_year" <?php echo (($data['selectedPeriod'] ?? '') === 'last_year') ? 'selected' : ''; ?>>Last Year</option>
+                            <option value="all_time" <?php echo (($data['selectedPeriod'] ?? '') === 'all_time') ? 'selected' : ''; ?>>All Time</option>
                         </select>
                     </div>
                 </div>
@@ -241,6 +239,7 @@
                             <option value="membership_fee">Membership Fees</option>
                             <option value="shop_sale">Shop Sales</option>
                             <option value="facility_booking">Facility / Session Bookings</option>
+                            <option value="session_payment">Session Payments</option>
                             <option value="equipment_rental">Equipment Rental</option>
                             <option value="return_fee">Return Fees</option>
                         </select>
@@ -249,6 +248,8 @@
                             <option value="completed">Completed</option>
                             <option value="pending">Pending</option>
                             <option value="failed">Failed</option>
+                            <option value="refunded">Refunded</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
                 </div>
@@ -272,8 +273,11 @@
                                 <?php foreach ($data['recentTransactions'] as $payment): ?>
                                 <tr class="payment-row"
                                     data-payment-id="<?php echo htmlspecialchars($payment['id']); ?>"
-                                    data-status="<?php echo $payment['status']; ?>"
-                                    data-type="<?php echo strtolower(str_replace(' ', '_', $payment['type'])); ?>">
+                                    data-status="<?php echo htmlspecialchars($payment['status']); ?>"
+                                    data-type="<?php echo htmlspecialchars(strtolower(str_replace(' ', '_', $payment['type']))); ?>"
+                                    data-amount="<?php echo htmlspecialchars((string)$payment['amount']); ?>"
+                                    data-date="<?php echo htmlspecialchars($payment['date']); ?>"
+                                    data-method="<?php echo htmlspecialchars($payment['method']); ?>">
                                     <td class="payment-id"><?php echo htmlspecialchars($payment['id']); ?></td>
                                     <td class="payment-type">
                                         <span class="type-badge <?php echo strtolower(str_replace(' ', '-', $payment['type'])); ?>">

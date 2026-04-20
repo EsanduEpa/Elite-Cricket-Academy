@@ -14,8 +14,8 @@ class Finance {
         return $this->getRevenueForMonth(date('Y-m'));
     }
 
-    public function getRevenueByCategory(): array {
-        $sources = $this->getRevenueSourceAmounts();
+    public function getRevenueByCategory(string $period = 'current_year'): array {
+        $sources = $this->getRevenueSourceAmountsForPeriod($period);
         $total = array_sum(array_column($sources, 'amount'));
         $categories = [];
 
@@ -94,6 +94,26 @@ class Finance {
             }
         }
 
+        if ($this->tableExists('sessionpayment')) {
+            $this->db->query("SELECT
+                    sp.PaymentID AS id,
+                    'Session Payment' AS type,
+                    CONCAT(u.FirstName, ' ', u.LastName) AS customer,
+                    sp.Amount AS amount,
+                    COALESCE(sp.PaidAt, sp.CreatedAt) AS date,
+                    sp.Status AS status,
+                    sp.PaymentMethod AS method
+                FROM sessionpayment sp
+                LEFT JOIN user u ON sp.PlayerID = u.UserID
+                WHERE COALESCE(sp.Amount, 0) > 0
+                ORDER BY COALESCE(sp.PaidAt, sp.CreatedAt) DESC
+                LIMIT :limit");
+            $this->db->bind(':limit', $limit, PDO::PARAM_INT);
+            foreach ($this->db->resultSet() as $row) {
+                $transactions[] = $this->mapTransaction('SES-', $row);
+            }
+        }
+
         if ($this->tableExists('facilitybooking')) {
             $this->db->query("SELECT
                     fb.FacilityBookingID AS id,
@@ -153,6 +173,27 @@ class Finance {
             }
         }
 
+        if (!$this->tableExists('equipmentreturnpayment') && $this->tableExists('equipmentreturn')) {
+            $this->db->query("SELECT
+                    er.ReturnID AS id,
+                    'Return Fee' AS type,
+                    CONCAT(u.FirstName, ' ', u.LastName) AS customer,
+                    er.TotalReturnPay AS amount,
+                    COALESCE(er.ReturnedAt, er.CreatedAt) AS date,
+                    CASE WHEN er.PaymentStatus = 'paid' THEN 'completed' ELSE er.PaymentStatus END AS status,
+                    'online' AS method
+                FROM equipmentreturn er
+                LEFT JOIN equipmentrental rental ON er.RentalID = rental.RentalID
+                LEFT JOIN user u ON rental.PlayerID = u.UserID
+                WHERE COALESCE(er.TotalReturnPay, 0) > 0
+                ORDER BY COALESCE(er.ReturnedAt, er.CreatedAt) DESC
+                LIMIT :limit");
+            $this->db->bind(':limit', $limit, PDO::PARAM_INT);
+            foreach ($this->db->resultSet() as $row) {
+                $transactions[] = $this->mapTransaction('RET-', $row);
+            }
+        }
+
         usort($transactions, static function ($a, $b) {
             return strtotime((string)$b['date']) <=> strtotime((string)$a['date']);
         });
@@ -172,8 +213,13 @@ class Finance {
         if ($this->tableExists('slot_booking')) {
             $count += $this->countRows("SELECT COUNT(*) AS total FROM slot_booking WHERE PaymentStatus = 'pending'");
         }
+        if ($this->tableExists('sessionpayment')) {
+            $count += $this->countRows("SELECT COUNT(*) AS total FROM sessionpayment WHERE Status = 'pending'");
+        }
         if ($this->tableExists('equipmentreturnpayment')) {
             $count += $this->countRows("SELECT COUNT(*) AS total FROM equipmentreturnpayment WHERE Status = 'pending'");
+        } elseif ($this->tableExists('equipmentreturn')) {
+            $count += $this->countRows("SELECT COUNT(*) AS total FROM equipmentreturn WHERE PaymentStatus = 'pending'");
         }
 
         return $count;
@@ -217,7 +263,6 @@ class Finance {
         $categorySources = [
             'membership_fees' => ['Membership Fees', 'subscriptionpayment', 'Status = "completed"', 'Amount'],
             'equipment_rentals' => ['Equipment Rentals', 'equipmentrental', 'Status <> "cancelled"', 'TotalCost'],
-            'return_fees' => ['Equipment Return Fees', 'equipmentreturnpayment', 'Status = "completed"', 'Amount'],
         ];
 
         foreach ($categorySources as $category => [$label, $table, $where, $amountColumn]) {
@@ -244,6 +289,16 @@ class Finance {
                 'quantity' => $this->getFacilityBookingCount(),
                 'revenue' => $facilityRevenue,
                 'category' => 'facility_bookings',
+            ];
+        }
+
+        $returnFeeRevenue = (float)($this->getReturnFeeRevenue());
+        if ($returnFeeRevenue > 0) {
+            $sources[] = [
+                'item' => 'Equipment Return Fees',
+                'quantity' => $this->getReturnFeeCount(),
+                'revenue' => $returnFeeRevenue,
+                'category' => 'equipment_rentals',
             ];
         }
 
@@ -306,6 +361,12 @@ class Finance {
                         'Status <> "cancelled"',
                         'DATE_FORMAT(BookingDate, "%Y-%m")',
                         $month
+                    ) + $this->sumIfTableExists(
+                        'sessionpayment',
+                        'Amount',
+                        'Status = "completed"',
+                        'DATE_FORMAT(COALESCE(PaidAt, CreatedAt), "%Y-%m")',
+                        $month
                     ),
             ],
             'equipment_rentals' => [
@@ -316,21 +377,81 @@ class Finance {
                     'Status <> "cancelled"',
                     'DATE_FORMAT(RentalDate, "%Y-%m")',
                     $month
-                ),
-            ],
-            'return_fees' => [
-                'label' => 'Return Fees',
-                'amount' => $this->sumIfTableExists(
-                    'equipmentreturnpayment',
-                    'Amount',
-                    'Status = "completed"',
-                    'DATE_FORMAT(COALESCE(PaidAt, PaymentDate, UpdatedAt, CreatedAt, DueDate), "%Y-%m")',
-                    $month
-                ),
+                ) + $this->getReturnFeeRevenue($month),
             ],
         ];
 
         return $sources;
+    }
+
+    private function getRevenueSourceAmountsForPeriod(string $period): array {
+        $range = $this->getPeriodDateRange($period);
+        if ($range === null) {
+            return $this->getRevenueSourceAmounts();
+        }
+
+        [$from, $to] = $range;
+
+        return [
+            'membership_fees' => [
+                'label' => 'Membership Fees',
+                'amount' => $this->sumForDateRange(
+                    'subscriptionpayment',
+                    'Amount',
+                    'Status = "completed"',
+                    'DATE(COALESCE(PaidAt, PaymentDate, UpdatedAt, CreatedAt, DueDate))',
+                    $from,
+                    $to
+                ),
+            ],
+            'shop_sales' => [
+                'label' => 'Shop Sales',
+                'amount' => $this->sumForDateRange(
+                    'productorder',
+                    'TotalAmount',
+                    'Status = "completed"',
+                    'DATE(OrderDate)',
+                    $from,
+                    $to
+                ),
+            ],
+            'facility_bookings' => [
+                'label' => 'Facility & Session Bookings',
+                'amount' => $this->sumForDateRange(
+                        'slot_booking',
+                        'AmountCharged',
+                        'PaymentStatus = "paid"',
+                        'DATE(COALESCE(PaidAt, UpdatedAt, CreatedAt))',
+                        $from,
+                        $to
+                    ) + $this->sumForDateRange(
+                        'facilitybooking',
+                        'TotalCost',
+                        'Status <> "cancelled"',
+                        'DATE(BookingDate)',
+                        $from,
+                        $to
+                    ) + $this->sumForDateRange(
+                        'sessionpayment',
+                        'Amount',
+                        'Status = "completed"',
+                        'DATE(COALESCE(PaidAt, CreatedAt))',
+                        $from,
+                        $to
+                    ),
+            ],
+            'equipment_rentals' => [
+                'label' => 'Equipment Rentals',
+                'amount' => $this->sumForDateRange(
+                        'equipmentrental',
+                        'TotalCost',
+                        'Status <> "cancelled"',
+                        'DATE(RentalDate)',
+                        $from,
+                        $to
+                    ) + $this->getReturnFeeRevenueForRange($from, $to),
+            ],
+        ];
     }
 
     private function getRevenueForMonth(string $month): float {
@@ -356,6 +477,21 @@ class Finance {
         return (float)($row->revenue ?? 0);
     }
 
+    private function sumForDateRange(string $table, string $amountColumn, string $where, string $dateExpression, string $from, string $to): float {
+        if (!$this->tableExists($table)) {
+            return 0.0;
+        }
+
+        $this->db->query("SELECT COALESCE(SUM({$amountColumn}), 0) AS revenue
+            FROM {$table}
+            WHERE {$where}
+              AND {$dateExpression} BETWEEN :from_date AND :to_date");
+        $this->db->bind(':from_date', $from);
+        $this->db->bind(':to_date', $to);
+        $row = $this->db->single();
+        return (float)($row->revenue ?? 0);
+    }
+
     private function countRows(string $sql): int {
         $this->db->query($sql);
         $row = $this->db->single();
@@ -370,7 +506,72 @@ class Finance {
         if ($this->tableExists('facilitybooking')) {
             $count += $this->countRows("SELECT COUNT(*) AS total FROM facilitybooking WHERE Status <> 'cancelled' AND COALESCE(TotalCost, 0) > 0");
         }
+        if ($this->tableExists('sessionpayment')) {
+            $count += $this->countRows("SELECT COUNT(*) AS total FROM sessionpayment WHERE Status = 'completed' AND COALESCE(Amount, 0) > 0");
+        }
         return $count;
+    }
+
+    private function getReturnFeeRevenue(?string $month = null): float {
+        if ($this->tableExists('equipmentreturnpayment')) {
+            return $this->sumIfTableExists(
+                'equipmentreturnpayment',
+                'Amount',
+                'Status = "completed"',
+                'DATE_FORMAT(COALESCE(PaidAt, PaymentDate, UpdatedAt, CreatedAt, DueDate), "%Y-%m")',
+                $month
+            );
+        }
+
+        return $this->sumIfTableExists(
+            'equipmentreturn',
+            'TotalReturnPay',
+            'PaymentStatus = "paid"',
+            'DATE_FORMAT(COALESCE(ReturnedAt, CreatedAt), "%Y-%m")',
+            $month
+        );
+    }
+
+    private function getReturnFeeRevenueForRange(string $from, string $to): float {
+        if ($this->tableExists('equipmentreturnpayment')) {
+            return $this->sumForDateRange(
+                'equipmentreturnpayment',
+                'Amount',
+                'Status = "completed"',
+                'DATE(COALESCE(PaidAt, PaymentDate, UpdatedAt, CreatedAt, DueDate))',
+                $from,
+                $to
+            );
+        }
+
+        return $this->sumForDateRange(
+            'equipmentreturn',
+            'TotalReturnPay',
+            'PaymentStatus = "paid"',
+            'DATE(COALESCE(ReturnedAt, CreatedAt))',
+            $from,
+            $to
+        );
+    }
+
+    private function getReturnFeeCount(): int {
+        if ($this->tableExists('equipmentreturnpayment')) {
+            return $this->countRows("SELECT COUNT(*) AS total FROM equipmentreturnpayment WHERE Status = 'completed' AND COALESCE(Amount, 0) > 0");
+        }
+        if ($this->tableExists('equipmentreturn')) {
+            return $this->countRows("SELECT COUNT(*) AS total FROM equipmentreturn WHERE PaymentStatus = 'paid' AND COALESCE(TotalReturnPay, 0) > 0");
+        }
+        return 0;
+    }
+
+    private function getPeriodDateRange(string $period): ?array {
+        return match ($period) {
+            'current_month' => [date('Y-m-01'), date('Y-m-t')],
+            'last_month' => [date('Y-m-01', strtotime('first day of last month')), date('Y-m-t', strtotime('last month'))],
+            'current_year' => [date('Y-01-01'), date('Y-12-31')],
+            'last_year' => [date('Y-01-01', strtotime('last year')), date('Y-12-31', strtotime('last year'))],
+            default => null,
+        };
     }
 
     private function mapTransaction(string $prefix, object $row): array {

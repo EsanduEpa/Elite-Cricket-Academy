@@ -365,6 +365,7 @@ class M_Users {
             al.Action as action,
             al.Description as details,
             al.Timestamp as timestamp,
+            al.Timestamp as raw_timestamp,
             al.Action as type,
             TRIM(CONCAT_WS(CHAR(32), u.FirstName, u.LastName)) as user_name 
         FROM activitylog al 
@@ -377,8 +378,9 @@ class M_Users {
         // EXECUTE QUERY
         $results = $this->db->resultSet();
         
-        // FORMAT TIMESTAMPS
-        // Convert database timestamps to relative time (e.g., "2 hours ago")
+        // FORMAT DISPLAY TIMESTAMPS
+        // Keep raw_timestamp for filters, while timestamp becomes a readable label.
+        // The admin dashboard uses raw_timestamp to compare dates accurately.
         foreach ($results as &$activity) {
             if (isset($activity->timestamp)) {
                 $activity->timestamp = $this->timeAgo($activity->timestamp);
