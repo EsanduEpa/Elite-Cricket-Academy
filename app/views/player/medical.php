@@ -36,7 +36,6 @@
                                     <tr>
                                         <th>Injury Details</th>
                                         <th>Body Area</th>
-                                        <th>At Academy</th>
                                         <th>Diagnosis</th>
                                         <th>Treatment</th>
                                         <th>Recovery Status</th>
@@ -64,18 +63,7 @@
                                                 <span class="body-area-text"><?php echo htmlspecialchars($record->bodyarea ?? 'Not specified'); ?></span>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="academy-cell">
-                                                <?php if ($record->HappenedAtAcademy == 'yes'): ?>
-                                                    <div class="academy-indicator">
-                                                        <i class="fas fa-school"></i>
-                                                        <span>Yes</span>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <span class="no-academy">-</span>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
+                                       
                                         <td>
                                             <div class="diagnosis-cell">
                                                 <div class="diagnosis-text">
@@ -149,27 +137,40 @@
                                         <td>
                                             <div class="verification-cell">
                                                 <?php 
-                                                    $verifyStatus = strtolower($record->verifyStatus ?? 'pending');
+                                                    $verifyStatusRaw = $record->verifyStatus
+                                                        ?? ($record->VerifiedStatus ?? 'pending');
+                                                    $verifyStatus = strtolower(trim((string)$verifyStatusRaw));
+                                                    if (in_array($verifyStatus, ['1', 'yes', 'true'], true)) {
+                                                        $verifyStatus = 'verified';
+                                                    } elseif ($verifyStatus === 'approved') {
+                                                        $verifyStatus = 'verified';
+                                                    } elseif (in_array($verifyStatus, ['0', 'no', 'false', ''], true)) {
+                                                        $verifyStatus = 'pending';
+                                                    }
                                                     $verifyIcon = '';
                                                     $verifyColor = '';
+                                                    $verifyLabel = 'Pending';
                                                     
                                                     switch($verifyStatus) {
                                                         case 'verified':
                                                             $verifyIcon = 'fa-shield-alt';
                                                             $verifyColor = 'success';
+                                                            $verifyLabel = 'Verified';
                                                             break;
                                                         case 'rejected':
                                                             $verifyIcon = 'fa-times-circle';
                                                             $verifyColor = 'danger';
+                                                            $verifyLabel = 'Rejected';
                                                             break;
                                                         default:
                                                             $verifyIcon = 'fa-clock';
                                                             $verifyColor = 'warning';
+                                                            $verifyLabel = 'Pending';
                                                     }
                                                 ?>
                                                 <span class="status-badge verify-<?php echo $verifyColor; ?>">
                                                     <i class="fas <?php echo $verifyIcon; ?>"></i>
-                                                    <?php echo ucfirst($record->verifyStatus ?? 'Pending'); ?>
+                                                    <?php echo $verifyLabel; ?>
                                                 </span>
                                             </div>
                                         </td>
@@ -181,14 +182,6 @@
                                                     data-medical-action="open-update-modal"
                                                     data-record-id="<?php echo $record->RecordID; ?>"
                                                     data-recovery-status="<?php echo htmlspecialchars($record->RecoveryStatus, ENT_QUOTES); ?>"
-                                                    data-verify-status="<?php echo strtolower($record->verifyStatus ?? 'pending'); ?>"
-                                                    data-diagnosis="<?php echo htmlspecialchars($record->Diagnosis, ENT_QUOTES); ?>"
-                                                    data-treatment="<?php echo htmlspecialchars($record->TreatmentGiven ?? '', ENT_QUOTES); ?>"
-                                                    data-body-area="<?php echo htmlspecialchars($record->bodyarea ?? '', ENT_QUOTES); ?>"
-                                                    data-injury-date="<?php echo htmlspecialchars($record->InjuryDate ?? '', ENT_QUOTES); ?>"
-                                                    data-reported-date="<?php echo htmlspecialchars($record->ReportedDate ?? '', ENT_QUOTES); ?>"
-                                                    data-happened-at-academy="<?php echo htmlspecialchars($record->HappenedAtAcademy ?? 'no', ENT_QUOTES); ?>"
-                                                    data-rest-days="<?php echo intval($record->RestDaysNeeded); ?>"
                                                     title="Update Record">
                                                     <i class="fas fa-edit"></i>
                                                     <span>Update</span>
@@ -261,7 +254,11 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button type="button" class="action-btn btn-update" data-medical-action="view-workout" data-plan-id="<?= $plan->PlanID ?>">
+                                                <button
+                                                    type="button"
+                                                    class="action-btn btn-update"
+                                                    data-medical-action="open-modal"
+                                                    data-modal-id="workoutPlanModal_<?php echo (int)($plan->PlanID ?? 0); ?>">
                                                     <i class="fas fa-eye"></i>
                                                     <span>View</span>
                                                 </button>
@@ -311,7 +308,11 @@
                                                 <span class="table-badge status-active">Active</span>
                                             </td>
                                             <td>
-                                                <button type="button" class="action-btn btn-update" data-medical-action="view-nutrition" data-plan-id="<?= $nplan->PlanID ?>">
+                                                <button
+                                                    type="button"
+                                                    class="action-btn btn-update"
+                                                    data-medical-action="open-modal"
+                                                    data-modal-id="nutritionPlanModal_<?php echo (int)($nplan->PlanID ?? 0); ?>">
                                                     <i class="fas fa-eye"></i>
                                                     <span>View</span>
                                                 </button>
@@ -328,78 +329,7 @@
             </div>
 
              <!-- Health Overview and Supplements - Two Tables Per Row -->
-            <div class="performance-tables-row">
-                <!-- Health Overview - Compact Table -->
-                <div class="schedule-card">
-                      <div class="card-header">
-                    <div class="header-content">
-                        <h2><i class="fas fa-syringe"></i> Vaccinations & Immunizations</h2>
-                        <span class="event-count">Up to Date</span>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <table class="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Vaccination</th>
-                                <th>Status</th>
-                                <th>Last Updated</th>
-                                <th>Next Due</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="5" class="text-center">No vaccination records available</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                    
-                </div>
-
-                <!-- Current Supplement Plans -->
-                <div class="schedule-card">
-                    <div class="card-header">
-                        <div class="header-content">
-                            <h2><i class="fas fa-capsules"></i> Supplements</h2>
-                            <span class="event-count"><?= count($data['supplements'] ?? []) ?> Active</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Supplement</th>
-                                    <th>Dosage</th>
-                                    <th>Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($data['supplements'])): ?>
-                                    <?php foreach ($data['supplements'] as $supp): ?>
-                                        <tr>
-                                            <td>
-                                                <div class="table-cell-title"><?= htmlspecialchars($supp->SupplementPlanName ?? '') ?></div>
-                                                <div class="table-cell-details">
-                                                    <i class="fas fa-user"></i> <?= htmlspecialchars($supp->trainer_name ?? '') ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= htmlspecialchars($supp->Dosage ?? '') ?></div>
-                                            </td>
-                                            <td>
-                                                <div class="table-cell-primary"><?= ($supp->Duration ?? '') ?> days</div>
-                                                <div class="table-cell-secondary">Started <?= date('M d', strtotime($supp->CreatedDate ?? 'now')) ?></div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr><td colspan="3" class="text-center">No supplements assigned</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </div>
 
@@ -467,6 +397,8 @@
                         </select>
                     </div>
                     </div>
+
+                    
 
                     <div class="medical-form-row app-form-row">
                     <div class="form-group medical-form-group medical-form-group--tight app-form-group">
@@ -548,165 +480,147 @@
         </div>
     </div>
 
-    <!-- Workout Plan Modal -->
-    <div id="workoutPlanModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
-        <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
-            <div class="modal-header app-modal__header medical-modal-header">
-                <h3 class="medical-modal-title app-modal__title"><i class="fas fa-dumbbell"></i> Workout Plan Details</h3>
-                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="workoutPlanModal" aria-label="Close workout plan modal">&times;</button>
-            </div>
-            <div class="modal-body app-modal__body medical-modal-body" id="workoutPlanContent">
-                <!-- Workout plan content will be loaded here -->
-            </div>
-        </div>
-    </div>
+    <?php
+        $medicalText = function ($value, $fallback = 'Not provided') {
+            $text = trim((string)($value ?? ''));
+            return $text !== '' ? $text : $fallback;
+        };
 
-    <!-- Nutrition Plan Modal -->
-    <div id="nutritionPlanModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
-        <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
-            <div class="modal-header app-modal__header medical-modal-header">
-                <h3 class="medical-modal-title app-modal__title"><i class="fas fa-apple-alt"></i> Nutrition Plan Details</h3>
-                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="nutritionPlanModal" aria-label="Close nutrition plan modal">&times;</button>
-            </div>
-            <div class="modal-body app-modal__body medical-modal-body" id="nutritionPlanContent">
-                <!-- Nutrition plan content will be loaded here -->
-            </div>
-        </div>
-    </div>
+        $medicalDate = function ($value) {
+            $raw = trim((string)($value ?? ''));
+            if ($raw === '') return 'Not provided';
+            $ts = strtotime($raw);
+            if ($ts === false) return htmlspecialchars($raw);
+            return date('M d, Y', $ts);
+        };
 
-    <!-- Update Medical Record Modal — Full edit (pending) -->
-    <div id="editFullRecordModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
-        <div class="modal-content app-modal__dialog app-modal__dialog--wide medical-modal-content medical-modal-content--wide">
-            <div class="modal-header app-modal__header medical-modal-header">
-                <h2 class="medical-modal-title app-modal__title">
-                    <i class="fas fa-edit medical-modal-title-icon"></i> Edit Medical Record
-                </h2>
-                <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="editFullRecordModal" aria-label="Close edit medical record modal">&times;</button>
-            </div>
-            <form method="POST" action="<?php echo URLROOT; ?>/player/fullUpdateMedicalRecord" class="medical-modal-form app-form">
-                <div class="modal-body app-modal__body medical-modal-body">
-                    <input type="hidden" id="edit_record_id" name="record_id">
+        $medicalMultiline = function ($value, $fallback) {
+            $raw = trim((string)($value ?? ''));
+            if ($raw === '') {
+                return '<p class="plan-empty-text">' . htmlspecialchars($fallback) . '</p>';
+            }
+            return '<p>' . nl2br(htmlspecialchars($raw)) . '</p>';
+        };
+    ?>
 
-                    <div class="medical-form-row app-form-row">
-                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                            <label for="edit_injury_date" class="app-form-label app-form-label--strong">
-                                <i class="fas fa-calendar-alt medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Injury Date *
-                            </label>
-                            <input type="date" id="edit_injury_date" name="injury_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
+    <!-- Workout Plan Modals (server-rendered; JS only opens/closes) -->
+    <?php if (!empty($data['workoutPlans'])): ?>
+        <?php foreach ($data['workoutPlans'] as $plan): ?>
+            <?php $modalId = 'workoutPlanModal_' . (int)($plan->PlanID ?? 0); ?>
+            <div id="<?php echo htmlspecialchars($modalId); ?>" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+                <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
+                    <div class="modal-header app-modal__header medical-modal-header">
+                        <h3 class="medical-modal-title app-modal__title"><i class="fas fa-dumbbell"></i> Workout Plan Details</h3>
+                        <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="<?php echo htmlspecialchars($modalId); ?>" aria-label="Close workout plan modal">&times;</button>
+                    </div>
+                    <div class="modal-body app-modal__body medical-modal-body">
+                        <div class="plan-header">
+                            <h4><?php echo htmlspecialchars($medicalText($plan->workoutname ?? null, 'Workout plan')); ?></h4>
+                            <p><strong>Trainer:</strong> <?php echo htmlspecialchars($medicalText($plan->trainer_name ?? null, 'Not assigned')); ?></p>
+                            <p><strong>Frequency:</strong> <?php echo htmlspecialchars($medicalText($plan->frequency ?? null)); ?></p>
+                            <p><strong>Duration:</strong> <?php echo htmlspecialchars($medicalText($plan->Duration ?? null)); ?> days</p>
                         </div>
-                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                            <label for="edit_reported_date" class="app-form-label app-form-label--strong">
-                                <i class="fas fa-calendar-check medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Reported Date *
-                            </label>
-                            <input type="date" id="edit_reported_date" name="reported_date" class="form-control app-form-control app-form-control--lg" required max="<?php echo date('Y-m-d'); ?>">
+
+                        <div class="plan-meta-grid">
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Intensity</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($plan->Intensity ?? null)); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Status</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($plan->assignment_status ?? ($plan->Status ?? null), 'active')); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Assigned Date</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalDate($plan->AssignedDate ?? null)); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">End Date</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalDate($plan->EndDate ?? null)); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Assigned By</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($plan->assigned_by_name ?? null)); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Not Suitable For</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($plan->NotSuitableFor ?? null)); ?></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="medical-form-row app-form-row">
-                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                        <label class="app-form-label app-form-label--strong">
-                            <i class="fas fa-hospital medical-field-icon medical-field-icon--primary app-form-icon app-form-icon--primary"></i> Did the injury happen at the academy? *
-                        </label>
-                        <div class="medical-radio-group app-form-radio-group">
-                            <label class="medical-radio-option">
-                                <input type="radio" id="edit_academy_yes" name="happened_at_academy" value="yes"> Yes
-                            </label>
-                            <label class="medical-radio-option">
-                                <input type="radio" id="edit_academy_no" name="happened_at_academy" value="no"> No
-                            </label>
-                        </div>
-                    </div>
+                        <section class="plan-section">
+                            <h5>Benefits</h5>
+                            <div class="plan-rich-text">
+                                <?php echo $medicalMultiline($plan->Benefits ?? null, 'No benefits have been added for this workout yet.'); ?>
+                            </div>
+                        </section>
 
-                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                        <label for="edit_body_area" class="app-form-label app-form-label--strong">
-                            <i class="fas fa-user-injured medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Body Area *
-                        </label>
-                        <select id="edit_body_area" name="body_area" class="form-control app-form-control app-form-control--lg app-form-select" required>
-                            <option value="">Select body area...</option>
-                            <option value="Head/Face">Head/Face</option>
-                            <option value="Neck">Neck</option>
-                            <option value="Shoulder">Shoulder</option>
-                            <option value="Arm/Elbow">Arm/Elbow</option>
-                            <option value="Hand/Wrist">Hand/Wrist</option>
-                            <option value="Chest/Back">Chest/Back</option>
-                            <option value="Hip/Groin">Hip/Groin</option>
-                            <option value="Thigh">Thigh</option>
-                            <option value="Knee">Knee</option>
-                            <option value="Lower Leg">Lower Leg</option>
-                            <option value="Ankle/Foot">Ankle/Foot</option>
-                        </select>
-                    </div>
-                    </div>
-
-                    <div class="medical-form-row app-form-row">
-                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                        <label for="edit_diagnosis" class="app-form-label app-form-label--strong">
-                            <i class="fas fa-stethoscope medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Diagnosis *
-                        </label>
-                        <select id="edit_diagnosis" name="diagnosis" class="form-control app-form-control app-form-control--lg app-form-select" required>
-                            <option value="">Select diagnosis...</option>
-                            <option value="Sprain">Sprain</option>
-                            <option value="Strain">Strain</option>
-                            <option value="Fracture">Fracture</option>
-                            <option value="Dislocation">Dislocation</option>
-                            <option value="Concussion">Concussion</option>
-                            <option value="Tear">Tear</option>
-                            <option value="Laceration">Laceration</option>
-                            <option value="Overuse/Inflammation">Overuse/Inflammation</option>
-                            <option value="Illness">Illness</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                        <label for="edit_treatment" class="app-form-label app-form-label--strong">
-                            <i class="fas fa-hand-holding-medical medical-field-icon medical-field-icon--success app-form-icon app-form-icon--success"></i> Treatment Given
-                        </label>
-                        <select id="edit_treatment" name="treatment_given" class="form-control app-form-control app-form-control--lg app-form-select">
-                            <option value="">Select treatment...</option>
-                            <option value="RICE Procedure">RICE Procedure</option>
-                            <option value="First Aid/Wound Care">First Aid/Wound Care</option>
-                            <option value="Physiotherapy">Physiotherapy</option>
-                            <option value="Medication">Medication</option>
-                            <option value="Referral to Specialist">Referral to Specialist</option>
-                            <option value="Surgery">Surgery</option>
-                            <option value="Observation">Observation</option>
-                        </select>
-                    </div>
-                    </div>
-
-                    <div class="medical-form-row app-form-row">
-                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                            <label for="edit_rest_days" class="app-form-label app-form-label--strong">
-                                <i class="fas fa-bed medical-field-icon medical-field-icon--warning app-form-icon app-form-icon--warning"></i> Estimated Rest Days Needed
-                            </label>
-                            <input type="number" id="edit_rest_days" name="rest_days_needed" class="form-control app-form-control app-form-control--lg" min="0" max="1000" step="1" value="0">
-                        </div>
-                        <div class="form-group medical-form-group medical-form-group--tight app-form-group">
-                            <label for="edit_recovery_status" class="app-form-label app-form-label--strong">
-                                <i class="fas fa-heartbeat medical-field-icon medical-field-icon--danger app-form-icon app-form-icon--danger"></i> Recovery Status *
-                            </label>
-                            <select id="edit_recovery_status" name="recovery_status" class="form-control app-form-control app-form-control--lg app-form-select" required>
-                                <option value="">Select status...</option>
-                                <option value="ongoing">Ongoing</option>
-                                <option value="recovering">Recovering</option>
-                                <option value="fully_recovered">Fully Recovered</option>
-                                <option value="chronic_condition">Chronic Condition</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="medical-form-actions app-form-actions">
-                        <button type="button" class="medical-btn medical-btn--secondary" data-medical-close="editFullRecordModal">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                        <button type="submit" class="medical-btn medical-btn--primary">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
+                        <section class="plan-section">
+                            <h5>Video Demonstration</h5>
+                            <div class="plan-rich-text">
+                                <?php if (!empty($plan->VideoLink)): ?>
+                                    <p><a class="plan-link" href="<?php echo htmlspecialchars((string)$plan->VideoLink); ?>" target="_blank" rel="noopener noreferrer">Open workout video</a></p>
+                                <?php else: ?>
+                                    <p class="plan-empty-text">No video link has been provided for this workout.</p>
+                                <?php endif; ?>
+                            </div>
+                        </section>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- Nutrition Plan Modals (server-rendered; JS only opens/closes) -->
+    <?php if (!empty($data['nutritionPlans'])): ?>
+        <?php foreach ($data['nutritionPlans'] as $nplan): ?>
+            <?php $modalId = 'nutritionPlanModal_' . (int)($nplan->PlanID ?? 0); ?>
+            <div id="<?php echo htmlspecialchars($modalId); ?>" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
+                <div class="modal-content app-modal__dialog app-modal__dialog--standard medical-modal-content medical-modal-content--standard">
+                    <div class="modal-header app-modal__header medical-modal-header">
+                        <h3 class="medical-modal-title app-modal__title"><i class="fas fa-apple-alt"></i> Nutrition Plan Details</h3>
+                        <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="<?php echo htmlspecialchars($modalId); ?>" aria-label="Close nutrition plan modal">&times;</button>
+                    </div>
+                    <div class="modal-body app-modal__body medical-modal-body">
+                        <div class="plan-header">
+                            <h4><?php echo htmlspecialchars($medicalText($nplan->nutritionPlanName ?? null, 'Nutrition plan')); ?></h4>
+                            <p><strong>Nutritionist:</strong> <?php echo htmlspecialchars($medicalText($nplan->trainer_name ?? null, 'Not assigned')); ?></p>
+                            <p><strong>Duration:</strong> <?php echo htmlspecialchars($medicalText($nplan->Duration ?? null)); ?> days</p>
+                        </div>
+
+                        <div class="plan-meta-grid">
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Status</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($nplan->Status ?? null, 'active')); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Created</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalDate($nplan->CreatedDate ?? null)); ?></span>
+                            </div>
+                            <div class="plan-meta-item">
+                                <span class="plan-meta-label">Plan ID</span>
+                                <span class="plan-meta-value"><?php echo htmlspecialchars($medicalText($nplan->PlanID ?? null)); ?></span>
+                            </div>
+                        </div>
+
+                        <section class="plan-section">
+                            <h5>Diet Details</h5>
+                            <div class="plan-rich-text">
+                                <?php echo $medicalMultiline($nplan->DietDetails ?? null, 'No diet details are available for this plan.'); ?>
+                            </div>
+                        </section>
+
+                        <section class="plan-section">
+                            <h5>Trainer Notes</h5>
+                            <div class="plan-rich-text">
+                                <?php echo $medicalMultiline($nplan->Notes ?? null, 'No custom notes were added to this nutrition plan.'); ?>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
     <!-- Update Medical Record Modal — Recovery status only (verified) -->
     <div id="updateStatusModal" class="modal app-modal medical-modal" data-medical-modal aria-hidden="true">
@@ -764,31 +678,27 @@
                 <h3 class="medical-modal-title app-modal__title"><i class="fas fa-exclamation-triangle text-danger"></i> Delete Medical Record</h3>
                 <button type="button" class="close medical-modal-close app-modal__close" data-medical-close="deleteRecordModal" aria-label="Close delete record modal">&times;</button>
             </div>
-            <div class="modal-body app-modal__body medical-modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Warning:</strong> This action cannot be undone.
+            <form id="deleteMedicalForm" method="POST" action="<?php echo URLROOT; ?>/player/deleteMedicalRecord" class="medical-modal-form">
+                <div class="modal-body app-modal__body medical-modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action cannot be undone.
+                    </div>
+
+                    <p>Are you sure you want to delete this medical record?</p>
+                    <p class="text-muted">This record has been marked as "rejected" by a trainer, which allows deletion. Once deleted, this information will be permanently removed from your medical history.</p>
+
+                    <input type="hidden" id="delete_record_id" name="record_id" value="">
                 </div>
-
-                <p>Are you sure you want to delete this medical record?</p>
-                <p class="text-muted">This record has been marked as "rejected" by a trainer, which allows deletion. Once deleted, this information will be permanently removed from your medical history.</p>
-
-                <input type="hidden" id="delete_record_id">
-            </div>
-            <div class="modal-footer app-modal__footer medical-modal-footer">
-                <button type="button" class="btn btn-secondary" data-medical-close="deleteRecordModal">Cancel</button>
-                <button type="button" class="btn btn-danger" data-medical-action="delete-record">
-                    <i class="fas fa-trash"></i> Delete Record
-                </button>
-            </div>
+                <div class="modal-footer app-modal__footer medical-modal-footer">
+                    <button type="button" class="btn btn-secondary" data-medical-close="deleteRecordModal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Record
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <!-- Pass workout/nutrition plan data from controller to JS (data-only) -->
-    <script type="application/json" id="medicalData"><?php echo json_encode([
-        'workoutPlans' => $data['workoutPlans'] ?? [],
-        'nutritionPlans' => $data['nutritionPlans'] ?? [],
-    ], JSON_UNESCAPED_SLASHES); ?></script>
 
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/medical.js?v=<?php echo time(); ?>"></script>

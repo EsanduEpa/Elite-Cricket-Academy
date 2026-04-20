@@ -509,28 +509,28 @@ function submitToPayhere(items, total) {
     const urlRoot = getCartUrlRoot();
     const action  = urlRoot ? `${urlRoot}/player/payhere_checkout` : '/player/payhere_checkout';
 
-    // Build a temporary form and submit it
-    const form = document.createElement('form');
-    form.method = 'POST';
+    const form = document.getElementById('payhereCheckoutForm');
+    if (!form) {
+        showNotification('Checkout form is missing on this page.', 'error');
+        return;
+    }
+
     form.action = action;
 
-    const addField = (name, value) => {
-        const input = document.createElement('input');
-        input.type  = 'hidden';
-        input.name  = name;
-        input.value = value;
-        form.appendChild(input);
-    };
+    const cartItemsInput = form.querySelector('input[name="cart_items"]');
+    const cartTotalInput = form.querySelector('input[name="cart_total"]');
+    const selectedIdsInput = form.querySelector('input[name="selected_product_ids"]');
+    const nonceInput = form.querySelector('input[name="nonce"]');
 
-    addField('cart_items', JSON.stringify(items));
-    addField('cart_total', total.toFixed(2));
-    addField('selected_product_ids', JSON.stringify(getSelectedProductIds(items)));
+    if (cartItemsInput) cartItemsInput.value = JSON.stringify(items);
+    if (cartTotalInput) cartTotalInput.value = total.toFixed(2);
+    if (selectedIdsInput) selectedIdsInput.value = JSON.stringify(getSelectedProductIds(items));
 
-    // CSRF-like: include session-based nonce if available
     const nonceEl = document.getElementById('payhere_nonce');
-    if (nonceEl) addField('nonce', nonceEl.value);
+    if (nonceInput && nonceEl) {
+        nonceInput.value = nonceEl.value;
+    }
 
-    document.body.appendChild(form);
     form.submit();
 }
 

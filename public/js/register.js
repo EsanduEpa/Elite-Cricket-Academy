@@ -1,62 +1,4 @@
 const registrationForm = document.getElementById('registrationForm');
-const registerDraftStorageKey = 'elite-register-draft';
-
-function getDraftFieldNames() {
-    return ['firstName', 'lastName', 'dateOfBirth', 'address', 'email', 'contactNumber', 'school', 'username', 'membershipPlan'];
-}
-
-function saveRegistrationDraft() {
-    if (!registrationForm) {
-        return;
-    }
-
-    const draft = {};
-    getDraftFieldNames().forEach((fieldName) => {
-        const field = getField(fieldName);
-        if (field) {
-            draft[fieldName] = field.value;
-        }
-    });
-
-    sessionStorage.setItem(registerDraftStorageKey, JSON.stringify(draft));
-}
-
-function restoreRegistrationDraft() {
-    if (!registrationForm) {
-        return;
-    }
-
-    const rawDraft = sessionStorage.getItem(registerDraftStorageKey);
-    if (!rawDraft) {
-        return;
-    }
-
-    let draft;
-    try {
-        draft = JSON.parse(rawDraft);
-    } catch (error) {
-        sessionStorage.removeItem(registerDraftStorageKey);
-        return;
-    }
-
-    getDraftFieldNames().forEach((fieldName) => {
-        const field = getField(fieldName);
-        if (!field) {
-            return;
-        }
-
-        const currentValue = field.value || '';
-        const draftValue = draft[fieldName] || '';
-
-        if (!currentValue && draftValue) {
-            field.value = draftValue;
-        }
-    });
-}
-
-function clearRegistrationDraft() {
-    sessionStorage.removeItem(registerDraftStorageKey);
-}
 
 function getField(fieldName) {
     return document.getElementById(fieldName);
@@ -85,26 +27,11 @@ function clearFieldError(fieldName) {
 
 // Form validation and submission
 if (registrationForm) {
-restoreRegistrationDraft();
-
-registrationForm.addEventListener('input', function(e) {
-    if (e.target && e.target.name && getDraftFieldNames().includes(e.target.name)) {
-        saveRegistrationDraft();
-    }
-});
-
-registrationForm.addEventListener('change', function(e) {
-    if (e.target && e.target.name && getDraftFieldNames().includes(e.target.name)) {
-        saveRegistrationDraft();
-    }
-});
-
 registrationForm.addEventListener('submit', function(e) {
     const submitter = e.submitter;
 
     if (submitter && submitter.id === 'paymentPortalBtn') {
         clearErrors();
-        saveRegistrationDraft();
 
         const membershipPlan = getField('membershipPlan') ? getField('membershipPlan').value.trim() : '';
         if (!membershipPlan) {
@@ -241,7 +168,6 @@ registrationForm.addEventListener('submit', function(e) {
     if (isValid) {
         // Show loading
         showLoading(true);
-        clearRegistrationDraft();
         
         // Submit the form
         this.submit();

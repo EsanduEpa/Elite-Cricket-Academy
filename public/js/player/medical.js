@@ -1,13 +1,10 @@
-/* global document, window, fetch, FormData */
+/* global document, window */
 
 (function () {
     'use strict';
 
     const MODAL_IDS = [
         'addMedicalModal',
-        'workoutPlanModal',
-        'nutritionPlanModal',
-        'editFullRecordModal',
         'updateStatusModal',
         'deleteRecordModal'
     ];
@@ -232,99 +229,12 @@
         closeModal('addMedicalModal');
     }
 
-    function renderPlanModal(plan, config) {
-        const content = document.getElementById(config.contentId);
-        if (!content) return;
-
-        if (!plan) {
-            content.innerHTML = '<p>Plan not found.</p>';
-            openModal(config.modalId);
-            return;
-        }
-
-        content.innerHTML = config.render(plan);
-        openModal(config.modalId);
+    function openModalById(modalId) {
+        if (!modalId) return;
+        openModal(modalId);
     }
 
-    function viewWorkoutPlan(planId) {
-        hydrateMedicalData();
-        renderPlanModal(findPlanById(window.medicalData?.workoutPlans || [], planId), {
-            modalId: 'workoutPlanModal',
-            contentId: 'workoutPlanContent',
-            render: plan => `
-                <div class="plan-header">
-                    <h4>${escapeHtml(plan.workoutname || 'Workout plan')}</h4>
-                    <p><strong>Trainer:</strong> ${escapeHtml(plan.trainer_name || 'Not assigned')}</p>
-                    <p><strong>Frequency:</strong> ${escapeHtml(plan.frequency || 'Not provided')}</p>
-                    <p><strong>Duration:</strong> ${escapeHtml(plan.Duration || 'Not provided')} days</p>
-                </div>
-
-                ${renderPlanMeta([
-                    { label: 'Intensity', value: escapeHtml(formatLabel(plan.Intensity)) },
-                    { label: 'Status', value: escapeHtml(formatLabel(plan.Status || plan.assignment_status || 'active')) },
-                    { label: 'Assigned Date', value: formatDate(plan.AssignedDate) },
-                    { label: 'End Date', value: formatDate(plan.EndDate) },
-                    { label: 'Assigned By', value: escapeHtml(plan.assigned_by_name || 'Not provided') },
-                    { label: 'Not Suitable For', value: escapeHtml(formatLabel(plan.NotSuitableFor)) }
-                ])}
-
-                ${renderPlanSection('Benefits', formatMultilineText(plan.Benefits, 'No benefits have been added for this workout yet.'))}
-
-                ${renderPlanSection(
-                    'Video Demonstration',
-                    hasContent(plan.VideoLink)
-                        ? `<p><a class="plan-link" href="${escapeHtml(plan.VideoLink)}" target="_blank" rel="noopener noreferrer">Open workout video</a></p>`
-                        : '<p class="plan-empty-text">No video link has been provided for this workout.</p>'
-                )}
-            `
-        });
-    }
-
-    function viewNutritionPlan(planId) {
-        hydrateMedicalData();
-        renderPlanModal(findPlanById(window.medicalData?.nutritionPlans || [], planId), {
-            modalId: 'nutritionPlanModal',
-            contentId: 'nutritionPlanContent',
-            render: plan => `
-                <div class="plan-header">
-                    <h4>${escapeHtml(plan.nutritionPlanName || 'Nutrition plan')}</h4>
-                    <p><strong>Nutritionist:</strong> ${escapeHtml(plan.trainer_name || 'Not assigned')}</p>
-                    <p><strong>Duration:</strong> ${escapeHtml(plan.Duration || 'Not provided')} days</p>
-                </div>
-
-                ${renderPlanMeta([
-                    { label: 'Status', value: escapeHtml(formatLabel(plan.Status || 'active')) },
-                    { label: 'Created', value: formatDate(plan.CreatedDate) },
-                    { label: 'Plan ID', value: escapeHtml(plan.PlanID || 'Not provided') }
-                ])}
-
-                ${renderPlanSection('Diet Details', formatMultilineText(plan.DietDetails, 'No diet details are available for this plan.'))}
-
-                ${renderPlanSection('Trainer Notes', formatMultilineText(plan.Notes, 'No custom notes were added to this nutrition plan.'))}
-            `
-        });
-    }
-
-    function openUpdateStatusModal(recordId, currentStatus, verifyStatus, diagnosis, treatment, bodyArea, injuryDate, reportedDate, happenedAtAcademy, restDays) {
-        if (verifyStatus === 'pending') {
-            document.getElementById('edit_record_id').value = recordId;
-            document.getElementById('edit_injury_date').value = injuryDate;
-            document.getElementById('edit_reported_date').value = reportedDate;
-            document.getElementById('edit_body_area').value = bodyArea;
-            document.getElementById('edit_diagnosis').value = diagnosis;
-            document.getElementById('edit_treatment').value = treatment;
-            document.getElementById('edit_rest_days').value = restDays;
-            document.getElementById('edit_recovery_status').value = currentStatus;
-
-            const academyYes = document.getElementById('edit_academy_yes');
-            const academyNo = document.getElementById('edit_academy_no');
-            if (academyYes) academyYes.checked = happenedAtAcademy === 'yes';
-            if (academyNo) academyNo.checked = happenedAtAcademy !== 'yes';
-
-            openModal('editFullRecordModal');
-            return;
-        }
-
+    function openUpdateStatusModal(recordId, currentStatus) {
         const recordIdInput = document.getElementById('update_record_id');
         const statusSelect = document.getElementById('update_recovery_status');
         if (!recordIdInput || !statusSelect) return;
@@ -332,10 +242,6 @@
         recordIdInput.value = recordId;
         statusSelect.value = currentStatus;
         openModal('updateStatusModal');
-    }
-
-    function closeEditFullRecordModal() {
-        closeModal('editFullRecordModal');
     }
 
     function closeUpdateStatusModal() {
@@ -354,38 +260,6 @@
         closeModal('deleteRecordModal');
     }
 
-    function deleteMedicalRecord() {
-        const recordId = document.getElementById('delete_record_id')?.value;
-        if (!recordId) {
-            window.alert('Error: No record ID found');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('record_id', recordId);
-
-        fetch(getMedicalUrlRoot() + '/player/deleteMedicalRecord', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.alert('Medical record deleted successfully');
-                    window.location.reload();
-                    return;
-                }
-
-                window.alert(data.message || 'Failed to delete medical record');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                window.alert('An error occurred while deleting the record');
-            })
-            .finally(() => {
-                closeDeleteRecordModal();
-            });
-    }
 
     function initRealtimeValidation() {
         const restDaysInput = document.getElementById('rest_days_needed');
@@ -422,31 +296,17 @@
         case 'open-add-modal':
             openAddMedicalModal();
             break;
-        case 'view-workout':
-            viewWorkoutPlan(trigger.dataset.planId);
-            break;
-        case 'view-nutrition':
-            viewNutritionPlan(trigger.dataset.planId);
+        case 'open-modal':
+            openModalById(trigger.dataset.modalId);
             break;
         case 'open-update-modal':
             openUpdateStatusModal(
                 trigger.dataset.recordId,
-                trigger.dataset.recoveryStatus,
-                trigger.dataset.verifyStatus,
-                trigger.dataset.diagnosis,
-                trigger.dataset.treatment,
-                trigger.dataset.bodyArea,
-                trigger.dataset.injuryDate,
-                trigger.dataset.reportedDate,
-                trigger.dataset.happenedAtAcademy,
-                trigger.dataset.restDays
+                trigger.dataset.recoveryStatus
             );
             break;
         case 'confirm-delete':
             confirmDeleteRecord(trigger.dataset.recordId);
-            break;
-        case 'delete-record':
-            deleteMedicalRecord();
             break;
         default:
             break;
@@ -478,24 +338,25 @@
 
     window.openAddMedicalModal = openAddMedicalModal;
     window.closeAddMedicalModal = closeAddMedicalModal;
-    window.viewWorkoutPlan = viewWorkoutPlan;
-    window.viewNutritionPlan = viewNutritionPlan;
     window.closeModal = closeModal;
     window.openUpdateStatusModal = openUpdateStatusModal;
     window.closeUpdateStatusModal = closeUpdateStatusModal;
-    window.closeEditFullRecordModal = closeEditFullRecordModal;
     window.confirmDeleteRecord = confirmDeleteRecord;
     window.closeDeleteRecordModal = closeDeleteRecordModal;
-    window.deleteMedicalRecord = deleteMedicalRecord;
 
     document.addEventListener('DOMContentLoaded', function () {
-        hydrateMedicalData();
         initRealtimeValidation();
         initDelegatedInteractions();
     });
 
     window.addEventListener('keydown', function (event) {
         if (event.key !== 'Escape') return;
+
+        const visibleModal = document.querySelector('.medical-modal.app-modal--visible');
+        if (visibleModal && visibleModal.id) {
+            closeModal(visibleModal.id);
+            return;
+        }
 
         for (const modalId of MODAL_IDS) {
             const modal = getModal(modalId);

@@ -40,11 +40,13 @@ class Register extends Controller {
         // Load membership plans for both GET and POST
         $membershipPlans = $this->userModel->getActiveMembershipPlans();
 
+        // Registration draft persistence was removed; clear any legacy draft data.
+        unset($_SESSION['register_form_draft']);
+
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
             // === FORM SUBMISSION - PROCESS REGISTRATION ===
             // Process form - sanitize input data
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            $this->storeRegistrationDraft($_POST);
 
             $data = [
                 // USER INPUT VALUES - trim() removes leading/trailing whitespace
@@ -208,8 +210,6 @@ class Register extends Controller {
                 // Call model's register() method which executes INSERT query
                 // Returns the new UserID if successful, false if failed
                 if($userId = $this->userModel->register($data)) {
-                    $this->clearRegistrationDraft();
-
                     // === REGISTRATION SUCCESSFUL ===
                     
                     // STEP 7: CREATE PLAYER PROFILE (Optional - enhances user experience)
@@ -319,7 +319,7 @@ class Register extends Controller {
             // === GET REQUEST - DISPLAY REGISTRATION FORM ===
             // User is visiting the page for the first time
             // Initialize empty data array to avoid undefined variable errors in view
-            $data = array_merge([
+            $data = [
                 'firstName' => '',
                 'lastName' => '',
                 'dateOfBirth' => '',
@@ -344,7 +344,7 @@ class Register extends Controller {
                 'confirmPassword_err' => '',
                 'membershipPlan_err' => '',
                 'membershipPlans' => $membershipPlans
-            ], $this->getRegistrationDraft());
+            ];
 
             $data['password'] = '';
             $data['confirmPassword'] = '';
@@ -361,7 +361,6 @@ class Register extends Controller {
         }
 
         $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $this->storeRegistrationDraft($_POST);
 
         $membershipPlans = $this->userModel->getActiveMembershipPlans();
         $selectedPlanId = (int)($_POST['membershipPlan'] ?? 0);
@@ -545,30 +544,6 @@ class Register extends Controller {
         } catch (Throwable $e) {
             error_log('Admin registration notification failed: ' . $e->getMessage());
         }
-    }
-
-    private function storeRegistrationDraft(array $source): void {
-        $_SESSION['register_form_draft'] = [
-            'firstName' => trim((string)($source['firstName'] ?? '')),
-            'lastName' => trim((string)($source['lastName'] ?? '')),
-            'dateOfBirth' => trim((string)($source['dateOfBirth'] ?? '')),
-            'address' => trim((string)($source['address'] ?? '')),
-            'email' => trim((string)($source['email'] ?? '')),
-            'contactNumber' => trim((string)($source['contactNumber'] ?? '')),
-            'school' => trim((string)($source['school'] ?? '')),
-            'username' => trim((string)($source['username'] ?? '')),
-            'membershipPlan' => trim((string)($source['membershipPlan'] ?? '')),
-        ];
-    }
-
-    private function getRegistrationDraft(): array {
-        return is_array($_SESSION['register_form_draft'] ?? null)
-            ? $_SESSION['register_form_draft']
-            : [];
-    }
-
-    private function clearRegistrationDraft(): void {
-        unset($_SESSION['register_form_draft']);
     }
 
     /**

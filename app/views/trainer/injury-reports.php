@@ -142,12 +142,27 @@ if ($trainerDisplayName === '') {
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <span class="table-badge verify-status-<?php echo strtolower($record->verifyStatus); ?>">
-                                            <?php echo htmlspecialchars($record->verifyStatus); ?>
+                                        <?php
+                                            $verifyStatusRaw = $record->verifyStatus ?? ($record->VerifiedStatus ?? 'pending');
+                                            $verifyStatus = strtolower(trim((string)$verifyStatusRaw));
+                                            if (in_array($verifyStatus, ['1', 'yes', 'true'], true)) {
+                                                $verifyStatus = 'verified';
+                                            } elseif ($verifyStatus === 'approved') {
+                                                $verifyStatus = 'verified';
+                                            } elseif (in_array($verifyStatus, ['0', 'no', 'false', ''], true)) {
+                                                $verifyStatus = 'pending';
+                                            }
+                                            if (!in_array($verifyStatus, ['pending', 'verified', 'rejected'], true)) {
+                                                $verifyStatus = 'pending';
+                                            }
+                                            $verifyStatusLabel = ucfirst($verifyStatus);
+                                        ?>
+                                        <span class="table-badge verify-status-badge verify-status-<?php echo $verifyStatus; ?>">
+                                            <?php echo htmlspecialchars($verifyStatusLabel); ?>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <button class="action-btn verify-btn" onclick="openVerifyModal(<?php echo $record->RecordID; ?>, '<?php echo htmlspecialchars($record->player_name ?? 'Unknown'); ?>', '<?php echo addslashes($record->InjuryDetails); ?>')">
+                                        <button class="action-btn verify-btn" onclick='openVerifyModal(<?php echo (int)$record->RecordID; ?>, <?php echo htmlspecialchars(json_encode($record->player_name ?? 'Unknown'), ENT_QUOTES, "UTF-8"); ?>, <?php echo htmlspecialchars(json_encode($record->InjuryDetails ?? ''), ENT_QUOTES, "UTF-8"); ?>)'>
                                             <i class="fas fa-check-circle"></i> Verify
                                         </button>
                                     </td>
@@ -186,7 +201,7 @@ if ($trainerDisplayName === '') {
                 <label for="verify_status">Verification Status:</label>
                 <select id="verify_status" class="form-control" required>
                     <option value="">-- Select Status --</option>
-                    <option value="verified">Verified</option>
+                    <option value="approved">Verified</option>
                     <option value="rejected">Rejected</option>
                     <option value="pending">Pending</option>
                 </select>

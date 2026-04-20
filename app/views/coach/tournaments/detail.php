@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/coach-tournament-pages.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/common/modal.css">
 
 <div class="coach-layout">
     <div class="coach-sidebar" id="coachSidebar">
@@ -318,7 +319,7 @@
         <div class="modal-content" style="max-width:720px;">
             <div class="modal-header">
                 <h3><i class="fas fa-plus-circle"></i> Add Match</h3>
-                <button class="modal-close" type="button" onclick="closeMatchModal()">
+                <button class="close" type="button" onclick="closeMatchModal()" aria-label="Close add match modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

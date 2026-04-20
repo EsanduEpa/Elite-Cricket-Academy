@@ -26,14 +26,34 @@ function submitVerification() {
         return;
     }
 
+    const params = new URLSearchParams();
+    params.set('record_id', recordId);
+    params.set('verify_status', verifyStatus);
+    params.set('verify_comments', verifyComments);
+
     fetch(window.TRAINER_VERIFY_STATUS_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
         },
-        body: `record_id=${recordId}&verify_status=${verifyStatus}&verify_comments=${encodeURIComponent(verifyComments)}`,
+        credentials: 'same-origin',
+        body: params.toString(),
     })
-        .then((response) => response.json())
+        .then(async (response) => {
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(text || 'Non-JSON response received');
+            }
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
+            }
+            return data;
+        })
         .then((data) => {
             if (data.success) {
                 showNotification('Verification status updated successfully!', 'success');

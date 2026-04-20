@@ -131,6 +131,14 @@ class Staffslots extends Controller {
                 if (!$reason) {
                     $error = 'A cancellation reason is required.';
                 } else {
+                    if (!class_exists('SlotOccurrenceCancellationPolicy')) {
+                        require_once APPROOT . '/libraries/SlotOccurrenceCancellationPolicy.php';
+                    }
+
+                    $canCancel = SlotOccurrenceCancellationPolicy::canCancel($occurrence);
+                    if ($canCancel !== true) {
+                        $error = $canCancel;
+                    } else {
                     $result = $model->cancelOccurrence((int) $id, $reason, $this->userId);
 
                     if ($result === true) {
@@ -142,6 +150,7 @@ class Staffslots extends Controller {
                         $error = 'You are not assigned to this session.';
                     } else {
                         $error = 'Could not cancel the session. Please try again.';
+                    }
                     }
                 }
             } elseif (isset($_POST['action_update_occurrence_status'])) {

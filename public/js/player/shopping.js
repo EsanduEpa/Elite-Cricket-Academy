@@ -845,48 +845,6 @@ function initRentalFunctionality() {
     });
 }
 
-function rentEquipment(equipmentId, equipmentName, dailyRate) {
-    const modal = document.createElement('div');
-    modal.className = 'rental-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Rent ${equipmentName}</h3>
-                <button class="close-modal" type="button" onclick="this.closest('.rental-modal').remove()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Daily Rate: $${dailyRate}</p>
-                <label for="rentalDays">Rental Duration (days):</label>
-                <input type="number" id="rentalDays" min="1" value="1" onchange="updateRentalTotal(${dailyRate})">
-                <p>Total: $<span id="rentalTotal">${dailyRate}</span></p>
-                <div class="modal-actions">
-                    <button class="btn btn-primary" onclick="confirmRental('${equipmentId}', '${equipmentName}', ${dailyRate})">Confirm Rental</button>
-                    <button class="btn btn-secondary" onclick="this.closest('.rental-modal').remove()">Cancel</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
-    
-    document.body.appendChild(modal);
-}
-
-function updateRentalTotal(dailyRate) {
-    const days = document.getElementById('rentalDays').value;
-    const total = dailyRate * days;
-    document.getElementById('rentalTotal').textContent = total;
-}
-
-function confirmRental(equipmentId, equipmentName, dailyRate) {
-    const days = document.getElementById('rentalDays').value;
-    const total = dailyRate * days;
-    
-    addToCartNew('rental_' + equipmentId, equipmentName + ' (' + days + ' days)', total, '/Elite/img/equipment-default.jpg');
-    
-    document.querySelector('.rental-modal').remove();
-}
-
 function calculateRentalTotal() {
     // Calculate total for rental form if it exists
     const startDate = document.getElementById('rentalStartDate');
@@ -931,59 +889,6 @@ function initFacilityBooking() {
             calculateFacilityTotal();
         });
     });
-}
-
-function bookFacility(facilityId, facilityName, hourlyRate) {
-    const modal = document.createElement('div');
-    modal.className = 'booking-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Book ${facilityName}</h3>
-                <button class="close-modal" type="button" onclick="this.closest('.booking-modal').remove()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Hourly Rate: $${hourlyRate}</p>
-                <label for="bookingDate">Date:</label>
-                <input type="date" id="bookingDate" required>
-                <label for="bookingHours">Duration (hours):</label>
-                <input type="number" id="bookingHours" min="1" value="1" onchange="updateBookingTotal(${hourlyRate})">
-                <p>Total: $<span id="bookingTotal">${hourlyRate}</span></p>
-                <div class="modal-actions">
-                    <button class="btn btn-primary" onclick="confirmBooking('${facilityId}', '${facilityName}', ${hourlyRate})">Confirm Booking</button>
-                    <button class="btn btn-secondary" onclick="this.closest('.booking-modal').remove()">Cancel</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
-    
-    document.body.appendChild(modal);
-    
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('bookingDate').min = today;
-}
-
-function updateBookingTotal(hourlyRate) {
-    const hours = document.getElementById('bookingHours').value;
-    const total = hourlyRate * hours;
-    document.getElementById('bookingTotal').textContent = total;
-}
-
-function confirmBooking(facilityId, facilityName, hourlyRate) {
-    const date = document.getElementById('bookingDate').value;
-    const hours = document.getElementById('bookingHours').value;
-    const total = hourlyRate * hours;
-    
-    if (!date) {
-        alert('Please select a booking date.');
-        return;
-    }
-    
-    addToCartNew('booking_' + facilityId, facilityName + ' (' + date + ', ' + hours + 'h)', total, '/Elite/img/facility-default.jpg');
-    
-    document.querySelector('.booking-modal').remove();
 }
 
 function calculateFacilityTotal() {

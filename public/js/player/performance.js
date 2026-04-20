@@ -48,6 +48,18 @@ function initializePerformanceViewActions() {
                 return;
             }
 
+            if (action === 'close-achievement-view-modal') {
+                event.preventDefault();
+                closeAchievementViewModal();
+                return;
+            }
+
+            if (action === 'close-details-modal') {
+                event.preventDefault();
+                closeDetailsModal();
+                return;
+            }
+
             if (action === 'close-performance-modal') {
                 event.preventDefault();
                 closePerformanceModal();
@@ -104,6 +116,22 @@ function initializePerformanceViewActions() {
             alert(placeholderTrigger.dataset.placeholderMessage);
         }
     });
+}
+
+function openAppModalById(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.add('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+function closeAppModalById(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove('app-modal--visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
 }
 
 // Tab functionality
@@ -409,59 +437,28 @@ function handleEditPerformance(e) {
 }
 
 function showDetailsModal(title, card) {
-    const modal = document.createElement('div');
-    modal.className = 'modal app-modal details-modal';
-    modal.innerHTML = `
-        <div class="modal-content app-modal__dialog app-modal__dialog--standard">
-            <div class="modal-header app-modal__header">
-                <h3 class="app-modal__title"><i class="fas fa-info-circle"></i> ${title}</h3>
-                <button class="modal-close app-modal__close" type="button">&times;</button>
-            </div>
-            <div class="modal-body app-modal__body">
-                <p>Detailed information about this match/tournament would be displayed here.</p>
-                <p>This could include:</p>
-                <ul>
-                    <li>Complete scorecard</li>
-                    <li>Player statistics</li>
-                    <li>Match summary</li>
-                    <li>Video highlights</li>
-                    <li>Performance analysis</li>
-                </ul>
-            </div>
-            <div class="modal-footer app-modal__footer">
-                <button class="btn btn-outline close-details">Close</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    modal.classList.add('app-modal--visible');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-    
-    // Event listeners
-    modal.querySelector('.modal-close').addEventListener('click', () => {
-        modal.classList.remove('app-modal--visible');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('modal-open');
-        document.body.removeChild(modal);
-    });
-    
-    modal.querySelector('.close-details').addEventListener('click', () => {
-        modal.classList.remove('app-modal--visible');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('modal-open');
-        document.body.removeChild(modal);
-    });
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('app-modal--visible');
-            modal.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('modal-open');
-            document.body.removeChild(modal);
-        }
-    });
+    const modal = document.getElementById('detailsModal');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('detailsModalTitle');
+    if (titleEl) titleEl.textContent = title || 'Details';
+
+    const generic = document.getElementById('detailsGenericMessage');
+    const matchInfo = document.getElementById('detailsMatchInfo');
+    const statsGrid = document.getElementById('detailsStatsGrid');
+    const rating = document.getElementById('detailsRating');
+    const meta = document.getElementById('detailsMeta');
+
+    if (generic) {
+        generic.style.display = 'block';
+        generic.textContent = 'Detailed information will be shown here.';
+    }
+    if (matchInfo) matchInfo.style.display = 'none';
+    if (statsGrid) statsGrid.style.display = 'none';
+    if (rating) rating.style.display = 'none';
+    if (meta) meta.style.display = 'none';
+
+    openAppModalById('detailsModal');
 }
 
 // Export report functionality
@@ -537,15 +534,12 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const activeModal = document.querySelector('.app-modal.app-modal--visible');
         if (activeModal) {
-            activeModal.classList.remove('app-modal--visible');
-            activeModal.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('modal-open');
-            
-            // Remove dynamically created modals
-            if (activeModal.classList.contains('details-modal')) {
-                if (document.body.contains(activeModal)) {
-                    document.body.removeChild(activeModal);
-                }
+            if (activeModal.id) {
+                closeAppModalById(activeModal.id);
+            } else {
+                activeModal.classList.remove('app-modal--visible');
+                activeModal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
             }
         }
     }
@@ -886,66 +880,76 @@ function viewMatchDetails(performanceId) {
         .then(data => {
             if (data.success && data.performance) {
                 const perf = data.performance;
-                
-                // Create details modal
-                const detailsHtml = `
-                    <div class="modal" id="detailsModal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-                        <div class="modal-content" style="position: relative; background-color: #fefefe; margin: 5% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                            <div class="modal-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 25px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                                <h2 style="margin: 0; font-size: 22px; font-weight: 600;">
-                                    <i class="fas fa-chart-line"></i> Match Performance Details
-                                </h2>
-                                <span onclick="closeDetailsModal()" style="color: #fff; font-size: 32px; font-weight: bold; cursor: pointer; padding: 5px; border-radius: 50%; opacity: 0.8;">&times;</span>
-                            </div>
-                            <div class="modal-body" style="padding: 35px;">
-                                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                                    <h3 style="margin: 0 0 15px 0; color: #2c3e50;"><i class="fas fa-info-circle"></i> Match Information</h3>
-                                    <p><strong>📅 Date:</strong> ${perf.Date ? new Date(perf.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
-                                    <p><strong>🏆 Tournament:</strong> ${perf.TournamentName || 'N/A'}</p>
-                                    <p><strong>⚔️ Opponent:</strong> ${perf.OpponentTeam || 'N/A'}</p>
-                                    <p><strong>📍 Venue:</strong> ${perf.Venue || 'N/A'}</p>
-                                    <p><strong>🎯 Result:</strong> ${perf.Result || 'N/A'}</p>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
-                                        <h4 style="margin: 0 0 10px 0; color: #3498db;"><i class="fas fa-baseball-ball"></i> Batting</h4>
-                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.RunsScored || 0}</p>
-                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Runs (${perf.BallsFaced || 0} balls)</p>
-                                    </div>
-                                    
-                                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
-                                        <h4 style="margin: 0 0 10px 0; color: #e74c3c;"><i class="fas fa-fire"></i> Bowling</h4>
-                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${perf.WicketsTaken || 0}</p>
-                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">Wickets (${perf.OversBowled || 0} overs)</p>
-                                        <p style="font-size: 12px; color: #7f8c8d; margin: 5px 0 0 0;">${perf.RunsConceded || 0} runs conceded</p>
-                                    </div>
-                                    
-                                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
-                                        <h4 style="margin: 0 0 10px 0; color: #27ae60;"><i class="fas fa-hand-paper"></i> Fielding</h4>
-                                        <p style="font-size: 24px; font-weight: bold; margin: 5px 0;">${(perf.Catches || 0) + (perf.Stumpings || 0)}</p>
-                                        <p style="font-size: 12px; color: #7f8c8d; margin: 0;">C: ${perf.Catches || 0} | S: ${perf.Stumpings || 0}</p>
-                                    </div>
-                                </div>
-                                
-                                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                                    <p style="margin: 0; font-size: 14px; color: #856404;"><strong>⭐ Overall Rating:</strong> ${perf.Rating || 0}/10</p>
-                                </div>
-                                
-                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                                    <p style="margin: 0; font-size: 13px; color: #7f8c8d;">
-                                        <strong>Status:</strong> 
-                                        ${perf.VerifiedStatus === 'verified' ? '✅ Verified' : perf.VerifiedStatus === 'pending' ? '⏳ Pending Review' : '❌ Rejected'}
-                                    </p>
-                                    ${perf.AddedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Added by:</strong> ${perf.AddedByName}</p>` : ''}
-                                    ${perf.VerifiedByName ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #7f8c8d;"><strong>Verified by:</strong> ${perf.VerifiedByName}</p>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.insertAdjacentHTML('beforeend', detailsHtml);
+
+                const modal = document.getElementById('detailsModal');
+                if (!modal) {
+                    showNotification('Details modal is missing on this page', 'error');
+                    return;
+                }
+
+                const generic = document.getElementById('detailsGenericMessage');
+                const matchInfo = document.getElementById('detailsMatchInfo');
+                const statsGrid = document.getElementById('detailsStatsGrid');
+                const rating = document.getElementById('detailsRating');
+                const meta = document.getElementById('detailsMeta');
+
+                if (generic) generic.style.display = 'none';
+                if (matchInfo) matchInfo.style.display = '';
+                if (statsGrid) statsGrid.style.display = '';
+                if (rating) rating.style.display = '';
+                if (meta) meta.style.display = '';
+
+                const dateText = perf.Date ? new Date(perf.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+                const statusText = perf.VerifiedStatus === 'verified' ? 'Verified' : perf.VerifiedStatus === 'pending' ? 'Pending Review' : perf.VerifiedStatus === 'rejected' ? 'Rejected' : 'N/A';
+
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = (value === null || value === undefined || value === '') ? '-' : String(value);
+                };
+
+                setText('detailsDate', dateText);
+                setText('detailsTournament', perf.TournamentName || 'N/A');
+                setText('detailsOpponent', perf.OpponentTeam || 'N/A');
+                setText('detailsVenue', perf.Venue || 'N/A');
+                setText('detailsResult', perf.Result || 'N/A');
+
+                const runs = Number(perf.RunsScored || 0);
+                const balls = Number(perf.BallsFaced || 0);
+                const wickets = Number(perf.WicketsTaken || 0);
+                const overs = Number(perf.OversBowled || 0);
+                const conceded = Number(perf.RunsConceded || 0);
+                const catches = Number(perf.Catches || 0);
+                const stumpings = Number(perf.Stumpings || 0);
+
+                setText('detailsRuns', runs);
+                setText('detailsBalls', balls);
+                setText('detailsWickets', wickets);
+                setText('detailsOvers', overs);
+                setText('detailsConceded', conceded);
+                setText('detailsCatches', catches);
+                setText('detailsStumpings', stumpings);
+                setText('detailsFieldingTotal', catches + stumpings);
+                setText('detailsRatingValue', Number(perf.Rating || 0));
+                setText('detailsStatus', statusText);
+
+                const addedByRow = document.getElementById('detailsAddedByRow');
+                const verifiedByRow = document.getElementById('detailsVerifiedByRow');
+
+                if (perf.AddedByName) {
+                    setText('detailsAddedBy', perf.AddedByName);
+                    if (addedByRow) addedByRow.style.display = '';
+                } else if (addedByRow) {
+                    addedByRow.style.display = 'none';
+                }
+
+                if (perf.VerifiedByName) {
+                    setText('detailsVerifiedBy', perf.VerifiedByName);
+                    if (verifiedByRow) verifiedByRow.style.display = '';
+                } else if (verifiedByRow) {
+                    verifiedByRow.style.display = 'none';
+                }
+
+                openAppModalById('detailsModal');
             } else {
                 showNotification('Failed to load performance details', 'error');
             }
@@ -957,10 +961,11 @@ function viewMatchDetails(performanceId) {
 }
 
 function closeDetailsModal() {
-    const modal = document.getElementById('detailsModal');
-    if (modal) {
-        modal.remove();
-    }
+    closeAppModalById('detailsModal');
+}
+
+function closeAchievementViewModal() {
+    closeAppModalById('achievementViewModal');
 }
 
 // Edit Match Performance
@@ -1186,54 +1191,45 @@ function deleteMatchPerformance(performanceId) {
                 }
 
                 const achievement = data.achievement;
-                const statusIcon = achievement.VerifiedStatus === 'verified' ? '✅' :
-                    achievement.VerifiedStatus === 'pending' ? '⏳' : '❌';
+
+                const modal = document.getElementById('achievementViewModal');
+                if (!modal) {
+                    showNotification('Achievement view modal is missing on this page', 'error');
+                    return;
+                }
+
                 const statusText = achievement.VerifiedStatus === 'verified' ? 'Verified' :
-                    achievement.VerifiedStatus === 'pending' ? 'Pending Review' : 'Rejected';
+                    achievement.VerifiedStatus === 'pending' ? 'Pending Review' :
+                    achievement.VerifiedStatus === 'rejected' ? 'Rejected' : 'N/A';
 
-                const detailsHtml = `
-                    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                        <h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-trophy" style="color: #f1c40f;"></i> Achievement Details
-                        </h3>
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                            <p><strong>📅 Date:</strong> ${new Date(achievement.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p><strong>🏆 Tournament:</strong> ${achievement.Tournament}</p>
-                            <p><strong>⚾ Match:</strong> ${achievement.MatchName}</p>
-                            <p><strong>🎯 Achievement:</strong> ${achievement.Achievement}</p>
-                            <p><strong>✅ Status:</strong> ${statusIcon} ${statusText}</p>
-                            <p><strong>📝 Submitted:</strong> ${new Date(achievement.CreatedAt).toLocaleDateString()}</p>
-                        </div>
-                        ${achievement.VerifiedStatus === 'verified' ?
-                            '<div style="background: #d5f4e6; color: #27ae60; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-medal"></i> <strong>Congratulations! This achievement has been officially verified.</strong></div>' :
-                            achievement.VerifiedStatus === 'pending' ?
-                                '<div style="background: #fef9e7; color: #f39c12; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-clock"></i> <strong>This achievement is under review by the coaching staff.</strong></div>' :
-                                '<div style="background: #fadbd8; color: #e74c3c; padding: 15px; border-radius: 8px; text-align: center;"><i class="fas fa-times-circle"></i> <strong>This achievement could not be verified. Please contact your coach for details.</strong></div>'
-                        }
-                    </div>
-                `;
+                const dateText = achievement.Date ? new Date(achievement.Date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+                const createdText = achievement.CreatedAt ? new Date(achievement.CreatedAt).toLocaleDateString() : 'N/A';
 
-                const viewModal = document.createElement('div');
-                viewModal.style.cssText = 'position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;';
-                viewModal.innerHTML = `
-                    <div style="background: white; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                        <div style="padding: 30px;">
-                            ${detailsHtml}
-                            <div style="text-align: center; margin-top: 25px;">
-                                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()"
-                                        style="padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
-                                    <i class="fas fa-times"></i> Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = (value === null || value === undefined || value === '') ? '-' : String(value);
+                };
 
-                viewModal.addEventListener('click', function (e) {
-                    if (e.target === viewModal) viewModal.remove();
-                });
+                setText('achievementViewDate', dateText);
+                setText('achievementViewTournament', achievement.Tournament || 'N/A');
+                setText('achievementViewMatch', achievement.MatchName || 'N/A');
+                setText('achievementViewText', achievement.Achievement || 'N/A');
+                setText('achievementViewStatus', statusText);
+                setText('achievementViewSubmitted', createdText);
 
-                document.body.appendChild(viewModal);
+                const banner = document.getElementById('achievementViewBanner');
+                if (banner) {
+                    banner.textContent = '';
+                    if (achievement.VerifiedStatus === 'verified') {
+                        banner.textContent = 'Congratulations! This achievement has been officially verified.';
+                    } else if (achievement.VerifiedStatus === 'pending') {
+                        banner.textContent = 'This achievement is under review by the coaching staff.';
+                    } else if (achievement.VerifiedStatus === 'rejected') {
+                        banner.textContent = 'This achievement could not be verified. Please contact your coach for details.';
+                    }
+                }
+
+                openAppModalById('achievementViewModal');
             })
             .catch((error) => {
                 console.error('Error:', error);
