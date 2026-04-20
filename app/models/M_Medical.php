@@ -169,38 +169,88 @@ class M_Medical {
     public function updateVerifyStatus($recordId, $verifyStatus, $comments = '') {
         error_log("=== M_Medical::updateVerifyStatus called ===");
         error_log("Record ID: $recordId, Status: $verifyStatus, Comments: $comments");
-        
-        // First check if record exists
-        $this->db->query('SELECT RecordID, verifyStatus FROM PlayerMedicalRecord WHERE RecordID = :record_id');
+
+        // DB enum is currently ('pending','approved','rejected') in live schema.
+        // UI uses 'verified' language, so map it to 'approved' for storage.
+        $verifyStatus = strtolower(trim((string)$verifyStatus));
+        if ($verifyStatus === 'verified') {
+            $verifyStatus = 'approved';
+        }
+
+        // Only allow writing actual DB enum values to avoid MySQL coercing to ''.
+        if (!in_array($verifyStatus, ['pending', 'approved', 'rejected'], true)) {
+            error_log("ERROR: Invalid verifyStatus value for DB: $verifyStatus");
+            return false;
+        }
+ 
+        // First check if record exists (avoid depending on verify-status column name)
+        $this->db->query('SELECT RecordID FROM PlayerMedicalRecord WHERE RecordID = :record_id');
         $this->db->bind(':record_id', $recordId, PDO::PARAM_INT);
         $existing = $this->db->single();
-        
+
         if (!$existing) {
             error_log("ERROR: Record ID $recordId not found in database");
             return false;
         }
-        
-        error_log("Record found. Current status: " . $existing->verifyStatus);
-        
-        // Now update the record
-        $this->db->query('UPDATE PlayerMedicalRecord SET 
-            verifyStatus = :verify_status
-            WHERE RecordID = :record_id');
-        
-        // Bind values
+
+        // Some DB versions use verifyStatus, others use VerifiedStatus.
+        $statusColumn = $this->resolveMedicalVerifyStatusColumn();
+        if ($statusColumn === null) {
+            // Default to the original column name; we'll try a fallback if it fails.
+            $statusColumn = 'verifyStatus';
+        }
+
+        $result = $this->executeVerifyStatusUpdate($statusColumn, $recordId, $verifyStatus);
+
+        // If update failed and we might be on the other column variant, try the alternative.
+        if (!$result) {
+            $fallbackColumn = ($statusColumn === 'verifyStatus') ? 'VerifiedStatus' : 'verifyStatus';
+            $result = $this->executeVerifyStatusUpdate($fallbackColumn, $recordId, $verifyStatus);
+        }
+
+        return $result;
+    }
+
+    private function resolveMedicalVerifyStatusColumn() {
+        try {
+            $this->db->query("SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND LOWER(TABLE_NAME) = 'playermedicalrecord'
+                  AND COLUMN_NAME IN ('verifyStatus', 'VerifiedStatus')");
+
+            $rows = $this->db->resultSet();
+            $columns = [];
+            foreach ($rows as $row) {
+                if (isset($row->COLUMN_NAME)) {
+                    $columns[] = (string)$row->COLUMN_NAME;
+                }
+            }
+
+            if (in_array('verifyStatus', $columns, true)) {
+                return 'verifyStatus';
+            }
+            if (in_array('VerifiedStatus', $columns, true)) {
+                return 'VerifiedStatus';
+            }
+        } catch (Throwable $e) {
+            // Ignore schema introspection issues; caller will fallback.
+        }
+
+        return null;
+    }
+
+    private function executeVerifyStatusUpdate($statusColumn, $recordId, $verifyStatus) {
+        error_log("Updating PlayerMedicalRecord.$statusColumn for RecordID=$recordId");
+
+        $this->db->query("UPDATE PlayerMedicalRecord SET $statusColumn = :verify_status WHERE RecordID = :record_id");
         $this->db->bind(':record_id', $recordId, PDO::PARAM_INT);
         $this->db->bind(':verify_status', $verifyStatus, PDO::PARAM_STR);
-        
-        error_log("SQL query prepared and parameters bound");
-        
-        // Execute
+
         $result = $this->db->execute();
-        error_log("Execute result: " . ($result ? 'SUCCESS' : 'FAILED'));
-        
-        // Check how many rows were affected
-        $rowCount = $this->db->rowCount();
-        error_log("Rows affected: $rowCount");
-        
+        error_log("Execute result ($statusColumn): " . ($result ? 'SUCCESS' : 'FAILED'));
+        error_log("Rows affected ($statusColumn): " . $this->db->rowCount());
+
         return $result;
     }
 }

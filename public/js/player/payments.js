@@ -436,24 +436,20 @@ function handlePayNow(e) {
         return;
     }
 
-    const form = document.createElement('form');
-    form.method = 'POST';
+    const form = document.getElementById('paymentsPayhereForm');
+    if (!form) {
+        showNotification('Payment form is missing on this page.', 'error');
+        return;
+    }
+
     form.action = payUrl;
-    form.style.display = 'none';
 
-    const amountInput = document.createElement('input');
-    amountInput.type = 'hidden';
-    amountInput.name = 'cart_total';
-    amountInput.value = paymentAmount.toFixed(2);
+    const amountInput = form.querySelector('input[name="cart_total"]');
+    const itemsInput = form.querySelector('input[name="cart_items"]');
 
-    const itemsInput = document.createElement('input');
-    itemsInput.type = 'hidden';
-    itemsInput.name = 'cart_items';
-    itemsInput.value = JSON.stringify([{ name: paymentItem, quantity: 1 }]);
+    if (amountInput) amountInput.value = paymentAmount.toFixed(2);
+    if (itemsInput) itemsInput.value = JSON.stringify([{ name: paymentItem, quantity: 1 }]);
 
-    form.appendChild(amountInput);
-    form.appendChild(itemsInput);
-    document.body.appendChild(form);
     form.submit();
 }
 
@@ -492,51 +488,8 @@ function handleDownload(e) {
 }
 
 function showFeeStructure() {
-    // Fee structure data - should come from server via window.paymentData.feeStructure
-    const feeStructure = window.paymentData?.feeStructure || [];
-    
-    const feeStructureModal = document.createElement('div');
-    feeStructureModal.className = 'modal active';
-    
-    let feeItemsHTML = '';
-    if (feeStructure.length > 0) {
-        feeStructure.forEach(item => {
-            feeItemsHTML += `
-                <div style="padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 10px;">
-                    <h4 style="margin: 0 0 0.5rem 0; color: #1f2937;">${item.title}</h4>
-                    <p style="margin: 0; color: #666;">${item.details}</p>
-                    ${item.total ? `<strong style="color: #1f2937;">Total: ${item.total}</strong>` : ''}
-                </div>
-            `;
-        });
-    } else {
-        feeItemsHTML = '<p style="color: #666;">Fee structure information is not available. Please contact the academy.</p>';
-    }
-    
-    feeStructureModal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Fee Structure</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    ${feeItemsHTML}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="this.closest('.modal').remove()">Close</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(feeStructureModal);
-    
-    // Close functionality
-    feeStructureModal.querySelector('.modal-close').onclick = () => feeStructureModal.remove();
-    feeStructureModal.onclick = (e) => {
-        if (e.target === feeStructureModal) feeStructureModal.remove();
-    };
+    // Fee structure modal is expected to be server-rendered in PHP if used.
+    showNotification('Fee structure details are not available on this page.', 'info');
 }
 
 // Form Handling

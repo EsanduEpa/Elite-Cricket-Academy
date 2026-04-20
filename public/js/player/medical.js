@@ -1,11 +1,10 @@
-/* global document, window, fetch, FormData */
+/* global document, window */
 
 (function () {
     'use strict';
 
     const MODAL_IDS = [
         'addMedicalModal',
-        'editFullRecordModal',
         'updateStatusModal',
         'deleteRecordModal'
     ];
@@ -235,26 +234,7 @@
         openModal(modalId);
     }
 
-    function openUpdateStatusModal(recordId, currentStatus, verifyStatus, diagnosis, treatment, bodyArea, injuryDate, reportedDate, happenedAtAcademy, restDays) {
-        if (verifyStatus === 'pending') {
-            document.getElementById('edit_record_id').value = recordId;
-            document.getElementById('edit_injury_date').value = injuryDate;
-            document.getElementById('edit_reported_date').value = reportedDate;
-            document.getElementById('edit_body_area').value = bodyArea;
-            document.getElementById('edit_diagnosis').value = diagnosis;
-            document.getElementById('edit_treatment').value = treatment;
-            document.getElementById('edit_rest_days').value = restDays;
-            document.getElementById('edit_recovery_status').value = currentStatus;
-
-            const academyYes = document.getElementById('edit_academy_yes');
-            const academyNo = document.getElementById('edit_academy_no');
-            if (academyYes) academyYes.checked = happenedAtAcademy === 'yes';
-            if (academyNo) academyNo.checked = happenedAtAcademy !== 'yes';
-
-            openModal('editFullRecordModal');
-            return;
-        }
-
+    function openUpdateStatusModal(recordId, currentStatus) {
         const recordIdInput = document.getElementById('update_record_id');
         const statusSelect = document.getElementById('update_recovery_status');
         if (!recordIdInput || !statusSelect) return;
@@ -262,10 +242,6 @@
         recordIdInput.value = recordId;
         statusSelect.value = currentStatus;
         openModal('updateStatusModal');
-    }
-
-    function closeEditFullRecordModal() {
-        closeModal('editFullRecordModal');
     }
 
     function closeUpdateStatusModal() {
@@ -284,38 +260,6 @@
         closeModal('deleteRecordModal');
     }
 
-    function deleteMedicalRecord() {
-        const recordId = document.getElementById('delete_record_id')?.value;
-        if (!recordId) {
-            window.alert('Error: No record ID found');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('record_id', recordId);
-
-        fetch(getMedicalUrlRoot() + '/player/deleteMedicalRecord', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.alert('Medical record deleted successfully');
-                    window.location.reload();
-                    return;
-                }
-
-                window.alert(data.message || 'Failed to delete medical record');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                window.alert('An error occurred while deleting the record');
-            })
-            .finally(() => {
-                closeDeleteRecordModal();
-            });
-    }
 
     function initRealtimeValidation() {
         const restDaysInput = document.getElementById('rest_days_needed');
@@ -358,22 +302,11 @@
         case 'open-update-modal':
             openUpdateStatusModal(
                 trigger.dataset.recordId,
-                trigger.dataset.recoveryStatus,
-                trigger.dataset.verifyStatus,
-                trigger.dataset.diagnosis,
-                trigger.dataset.treatment,
-                trigger.dataset.bodyArea,
-                trigger.dataset.injuryDate,
-                trigger.dataset.reportedDate,
-                trigger.dataset.happenedAtAcademy,
-                trigger.dataset.restDays
+                trigger.dataset.recoveryStatus
             );
             break;
         case 'confirm-delete':
             confirmDeleteRecord(trigger.dataset.recordId);
-            break;
-        case 'delete-record':
-            deleteMedicalRecord();
             break;
         default:
             break;
@@ -408,10 +341,8 @@
     window.closeModal = closeModal;
     window.openUpdateStatusModal = openUpdateStatusModal;
     window.closeUpdateStatusModal = closeUpdateStatusModal;
-    window.closeEditFullRecordModal = closeEditFullRecordModal;
     window.confirmDeleteRecord = confirmDeleteRecord;
     window.closeDeleteRecordModal = closeDeleteRecordModal;
-    window.deleteMedicalRecord = deleteMedicalRecord;
 
     document.addEventListener('DOMContentLoaded', function () {
         initRealtimeValidation();

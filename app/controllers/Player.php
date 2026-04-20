@@ -369,7 +369,7 @@ class Player extends Controller {
         }
     }
 
-    // Full update of a medical record (only allowed when verifyStatus is pending)
+    // Medical record update (player): recovery status only
     public function fullUpdateMedicalRecord() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('player/medical');
@@ -392,13 +392,6 @@ class Player extends Controller {
             return;
         }
 
-        // Only allow full edit when the record is still pending
-        if (strtolower($existingRecord->verifyStatus ?? 'pending') !== 'pending') {
-            flash('medical_message', 'This record has already been reviewed and cannot be fully edited', 'alert alert-danger');
-            redirect('player/medical');
-            return;
-        }
-
         $validStatuses = ['ongoing', 'recovering', 'fully_recovered', 'chronic_condition'];
         $recoveryStatus = $_POST['recovery_status'] ?? '';
         if (!in_array($recoveryStatus, $validStatuses)) {
@@ -407,45 +400,54 @@ class Player extends Controller {
             return;
         }
 
+        // Player is only allowed to update RecoveryStatus.
         $updateData = [
-            'body_area'           => trim($_POST['body_area']          ?? ''),
-            'diagnosis'           => trim($_POST['diagnosis']           ?? ''),
-            'treatment_given'     => trim($_POST['treatment_given']     ?? ''),
-            'recovery_status'     => $recoveryStatus,
-            'injury_date'         => $_POST['injury_date']              ?? '',
-            'happened_at_academy' => $_POST['happened_at_academy']      ?? 'no',
-            'rest_days_needed'    => intval($_POST['rest_days_needed']  ?? 0),
-            'reported_date'       => $_POST['reported_date']            ?? date('Y-m-d'),
+            'recovery_status' => $recoveryStatus,
+            'reported_date' => $existingRecord->ReportedDate,
         ];
 
-        if (empty($updateData['body_area']) || empty($updateData['diagnosis'])) {
-            flash('medical_message', 'Body area and diagnosis are required', 'alert alert-danger');
-            redirect('player/medical');
-            return;
-        }
-
-        $success = $this->medicalModel->fullUpdateMedicalRecord($recordId, $updateData);
+        $success = $this->medicalModel->updateMedicalRecord($recordId, $updateData);
 
         if ($success) {
-            flash('medical_message', 'Medical record updated successfully');
+            flash('medical_message', 'Recovery status updated successfully');
         } else {
-            flash('medical_message', 'Failed to update medical record', 'alert alert-danger');
+            flash('medical_message', 'Failed to update recovery status', 'alert alert-danger');
         }
         redirect('player/medical');
     }
 
     // Delete medical record (only if verify status is rejected)
     public function deleteMedicalRecord() {
-        header('Content-Type: application/json');
+        $wantsJson = false;
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            $wantsJson = true;
+        } elseif (!empty($_SERVER['HTTP_ACCEPT']) && stripos((string)$_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+            $wantsJson = true;
+        }
+
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+        }
+
+        $this->requireLogin();
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            if ($wantsJson) {
+                echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+                return;
+            }
+            redirect('player/medical');
             return;
         }
 
         // Validate input
         if (!isset($_POST['record_id'])) {
-            echo json_encode(['success' => false, 'message' => 'Missing record ID']);
+            if ($wantsJson) {
+                echo json_encode(['success' => false, 'message' => 'Missing record ID']);
+                return;
+            }
+            flash('medical_message', 'Missing record ID', 'alert alert-danger');
+            redirect('player/medical');
             return;
         }
 
@@ -465,19 +467,34 @@ class Player extends Controller {
             $existingRecord = $this->medicalModel->getMedicalRecord($recordId);
             
             if (!$existingRecord) {
-                echo json_encode(['success' => false, 'message' => 'Medical record not found']);
+                if ($wantsJson) {
+                    echo json_encode(['success' => false, 'message' => 'Medical record not found']);
+                    return;
+                }
+                flash('medical_message', 'Medical record not found', 'alert alert-danger');
+                redirect('player/medical');
                 return;
             }
             
             if ($existingRecord->PlayerID != $playerId) {
-                echo json_encode(['success' => false, 'message' => 'Access denied - record does not belong to current player']);
+                if ($wantsJson) {
+                    echo json_encode(['success' => false, 'message' => 'Access denied - record does not belong to current player']);
+                    return;
+                }
+                flash('medical_message', 'Record not found or access denied', 'alert alert-danger');
+                redirect('player/medical');
                 return;
             }
             
             // Check if verify status is 'rejected' - only then allow deletion
             $verifyStatus = strtolower($existingRecord->verifyStatus ?? 'pending');
             if ($verifyStatus !== 'rejected') {
-                echo json_encode(['success' => false, 'message' => 'Medical record can only be deleted if verification status is "rejected"']);
+                if ($wantsJson) {
+                    echo json_encode(['success' => false, 'message' => 'Medical record can only be deleted if verification status is "rejected"']);
+                    return;
+                }
+                flash('medical_message', 'Medical record can only be deleted if verification status is "rejected"', 'alert alert-danger');
+                redirect('player/medical');
                 return;
             }
             
@@ -485,16 +502,34 @@ class Player extends Controller {
             $success = $this->medicalModel->deleteMedicalRecord($recordId);
             
             if ($success) {
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Medical record deleted successfully',
-                    'record_id' => $recordId
-                ]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to delete medical record']);
+                if ($wantsJson) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Medical record deleted successfully',
+                        'record_id' => $recordId
+                    ]);
+                    return;
+                }
+                flash('medical_message', 'Medical record deleted successfully');
+                redirect('player/medical');
+                return;
             }
+
+            if ($wantsJson) {
+                echo json_encode(['success' => false, 'message' => 'Failed to delete medical record']);
+                return;
+            }
+            flash('medical_message', 'Failed to delete medical record', 'alert alert-danger');
+            redirect('player/medical');
+            return;
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            if ($wantsJson) {
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                return;
+            }
+            flash('medical_message', 'Database error while deleting record', 'alert alert-danger');
+            redirect('player/medical');
+            return;
         }
     }
     

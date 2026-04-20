@@ -442,13 +442,17 @@ class Coach extends Controller {
 
         error_log("Record ID: $recordId, Status: $verifyStatus");
 
-        // Validate verify status
-        $allowedStatuses = ['pending', 'verified', 'rejected'];
-        if (!in_array($verifyStatus, $allowedStatuses)) {
+        // Validate verify status (UI uses 'verified'; DB enum uses 'approved')
+        $allowedStatuses = ['pending', 'verified', 'approved', 'rejected'];
+        if (!in_array($verifyStatus, $allowedStatuses, true)) {
             error_log("Error: Invalid verification status: $verifyStatus");
             echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
             return;
         }
+
+        $verifyStatus = strtolower($verifyStatus);
+        $verifyStatusDb = ($verifyStatus === 'verified') ? 'approved' : $verifyStatus;
+        $verifyStatusForUi = ($verifyStatusDb === 'approved') ? 'verified' : $verifyStatusDb;
 
         try {
             // Initialize medical model
@@ -456,7 +460,7 @@ class Coach extends Controller {
             error_log("Medical model initialized");
             
             // Update verify status
-            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
+            $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatusDb, $verifyComments);
             error_log("Update result: " . ($result ? 'true' : 'false'));
             
             if ($result) {
@@ -464,7 +468,7 @@ class Coach extends Controller {
                     'success' => true, 
                     'message' => 'Verification status updated successfully',
                     'record_id' => $recordId,
-                    'new_status' => $verifyStatus
+                    'new_status' => $verifyStatusForUi
                 ]);
             } else {
                 error_log("Error: Database execute returned false");
@@ -770,6 +774,14 @@ class Coach extends Controller {
                 if ($reason === '') {
                     $error = 'A cancellation reason is required.';
                 } else {
+                    if (!class_exists('SlotOccurrenceCancellationPolicy')) {
+                        require_once APPROOT . '/libraries/SlotOccurrenceCancellationPolicy.php';
+                    }
+
+                    $canCancel = SlotOccurrenceCancellationPolicy::canCancel($occurrence);
+                    if ($canCancel !== true) {
+                        $error = $canCancel;
+                    } else {
                     $result = $slotStaffModel->cancelOccurrence((int) $id, $reason, $coachId);
 
                     if ($result === true) {
@@ -781,6 +793,7 @@ class Coach extends Controller {
                         $error = 'You are not assigned to this session.';
                     } else {
                         $error = 'Could not cancel the session. Please try again.';
+                    }
                     }
                 }
             } elseif (isset($_POST['action_update_occurrence_status'])) {

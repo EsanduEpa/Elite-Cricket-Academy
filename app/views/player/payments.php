@@ -215,6 +215,13 @@
 
     <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
     <script src="<?php echo URLROOT; ?>/js/player/dashboard.js"></script>
+
+    <!-- PayHere payment form (server-rendered; JS may populate + submit) -->
+    <form id="paymentsPayhereForm" method="POST" action="<?php echo URLROOT; ?>/player/payhere_checkout" style="display:none;">
+        <input type="hidden" name="cart_total" value="">
+        <input type="hidden" name="cart_items" value="">
+    </form>
+
     <script src="<?php echo URLROOT; ?>/js/player/payments.js"></script>
 </body>
 </html>

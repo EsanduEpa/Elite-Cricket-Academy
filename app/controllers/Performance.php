@@ -35,17 +35,8 @@ class Performance extends Controller {
     }
 
     public function match_history() {
-        $perfModel = $this->model('M_Performance');
-        $playerId = $_SESSION['user_id'] ?? 6;
-
-        $data = [
-            'title' => 'Match History',
-            'player' => $this->getPlayerData(),
-            'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
-            'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId),
-        ];
-
-        $this->view('player/match_history', $data);
+        // Match history is now part of the main Performance page.
+        redirect('performance#matchHistorySection');
     }
     
     // Add Achievement (AJAX method)

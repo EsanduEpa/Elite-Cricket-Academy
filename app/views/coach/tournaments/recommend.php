@@ -75,6 +75,9 @@
                 <form method="POST" action="<?php echo URLROOT; ?>/coach/save_recommendation">
                     <input type="hidden" name="tournamentId" value="<?php echo $t->TournamentID; ?>">
 
+
+
+                    
                     <div class="form-group">
                         <label for="playerId">Select Player <span style="color:red">*</span></label>
                         <select name="playerId" id="playerId" required>

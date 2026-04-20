@@ -26,24 +26,46 @@ function submitVerification() {
         return;
     }
 
+    const params = new URLSearchParams();
+    params.set('record_id', recordId);
+    params.set('verify_status', verifyStatus);
+    params.set('verify_comments', verifyComments);
+
     fetch(window.TRAINER_VERIFY_STATUS_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
         },
-        body: `record_id=${recordId}&verify_status=${verifyStatus}&verify_comments=${encodeURIComponent(verifyComments)}`,
+        credentials: 'same-origin',
+        body: params.toString(),
     })
-        .then((response) => response.json())
+        .then(async (response) => {
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(text || 'Non-JSON response received');
+            }
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
+            }
+            return data;
+        })
         .then((data) => {
             if (data.success) {
                 alert('Verification status updated successfully!');
 
                 const row = document.querySelector(`tr[data-record-id="${recordId}"]`);
                 if (row) {
-                    const statusCell = row.querySelector('td:nth-child(9) span');
-                    if (statusCell) {
-                        statusCell.className = `table-badge verify-status-${verifyStatus.toLowerCase()}`;
-                        statusCell.textContent = verifyStatus;
+                    const badge = row.querySelector('.verify-status-badge');
+                    const newStatus = String(data.new_status || verifyStatus).toLowerCase();
+                    const label = newStatus ? (newStatus.charAt(0).toUpperCase() + newStatus.slice(1)) : '';
+                    if (badge) {
+                        badge.className = `table-badge verify-status-badge verify-status-${newStatus}`;
+                        badge.textContent = label;
                     }
                 }
 
@@ -52,8 +74,8 @@ function submitVerification() {
                 alert('Error: ' + (data.message || 'Unknown error occurred'));
             }
         })
-        .catch(() => {
-            alert('An error occurred while updating the verification status.');
+        .catch((err) => {
+            alert('An error occurred while updating the verification status. ' + (err && err.message ? err.message : ''));
         });
 }
 

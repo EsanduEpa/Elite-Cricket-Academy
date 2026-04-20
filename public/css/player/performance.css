@@ -198,33 +198,6 @@
     font-size: 11px;
 }
 
-.match-history-row-win {
-    background-color: rgba(39, 174, 96, 0.1);
-}
-
-.match-history-row-loss {
-    background-color: rgba(231, 76, 60, 0.1);
-}
-
-.match-history-row-draw {
-    background-color: rgba(52, 152, 219, 0.1);
-}
-
-.match-history-row-other {
-    background-color: rgba(241, 196, 15, 0.1);
-}
-
-.performance-modal-header-green {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-}
-
-.performance-modal-header-dark {
-    background: linear-gradient(135deg, #2c3e50, #34495e);
-}
-
-.modal-icon-white {
-    color: #fff;
-}
 
 .form-group-spaced {
     margin-bottom: 25px;

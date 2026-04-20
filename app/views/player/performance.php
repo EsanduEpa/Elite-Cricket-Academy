@@ -612,18 +612,7 @@
                         <tbody>
                             <?php if (isset($data['playerPerformanceRecords']) && !empty($data['playerPerformanceRecords'])): ?>
                                 <?php foreach ($data['playerPerformanceRecords'] as $match): ?>
-                                    <?php
-                                        $result = strtolower($match->Result ?? '');
-                                        $rowClass = 'match-history-row-other';
-                                        if (in_array($result, ['won', 'win', 'w'])) {
-                                            $rowClass = 'match-history-row-win';
-                                        } elseif (in_array($result, ['lost', 'loss', 'lose', 'l'])) {
-                                            $rowClass = 'match-history-row-loss';
-                                        } elseif (in_array($result, ['draw', 'd', 'tie', 'tied'])) {
-                                            $rowClass = 'match-history-row-draw';
-                                        }
-                                    ?>
-                                    <tr class="<?php echo $rowClass; ?>">
+                                    <tr>
                                         <td class="table-cell-center">
                                             <div class="table-cell-primary"><?php echo $match->Date ? date('M d', strtotime($match->Date)) : 'N/A'; ?></div>
                                             <div class="table-cell-secondary"><?php echo $match->Date ? date('l', strtotime($match->Date)) : ''; ?></div>
@@ -897,6 +886,84 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Performance Details Modal (server-rendered; JS populates + opens/closes) -->
+    <div id="detailsModal" class="modal app-modal" aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--wide">
+            <div class="modal-header app-modal__header">
+                <div class="app-modal__title-wrap">
+                    <span class="app-modal__icon"><i class="fas fa-chart-line"></i></span>
+                    <div>
+                        <h2 id="detailsModalTitle" class="app-modal__title">Match Performance Details</h2>
+                        <p id="detailsModalSubtitle" class="app-modal__subtitle">Review the full record for this match.</p>
+                    </div>
+                </div>
+                <button class="close app-modal__close" type="button" data-performance-action="close-details-modal">&times;</button>
+            </div>
+
+            <div class="modal-body app-modal__body">
+                <div id="detailsGenericMessage" style="display:none;"></div>
+
+                <div id="detailsMatchInfo">
+                    <h3><i class="fas fa-info-circle"></i> Match Information</h3>
+                    <p><strong>Date:</strong> <span id="detailsDate">-</span></p>
+                    <p><strong>Tournament:</strong> <span id="detailsTournament">-</span></p>
+                    <p><strong>Opponent:</strong> <span id="detailsOpponent">-</span></p>
+                    <p><strong>Venue:</strong> <span id="detailsVenue">-</span></p>
+                    <p><strong>Result:</strong> <span id="detailsResult">-</span></p>
+                </div>
+
+                <div id="detailsStatsGrid" style="margin-top: 1rem;">
+                    <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+                        <div>
+                            <h4><i class="fas fa-baseball-ball"></i> Batting</h4>
+                            <p><strong><span id="detailsRuns">0</span></strong> runs</p>
+                            <p><small><span id="detailsBalls">0</span> balls</small></p>
+                        </div>
+                        <div>
+                            <h4><i class="fas fa-fire"></i> Bowling</h4>
+                            <p><strong><span id="detailsWickets">0</span></strong> wickets</p>
+                            <p><small><span id="detailsOvers">0</span> overs, <span id="detailsConceded">0</span> runs</small></p>
+                        </div>
+                        <div>
+                            <h4><i class="fas fa-hand-paper"></i> Fielding</h4>
+                            <p><strong><span id="detailsFieldingTotal">0</span></strong> total</p>
+                            <p><small>C: <span id="detailsCatches">0</span> | S: <span id="detailsStumpings">0</span></small></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detailsRating" style="margin-top: 1rem;">
+                    <p><strong>Overall Rating:</strong> <span id="detailsRatingValue">0</span>/10</p>
+                </div>
+
+                <div id="detailsMeta" style="margin-top: 1rem;">
+                    <p><strong>Status:</strong> <span id="detailsStatus">-</span></p>
+                    <p id="detailsAddedByRow" style="display:none;"><strong>Added by:</strong> <span id="detailsAddedBy">-</span></p>
+                    <p id="detailsVerifiedByRow" style="display:none;"><strong>Verified by:</strong> <span id="detailsVerifiedBy">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Details Modal (server-rendered; JS populates + opens/closes) -->
+    <div id="achievementViewModal" class="modal app-modal" aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--standard">
+            <div class="modal-header app-modal__header">
+                <h2 class="app-modal__title"><i class="fas fa-trophy"></i> Achievement Details</h2>
+                <button class="close app-modal__close" type="button" data-performance-action="close-achievement-view-modal">&times;</button>
+            </div>
+            <div class="modal-body app-modal__body">
+                <p><strong>Date:</strong> <span id="achievementViewDate">-</span></p>
+                <p><strong>Tournament:</strong> <span id="achievementViewTournament">-</span></p>
+                <p><strong>Match:</strong> <span id="achievementViewMatch">-</span></p>
+                <p><strong>Achievement:</strong> <span id="achievementViewText">-</span></p>
+                <p><strong>Status:</strong> <span id="achievementViewStatus">-</span></p>
+                <p><strong>Submitted:</strong> <span id="achievementViewSubmitted">-</span></p>
+                <div id="achievementViewBanner" style="margin-top: 1rem;"></div>
             </div>
         </div>
     </div>

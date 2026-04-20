@@ -136,6 +136,14 @@
                     <!-- Hidden nonce for CSRF protection -->
                     <input type="hidden" id="payhere_nonce" value="<?php echo htmlspecialchars($_SESSION['payhere_nonce'] ?? ''); ?>">
 
+                    <!-- PayHere Checkout Form (server-rendered; JS only populates + submits) -->
+                    <form id="payhereCheckoutForm" method="POST" action="<?php echo URLROOT; ?>/player/payhere_checkout" style="display:none;">
+                        <input type="hidden" name="cart_items" value="">
+                        <input type="hidden" name="cart_total" value="">
+                        <input type="hidden" name="selected_product_ids" value="">
+                        <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($_SESSION['payhere_nonce'] ?? ''); ?>">
+                    </form>
+
                     <!-- Checkout Button -->
                     <button class="btn btn-primary btn-large checkout-button" id="main-checkout-btn" onclick="proceedToCheckout()">
                         <i class="fas fa-shopping-bag"></i>
