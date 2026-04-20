@@ -272,6 +272,8 @@
                             <th>Player</th>
                             <th>Tournament</th>
                             <th>Role</th>
+                            <th>Captaincy</th>
+                            <th>Wicket Keeper</th>
                             <th>Status</th>
                             <th>Reason</th>
                             <th>Comments</th>
@@ -296,7 +298,28 @@
                                         <?php endif; ?>
                                     </td>
                                     <td><?php echo htmlspecialchars($rec->TournamentName ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars(ucfirst(str_replace(['-', '_'], ' ', (string)($rec->RecommendedRole ?? 'N/A')))); ?></td>
+                                    <?php
+                                        $role = strtolower(trim((string)($rec->RecommendedRole ?? '')));
+                                        $roleLabel = match ($role) {
+                                            'batsman' => 'Batsman',
+                                            'bowler' => 'Bowler',
+                                            'allrounder' => 'All-rounder',
+                                            default => ($role !== '' ? ucfirst(str_replace(['-', '_'], ' ', $role)) : '—'),
+                                        };
+
+                                        $captaincy = strtolower(trim((string)($rec->Captaincy ?? 'team member')));
+                                        $captaincyLabel = match ($captaincy) {
+                                            'captain' => 'Captain',
+                                            'vice captain' => 'Vice Captain',
+                                            default => 'Team Member',
+                                        };
+
+                                        $wk = strtolower(trim((string)($rec->WicketKeeper ?? 'no')));
+                                        $wkLabel = $wk === 'yes' ? 'Yes' : 'No';
+                                    ?>
+                                    <td><?php echo htmlspecialchars($roleLabel); ?></td>
+                                    <td><?php echo htmlspecialchars($captaincyLabel); ?></td>
+                                    <td><?php echo htmlspecialchars($wkLabel); ?></td>
                                     <td><span class="status-badge status-<?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($status)); ?></span></td>
                                     <td><?php echo htmlspecialchars($rec->Reason ?? '—'); ?></td>
                                     <td><?php echo htmlspecialchars($rec->Comments ?? '—'); ?></td>
@@ -306,7 +329,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="empty-table-row">
+                                <td colspan="10" class="empty-table-row">
                                     No recommendations yet. Your submitted tournament recommendations will appear here.
                                 </td>
                             </tr>

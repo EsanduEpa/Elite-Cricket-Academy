@@ -1608,7 +1608,9 @@ class Coach extends Controller {
 
         $tournamentId    = intval($input['tournamentId'] ?? 0);
         $playerId        = intval($input['playerId'] ?? 0);
-        $recommendedRole = trim($input['recommendedRole'] ?? '');
+        $recommendedRole = $this->normalizeCoachRecommendedRole((string)($input['recommendedRole'] ?? ''));
+        $captaincy       = $this->normalizeCoachCaptaincy((string)($input['captaincy'] ?? ''));
+        $wicketKeeper    = $this->normalizeCoachWicketKeeper((string)($input['wicketKeeper'] ?? ''));
         $reason          = trim($input['reason'] ?? '');
         $comments        = trim($input['comments'] ?? '');
 
@@ -1638,10 +1640,31 @@ class Coach extends Controller {
             return;
         }
 
+        if (!in_array($recommendedRole, ['bowler', 'batsman', 'allrounder'], true)) {
+            if ($isJsonRequest) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Invalid role selected.']);
+                return;
+            }
+            $_SESSION['error'] = 'Invalid role selected.';
+            redirect($formBack);
+            return;
+        }
+
+        if (!in_array($captaincy, ['captain', 'vice captain', 'team member'], true)) {
+            $captaincy = 'team member';
+        }
+
+        if (!in_array($wicketKeeper, ['yes', 'no'], true)) {
+            $wicketKeeper = 'no';
+        }
+
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
 
         $result = $recommendationModel->addRecommendation($coachId, $tournamentId, $playerId, [
             'role'     => $recommendedRole,
+            'captaincy' => $captaincy,
+            'wicketKeeper' => $wicketKeeper,
             'reason'   => $reason,
             'comments' => $comments,
         ]);
@@ -1719,13 +1742,28 @@ class Coach extends Controller {
         $coachId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
         
-        $recommendedRole = trim($input['recommendedRole'] ?? '');
+        $recommendedRole = $this->normalizeCoachRecommendedRole((string)($input['recommendedRole'] ?? ''));
+        $captaincy = $this->normalizeCoachCaptaincy((string)($input['captaincy'] ?? ''));
+        $wicketKeeper = $this->normalizeCoachWicketKeeper((string)($input['wicketKeeper'] ?? ''));
         $reason = trim($input['reason'] ?? '');
         $comments = trim($input['comments'] ?? '');
         
         if (empty($recommendedRole)) {
             echo json_encode(['success' => false, 'message' => 'Role is required']);
             return;
+        }
+
+        if (!in_array($recommendedRole, ['bowler', 'batsman', 'allrounder'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid role selected']);
+            return;
+        }
+
+        if (!in_array($captaincy, ['captain', 'vice captain', 'team member'], true)) {
+            $captaincy = 'team member';
+        }
+
+        if (!in_array($wicketKeeper, ['yes', 'no'], true)) {
+            $wicketKeeper = 'no';
         }
 
         $recommendationModel = $this->model('M_CoachTournamentRecommendation');
@@ -1757,6 +1795,8 @@ class Coach extends Controller {
             // Update recommendation
             $updateData = [
                 'role' => $recommendedRole,
+                'captaincy' => $captaincy,
+                'wicketKeeper' => $wicketKeeper,
                 'reason' => $reason,
                 'comments' => $comments
             ];
@@ -1830,6 +1870,42 @@ class Coach extends Controller {
         }
 
         return ['success' => true];
+    }
+
+    private function normalizeCoachRecommendedRole(string $value): string {
+        $value = strtolower(trim($value));
+        $value = str_replace(['_', '-'], ' ', $value);
+        $value = preg_replace('/\s+/', ' ', $value);
+
+        return match ($value) {
+            'bowler' => 'bowler',
+            'batsman', 'batter' => 'batsman',
+            'all rounder', 'allrounder' => 'allrounder',
+            default => '',
+        };
+    }
+
+    private function normalizeCoachCaptaincy(string $value): string {
+        $value = strtolower(trim($value));
+        $value = str_replace(['_', '-'], ' ', $value);
+        $value = preg_replace('/\s+/', ' ', $value);
+
+        return match ($value) {
+            'captain' => 'captain',
+            'vice captain', 'vicecaptain' => 'vice captain',
+            'team member', 'member', '' => 'team member',
+            default => 'team member',
+        };
+    }
+
+    private function normalizeCoachWicketKeeper(string $value): string {
+        $value = strtolower(trim($value));
+
+        return match ($value) {
+            'yes', 'y', '1', 'true', 'on' => 'yes',
+            'no', 'n', '0', 'false', 'off', '' => 'no',
+            default => 'no',
+        };
     }
 
     /**
@@ -2327,8 +2403,8 @@ class Coach extends Controller {
         $tournament   = $M_Tournament->getTournamentById($id);
         if (!$tournament) { redirect('coach/tournaments'); return; }
 
-        if (!in_array($tournament->Status, ['registration_open', 'registration_closed', 'created'])) {
-            $_SESSION['error'] = 'Squad can only be finalized while the tournament is not yet ongoing.';
+        if (($tournament->Status ?? '') !== 'registration_closed') {
+            $_SESSION['error'] = 'Finalize Squad becomes available after registrations are closed.';
             redirect('coach/tournament_detail/' . $id);
             return;
         }
@@ -2358,6 +2434,12 @@ class Coach extends Controller {
         $M_Tournament = $this->model('M_Tournament');
         $tournament   = $M_Tournament->getTournamentById($id);
         if (!$tournament) { redirect('coach/tournaments'); return; }
+
+        if (($tournament->Status ?? '') !== 'registration_closed') {
+            $_SESSION['error'] = 'Finalize Squad becomes available after registrations are closed.';
+            redirect('coach/tournament_detail/' . $id);
+            return;
+        }
 
         // Clear existing draft and rebuild
         $M_Tournament->clearTeamDraft($id);

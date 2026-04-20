@@ -590,8 +590,8 @@ class M_Performance {
     // Verify/Reject performance statistics (for coaches/admins)
    
 public function updatePerformanceVerification($performanceId, $status, $verifiedBy) {
-    // Get PlayerID + TournamentID first (TournamentID via the match)
-    $this->db->query('SELECT pmp.PlayerID, cm.TournamentID
+    // Get PlayerID + TournamentID + old verification status first (TournamentID via the match)
+    $this->db->query('SELECT pmp.PlayerID, cm.TournamentID, pmp.VerifiedStatus AS OldVerifiedStatus
         FROM playermatchperformance pmp
         LEFT JOIN crimatch cm ON cm.MatchID = pmp.MatchID
         WHERE pmp.PerformanceID = :performance_id');
@@ -619,13 +619,12 @@ public function updatePerformanceVerification($performanceId, $status, $verified
     
     // Keep playeroverallstats consistent with verified-only rule.
     // - If verified: recalc from verified performances.
-    // - If rejected: delete overallstats row if the player has no verified performances left.
-    if ($status === 'verified') {
-        $this->calculateOverallStats($record->PlayerID);
-    } else {
-        if (!$this->hasAnyVerifiedPerformanceRecords((int)$record->PlayerID)) {
-            $this->deleteStoredOverallStats((int)$record->PlayerID);
-        }
+    // - If un-verified (e.g. rejected after being verified): recalc again so totals go DOWN.
+    $oldStatus = (string)($record->OldVerifiedStatus ?? '');
+    if ($status === 'verified' || $oldStatus === 'verified') {
+        $this->calculateOverallStats((int)$record->PlayerID);
+    } else if (!$this->hasAnyVerifiedPerformanceRecords((int)$record->PlayerID)) {
+        $this->deleteStoredOverallStats((int)$record->PlayerID);
     }
 
     // Recalculate tournament stats from match performance (keeps playertournamentstats and awards in sync)

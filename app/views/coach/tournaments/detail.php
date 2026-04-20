@@ -25,6 +25,31 @@
 
     <main class="main-content" id="mainContent">
         <?php $t = $data['tournament']; ?>
+        <?php
+            $formatCoachRecRole = static function ($role): string {
+                $role = strtolower(trim((string) $role));
+                return match ($role) {
+                    'batsman' => 'Batsman',
+                    'bowler' => 'Bowler',
+                    'allrounder' => 'All-rounder',
+                    default => $role !== '' ? ucwords(str_replace(['_', '-'], ' ', $role)) : '—',
+                };
+            };
+
+            $formatCaptaincy = static function ($captaincy): string {
+                $captaincy = strtolower(trim((string) $captaincy));
+                return match ($captaincy) {
+                    'captain' => 'Captain',
+                    'vice captain' => 'Vice Captain',
+                    default => 'Team Member',
+                };
+            };
+
+            $formatWicketKeeper = static function ($wk): string {
+                $wk = strtolower(trim((string) $wk));
+                return $wk === 'yes' ? 'Yes' : 'No';
+            };
+        ?>
         <div class="dashboard-header" style="display:flex;justify-content:space-between;gap:16px;align-items:center;">
             <div class="header-content" style="flex:1;">
                 <div>
@@ -40,7 +65,7 @@
                     <i class="fas fa-arrow-left"></i>
                     Back to Tournaments
                 </a>
-                <?php if ($data['is_head_coach'] && in_array($t->Status, ['registration_open','registration_closed'])): ?>
+                <?php if ($data['is_head_coach'] && ($t->Status ?? '') === 'registration_closed'): ?>
                     <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" class="page-action-btn" style="color:#16a34a;">
                         <i class="fas fa-users-cog"></i>
                         Finalize Squad
@@ -124,12 +149,14 @@
                         <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No recommendations yet for this tournament.</p>
                     <?php else: ?>
                     <table class="data-table">
-                        <thead><tr><th>Player</th><th>Role</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Player</th><th>Role</th><th>Captaincy</th><th>Wicket Keeper</th><th>Status</th></tr></thead>
                         <tbody>
                         <?php foreach ($data['my_recs'] as $r): ?>
                         <tr>
                             <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
-                            <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
+                            <td><?php echo htmlspecialchars($formatCoachRecRole($r->RecommendedRole ?? '')); ?></td>
+                            <td><?php echo htmlspecialchars($formatCaptaincy($r->Captaincy ?? 'team member')); ?></td>
+                            <td><?php echo htmlspecialchars($formatWicketKeeper($r->WicketKeeper ?? 'no')); ?></td>
                             <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                         </tr>
                         <?php endforeach; ?>
@@ -175,7 +202,17 @@
                     <div class="panel-hdr"><h3><i class="fas fa-users"></i> Current Squad (<?php echo count($data['team']); ?>)</h3></div>
                     <?php if (empty($data['team'])): ?>
                         <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">
-                            <?php echo $data['is_head_coach'] ? 'No squad selected yet. Use "Finalize Squad" to build it.' : 'Squad not yet selected.'; ?>
+                            <?php
+                                $isHeadCoach = !empty($data['is_head_coach']);
+                                $status = (string)($t->Status ?? '');
+                                if ($isHeadCoach && $status === 'registration_closed') {
+                                    echo 'No squad selected yet. Use "Finalize Squad" to build it.';
+                                } elseif ($isHeadCoach) {
+                                    echo 'No squad selected yet. Finalize Squad becomes available after registrations are closed.';
+                                } else {
+                                    echo 'Squad not yet selected.';
+                                }
+                            ?>
                         </p>
                     <?php else: ?>
                     <table class="data-table">
@@ -246,13 +283,15 @@
                         <p style="padding:16px;color:#94a3b8;text-align:center;font-size:13px;">No coach recommendations yet.</p>
                     <?php else: ?>
                     <table class="data-table">
-                        <thead><tr><th>Coach</th><th>Player</th><th>Role</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Coach</th><th>Player</th><th>Role</th><th>Captaincy</th><th>Wicket Keeper</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody>
                         <?php foreach (($data['coach_recs'] ?? []) as $r): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($r->CoachName ?? ''); ?></td>
                                 <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
-                                <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
+                                <td><?php echo htmlspecialchars($formatCoachRecRole($r->RecommendedRole ?? '')); ?></td>
+                                <td><?php echo htmlspecialchars($formatCaptaincy($r->Captaincy ?? 'team member')); ?></td>
+                                <td><?php echo htmlspecialchars($formatWicketKeeper($r->WicketKeeper ?? 'no')); ?></td>
                                 <td style="max-width:220px;"><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo htmlspecialchars($r->Status ?? 'pending'); ?>"><?php echo strtoupper((string)($r->Status ?? 'pending')); ?></span></td>
                                 <td>

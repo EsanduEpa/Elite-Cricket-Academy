@@ -100,7 +100,7 @@
                     </div>
                     <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
                         <a href="<?php echo URLROOT; ?>/coach/tournament_detail/<?php echo $t->TournamentID; ?>" style="background:#3b82f6;color:#fff;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-eye"></i> View</a>
-                        <?php if ($data['is_head_coach'] && in_array($t->Status, ['registration_open','registration_closed'])): ?>
+                        <?php if ($data['is_head_coach'] && ($t->Status ?? '') === 'registration_closed'): ?>
                             <a href="<?php echo URLROOT; ?>/coach/finalize_team/<?php echo $t->TournamentID; ?>" style="background:#16a34a;color:#fff;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;"><i class="fas fa-users"></i> Finalize Squad</a>
                         <?php endif; ?>
                     </div>
