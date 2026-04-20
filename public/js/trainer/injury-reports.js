@@ -58,12 +58,16 @@ function submitVerification() {
             if (data.success) {
                 showNotification('Verification status updated successfully!', 'success');
 
+                const newStatus = (data.new_status || verifyStatus).toLowerCase();
+                const labelMap = { verified: 'Verified', rejected: 'Rejected', pending: 'Pending' };
+                const displayLabel = labelMap[newStatus] || newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+
                 const row = document.querySelector(`tr[data-record-id="${recordId}"]`);
                 if (row) {
                     const statusCell = row.querySelector('td:nth-child(7) span');
                     if (statusCell) {
-                        statusCell.className = `table-badge verify-status-${verifyStatus.toLowerCase()}`;
-                        statusCell.textContent = verifyStatus;
+                        statusCell.className = `table-badge verify-status-badge verify-status-${newStatus}`;
+                        statusCell.textContent = displayLabel;
                     }
                 }
 
