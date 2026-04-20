@@ -75,6 +75,32 @@
                 <form method="POST" action="<?php echo URLROOT; ?>/coach/save_recommendation">
                     <input type="hidden" name="tournamentId" value="<?php echo $t->TournamentID; ?>">
 
+                    <?php
+                    $formatCoachRecRole = static function ($role): string {
+                        $role = strtolower(trim((string) $role));
+                        return match ($role) {
+                            'batsman' => 'Batsman',
+                            'bowler' => 'Bowler',
+                            'allrounder' => 'All-rounder',
+                            default => $role !== '' ? ucwords(str_replace(['_', '-'], ' ', $role)) : 'Recommended',
+                        };
+                    };
+
+                    $formatCaptaincy = static function ($captaincy): string {
+                        $captaincy = strtolower(trim((string) $captaincy));
+                        return match ($captaincy) {
+                            'captain' => 'Captain',
+                            'vice captain' => 'Vice Captain',
+                            default => 'Team Member',
+                        };
+                    };
+
+                    $formatWicketKeeper = static function ($wk): string {
+                        $wk = strtolower(trim((string) $wk));
+                        return $wk === 'yes' ? 'Wicket Keeper' : 'Not Keeper';
+                    };
+                    ?>
+
 
 
                     
@@ -87,10 +113,7 @@
                                 <?php
                                     $alreadyRecRole = 'Recommended';
                                     if ($alreadyRec && isset($alreadyRec->RecommendedRole)) {
-                                        $alreadyRecRole = trim((string)$alreadyRec->RecommendedRole);
-                                        if ($alreadyRecRole === '' || strtolower($alreadyRecRole) === 'null') {
-                                            $alreadyRecRole = 'Recommended';
-                                        }
+                                        $alreadyRecRole = $formatCoachRecRole($alreadyRec->RecommendedRole);
                                     }
                                 ?>
                                 <option value="<?php echo $p->PlayerID; ?>" <?php echo $alreadyRec ? 'disabled' : ''; ?> <?php echo ((int)($data['selected_player_id'] ?? 0) === (int)$p->PlayerID) ? 'selected' : ''; ?>>
@@ -109,12 +132,26 @@
                         <label for="recommendedRole">Recommended Role <span style="color:red">*</span></label>
                         <select name="recommendedRole" id="recommendedRole" required>
                             <option value="">-- Select role --</option>
-                            <option value="Batsman">Batsman</option>
-                            <option value="Bowler">Bowler</option>
-                            <option value="All-rounder">All-rounder</option>
-                            <option value="Wicket Keeper">Wicket Keeper</option>
-                            <option value="Captain">Captain</option>
-                            <option value="Vice Captain">Vice Captain</option>
+                            <option value="batsman">Batsman</option>
+                            <option value="bowler">Bowler</option>
+                            <option value="allrounder">All-rounder</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="captaincy">Captaincy</label>
+                        <select name="captaincy" id="captaincy">
+                            <option value="team member">Team member</option>
+                            <option value="captain">Captain</option>
+                            <option value="vice captain">Vice captain</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="wicketKeeper">Wicket Keeper</label>
+                        <select name="wicketKeeper" id="wicketKeeper">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
                         </select>
                     </div>
 
@@ -155,10 +192,7 @@
                         <?php
                             $myRecRole = 'Recommended';
                             if ($myRec && isset($myRec->RecommendedRole)) {
-                                $myRecRole = trim((string)$myRec->RecommendedRole);
-                                if ($myRecRole === '' || strtolower($myRecRole) === 'null') {
-                                    $myRecRole = 'Recommended';
-                                }
+                                $myRecRole = $formatCoachRecRole($myRec->RecommendedRole);
                             }
                         ?>
                         <?php $perf = $p->PerformanceSummary ?? ['overall' => null, 'latest_match' => null]; ?>
@@ -236,7 +270,18 @@
                             </td>
                             <td>
                                 <?php if ($myRec): ?>
-                                    <span class="rec-badge"><i class="fas fa-star"></i> <?php echo htmlspecialchars($myRecRole); ?></span>
+                                    <span class="rec-badge"><i class="fas fa-star"></i>
+                                        <?php
+                                            $extras = [];
+                                            if (!empty($myRec->Captaincy) && strtolower((string)$myRec->Captaincy) !== 'team member') {
+                                                $extras[] = $formatCaptaincy($myRec->Captaincy);
+                                            }
+                                            if (!empty($myRec->WicketKeeper) && strtolower((string)$myRec->WicketKeeper) === 'yes') {
+                                                $extras[] = 'Wicket Keeper';
+                                            }
+                                            echo htmlspecialchars($myRecRole . (!empty($extras) ? ' (' . implode(', ', $extras) . ')' : ''));
+                                        ?>
+                                    </span>
                                 <?php else: ?>
                                     <span style="color:#94a3b8;font-size:12px;">—</span>
                                 <?php endif; ?>

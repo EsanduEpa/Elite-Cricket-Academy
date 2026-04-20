@@ -52,7 +52,25 @@
             $pid = $r->PlayerID;
             if (!isset($recMap[$pid])) $recMap[$pid] = ['coach' => 0, 'trainer' => 0, 'role' => null];
             $recMap[$pid]['coach']++;
-            if (!$recMap[$pid]['role'] && !empty($r->RecommendedRole)) $recMap[$pid]['role'] = $r->RecommendedRole;
+            if (!$recMap[$pid]['role']) {
+                $captaincy = strtolower(trim((string)($r->Captaincy ?? '')));
+                $wk = strtolower(trim((string)($r->WicketKeeper ?? '')));
+                $role = strtolower(trim((string)($r->RecommendedRole ?? '')));
+
+                if ($captaincy === 'captain') {
+                    $recMap[$pid]['role'] = 'Captain';
+                } elseif ($captaincy === 'vice captain') {
+                    $recMap[$pid]['role'] = 'Vice-Captain';
+                } elseif ($wk === 'yes') {
+                    $recMap[$pid]['role'] = 'Wicket-Keeper';
+                } elseif ($role === 'batsman') {
+                    $recMap[$pid]['role'] = 'Batsman';
+                } elseif ($role === 'bowler') {
+                    $recMap[$pid]['role'] = 'Bowler';
+                } elseif ($role === 'allrounder') {
+                    $recMap[$pid]['role'] = 'All-Rounder';
+                }
+            }
         }
         foreach ($data['trainer_recs'] as $r) {
             $pid = $r->PlayerID;

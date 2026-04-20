@@ -136,6 +136,17 @@ function openEditModal(recommendationId) {
                 document.getElementById('tournamentSelect').value = rec.TournamentID;
                 document.getElementById('playerSelect').value = rec.PlayerID;
                 document.getElementById('roleSelect').value = rec.RecommendedRole;
+
+                const captaincyEl = document.getElementById('captaincySelect');
+                if (captaincyEl) {
+                    captaincyEl.value = rec.Captaincy || 'team member';
+                }
+
+                const wicketKeeperEl = document.getElementById('wicketKeeperSelect');
+                if (wicketKeeperEl) {
+                    wicketKeeperEl.value = rec.WicketKeeper || 'no';
+                }
+
                 document.getElementById('reasonInput').value = rec.Reason || '';
                 document.getElementById('commentsInput').value = rec.Comments || '';
                 
@@ -189,6 +200,8 @@ function handleFormSubmit(e) {
         tournamentId: parseInt(formData.get('tournament')),
         playerId: parseInt(formData.get('player')),
         recommendedRole: formData.get('role'),
+        captaincy: formData.get('captaincy') || 'team member',
+        wicketKeeper: formData.get('wicketKeeper') || 'no',
         reason: formData.get('reason'),
         comments: formData.get('comments')
     };

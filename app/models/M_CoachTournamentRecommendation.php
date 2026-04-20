@@ -69,14 +69,16 @@ class M_CoachTournamentRecommendation
             // Insert recommendation
             $this->db->query("
                 INSERT INTO coach_tournament_recommendations 
-                (CoachID, TournamentID, PlayerID, RecommendedRole, Reason, Comments, Status, DateRecommended)
-                VALUES (:coachId, :tournamentId, :playerId, :role, :reason, :comments, 'pending', NOW())
+                (CoachID, TournamentID, PlayerID, RecommendedRole, Captaincy, WicketKeeper, Reason, Comments, Status, DateRecommended)
+                VALUES (:coachId, :tournamentId, :playerId, :role, :captaincy, :wicketKeeper, :reason, :comments, 'pending', NOW())
             ");
 
             $this->db->bind(':coachId', $coachId);
             $this->db->bind(':tournamentId', $tournamentId);
             $this->db->bind(':playerId', $playerId);
             $this->db->bind(':role', $data['role']);
+            $this->db->bind(':captaincy', $data['captaincy'] ?? 'team member');
+            $this->db->bind(':wicketKeeper', $data['wicketKeeper'] ?? 'no');
             $this->db->bind(':reason', $data['reason']);
             $this->db->bind(':comments', $data['comments'] ?? null);
 
@@ -228,12 +230,12 @@ class M_CoachTournamentRecommendation
             }
 
             // Verify coach owns this recommendation
-            if ($recommendation['CoachID'] !== $coachId) {
+            if ((int)$recommendation->CoachID !== (int)$coachId) {
                 return ['success' => false, 'message' => 'Unauthorized - you cannot edit this recommendation'];
             }
 
             // Can only edit pending recommendations
-            if ($recommendation['Status'] !== 'pending') {
+            if ((string)$recommendation->Status !== 'pending') {
                 return ['success' => false, 'message' => 'Can only edit pending recommendations'];
             }
 
@@ -241,15 +243,19 @@ class M_CoachTournamentRecommendation
             $this->db->query("
                 UPDATE coach_tournament_recommendations 
                 SET RecommendedRole = :role,
+                    Captaincy = :captaincy,
+                    WicketKeeper = :wicketKeeper,
                     Reason = :reason,
                     Comments = :comments
                 WHERE RecommendationID = :id
             ");
 
             $this->db->bind(':id', $recommendationId);
-            $this->db->bind(':role', $data['role'] ?? $recommendation['RecommendedRole']);
-            $this->db->bind(':reason', $data['reason'] ?? $recommendation['Reason']);
-            $this->db->bind(':comments', $data['comments'] ?? $recommendation['Comments']);
+            $this->db->bind(':role', $data['role'] ?? $recommendation->RecommendedRole);
+            $this->db->bind(':captaincy', $data['captaincy'] ?? ($recommendation->Captaincy ?? 'team member'));
+            $this->db->bind(':wicketKeeper', $data['wicketKeeper'] ?? ($recommendation->WicketKeeper ?? 'no'));
+            $this->db->bind(':reason', $data['reason'] ?? $recommendation->Reason);
+            $this->db->bind(':comments', $data['comments'] ?? $recommendation->Comments);
 
             if ($this->db->execute()) {
                 return ['success' => true, 'message' => 'Recommendation updated successfully'];
@@ -286,12 +292,12 @@ class M_CoachTournamentRecommendation
             }
 
             // Verify coach owns this recommendation
-            if ($recommendation['CoachID'] !== $coachId) {
+            if ((int)$recommendation->CoachID !== (int)$coachId) {
                 return ['success' => false, 'message' => 'Unauthorized - you cannot delete this recommendation'];
             }
 
             // Can only delete pending recommendations
-            if ($recommendation['Status'] !== 'pending') {
+            if ((string)$recommendation->Status !== 'pending') {
                 return ['success' => false, 'message' => 'Can only delete pending recommendations'];
             }
 
@@ -337,7 +343,7 @@ class M_CoachTournamentRecommendation
                 return ['success' => false, 'message' => 'Recommendation not found'];
             }
 
-            if ($recommendation['Status'] !== 'pending') {
+            if ((string)$recommendation->Status !== 'pending') {
                 return ['success' => false, 'message' => 'Only pending recommendations can be approved'];
             }
 
@@ -390,7 +396,7 @@ class M_CoachTournamentRecommendation
                 return ['success' => false, 'message' => 'Recommendation not found'];
             }
 
-            if ($recommendation['Status'] !== 'pending') {
+            if ((string)$recommendation->Status !== 'pending') {
                 return ['success' => false, 'message' => 'Only pending recommendations can be rejected'];
             }
 

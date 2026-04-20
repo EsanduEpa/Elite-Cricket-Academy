@@ -204,13 +204,34 @@
                             <p style="padding:20px;color:#94a3b8;text-align:center;">No coach recommendations yet.</p>
                         <?php else: ?>
                         <table class="data-table">
-                            <thead><tr><th>Coach</th><th>Player</th><th>Role</th><th>Reason</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Coach</th><th>Player</th><th>Role</th><th>Captaincy</th><th>Wicket Keeper</th><th>Reason</th><th>Status</th></tr></thead>
                             <tbody>
                             <?php foreach ($data['coach_recs'] as $r): ?>
+                            <?php
+                                $role = strtolower(trim((string)($r->RecommendedRole ?? '')));
+                                $roleLabel = match ($role) {
+                                    'batsman' => 'Batsman',
+                                    'bowler' => 'Bowler',
+                                    'allrounder' => 'All-rounder',
+                                    default => ($role !== '' ? ucfirst(str_replace(['-', '_'], ' ', $role)) : '—'),
+                                };
+
+                                $captaincy = strtolower(trim((string)($r->Captaincy ?? 'team member')));
+                                $captaincyLabel = match ($captaincy) {
+                                    'captain' => 'Captain',
+                                    'vice captain' => 'Vice Captain',
+                                    default => 'Team Member',
+                                };
+
+                                $wk = strtolower(trim((string)($r->WicketKeeper ?? 'no')));
+                                $wkLabel = $wk === 'yes' ? 'Yes' : 'No';
+                            ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($r->CoachName ?? ''); ?></td>
                                 <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
-                                <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
+                                <td><?php echo htmlspecialchars($roleLabel); ?></td>
+                                <td><?php echo htmlspecialchars($captaincyLabel); ?></td>
+                                <td><?php echo htmlspecialchars($wkLabel); ?></td>
                                 <td><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             </tr>
