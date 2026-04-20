@@ -485,22 +485,68 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 500;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    max-width: 500px;
     z-index: 3000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    opacity: 0;
     transform: translateX(100%);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 .notification.show {
-    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-content {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.notification-success {
+    border-left-color: #10b981;
+}
+
+.notification-success .notification-content i {
+    color: #10b981;
+}
+
+.notification-error {
+    border-left-color: #ef4444;
+}
+
+.notification-error .notification-content i {
+    color: #ef4444;
+}
+
+.notification-warning {
+    border-left-color: #f59e0b;
+}
+
+.notification-warning .notification-content i {
+    color: #f59e0b;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: auto;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.notification-close:hover {
+    background: #f3f4f6;
+    color: #374151;
 }
 
 /* Frequency Badge Styles */
@@ -526,22 +572,6 @@
     background: rgba(230, 126, 34, 0.1);
     color: #e67e22;
     border: 1px solid rgba(230, 126, 34, 0.3);
-}
-
-.notification.show {
-    transform: translateX(0);
-}
-
-.notification-success {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-}
-
-.notification-error {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-
-.notification-info {
-    background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
 /* Form Groups in Modal */

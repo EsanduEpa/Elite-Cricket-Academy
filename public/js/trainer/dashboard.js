@@ -32,12 +32,13 @@ function initializeTrainerStatsCards() {
 }
 
 function initializeBookingCalendar() {
-    const calendarGrid = document.getElementById('bookingCalendarGrid');
-    const monthLabel = document.getElementById('currentMonth');
-    const prevMonthBtn = document.getElementById('prevMonth');
-    const nextMonthBtn = document.getElementById('nextMonth');
+    const calendarContainer = document.getElementById('bookingWeekCalendar');
+    const weekRangeLabel = document.getElementById('currentWeekRange');
+    const prevWeekBtn = document.getElementById('prevWeek');
+    const nextWeekBtn = document.getElementById('nextWeek');
+    const todayWeekBtn = document.getElementById('todayWeek');
 
-    if (!calendarGrid || !monthLabel || !prevMonthBtn || !nextMonthBtn) {
+    if (!calendarContainer || !weekRangeLabel || !prevWeekBtn || !nextWeekBtn || !todayWeekBtn) {
         return;
     }
 
@@ -45,151 +46,185 @@ function initializeBookingCalendar() {
         ? window.trainerDashboardSessions
         : [];
 
+    const now = new Date();
     const calendarState = {
-        current: new Date()
+        weekStart: getWeekStartMonday(now)
     };
 
     const render = () => {
-        renderBookingCalendarGrid(calendarGrid, monthLabel, calendarState.current, sourceSessions);
+        renderWeeklyBookingCalendar(calendarContainer, weekRangeLabel, calendarState.weekStart, sourceSessions);
     };
 
-    prevMonthBtn.addEventListener('click', function() {
-        calendarState.current = new Date(calendarState.current.getFullYear(), calendarState.current.getMonth() - 1, 1);
+    prevWeekBtn.addEventListener('click', function() {
+        calendarState.weekStart = new Date(calendarState.weekStart.getFullYear(), calendarState.weekStart.getMonth(), calendarState.weekStart.getDate() - 7);
         render();
     });
 
-    nextMonthBtn.addEventListener('click', function() {
-        calendarState.current = new Date(calendarState.current.getFullYear(), calendarState.current.getMonth() + 1, 1);
+    nextWeekBtn.addEventListener('click', function() {
+        calendarState.weekStart = new Date(calendarState.weekStart.getFullYear(), calendarState.weekStart.getMonth(), calendarState.weekStart.getDate() + 7);
+        render();
+    });
+
+    todayWeekBtn.addEventListener('click', function() {
+        calendarState.weekStart = getWeekStartMonday(new Date());
         render();
     });
 
     render();
 }
 
-function renderBookingCalendarGrid(container, monthLabel, dateCursor, sessions) {
-    const year = dateCursor.getFullYear();
-    const month = dateCursor.getMonth();
-    const today = new Date();
-
-    monthLabel.textContent = dateCursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    container.innerHTML = '';
-
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    dayNames.forEach(function(name) {
-        const headerCell = document.createElement('div');
-        headerCell.className = 'calendar-day-header';
-        headerCell.textContent = name;
-        container.appendChild(headerCell);
-    });
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const eventsByDate = buildEventsByDate(sessions);
-
-    for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'calendar-day empty';
-        container.appendChild(empty);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayEvents = eventsByDate[isoDate] || { pending: 0, confirmed: 0, completed: 0, cancelled: 0, total: 0 };
-
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day';
-        if (dayEvents.total > 0) {
-            dayCell.classList.add('has-events');
-        }
-        if (
-            day === today.getDate() &&
-            month === today.getMonth() &&
-            year === today.getFullYear()
-        ) {
-            dayCell.classList.add('today');
-        }
-
-        const dayNumber = document.createElement('div');
-        dayNumber.className = 'calendar-day-number';
-        dayNumber.textContent = String(day);
-        dayCell.appendChild(dayNumber);
-
-        if (dayEvents.total > 0) {
-            const markers = document.createElement('div');
-            markers.className = 'calendar-event-markers';
-
-            ['pending', 'confirmed', 'completed', 'cancelled'].forEach(function(status) {
-                if (dayEvents[status] > 0) {
-                    const dot = document.createElement('span');
-                    dot.className = `calendar-event-dot ${status}`;
-                    dot.title = `${dayEvents[status]} ${status} session${dayEvents[status] > 1 ? 's' : ''}`;
-                    markers.appendChild(dot);
-                }
-            });
-
-            const count = document.createElement('div');
-            count.className = 'calendar-day-count';
-            count.textContent = `${dayEvents.total} session${dayEvents.total > 1 ? 's' : ''}`;
-
-            dayCell.appendChild(markers);
-            dayCell.appendChild(count);
-        }
-
-        container.appendChild(dayCell);
-    }
+function getWeekStartMonday(date) {
+    const cursor = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = cursor.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    cursor.setDate(cursor.getDate() + diff);
+    return cursor;
 }
 
-function buildEventsByDate(sessions) {
-    const summary = {};
+function renderWeeklyBookingCalendar(container, weekRangeLabel, weekStart, sessions) {
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        weekDates.push(new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i));
+    }
 
+    const weekEnd = weekDates[6];
+    weekRangeLabel.textContent = `${formatDateForRange(weekStart)} - ${formatDateForRange(weekEnd)}`;
+
+    const byDate = groupSessionsByDate(sessions);
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const todayKey = formatDateKey(new Date());
+
+    let headerHtml = '';
+    let bodyHtml = '';
+
+    weekDates.forEach(function(dayDate, idx) {
+        const dayKey = formatDateKey(dayDate);
+        const isToday = dayKey === todayKey;
+        const sessionsForDay = (byDate[dayKey] || []).slice().sort(compareSessionTimes);
+
+        headerHtml += `
+            <th>
+                <div style="font-weight:700;">${dayNames[idx]}</div>
+                <div style="font-size:12px;color:#888;">${formatDayLabel(dayDate)}</div>
+            </th>`;
+
+        if (!sessionsForDay.length) {
+            bodyHtml += `<td class="cal-cell${isToday ? ' cal-today' : ''}"><div style="color:#ccc;font-size:11px;text-align:center;padding-top:20px;">-</div></td>`;
+            return;
+        }
+
+        let cardsHtml = '';
+        sessionsForDay.forEach(function(session) {
+            const statusKey = normalizeStatusBadgeKey(String(session.Status || session.status || 'scheduled').toLowerCase());
+            const statusLabel = toStatusLabel(statusKey);
+            const isPrivate = isPrivateSession(session);
+            const cardClass = statusKey === 'cancelled' ? 'cal-cancelled' : (isPrivate ? 'cal-private' : 'cal-program');
+            const occurrenceId = Number(session.SessionID || session.OccurrenceID || 0);
+            const detailsHref = occurrenceId > 0
+                ? `${String(window.URLROOT || '').replace(/\/$/, '')}/staffslots/occurrence/${occurrenceId}`
+                : '#';
+            const count = Number(session.ParticipantCount || 0);
+            const countLabel = `${count} player${count === 1 ? '' : 's'}`;
+
+            cardsHtml += `
+                <a href="${escapeAttr(detailsHref)}" class="cal-card ${cardClass}">
+                    <div style="font-weight:700;margin-bottom:2px;">${escapeHtml(session.Name || 'Session')}</div>
+                    <div>${escapeHtml(session.SessionType || 'Program Session')}</div>
+                    <div style="opacity:.8;">${escapeHtml(session.Location || 'Academy')}</div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+                        <div style="font-size:11px;">
+                            <i class="fas fa-users" style="font-size:10px;"></i>
+                            ${escapeHtml(countLabel)}
+                        </div>
+                        <span class="cal-status-badge cal-status-${escapeAttr(statusKey)}">${escapeHtml(statusLabel)}</span>
+                    </div>
+                </a>`;
+        });
+
+        bodyHtml += `<td class="cal-cell${isToday ? ' cal-today' : ''}">${cardsHtml}</td>`;
+    });
+
+    container.innerHTML = `
+        <table class="cal-calendar-table">
+            <thead><tr>${headerHtml}</tr></thead>
+            <tbody><tr>${bodyHtml}</tr></tbody>
+        </table>`;
+}
+
+function groupSessionsByDate(sessions) {
+    const grouped = {};
     sessions.forEach(function(session) {
         const dateKey = String(session.Date || session.date || '').slice(0, 10);
         if (!dateKey) {
             return;
         }
-
-        if (!summary[dateKey]) {
-            summary[dateKey] = {
-                pending: 0,
-                confirmed: 0,
-                completed: 0,
-                cancelled: 0,
-                total: 0
-            };
+        if (!grouped[dateKey]) {
+            grouped[dateKey] = [];
         }
-
-        const normalizedStatus = normalizeCalendarStatus(session);
-        summary[dateKey][normalizedStatus] += 1;
-        summary[dateKey].total += 1;
+        grouped[dateKey].push(session);
     });
-
-    return summary;
+    return grouped;
 }
 
-function normalizeCalendarStatus(session) {
-    const currentStatus = String(session.Status || session.status || '').toLowerCase();
-    const dateKey = String(session.Date || session.date || '').slice(0, 10);
-    const todayKey = new Date().toISOString().slice(0, 10);
+function compareSessionTimes(a, b) {
+    const timeA = String(a.StartTime || a.start_time || '00:00:00');
+    const timeB = String(b.StartTime || b.start_time || '00:00:00');
+    return timeA.localeCompare(timeB);
+}
 
-    if (currentStatus === 'cancelled' || currentStatus === 'canceled') {
+function formatDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatDateForRange(date) {
+    return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getFullYear()}`;
+}
+
+function formatDayLabel(date) {
+    return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })}`;
+}
+
+function isPrivateSession(session) {
+    const slotType = String(session.SlotType || '').toLowerCase();
+    const sessionType = String(session.SessionType || '').toLowerCase();
+    const mode = String(session.SessionMode || '').toLowerCase();
+    return slotType === 'private' || slotType === 'facility_only' || sessionType.includes('private') || mode === 'individual';
+}
+
+function normalizeStatusBadgeKey(status) {
+    if (status === 'cancelled' || status === 'canceled') {
         return 'cancelled';
     }
-    if (currentStatus === 'completed' || currentStatus === 'attended' || currentStatus === 'missed') {
+    if (status === 'completed' || status === 'attended' || status === 'missed') {
         return 'completed';
     }
-    if (currentStatus === 'active' || currentStatus === 'confirmed') {
-        return 'confirmed';
+    if (status === 'active' || status === 'confirmed') {
+        return 'active';
     }
-    if (currentStatus === 'scheduled' || currentStatus === 'upcoming' || currentStatus === 'pending') {
-        return 'pending';
+    if (status === 'upcoming' || status === 'pending' || status === 'scheduled') {
+        return status;
     }
+    return 'scheduled';
+}
 
-    // Fallback for legacy/missing statuses: older dates are treated as completed.
-    if (dateKey && dateKey < todayKey) {
-        return 'completed';
-    }
+function toStatusLabel(statusKey) {
+    return statusKey.charAt(0).toUpperCase() + statusKey.slice(1).replace(/_/g, ' ');
+}
 
-    return 'pending';
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(value) {
+    return escapeHtml(value).replace(/\s+/g, ' ').trim();
 }
 
 function showNotification(message, type = 'info') {

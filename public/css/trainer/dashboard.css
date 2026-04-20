@@ -862,20 +862,132 @@ body {
     border-radius: 50%;
 }
 
-.legend-color.pending {
-    background: #ff9f43;
+.legend-color.program {
+    background: #cce5ff;
 }
 
-.legend-color.confirmed {
-    background: #2ecc71;
-}
-
-.legend-color.completed {
-    background: #4A90E2;
+.legend-color.private {
+    background: #e8f5e9;
 }
 
 .legend-color.cancelled {
-    background: #e74c3c;
+    background: #e9ecef;
+}
+
+#currentWeekRange {
+    min-width: 210px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.cal-calendar-shell {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(255,255,255,0.45);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    overflow: hidden;
+    margin-top: 14px;
+}
+
+.cal-calendar-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(255,255,255,0.92);
+    table-layout: fixed;
+}
+
+.cal-calendar-table thead tr {
+    background: #f8f9fa;
+}
+
+.cal-calendar-table th {
+    border-bottom: 2px solid #dee2e6;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 13px;
+    color: #555;
+}
+
+.cal-cell {
+    border: 1px solid #e0e0e0;
+    vertical-align: top;
+    min-height: 120px;
+    width: 14.28%;
+    padding: 8px;
+    background: rgba(255,255,255,0.96);
+}
+
+.cal-today {
+    background: rgba(255,253,231,0.96);
+}
+
+.cal-card {
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+}
+
+.cal-card:last-child {
+    margin-bottom: 0;
+}
+
+.cal-program {
+    background: #cce5ff;
+    color: #004085;
+    border-left: 3px solid #004085;
+}
+
+.cal-private {
+    background: #e8f5e9;
+    color: #1b5e20;
+    border-left: 3px solid #2e7d32;
+}
+
+.cal-cancelled {
+    background: #e9ecef;
+    color: #6c757d;
+    border-left: 3px solid #aaa;
+    text-decoration: line-through;
+}
+
+.cal-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.cal-status-scheduled,
+.cal-status-upcoming {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.cal-status-active,
+.cal-status-confirmed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cal-status-completed {
+    background: #e2d9f3;
+    color: #4a1e8c;
+}
+
+.cal-status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
 }
 
 .booking-calendar-grid {
