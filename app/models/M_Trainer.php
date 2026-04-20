@@ -293,8 +293,8 @@ class M_Trainer {
     }
 
     public function addWorkoutPlan($data) {
-        $this->db->query('INSERT INTO workoutplan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits)
-            VALUES (:trainer_id, :workoutname, :frequency, :duration, :videolink, :intensity, :notsuitablefor, :benefits)');
+        $this->db->query('INSERT INTO workoutplan (TrainerID, workoutname, frequency, Duration, VideoLink, Intensity, NotSuitableFor, Benefits, Status)
+            VALUES (:trainer_id, :workoutname, :frequency, :duration, :videolink, :intensity, :notsuitablefor, :benefits, :status)');
 
         $this->db->bind(':trainer_id',     $data['trainer_id']);
         $this->db->bind(':workoutname',    $data['workoutname']);
@@ -304,6 +304,7 @@ class M_Trainer {
         $this->db->bind(':intensity',      $data['intensity']);
         $this->db->bind(':notsuitablefor', $data['notsuitablefor']);
         $this->db->bind(':benefits',       $data['benefits']);
+        $this->db->bind(':status',         $data['status'] ?? 'active');
 
         return $this->db->execute();
     }

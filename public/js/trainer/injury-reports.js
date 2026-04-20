@@ -17,12 +17,12 @@ function submitVerification() {
     const verifyComments = document.getElementById('verify_comments').value;
 
     if (!verifyStatus) {
-        alert('Please select a verification status');
+        showNotification('Please select a verification status.', 'warning');
         return;
     }
 
     if (!recordId) {
-        alert('Invalid record ID');
+        showNotification('Invalid record ID.', 'error');
         return;
     }
 
@@ -56,27 +56,73 @@ function submitVerification() {
         })
         .then((data) => {
             if (data.success) {
-                alert('Verification status updated successfully!');
+                showNotification('Verification status updated successfully!', 'success');
 
                 const row = document.querySelector(`tr[data-record-id="${recordId}"]`);
                 if (row) {
-                    const badge = row.querySelector('.verify-status-badge');
-                    const newStatus = String(data.new_status || verifyStatus).toLowerCase();
-                    const label = newStatus ? (newStatus.charAt(0).toUpperCase() + newStatus.slice(1)) : '';
-                    if (badge) {
-                        badge.className = `table-badge verify-status-badge verify-status-${newStatus}`;
-                        badge.textContent = label;
+                    const statusCell = row.querySelector('td:nth-child(7) span');
+                    if (statusCell) {
+                        statusCell.className = `table-badge verify-status-${verifyStatus.toLowerCase()}`;
+                        statusCell.textContent = verifyStatus;
                     }
                 }
 
                 closeVerifyModal();
             } else {
-                alert('Error: ' + (data.message || 'Unknown error occurred'));
+                showNotification(data.message || 'Unknown error occurred.', 'error');
             }
         })
-        .catch((err) => {
-            alert('An error occurred while updating the verification status. ' + (err && err.message ? err.message : ''));
+        .catch(() => {
+            showNotification('An error occurred while updating the verification status.', 'error');
         });
+}
+
+function showNotification(message, type = 'success') {
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach((notification) => notification.remove());
+
+    const normalizedType = type === 'warning' ? 'warning' : (type === 'error' ? 'error' : 'success');
+    const iconClass = normalizedType === 'success'
+        ? 'fa-check-circle'
+        : normalizedType === 'warning'
+            ? 'fa-exclamation-triangle'
+            : 'fa-exclamation-circle';
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${normalizedType}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${iconClass}"></i>
+            <span>${escapeVerificationHtml(message)}</span>
+            <button type="button" class="notification-close" aria-label="Dismiss notification">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    const closeButton = notification.querySelector('.notification-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function () {
+            notification.remove();
+        });
+    }
+
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+function escapeVerificationHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 window.addEventListener('click', function(event) {

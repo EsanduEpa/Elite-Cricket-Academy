@@ -240,14 +240,14 @@
                             <p style="padding:20px;color:#94a3b8;text-align:center;">No trainer recommendations yet.</p>
                         <?php else: ?>
                         <table class="data-table">
-                            <thead><tr><th>Trainer</th><th>Player</th><th>Role</th><th>Reason</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Trainer</th><th>Player</th><th>Fitness Recommended</th><th>Comments</th><th>Status</th></tr></thead>
                             <tbody>
                             <?php foreach ($data['trainer_recs'] as $r): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($r->TrainerName ?? ''); ?></td>
                                 <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
-                                <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
-                                <td style="max-width:200px;"><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
+                                <td><?php echo htmlspecialchars($r->FitnessRecommended ?? 'No'); ?></td>
+                                <td style="max-width:200px;"><small><?php echo htmlspecialchars($r->Comments ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             </tr>
                             <?php endforeach; ?>
