@@ -5,8 +5,6 @@
 
     const MODAL_IDS = [
         'addMedicalModal',
-        'workoutPlanModal',
-        'nutritionPlanModal',
         'editFullRecordModal',
         'updateStatusModal',
         'deleteRecordModal'
@@ -232,77 +230,9 @@
         closeModal('addMedicalModal');
     }
 
-    function renderPlanModal(plan, config) {
-        const content = document.getElementById(config.contentId);
-        if (!content) return;
-
-        if (!plan) {
-            content.innerHTML = '<p>Plan not found.</p>';
-            openModal(config.modalId);
-            return;
-        }
-
-        content.innerHTML = config.render(plan);
-        openModal(config.modalId);
-    }
-
-    function viewWorkoutPlan(planId) {
-        hydrateMedicalData();
-        renderPlanModal(findPlanById(window.medicalData?.workoutPlans || [], planId), {
-            modalId: 'workoutPlanModal',
-            contentId: 'workoutPlanContent',
-            render: plan => `
-                <div class="plan-header">
-                    <h4>${escapeHtml(plan.workoutname || 'Workout plan')}</h4>
-                    <p><strong>Trainer:</strong> ${escapeHtml(plan.trainer_name || 'Not assigned')}</p>
-                    <p><strong>Frequency:</strong> ${escapeHtml(plan.frequency || 'Not provided')}</p>
-                    <p><strong>Duration:</strong> ${escapeHtml(plan.Duration || 'Not provided')} days</p>
-                </div>
-
-                ${renderPlanMeta([
-                    { label: 'Intensity', value: escapeHtml(formatLabel(plan.Intensity)) },
-                    { label: 'Status', value: escapeHtml(formatLabel(plan.Status || plan.assignment_status || 'active')) },
-                    { label: 'Assigned Date', value: formatDate(plan.AssignedDate) },
-                    { label: 'End Date', value: formatDate(plan.EndDate) },
-                    { label: 'Assigned By', value: escapeHtml(plan.assigned_by_name || 'Not provided') },
-                    { label: 'Not Suitable For', value: escapeHtml(formatLabel(plan.NotSuitableFor)) }
-                ])}
-
-                ${renderPlanSection('Benefits', formatMultilineText(plan.Benefits, 'No benefits have been added for this workout yet.'))}
-
-                ${renderPlanSection(
-                    'Video Demonstration',
-                    hasContent(plan.VideoLink)
-                        ? `<p><a class="plan-link" href="${escapeHtml(plan.VideoLink)}" target="_blank" rel="noopener noreferrer">Open workout video</a></p>`
-                        : '<p class="plan-empty-text">No video link has been provided for this workout.</p>'
-                )}
-            `
-        });
-    }
-
-    function viewNutritionPlan(planId) {
-        hydrateMedicalData();
-        renderPlanModal(findPlanById(window.medicalData?.nutritionPlans || [], planId), {
-            modalId: 'nutritionPlanModal',
-            contentId: 'nutritionPlanContent',
-            render: plan => `
-                <div class="plan-header">
-                    <h4>${escapeHtml(plan.nutritionPlanName || 'Nutrition plan')}</h4>
-                    <p><strong>Nutritionist:</strong> ${escapeHtml(plan.trainer_name || 'Not assigned')}</p>
-                    <p><strong>Duration:</strong> ${escapeHtml(plan.Duration || 'Not provided')} days</p>
-                </div>
-
-                ${renderPlanMeta([
-                    { label: 'Status', value: escapeHtml(formatLabel(plan.Status || 'active')) },
-                    { label: 'Created', value: formatDate(plan.CreatedDate) },
-                    { label: 'Plan ID', value: escapeHtml(plan.PlanID || 'Not provided') }
-                ])}
-
-                ${renderPlanSection('Diet Details', formatMultilineText(plan.DietDetails, 'No diet details are available for this plan.'))}
-
-                ${renderPlanSection('Trainer Notes', formatMultilineText(plan.Notes, 'No custom notes were added to this nutrition plan.'))}
-            `
-        });
+    function openModalById(modalId) {
+        if (!modalId) return;
+        openModal(modalId);
     }
 
     function openUpdateStatusModal(recordId, currentStatus, verifyStatus, diagnosis, treatment, bodyArea, injuryDate, reportedDate, happenedAtAcademy, restDays) {
@@ -422,11 +352,8 @@
         case 'open-add-modal':
             openAddMedicalModal();
             break;
-        case 'view-workout':
-            viewWorkoutPlan(trigger.dataset.planId);
-            break;
-        case 'view-nutrition':
-            viewNutritionPlan(trigger.dataset.planId);
+        case 'open-modal':
+            openModalById(trigger.dataset.modalId);
             break;
         case 'open-update-modal':
             openUpdateStatusModal(
@@ -478,8 +405,6 @@
 
     window.openAddMedicalModal = openAddMedicalModal;
     window.closeAddMedicalModal = closeAddMedicalModal;
-    window.viewWorkoutPlan = viewWorkoutPlan;
-    window.viewNutritionPlan = viewNutritionPlan;
     window.closeModal = closeModal;
     window.openUpdateStatusModal = openUpdateStatusModal;
     window.closeUpdateStatusModal = closeUpdateStatusModal;
@@ -489,13 +414,18 @@
     window.deleteMedicalRecord = deleteMedicalRecord;
 
     document.addEventListener('DOMContentLoaded', function () {
-        hydrateMedicalData();
         initRealtimeValidation();
         initDelegatedInteractions();
     });
 
     window.addEventListener('keydown', function (event) {
         if (event.key !== 'Escape') return;
+
+        const visibleModal = document.querySelector('.medical-modal.app-modal--visible');
+        if (visibleModal && visibleModal.id) {
+            closeModal(visibleModal.id);
+            return;
+        }
 
         for (const modalId of MODAL_IDS) {
             const modal = getModal(modalId);

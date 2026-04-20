@@ -450,6 +450,7 @@ class M_Trainer {
             SELECT
                 wp.*,
                 CONCAT(u.FirstName, \' \', u.LastName) AS trainer_name,
+                wpp.PlayerID   AS assigned_player_id,
                 wpp.AssignedDate,
                 wpp.EndDate,
                 wpp.Status      AS assignment_status,

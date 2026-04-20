@@ -155,9 +155,28 @@ class Player extends Controller {
         // Get medical records from database
         $medicalRecords = $this->medicalModel->getMedicalRecords($playerId);
         
-        // Get supplement, workout, and nutrition plans for this player
-        $supplementModel = $this->model('M_SupplementPlan');
+        // Get workout and nutrition plans for this player
         $nutritionModel = $this->model('M_NutritionPlan');
+
+        $workoutPlans = $this->trainerModel->getWorkoutPlansByPlayer($playerId);
+        if (!empty($workoutPlans)) {
+            $workoutPlans = array_values(array_filter($workoutPlans, function ($plan) use ($playerId) {
+                if (!isset($plan->assigned_player_id)) {
+                    return true;
+                }
+                return (int)$plan->assigned_player_id === (int)$playerId;
+            }));
+        }
+
+        $nutritionPlans = $nutritionModel->getNutritionPlansByPlayer($playerId);
+        if (!empty($nutritionPlans)) {
+            $nutritionPlans = array_values(array_filter($nutritionPlans, function ($plan) use ($playerId) {
+                if (!isset($plan->assigned_player_id)) {
+                    return true;
+                }
+                return (int)$plan->assigned_player_id === (int)$playerId;
+            }));
+        }
 
         $data = [
             'title' => 'Medical Records',
@@ -166,9 +185,8 @@ class Player extends Controller {
             'medicalHistory' => $this->getMedicalHistory(),
             'vaccinations' => $this->getVaccinations(),
             'injuries' => $this->getInjuries(),
-            'supplements' => $supplementModel->getSupplementPlansByPlayer($playerId),
-            'workoutPlans' => $this->trainerModel->getWorkoutPlansByPlayer($playerId),
-            'nutritionPlans' => $nutritionModel->getNutritionPlansByPlayer($playerId)
+            'workoutPlans' => $workoutPlans,
+            'nutritionPlans' => $nutritionPlans
         ];
         $this->view('player/medical', $data);
     }
