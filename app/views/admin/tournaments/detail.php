@@ -1,28 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-.tournament-status { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; text-transform:uppercase; }
-.status-created { background:#e2e8f0; color:#475569; }
-.status-registration_open { background:#dcfce7; color:#166534; }
-.status-registration_closed { background:#fef9c3; color:#854d0e; }
-.status-team_announced { background:#dbeafe; color:#1e40af; }
-.status-ongoing { background:#fde68a; color:#92400e; }
-.status-completed { background:#d1fae5; color:#065f46; }
-.status-cancelled { background:#fee2e2; color:#991b1b; }
-.panel-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.1); margin-bottom:20px; overflow:hidden; }
-.panel-header { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
-.panel-header h3 { margin:0; font-size:15px; color:#1e293b; }
-.panel-body { padding:0; }
-.data-table { width:100%; border-collapse:collapse; font-size:13px; }
-.data-table th { padding:10px 16px; text-align:left; color:#64748b; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-weight:600; }
-.data-table td { padding:10px 16px; border-bottom:1px solid #f8fafc; color:#374151; vertical-align:middle; }
-.data-table tr:last-child td { border-bottom:none; }
-.badge-pending { background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
-.badge-approved { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
-.badge-rejected { background:#fee2e2; color:#991b1b; padding:2px 8px; font-size:11px; font-weight:700; border-radius:8px; }
-.tab-btn { padding:8px 18px; border:none; border-radius:6px; background:#f1f5f9; color:#64748b; font-weight:600; cursor:pointer; font-size:13px; }
-.tab-btn.active { background:#3b82f6; color:#fff; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/tournaments.css">
 
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
@@ -104,66 +82,77 @@
             </div>
         <?php endif; ?>
 
-        <div style="padding:20px;display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+        <div class="detail-layout">
 
             <!-- Left: tournament info + status controls -->
             <div>
-                <div class="panel-card" style="padding:20px;">
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Location</div>
-                        <div><?php echo htmlspecialchars($t->Location ?? '—'); ?></div>
+                <div class="panel-card">
+                    <div class="meta-panel">
+                        <div class="meta-item">
+                            <div class="meta-label">Location</div>
+                            <div class="meta-value"><?php echo htmlspecialchars($t->Location ?? '—'); ?></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Registration Deadline</div>
+                            <div class="meta-value"><?php echo $t->RegistrationDeadline ? date('d M Y', strtotime($t->RegistrationDeadline)) : '—'; ?></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Max Players</div>
+                            <div class="meta-value"><?php echo $t->MaxPlayers ?? '—'; ?></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Prize Pool</div>
+                            <div class="meta-value">Rs. <?php echo number_format($t->PrizePool ?? 0, 2); ?></div>
+                        </div>
+                        <?php if ($t->Description): ?>
+                        <div class="meta-item">
+                            <div class="meta-label">Description</div>
+                            <div class="meta-value" style="color:#64748b;font-size:13px;"><?php echo htmlspecialchars($t->Description); ?></div>
+                        </div>
+                        <?php endif; ?>
                     </div>
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Registration Deadline</div>
-                        <div><?php echo $t->RegistrationDeadline ? date('d M Y', strtotime($t->RegistrationDeadline)) : '—'; ?></div>
-                    </div>
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Max Players</div>
-                        <div><?php echo $t->MaxPlayers ?? '—'; ?></div>
-                    </div>
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Prize Pool</div>
-                        <div>Rs. <?php echo number_format($t->PrizePool ?? 0, 2); ?></div>
-                    </div>
-                    <?php if ($t->Description): ?>
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Description</div>
-                        <div style="font-size:13px;color:#64748b;"><?php echo htmlspecialchars($t->Description); ?></div>
-                    </div>
-                    <?php endif; ?>
                 </div>
 
                 <!-- Status Advance -->
                 <?php if ($t->Status !== 'cancelled' && $t->Status !== 'completed'): ?>
-                <div class="panel-card" style="padding:20px;">
-                    <div style="font-weight:700;margin-bottom:12px;color:#374151;">Advance Status</div>
-                    <?php if (!empty($data['status_options'])): ?>
-                        <form method="POST" action="<?php echo URLROOT; ?>/admin/update_tournament_status/<?php echo $t->TournamentID; ?>">
-                            <select name="status" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;background:#fff;color:#374151;margin-bottom:8px;">
-                                <option value="">Select status</option>
-                                <?php foreach ($data['status_options'] as $statusOption): ?>
-                                    <option value="<?php echo $statusOption; ?>"><?php echo ucwords(str_replace('_', ' ', $statusOption)); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div style="font-size:12px;color:#64748b;margin-bottom:8px;">The list includes every valid forward status from the current state.</div>
-                            <button type="submit" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
-                                Apply Status
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <div style="font-size:13px;color:#64748b;">No further status changes are available right now.</div>
-                    <?php endif; ?>
+                <div class="panel-card">
+                    <div class="status-advance-panel">
+                        <div class="panel-title">Advance Status</div>
+                        <?php if (!empty($data['status_options'])): ?>
+                            <form method="POST" action="<?php echo URLROOT; ?>/admin/update_tournament_status/<?php echo $t->TournamentID; ?>">
+                                <select name="status" required>
+                                    <option value="">Select status</option>
+                                    <?php foreach ($data['status_options'] as $statusOption): ?>
+                                        <option value="<?php echo $statusOption; ?>"><?php echo ucwords(str_replace('_', ' ', $statusOption)); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="hint">The list includes every valid forward status from the current state.</div>
+                                <button type="submit" class="btn-apply-status">Apply Status</button>
+                            </form>
+                        <?php else: ?>
+                            <div style="font-size:13px;color:#64748b;">No further status changes are available right now.</div>
+                        <?php endif; ?>
 
-                    <form method="POST" action="<?php echo URLROOT; ?>/admin/cancel_tournament/<?php echo $t->TournamentID; ?>" style="margin-top:8px;" onsubmit="return confirm('Cancel this tournament? All pending join requests will be rejected.');">
-                        <input type="text" name="cancel_reason" required placeholder="Cancellation reason..." style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;margin-bottom:6px;">
-                        <button type="submit" style="width:100%;padding:8px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;">
-                            Cancel Tournament
-                        </button>
-                    </form>
+                        <?php
+                            $daysLeft = $t->tdate
+                                ? (int) ceil((strtotime($t->tdate) - time()) / 86400)
+                                : null;
+                        ?>
+                        <?php if ($daysLeft !== null && $daysLeft > 40): ?>
+                        <form method="POST" action="<?php echo URLROOT; ?>/admin/cancel_tournament/<?php echo $t->TournamentID; ?>" style="margin-top:8px;" onsubmit="return confirm('Cancel this tournament? All pending join requests will be rejected.');">
+                            <input type="text" name="cancel_reason" required placeholder="Cancellation reason..." class="cancel-reason-input">
+                            <button type="submit" class="btn-cancel-tournament">Cancel Tournament</button>
+                        </form>
+                        <?php else: ?>
+                        <div style="margin-top:8px;background:#fef9c3;border:1px solid #fde68a;border-radius:7px;padding:10px 12px;font-size:12px;color:#854d0e;">
+                            <i class="fas fa-lock"></i> Cancellation is locked — tournament is within <strong>40 days</strong><?php echo $daysLeft !== null ? " ($daysLeft day" . ($daysLeft === 1 ? '' : 's') . " remaining)" : ''; ?>.
+                        </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <?php endif; ?>
                 <?php if ($t->Status === 'cancelled' && $t->CancelReason): ?>
-                <div style="background:#fee2e2;border-radius:8px;padding:14px;color:#991b1b;font-size:13px;">
+                <div class="cancel-reason-box">
                     <strong>Cancelled:</strong> <?php echo htmlspecialchars($t->CancelReason); ?>
                 </div>
                 <?php endif; ?>
@@ -172,13 +161,13 @@
             <!-- Right: tabbed panels -->
             <div>
                 <!-- Tab buttons -->
-                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                <div class="tab-bar">
                     <button class="tab-btn active" onclick="showTab('join_requests',this)">
-                        Join Requests <span style="background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo (int)$pendingJoinRequestCount; ?></span>
+                        Join Requests <span class="tab-count pending"><?php echo (int)$pendingJoinRequestCount; ?></span>
                     </button>
-                    <button class="tab-btn" onclick="showTab('coach_recs',this)">Coach Recs <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count($data['coach_recs']); ?></span></button>
-                    <button class="tab-btn" onclick="showTab('trainer_recs',this)">Trainer Recs <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count($data['trainer_recs']); ?></span></button>
-                    <button class="tab-btn" onclick="showTab('team',this)">Team <span style="background:#64748b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"><?php echo count($data['team']); ?></span></button>
+                    <button class="tab-btn" onclick="showTab('coach_recs',this)">Coach Recs <span class="tab-count"><?php echo count($data['coach_recs']); ?></span></button>
+                    <button class="tab-btn" onclick="showTab('trainer_recs',this)">Trainer Recs <span class="tab-count"><?php echo count($data['trainer_recs']); ?></span></button>
+                    <button class="tab-btn" onclick="showTab('team',this)">Team <span class="tab-count"><?php echo count($data['team']); ?></span></button>
                     <?php if ($data['result']): ?>
                         <button class="tab-btn" onclick="showTab('results',this)">Results</button>
                     <?php endif; ?>
@@ -222,7 +211,7 @@
                                 <td><?php echo htmlspecialchars($r->CoachName ?? ''); ?></td>
                                 <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
                                 <td><?php echo htmlspecialchars($r->RecommendedRole ?? '—'); ?></td>
-                                <td style="max-width:200px;"><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
+                                <td><small><?php echo htmlspecialchars($r->Reason ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             </tr>
                             <?php endforeach; ?>
@@ -247,7 +236,7 @@
                                 <td><?php echo htmlspecialchars($r->TrainerName ?? ''); ?></td>
                                 <td><strong><?php echo htmlspecialchars($r->PlayerName ?? ''); ?></strong></td>
                                 <td><?php echo htmlspecialchars($r->FitnessRecommended ?? 'No'); ?></td>
-                                <td style="max-width:200px;"><small><?php echo htmlspecialchars($r->Comments ?? '—'); ?></small></td>
+                                <td><small><?php echo htmlspecialchars($r->Comments ?? '—'); ?></small></td>
                                 <td><span class="badge-<?php echo $r->Status; ?>"><?php echo strtoupper($r->Status); ?></span></td>
                             </tr>
                             <?php endforeach; ?>
@@ -262,7 +251,7 @@
                     <div class="panel-header">
                         <h3><i class="fas fa-users"></i> Selected Squad (<?php echo count($data['team']); ?>)</h3>
                         <?php if ($t->IsTeamAnnounced): ?>
-                            <span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;"><i class="fas fa-bullhorn"></i> Publicly Announced</span>
+                            <span class="badge-approved"><i class="fas fa-bullhorn"></i> Publicly Announced</span>
                         <?php endif; ?>
                     </div>
                     <div class="panel-body">
@@ -276,7 +265,7 @@
                             <tr>
                                 <td><strong><?php echo htmlspecialchars($p->Name); ?></strong></td>
                                 <td><?php echo htmlspecialchars($p->RoleInTeam ?? '—'); ?></td>
-                                <td><?php echo $p->SelectionStatus === 'confirmed' ? '<span style="color:#16a34a;font-weight:700;">Confirmed</span>' : '<span style="color:#f59e0b;font-weight:700;">Draft</span>'; ?></td>
+                                <td><?php echo $p->SelectionStatus === 'confirmed' ? '<span class="badge-approved">Confirmed</span>' : '<span class="badge-pending">Draft</span>'; ?></td>
                             </tr>
                             <?php endforeach; ?>
                             </tbody>
@@ -289,14 +278,26 @@
                 <?php if ($data['result']): ?>
                 <div id="tab-results" class="panel-card" style="display:none;">
                     <div class="panel-header"><h3><i class="fas fa-medal"></i> Tournament Result</h3></div>
-                    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="result-summary">
                         <?php $res = $data['result']; ?>
-                        <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Position</div><div style="font-size:18px;font-weight:800;color:#1e293b;"><?php echo htmlspecialchars($res->Position); ?></div></div>
-                            <div style="font-size:13px;color:#64748b;">Matches: <?php echo htmlspecialchars((string)($res->TotalMatchesPlayed ?? 0)); ?>, Wins: <?php echo htmlspecialchars((string)($res->TotalWins ?? 0)); ?>, Losses: <?php echo htmlspecialchars((string)($res->TotalLosses ?? 0)); ?></div>
-                            <div style="font-size:13px;color:#64748b;margin-top:6px;">Best Batsman: <?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> | Best Bowler: <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div>
-                            <div><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Man of Tournament</div><div><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div></div>
+                        <div>
+                            <div class="result-label">Position</div>
+                            <div class="result-value"><?php echo htmlspecialchars($res->Position); ?></div>
+                        </div>
+                        <div>
+                            <div class="result-label">Record</div>
+                            <div style="font-size:13px;color:#64748b;">Matches: <?php echo (int)($res->TotalMatchesPlayed ?? 0); ?>, Wins: <?php echo (int)($res->TotalWins ?? 0); ?>, Losses: <?php echo (int)($res->TotalLosses ?? 0); ?></div>
+                            <div style="font-size:13px;color:#64748b;margin-top:4px;">Best Batsman: <?php echo htmlspecialchars($res->BestBatsmanName ?? '—'); ?> | Best Bowler: <?php echo htmlspecialchars($res->BestBowlerName ?? '—'); ?></div>
+                        </div>
+                        <div>
+                            <div class="result-label">Man of Tournament</div>
+                            <div class="meta-value"><?php echo $res->ManFirstName ? htmlspecialchars($res->ManFirstName . ' ' . $res->ManLastName) : '—'; ?></div>
+                        </div>
                         <?php if ($res->SummaryNotes): ?>
-                        <div style="grid-column:1/-1;"><div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Notes</div><div style="font-size:13px;color:#64748b;"><?php echo htmlspecialchars($res->SummaryNotes); ?></div></div>
+                        <div style="grid-column:1/-1;">
+                            <div class="result-label">Notes</div>
+                            <div style="font-size:13px;color:#64748b;"><?php echo htmlspecialchars($res->SummaryNotes); ?></div>
+                        </div>
                         <?php endif; ?>
                     </div>
                 </div>

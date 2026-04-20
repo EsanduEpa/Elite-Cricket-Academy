@@ -1,19 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
-<style>
-.panel-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.1); margin-bottom:20px; overflow:hidden; }
-.panel-header { padding:16px 20px; border-bottom:1px solid #f1f5f9; }
-.panel-header h3 { margin:0; font-size:15px; color:#1e293b; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:20px; }
-.form-group { display:flex; flex-direction:column; gap:6px; }
-.form-group label { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; }
-.form-group input, .form-group select, .form-group textarea { padding:9px 12px; border:1px solid #d1d5db; border-radius:7px; font-size:14px; }
-.stats-table { width:100%; border-collapse:collapse; font-size:13px; }
-.stats-table th { padding:10px 14px; text-align:left; background:#f8fafc; border-bottom:1px solid #e2e8f0; color:#64748b; font-weight:700; font-size:12px; }
-.stats-table td { padding:8px 14px; border-bottom:1px solid #f8fafc; }
-.stats-table tr:last-child td { border-bottom:none; }
-.stats-table input { width:70px; padding:5px 8px; border:1px solid #d1d5db; border-radius:5px; font-size:13px; text-align:center; }
-</style>
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/tournaments.css">
 
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
@@ -64,24 +51,24 @@
         </div>
 
         <?php if (isset($_SESSION['success'])): ?>
-            <div style="margin:0 20px 10px;padding:12px 16px;border-radius:8px;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;">
+            <div class="tourn-alert success tourn-content" style="margin-bottom:0;">
                 <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
             </div>
         <?php endif; ?>
         <?php if (isset($_SESSION['error'])): ?>
-            <div style="margin:0 20px 10px;padding:12px 16px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">
+            <div class="tourn-alert error tourn-content" style="margin-bottom:0;">
                 <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
-        <div style="padding:20px;">
+        <div class="tourn-content">
             <form method="POST" action="<?php echo URLROOT; ?>/admin/enter_results/<?php echo $t->TournamentID; ?>">
 
                 <!-- Tournament-level result -->
                 <div class="panel-card">
                     <div class="panel-header"><h3>Tournament Outcome</h3></div>
-                    <div class="form-grid">
-                        <div class="form-group">
+                    <div class="form-grid" style="padding:20px;">
+                        <div class="form-field">
                             <label>Position / Standing</label>
                             <select name="position" required>
                                 <option value="">— Select —</option>
@@ -90,19 +77,19 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Total Matches Played</label>
                             <input type="number" name="total_matches_played" min="0" value="<?php echo htmlspecialchars($res->TotalMatchesPlayed ?? '0'); ?>">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Total Wins</label>
                             <input type="number" name="total_wins" min="0" value="<?php echo htmlspecialchars($res->TotalWins ?? '0'); ?>">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Total Losses</label>
                             <input type="number" name="total_losses" min="0" value="<?php echo htmlspecialchars($res->TotalLosses ?? '0'); ?>">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Man of the Tournament</label>
                             <select name="man_of_tournament">
                                 <option value="">— None —</option>
@@ -113,7 +100,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Best Batsman</label>
                             <select name="best_batsman">
                                 <option value="">— None —</option>
@@ -124,7 +111,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
                             <label>Best Bowler</label>
                             <select name="best_bowler">
                                 <option value="">— None —</option>
@@ -135,7 +122,7 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="form-group" style="grid-column:1/-1;">
+                        <div class="form-field full">
                             <label>Summary Notes</label>
                             <textarea name="summary_notes" rows="3" placeholder="Overall tournament summary, highlights..."><?php echo htmlspecialchars($res->SummaryNotes ?? ''); ?></textarea>
                         </div>
@@ -162,7 +149,6 @@
                         </thead>
                         <tbody>
                         <?php
-                        // Build stats lookup by PlayerID
                         $statsMap = [];
                         foreach ($data['stats'] as $s) {
                             $statsMap[$s->PlayerID] = $s;
@@ -187,13 +173,13 @@
                     </div>
                 </div>
                 <?php else: ?>
-                    <div style="background:#fef9c3;border-radius:8px;padding:14px;color:#854d0e;font-size:13px;margin-bottom:20px;">
+                    <div class="tourn-alert warning">
                         <i class="fas fa-exclamation-triangle"></i> No squad selected yet. Per-player statistics will be available once the team is finalized.
                     </div>
                 <?php endif; ?>
 
                 <div style="text-align:right;">
-                    <button type="submit" style="padding:12px 32px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;"><i class="fas fa-save"></i> Save Results</button>
+                    <button type="submit" class="btn-save" style="padding:12px 32px;font-size:15px;"><i class="fas fa-save"></i> Save Results</button>
                 </div>
 
             </form>

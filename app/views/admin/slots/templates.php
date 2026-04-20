@@ -118,9 +118,7 @@ $dayNames = ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                             <option value="<?php echo htmlspecialchars(strtolower($facility)); ?>"><?php echo htmlspecialchars($facility); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="button" class="admin-list-reset" data-list-reset>
-                        <i class="fas fa-rotate-left"></i> Reset
-                    </button>
+                    
                 </div>
                 <div class="admin-list-table-wrap">
                 <table class="admin-compact-table">

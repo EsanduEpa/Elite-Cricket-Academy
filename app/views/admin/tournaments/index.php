@@ -1,6 +1,7 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-list-tools.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/tournaments.css">
 
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
@@ -40,7 +41,7 @@
             <div class="header-content">
                 <div class="header-text">
                     <h1><i class="fas fa-trophy"></i> Tournaments</h1>
-                    <p>Manage cricket tournaments — creation, squad selection, and results</p>
+                    <p>Manage cricket tournaments </p>
                 </div>
                 <div class="header-actions">
                     <a href="<?php echo URLROOT; ?>/admin/create_tournament" style="padding:9px 18px;border-radius:8px;background:#3498db;color:#fff;text-decoration:none;font-size:14px;">
@@ -50,21 +51,21 @@
             </div>
         </div>
 
-        <div style="padding:0 25px 40px;">
+        <div class="tourn-index-content">
             <?php if (isset($_SESSION['success'])): ?>
-                <div style="background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+                <div class="tourn-alert success">
                     <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
                 </div>
             <?php endif; ?>
             <?php if (isset($_SESSION['error'])): ?>
-                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+                <div class="tourn-alert error">
                     <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
                 </div>
             <?php endif; ?>
 
             <?php if (empty($data['tournaments'])): ?>
-                <div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#64748b;box-shadow:0 2px 12px rgba(0,0,0,.08);">
-                    <i class="fas fa-trophy" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.3;"></i>
+                <div class="empty-state">
+                    <i class="fas fa-trophy"></i>
                     <p>No tournaments yet. <a href="<?php echo URLROOT; ?>/admin/create_tournament" style="color:#3498db;text-decoration:none;">Create the first one.</a></p>
                 </div>
             <?php else: ?>
@@ -104,9 +105,6 @@
                                 <option value="<?php echo htmlspecialchars(strtolower($format)); ?>"><?php echo htmlspecialchars($format); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="button" class="admin-list-reset" data-list-reset>
-                            <i class="fas fa-rotate-left"></i> Reset
-                        </button>
                     </div>
                     <div class="admin-list-table-wrap">
                     <table class="admin-compact-table">
