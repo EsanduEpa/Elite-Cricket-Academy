@@ -124,9 +124,108 @@ class M_SlotPlayer {
         }
 
         $rows = $this->dedupeScheduleRows($rows);
+        $this->applyCoachMarkedAttendanceToSessionRows($rows, $playerId);
         $this->sortScheduleRows($rows);
 
         return $rows;
+    }
+
+    private function applyCoachMarkedAttendanceToSessionRows(array &$rows, int $playerId): void {
+        if (empty($rows)) {
+            return;
+        }
+
+        $occurrenceIds = [];
+        foreach ($rows as $row) {
+            $occId = (int) ($row->OccurrenceID ?? 0);
+            if ($occId <= 0) {
+                continue;
+            }
+
+            $occurrenceStatus = strtolower((string) ($row->OccurrenceStatus ?? ''));
+            if ($occurrenceStatus === 'cancelled') {
+                continue;
+            }
+
+            $currentStatus = strtolower((string) ($row->Status ?? ''));
+            if (in_array($currentStatus, ['attended', 'missed'], true)) {
+                continue;
+            }
+
+            $slotType = strtolower((string) ($row->SlotType ?? 'program'));
+            if ($slotType !== 'program') {
+                continue;
+            }
+
+            {
+                $occurrenceIds[$occId] = true;
+            }
+        }
+
+        if (empty($occurrenceIds)) {
+            return;
+        }
+
+        $attendanceMap = $this->getOccurrenceAttendanceMap($playerId, array_keys($occurrenceIds));
+
+        foreach ($rows as $row) {
+            $occId = (int) ($row->OccurrenceID ?? 0);
+            if ($occId <= 0) {
+                continue;
+            }
+
+            $occurrenceStatus = strtolower((string) ($row->OccurrenceStatus ?? ''));
+            if ($occurrenceStatus === 'cancelled') {
+                $row->Status = 'cancelled';
+                continue;
+            }
+
+            $currentStatus = strtolower((string) ($row->Status ?? ''));
+            if (in_array($currentStatus, ['attended', 'missed'], true)) {
+                continue;
+            }
+
+            $attendance = strtolower((string) ($attendanceMap[$occId] ?? ''));
+            if ($attendance === 'present') {
+                $row->Status = 'attended';
+            } elseif ($attendance === 'absent') {
+                $row->Status = 'missed';
+            }
+        }
+    }
+
+    private function getOccurrenceAttendanceMap(int $playerId, array $occurrenceIds): array {
+        $occurrenceIds = array_values(array_filter(array_map('intval', $occurrenceIds), static fn($id) => $id > 0));
+        if (empty($occurrenceIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($occurrenceIds as $i => $occId) {
+            $placeholders[] = ':oid' . $i;
+        }
+
+        $this->db->query(
+            'SELECT OccurrenceID, AttendanceStatus
+             FROM slot_occurrence_attendance
+             WHERE PlayerID = :pid
+               AND OccurrenceID IN (' . implode(',', $placeholders) . ')'
+        );
+        $this->db->bind(':pid', $playerId, PDO::PARAM_INT);
+        foreach ($occurrenceIds as $i => $occId) {
+            $this->db->bind(':oid' . $i, $occId, PDO::PARAM_INT);
+        }
+
+        $rows = $this->db->resultSet();
+        $map = [];
+        foreach ($rows as $row) {
+            $occId = (int) ($row->OccurrenceID ?? 0);
+            if ($occId > 0) {
+                $map[$occId] = (string) ($row->AttendanceStatus ?? '');
+            }
+        }
+
+        return $map;
     }
 
     public function getAllPrivateCoachOccurrences(int $playerId, ?string $toDate = null): array {

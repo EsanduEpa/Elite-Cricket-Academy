@@ -1,5 +1,6 @@
 <?php require_once APPROOT . '/views/inc/components/header.php'; ?>
 <link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/admin-dashboard.css">
+<link rel="stylesheet" href="<?php echo URLROOT; ?>/css/admin/tournaments.css">
 
 <div class="admin-layout">
     <div class="admin-sidebar" id="adminSidebar">
@@ -51,83 +52,86 @@
         </div>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <div style="margin:15px 20px;padding:12px 16px;border-radius:8px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">
+            <div class="tourn-alert error" style="margin:0 0 10px;">
                 <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
-        <div style="padding:20px;max-width:760px;">
-            <form method="POST" action="<?php echo URLROOT; ?>/admin/edit_tournament/<?php echo $t->TournamentID; ?>" style="background:#fff;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,.1);">
+        <div class="tourn-form-wrap tourn-content">
+            <form class="tourn-form" method="POST" action="<?php echo URLROOT; ?>/admin/edit_tournament/<?php echo $t->TournamentID; ?>" data-mode="edit" data-reg-gap="30" data-original-tdate="<?php echo htmlspecialchars($t->tdate); ?>">
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+                <div class="form-grid">
 
-                    <div style="grid-column:1/-1;">
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Tournament Name <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="name" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;" value="<?php echo htmlspecialchars($t->Name); ?>">
+                    <div class="form-field full">
+                        <label>Tournament Name <span class="required">*</span></label>
+                        <input type="text" name="name" required value="<?php echo htmlspecialchars($t->Name); ?>">
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Age Group</label>
-                        <select name="age_group" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                    <div class="form-field">
+                        <label>Age Group</label>
+                        <input type="hidden" name="age_group" value="<?php echo htmlspecialchars($t->AgeGroup ?? ''); ?>">
+                        <select disabled title="Age group cannot be changed after creation.">
                             <option value="">— Select —</option>
-                            <?php foreach (['Under 13','Under 15','Under 16','Under 19','Open'] as $ag): ?>
+                            <?php foreach (['Under 11','Under 13','Under 15','Under 16','Under 19','Open'] as $ag): ?>
                                 <option value="<?php echo $ag; ?>" <?php echo ($t->AgeGroup === $ag) ? 'selected' : ''; ?>><?php echo $ag; ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <small style="color:#94a3b8;">Age group cannot be changed after creation.</small>
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Format</label>
-                        <select name="format" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                    <div class="form-field">
+                        <label>Format</label>
+                        <select name="format">
                             <?php foreach (['T20','ODI','Test','Other'] as $fmt): ?>
                                 <option value="<?php echo $fmt; ?>" <?php echo ($t->Format === $fmt) ? 'selected' : ''; ?>><?php echo $fmt; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Tournament Date <span style="color:#ef4444;">*</span></label>
-                        <input type="date" name="tdate" required style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;" value="<?php echo htmlspecialchars($t->tdate); ?>">
+                    <div class="form-field">
+                        <label>Tournament Date <span class="required">*</span></label>
+                        <input type="date" id="tdate" name="tdate" required value="<?php echo htmlspecialchars($t->tdate); ?>">
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Registration Deadline</label>
-                        <input type="date" name="registration_deadline" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;" value="<?php echo htmlspecialchars($t->RegistrationDeadline ?? ''); ?>">
+                    <div class="form-field">
+                        <label>Registration Deadline</label>
+                        <input type="date" id="registration_deadline" name="registration_deadline" value="<?php echo htmlspecialchars($t->RegistrationDeadline ?? ''); ?>">
+                        <small id="reg-deadline-hint" style="color:#64748b;"></small>
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Max Players in Squad</label>
-                        <input type="number" name="max_players" min="5" max="50" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;" value="<?php echo htmlspecialchars($t->MaxPlayers ?? ''); ?>">
+                    <div class="form-field">
+                        <label>Max Players in Squad</label>
+                        <input type="number" name="max_players" min="5" max="50" value="<?php echo htmlspecialchars($t->MaxPlayers ?? ''); ?>">
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Location</label>
-                        <input type="text" name="location" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;" value="<?php echo htmlspecialchars($t->Location ?? ''); ?>">
+                    <div class="form-field">
+                        <label>Location</label>
+                        <input type="text" name="location" value="<?php echo htmlspecialchars($t->Location ?? ''); ?>">
                     </div>
 
-                    <div>
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Prize Pool (Rs.)</label>
-                        <input type="number" name="prize_pool" min="0" step="0.01" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;" value="<?php echo htmlspecialchars($t->PrizePool ?? '0'); ?>">
+                    <div class="form-field">
+                        <label>Prize Pool (Rs.)</label>
+                        <input type="number" name="prize_pool" min="0" step="0.01" value="<?php echo htmlspecialchars($t->PrizePool ?? '0'); ?>">
                     </div>
 
-                    <div style="grid-column:1/-1;">
-                        <label style="display:block;font-weight:600;margin-bottom:6px;color:#374151;">Description</label>
-                        <textarea name="description" rows="4" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;resize:vertical;box-sizing:border-box;"><?php echo htmlspecialchars($t->Description ?? ''); ?></textarea>
+                    <div class="form-field full">
+                        <label>Description</label>
+                        <textarea name="description" rows="4"><?php echo htmlspecialchars($t->Description ?? ''); ?></textarea>
                     </div>
 
                 </div>
 
-                <div style="margin-top:24px;display:flex;gap:12px;">
-                    <button type="submit" style="padding:10px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                    <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?php echo $t->TournamentID; ?>" style="padding:10px 24px;background:#f1f5f9;color:#475569;border-radius:8px;font-weight:600;text-decoration:none;font-size:14px;">Cancel</a>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
+                    <a href="<?php echo URLROOT; ?>/admin/tournament_detail/<?php echo $t->TournamentID; ?>" class="btn-form-cancel">Cancel</a>
                 </div>
             </form>
         </div>
     </main>
 </div>
 
+<script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
+<script src="<?php echo URLROOT; ?>/js/admin/tournament-form.js"></script>
 <?php require APPROOT . '/views/inc/components/footer.php'; ?>
 </body>
 </html>
