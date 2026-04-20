@@ -79,9 +79,14 @@ function matchesActivityTimeFilter(activityDate, timeFilter) {
     }
 
     if (timeFilter === 'week') {
-        const weekAgo = new Date(today);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return rowDate >= weekAgo && rowDate <= today;
+        const weekStart = new Date(today);
+        const dayOfWeek = weekStart.getDay() || 7; // Convert Sunday from 0 to 7.
+        weekStart.setDate(weekStart.getDate() - dayOfWeek + 1);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+
+        return rowDate >= weekStart && rowDate <= weekEnd;
     }
 
     if (timeFilter === 'month') {
@@ -110,8 +115,8 @@ function initializeDashboard() {
         }, index * 100);
     });
 
-    // Initialize notification system
-    showWelcomeNotification();
+    // Do not show the old automatic welcome toast on every dashboard load.
+    // Real notification helpers remain available for actions that need feedback.
 }
 
 // Sidebar Functionality

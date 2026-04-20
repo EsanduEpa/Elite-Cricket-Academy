@@ -55,31 +55,23 @@ class Admin extends Controller {
         // Status = 'pending' means not yet reviewed by admin
         $pendingFeedback = $feedbackModel->getPendingFeedbacks(5);
         
-        // STEP 6.5: FETCH MONTH-BASED SLOT AND TOURNAMENT CALENDAR DATA
-        $tournamentModel = $this->model('M_Tournament');
-
-        $slotMonthParam = $_GET['slot_month'] ?? null;
-        if ($slotMonthParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $slotMonthParam)) {
-            $slotMonthTs = strtotime($slotMonthParam);
-        } else {
-            $slotMonthTs = time();
-        }
-        $slotMonthTs = strtotime(date('Y-m-01', $slotMonthTs));
-        $slotMonthEndTs = strtotime(date('Y-m-t', $slotMonthTs));
-        $slotFrom = date('Y-m-d', $slotMonthTs);
-        $slotTo = date('Y-m-d', $slotMonthEndTs);
+        // STEP 6.5: FETCH WEEK-BASED SLOT CALENDAR DATA
+        // The dashboard calendar is a weekly view, so we load only the displayed week.
+        // Earlier this loaded the current month, which made next/previous week navigation
+        // look wrong when the selected week moved outside the initially loaded month.
+        $weekOffset = isset($_GET['week_offset']) ? (int) $_GET['week_offset'] : 0;
+        $today = time();
+        $currentDow = (int) date('N', $today); // 1 = Monday, 7 = Sunday
+        $weekStartTs = strtotime('-' . ($currentDow - 1) . ' days', $today);
+        $displayStartTs = strtotime(($weekOffset >= 0 ? '+' : '') . $weekOffset . ' weeks', $weekStartTs);
+        $displayEndTs = strtotime('+6 days', $displayStartTs);
+        $slotFrom = date('Y-m-d', $displayStartTs);
+        $slotTo = date('Y-m-d', $displayEndTs);
 
         $slotOccurrences = $slotModel->getOccurrencesForCalendar($slotFrom, $slotTo);
         $slotByDate = [];
         foreach ($slotOccurrences as $occ) {
             $slotByDate[$occ->OccurrenceDate][] = $occ;
-        }
-
-        $tournaments = $tournamentModel->getTournamentsForCalendar($slotFrom, $slotTo);
-        $tournamentsByDate = [];
-        foreach ($tournaments as $tournament) {
-            $tournamentDate = date('Y-m-d', strtotime((string) $tournament->tdate));
-            $tournamentsByDate[$tournamentDate][] = $tournament;
         }
 
         // STEP 7: PREPARE DATA ARRAY FOR VIEW
@@ -127,15 +119,12 @@ class Admin extends Controller {
             'monthlyRevenue' => $financeModel->getMonthlyRevenue(),
 
             // SLOT OCCURRENCE CALENDAR
-            'slotMonthTs'  => $slotMonthTs,
-            'slotMonthFrom' => $slotFrom,
-            'slotMonthTo'  => $slotTo,
-            'slotPrevMonth' => date('Y-m-01', strtotime('-1 month', $slotMonthTs)),
-            'slotNextMonth' => date('Y-m-01', strtotime('+1 month', $slotMonthTs)),
+            'weekOffset' => $weekOffset,
+            'displayStartTs' => $displayStartTs,
+            'displayEndTs' => $displayEndTs,
             'slotFrom'     => $slotFrom,
             'slotTo'       => $slotTo,
             'slotByDate'   => $slotByDate,
-            'tournamentsByDate' => $tournamentsByDate,
         ];
         
         // STEP 8: LOAD DASHBOARD VIEW
@@ -246,11 +235,16 @@ class Admin extends Controller {
     public function finance() {
         // Load Finance model for real database data
         $financeModel = $this->model('Finance');
+        $allowedPeriods = ['current_month', 'last_month', 'current_year', 'last_year', 'all_time'];
+        $selectedPeriod = $_GET['period'] ?? 'current_year';
+        if (!in_array($selectedPeriod, $allowedPeriods, true)) {
+            $selectedPeriod = 'current_year';
+        }
         
         // Get revenue statistics
         $stats = $financeModel->getRevenueStats();
-        $revenueCategories = $financeModel->getRevenueByCategory();
-        $recentTransactions = $financeModel->getRecentTransactions(15);
+        $revenueCategories = $financeModel->getRevenueByCategory($selectedPeriod);
+        $recentTransactions = $financeModel->getRecentTransactions(200);
         $monthlyData = $financeModel->getMonthlyData(12);
         $topSources = $financeModel->getTopRevenueSources(5);
         
@@ -264,7 +258,8 @@ class Admin extends Controller {
             'revenueCategories' => $revenueCategories,
             'recentTransactions' => $recentTransactions,
             'monthlyData' => $monthlyData,
-            'topSources' => $topSources
+            'topSources' => $topSources,
+            'selectedPeriod' => $selectedPeriod
         ];
         
         $this->view('admin/finance', $data);
