@@ -28,6 +28,7 @@ class Performance extends Controller {
             'battingStats' => $this->getBattingStats(),
             'bowlingStats' => $this->getBowlingStats(),
             'achievements' => $this->getPlayerAchievements(),
+            'availableMatches' => $perfModel->getAvailableMatches(50),
             'playerPerformanceRecords' => $perfModel->getPerformanceStatistics($playerId, true),
             'pendingPerformanceRecords' => $perfModel->getPendingPerformanceStatistics($playerId),
         ];
@@ -39,145 +40,123 @@ class Performance extends Controller {
         redirect('performance#matchHistorySection');
     }
     
-    // Add Achievement (AJAX method)
+    // Add Achievement
     public function addAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize input data
-            $data = [
-                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
-                'date' => trim($_POST['date'] ?? ''),
-                'match_name' => trim($_POST['match_name'] ?? ''),
-                'tournament' => trim($_POST['tournament'] ?? ''),
-                'achievement' => trim($_POST['achievement'] ?? ''),
-                'verified_status' => 'pending' // New achievements start as pending
-            ];
-
-            // Validate required fields
-            $errors = [];
-            if (empty($data['date'])) {
-                $errors[] = 'Date is required';
-            }
-            if (empty($data['match_name'])) {
-                $errors[] = 'Match name is required';
-            }
-            if (empty($data['tournament'])) {
-                $errors[] = 'Tournament is required';
-            }
-            if (empty($data['achievement'])) {
-                $errors[] = 'Achievement description is required';
-            }
-
-            // Return JSON response
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            // Try to add achievement to database
-            try {
-                $achievementId = $this->achievementModel->addAchievement($data);
-                
-                if ($achievementId) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Achievement added successfully! It will be reviewed by coaching staff.',
-                        'achievement_id' => $achievementId
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to add achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement creation error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            // Redirect if not POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('performance');
+            return;
         }
+
+        $data = [
+            'player_id' => $_SESSION['user_id'] ?? 6,
+            'date' => trim($_POST['date'] ?? ''),
+            'match_name' => trim($_POST['match_name'] ?? ''),
+            'tournament' => trim($_POST['tournament'] ?? ''),
+            'achievement' => trim($_POST['achievement'] ?? ''),
+            'verified_status' => 'pending'
+        ];
+
+        $errors = [];
+        if (empty($data['date'])) {
+            $errors[] = 'Date is required';
+        }
+        if (empty($data['match_name'])) {
+            $errors[] = 'Match name is required';
+        }
+        if (empty($data['tournament'])) {
+            $errors[] = 'Tournament is required';
+        }
+        if (empty($data['achievement'])) {
+            $errors[] = 'Achievement description is required';
+        }
+
+        if (!empty($errors)) {
+            flash('performance_message', implode('<br>', $errors), 'alert alert-danger');
+            redirect('performance');
+            return;
+        }
+
+        try {
+            $achievementId = $this->achievementModel->addAchievement($data);
+
+            if ($achievementId) {
+                flash('performance_message', 'Achievement added successfully. It will be reviewed by the coaching staff.');
+            } else {
+                flash('performance_message', 'Failed to add achievement. Please try again.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log("Achievement creation error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred. Please try again later.', 'alert alert-danger');
+        }
+
+        redirect('performance');
     }
 
-    // Edit Achievement (AJAX method)
+    // Edit Achievement
     public function editAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize input data
-            $data = [
-                'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
-                'player_id' => $_SESSION['user_id'] ?? 6, // Default to 6 for testing
-                'date' => trim($_POST['date'] ?? ''),
-                'match_name' => trim($_POST['match_name'] ?? ''),
-                'tournament' => trim($_POST['tournament'] ?? ''),
-                'achievement' => trim($_POST['achievement'] ?? ''),
-                'verified_status' => trim($_POST['verified_status'] ?? 'pending')
-            ];
-
-            // Validate required fields
-            $errors = [];
-            if (empty($data['achievement_id'])) {
-                $errors[] = 'Achievement ID is required';
-            }
-            if (empty($data['date'])) {
-                $errors[] = 'Date is required';
-            }
-            if (empty($data['match_name'])) {
-                $errors[] = 'Match name is required';
-            }
-            if (empty($data['tournament'])) {
-                $errors[] = 'Tournament is required';
-            }
-            if (empty($data['achievement'])) {
-                $errors[] = 'Achievement description is required';
-            }
-
-            // Return JSON response
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            // Try to update achievement in database
-            try {
-                $success = $this->achievementModel->updateAchievement($data);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Achievement updated successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to update achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement update error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
-            }
-        } else {
-            // Redirect if not POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('performance');
+            return;
         }
+
+        $playerId = $_SESSION['user_id'] ?? 6;
+        $data = [
+            'achievement_id' => filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT),
+            'player_id' => $playerId,
+            'date' => trim($_POST['date'] ?? ''),
+            'match_name' => trim($_POST['match_name'] ?? ''),
+            'tournament' => trim($_POST['tournament'] ?? ''),
+            'achievement' => trim($_POST['achievement'] ?? ''),
+            'verified_status' => 'pending'
+        ];
+
+        $errors = [];
+        if (empty($data['achievement_id'])) {
+            $errors[] = 'Achievement ID is required';
+        }
+        if (empty($data['date'])) {
+            $errors[] = 'Date is required';
+        }
+        if (empty($data['match_name'])) {
+            $errors[] = 'Match name is required';
+        }
+        if (empty($data['tournament'])) {
+            $errors[] = 'Tournament is required';
+        }
+        if (empty($data['achievement'])) {
+            $errors[] = 'Achievement description is required';
+        }
+
+        $existingAchievement = null;
+        if (empty($errors)) {
+            $existingAchievement = $this->achievementModel->getAchievementById((int) $data['achievement_id']);
+            if (!$existingAchievement || (int) ($existingAchievement->PlayerID ?? 0) !== (int) $playerId) {
+                $errors[] = 'Achievement not found or access denied';
+            } elseif (($existingAchievement->VerifiedStatus ?? 'pending') !== 'pending') {
+                $errors[] = 'Only pending achievements can be edited';
+            }
+        }
+
+        if (!empty($errors)) {
+            flash('performance_message', implode('<br>', $errors), 'alert alert-danger');
+            redirect('performance');
+            return;
+        }
+
+        try {
+            $success = $this->achievementModel->updateAchievement($data);
+
+            if ($success) {
+                flash('performance_message', 'Achievement updated successfully.');
+            } else {
+                flash('performance_message', 'Failed to update achievement. Please try again.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log("Achievement update error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred. Please try again later.', 'alert alert-danger');
+        }
+
+        redirect('performance');
     }
 
     // Get Achievement (AJAX method)
@@ -222,129 +201,96 @@ class Performance extends Controller {
         }
     }
 
-    // Delete Achievement (AJAX method)
+    // Delete Achievement
     public function deleteAchievement() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $achievementId = filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6; // Default to 6 for testing
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('performance');
+            return;
+        }
 
-            header('Content-Type: application/json');
+        $achievementId = filter_input(INPUT_POST, 'achievement_id', FILTER_VALIDATE_INT);
+        $playerId = $_SESSION['user_id'] ?? 6;
 
-            if (!$achievementId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid achievement ID'
-                ]);
+        if (!$achievementId) {
+            flash('performance_message', 'Invalid achievement ID', 'alert alert-danger');
+            redirect('performance');
+            return;
+        }
+
+        try {
+            $achievement = $this->achievementModel->getAchievementById($achievementId);
+
+            if (!$achievement || (int) $achievement->PlayerID !== (int) $playerId) {
+                flash('performance_message', 'Achievement not found or access denied', 'alert alert-danger');
+                redirect('performance');
                 return;
             }
 
-            try {
-                // First check if the achievement exists and belongs to the player
-                $achievement = $this->achievementModel->getAchievementById($achievementId);
-                
-                if (!$achievement || $achievement->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Achievement not found or access denied'
-                    ]);
-                    return;
-                }
-
-                // Check if the achievement is rejected (only rejected achievements can be deleted)
-                if ($achievement->VerifiedStatus !== 'rejected') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Only rejected achievements can be deleted'
-                    ]);
-                    return;
-                }
-
-                // Delete the achievement
-                $success = $this->achievementModel->deleteAchievement($achievementId, $playerId);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Rejected achievement deleted successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to delete achievement. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Achievement deletion error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
+            if (($achievement->VerifiedStatus ?? 'pending') !== 'rejected') {
+                flash('performance_message', 'Only rejected achievements can be deleted', 'alert alert-danger');
+                redirect('performance');
+                return;
             }
-        } else {
-            redirect('performance');
+
+            $success = $this->achievementModel->deleteAchievement($achievementId, $playerId);
+
+            if ($success) {
+                flash('performance_message', 'Rejected achievement deleted successfully.');
+            } else {
+                flash('performance_message', 'Failed to delete achievement. Please try again.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log("Achievement deletion error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred. Please try again later.', 'alert alert-danger');
         }
+
+        redirect('performance');
     }
 
-    // Add Performance Statistics (AJAX method)
+    // Add Performance Statistics
     public function addPerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = [
-                'player_id' => $_SESSION['user_id'] ?? 6,
-                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
-                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
-                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
-                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
-                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
-                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
-                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
-                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
-                'rating' => floatval($_POST['rating'] ?? 0),
-                'added_by' => $_SESSION['user_id'] ?? 6
-            ];
-
-            $errors = [];
-            if (!$data['match_id']) {
-                $errors[] = 'Please select a match';
-            }
-
-            header('Content-Type: application/json');
-            
-            if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
-                return;
-            }
-
-            try {
-                $perfModel = $this->model('M_Performance');
-                $performanceId = $perfModel->addPerformanceStatistics($data);
-                
-                if ($performanceId) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance statistics added successfully! It will be reviewed by coaching staff.',
-                        'performance_id' => $performanceId
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to add performance statistics. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance statistics creation error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error: ' . $e->getMessage(),
-                    'error_details' => 'Check if database schema is up to date. Run check_performance_schema.php'
-                ]);
-            }
-        } else {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect('performance');
+            return;
         }
+
+        $data = [
+            'player_id' => $_SESSION['user_id'] ?? 6,
+            'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
+            'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
+            'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
+            'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
+            'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
+            'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
+            'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
+            'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
+            'rating' => floatval($_POST['rating'] ?? 0),
+            'added_by' => $_SESSION['user_id'] ?? 6
+        ];
+
+        $errors = $this->validatePerformanceStats($data);
+
+        if (!empty($errors)) {
+            flash('performance_message', implode('<br>', $errors), 'alert alert-danger');
+            redirect('performance');
+            return;
+        }
+
+        try {
+            $perfModel = $this->model('M_Performance');
+            $performanceId = $perfModel->addPerformanceStatistics($data);
+
+            if ($performanceId) {
+                flash('performance_message', 'Performance statistics added successfully. They will be reviewed by the coaching staff.');
+            } else {
+                flash('performance_message', 'Failed to add performance statistics. Please try again.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log("Performance statistics creation error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred while saving performance statistics.', 'alert alert-danger');
+        }
+
+        redirect('performance');
     }
 
     // Get available matches for dropdown (AJAX method)
@@ -406,151 +352,109 @@ class Performance extends Controller {
         }
     }
 
-    // Edit/Update Performance Statistics (AJAX method)
+    // Edit/Update Performance Statistics
     public function editPerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6;
-            
-            $data = [
-                'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
-                'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
-                'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
-                'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
-                'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
-                'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
-                'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
-                'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
-                'rating' => floatval($_POST['rating'] ?? 0)
-            ];
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('performance');
+            return;
+        }
 
-            $errors = [];
-            if (!$performanceId) {
-                $errors[] = 'Invalid performance ID';
-            }
-            if (!$data['match_id']) {
-                $errors[] = 'Please select a match';
+        $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+        $playerId = $_SESSION['user_id'] ?? 6;
+        
+        $data = [
+            'match_id' => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
+            'runs_scored' => filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0,
+            'balls_faced' => filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0,
+            'wickets_taken' => filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0,
+            'overs_bowled' => floatval($_POST['overs_bowled'] ?? 0),
+            'runs_conceded' => filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0,
+            'catches' => filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0,
+            'stumpings' => filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0,
+            'rating' => floatval($_POST['rating'] ?? 0)
+        ];
+
+        $errors = $this->validatePerformanceStats($data);
+        if (!$performanceId) {
+            $errors[] = 'Invalid performance ID';
+        }
+
+        try {
+            $perfModel = $this->model('M_Performance');
+            $existing = $performanceId ? $perfModel->getPerformanceById($performanceId) : null;
+
+            if (!$existing || (int) ($existing->PlayerID ?? 0) !== (int) $playerId) {
+                $errors[] = 'Performance record not found or access denied';
+            } elseif (($existing->VerifiedStatus ?? 'pending') !== 'pending') {
+                $errors[] = 'Cannot edit verified or rejected performance records';
             }
 
-            header('Content-Type: application/json');
-            
             if (!empty($errors)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $errors
-                ]);
+                flash('performance_message', implode('<br>', array_unique($errors)), 'alert alert-danger');
+                redirect('performance');
                 return;
             }
 
-            try {
-                $perfModel = $this->model('M_Performance');
-                
-                // Check if performance exists and belongs to the player
-                $existing = $perfModel->getPerformanceById($performanceId);
-                if (!$existing || $existing->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Performance record not found or access denied'
-                    ]);
-                    return;
-                }
+            $success = $perfModel->updatePerformanceStatistics($performanceId, $data);
 
-                // Check if still pending
-                if ($existing->VerifiedStatus !== 'pending') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Cannot edit verified or rejected performance records'
-                    ]);
-                    return;
-                }
-
-                $success = $perfModel->updatePerformanceStatistics($performanceId, $data);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance statistics updated successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to update performance statistics. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance update error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
+            if ($success) {
+                flash('performance_message', 'Performance statistics updated successfully.');
+            } else {
+                flash('performance_message', 'Failed to update performance statistics. Please try again.', 'alert alert-danger');
             }
-        } else {
-            redirect('performance');
+        } catch (Exception $e) {
+            error_log("Performance update error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred. Please try again later.', 'alert alert-danger');
         }
+
+        redirect('performance');
     }
 
-    // Delete Performance Statistics (AJAX method)
+    // Delete Performance Statistics
     public function deletePerformanceStats() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
-            $playerId = $_SESSION['user_id'] ?? 6;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('performance');
+            return;
+        }
 
-            header('Content-Type: application/json');
+        $performanceId = filter_input(INPUT_POST, 'performance_id', FILTER_VALIDATE_INT);
+        $playerId = $_SESSION['user_id'] ?? 6;
 
-            if (!$performanceId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid performance ID'
-                ]);
+        if (!$performanceId) {
+            flash('performance_message', 'Invalid performance ID', 'alert alert-danger');
+            redirect('performance');
+            return;
+        }
+
+        try {
+            $perfModel = $this->model('M_Performance');
+            $existing = $perfModel->getPerformanceById($performanceId);
+
+            if (!$existing || (int) ($existing->PlayerID ?? 0) !== (int) $playerId) {
+                flash('performance_message', 'Performance record not found or access denied', 'alert alert-danger');
+                redirect('performance');
                 return;
             }
 
-            try {
-                $perfModel = $this->model('M_Performance');
-                
-                // Check if performance exists and belongs to the player
-                $existing = $perfModel->getPerformanceById($performanceId);
-                if (!$existing || $existing->PlayerID != $playerId) {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Performance record not found or access denied'
-                    ]);
-                    return;
-                }
-
-                // Check if still pending (can only delete pending records)
-                if ($existing->VerifiedStatus !== 'pending') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Can only delete pending performance records'
-                    ]);
-                    return;
-                }
-
-                $success = $perfModel->deletePerformanceStatistics($performanceId, $playerId);
-                
-                if ($success) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Performance record deleted successfully!'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Failed to delete performance record. Please try again.'
-                    ]);
-                }
-            } catch (Exception $e) {
-                error_log("Performance deletion error: " . $e->getMessage());
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Database error occurred. Please try again later.'
-                ]);
+            if (($existing->VerifiedStatus ?? 'pending') !== 'pending') {
+                flash('performance_message', 'Only pending performance records can be deleted', 'alert alert-danger');
+                redirect('performance');
+                return;
             }
-        } else {
-            redirect('performance');
+
+            $success = $perfModel->deletePerformanceStatistics($performanceId, $playerId);
+
+            if ($success) {
+                flash('performance_message', 'Performance record deleted successfully.');
+            } else {
+                flash('performance_message', 'Failed to delete performance record. Please try again.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log("Performance deletion error: " . $e->getMessage());
+            flash('performance_message', 'Database error occurred. Please try again later.', 'alert alert-danger');
         }
+
+        redirect('performance');
     }
 
     // Get player achievements (for display)
@@ -586,6 +490,41 @@ class Performance extends Controller {
             ],
             
         ];
+    }
+
+    private function validatePerformanceStats(array $data): array
+    {
+        $errors = [];
+
+        if (empty($data['match_id'])) {
+            $errors[] = 'Please select a match';
+        }
+
+        $wholeNumberFields = [
+            'runs_scored' => 'Runs scored',
+            'balls_faced' => 'Balls faced',
+            'wickets_taken' => 'Wickets taken',
+            'runs_conceded' => 'Runs conceded',
+            'catches' => 'Catches',
+            'stumpings' => 'Stumpings',
+        ];
+
+        foreach ($wholeNumberFields as $field => $label) {
+            if (($data[$field] ?? 0) < 0) {
+                $errors[] = $label . ' cannot be negative';
+            }
+        }
+
+        if (($data['overs_bowled'] ?? 0) < 0) {
+            $errors[] = 'Overs bowled cannot be negative';
+        }
+
+        $rating = (float) ($data['rating'] ?? 0);
+        if ($rating < 0 || $rating > 10) {
+            $errors[] = 'Overall rating must be between 0 and 10';
+        }
+
+        return $errors;
     }
     
     // Achievements

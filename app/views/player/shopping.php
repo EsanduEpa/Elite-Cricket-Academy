@@ -30,6 +30,8 @@
             </div>
         </div>
 
+        <?php flash('shopping_message'); ?>
+
 
         
 
@@ -149,21 +151,35 @@
                                 </div>
 
 
-                                
+
 
                                 <div class="product-actions">
-                                    <button class="btn btn-view js-view-product"
-                                            data-product-id="<?php echo $product->ProductID; ?>">
+                                    <button
+                                            class="btn btn-view js-view-product"
+                                            type="button"
+                                            data-product-id="<?php echo (int) $product->ProductID; ?>"
+                                            data-name="<?php echo htmlspecialchars((string)($product->Name ?? ''), ENT_QUOTES); ?>"
+                                            data-price="<?php echo htmlspecialchars((string)($product->Price ?? 0), ENT_QUOTES); ?>"
+                                            data-image="<?php echo htmlspecialchars((string)$imagePath, ENT_QUOTES); ?>"
+                                            data-sku="<?php echo htmlspecialchars((string)($product->SKU ?? 'N/A'), ENT_QUOTES); ?>"
+                                            data-category-label="<?php echo htmlspecialchars((string)($product->Category ?? ''), ENT_QUOTES); ?>"
+                                            data-brand-label="<?php echo htmlspecialchars((string)($product->Brand ?? 'N/A'), ENT_QUOTES); ?>"
+                                            data-stock="<?php echo (int)($product->StockQuantity ?? 0); ?>"
+                                            data-description="<?php echo htmlspecialchars((string)($product->Description ?? 'No description available'), ENT_QUOTES); ?>"
+                                            data-weight="<?php echo htmlspecialchars((string)($product->Weight ?? ''), ENT_QUOTES); ?>"
+                                            data-dimensions="<?php echo htmlspecialchars((string)($product->Dimensions ?? ''), ENT_QUOTES); ?>"
+                                            data-status="<?php echo htmlspecialchars((string)($product->Status ?? 'active'), ENT_QUOTES); ?>">
                                         View Details
                                     </button>
                                     <?php if ($product->StockQuantity > 0): ?>
-                                        <button class="btn btn-cart add-to-cart"
-                                                data-product-id="<?php echo $product->ProductID; ?>"
-                                                data-name="<?php echo htmlspecialchars($product->Name); ?>"
-                                                data-price="<?php echo $product->Price; ?>"
-                                                data-image="<?php echo $imagePath; ?>">
-                                            Add to Cart
-                                        </button>
+                                        <form method="POST" action="<?php echo URLROOT; ?>/player/addToCart">
+                                            <input type="hidden" name="product_id" value="<?php echo (int) $product->ProductID; ?>">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <input type="hidden" name="return_to" value="shopping">
+                                            <button class="btn btn-cart" type="submit">
+                                                Add to Cart
+                                            </button>
+                                        </form>
                                     <?php else: ?>
                                         <button class="btn btn-cart" disabled>Out of Stock</button>
                                     <?php endif; ?>
@@ -275,14 +291,22 @@
                         </div>
                     </div>
 
-                    <div class="action-buttons">
-                        <button class="btn-modal primary js-add-to-cart-details">
+                    <form id="productDetailsAddToCartForm" method="POST" action="<?php echo URLROOT; ?>/player/addToCart" class="action-buttons">
+                        <input type="hidden" id="productDetailFormId" name="product_id" value="">
+                        <input type="hidden" id="productDetailFormQuantity" name="quantity" value="1">
+                        <input type="hidden" name="return_to" value="shopping">
+                        <button type="submit" class="btn-modal primary js-add-to-cart-details">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <button type="button" class="btn-modal secondary js-buy-now-details">
+                    </form>
+                    <form id="productDetailsBuyNowForm" method="POST" action="<?php echo URLROOT; ?>/player/addToCart" class="action-buttons">
+                        <input type="hidden" id="productBuyNowFormId" name="product_id" value="">
+                        <input type="hidden" id="productBuyNowQuantity" name="quantity" value="1">
+                        <input type="hidden" name="return_to" value="cart">
+                        <button type="submit" class="btn-modal secondary js-buy-now-details">
                             <i class="fas fa-bolt"></i> Buy Now
                         </button>
-                    </div>
+                    </form>
                 </div>
 
                 <!-- Additional Product Information -->
@@ -323,7 +347,7 @@
             <button type="button" class="btn-modal secondary js-close-product-details">
                 <i class="fas fa-times"></i> Close
             </button>
-            <button type="button" class="btn-modal primary js-add-to-cart-details">
+            <button type="submit" class="btn-modal primary" form="productDetailsAddToCartForm">
                 <i class="fas fa-cart-plus"></i> Add to Cart
             </button>
         </div>
