@@ -173,22 +173,32 @@ class Trainer extends Controller {
         // Own plans + read-only view of other trainers' active plans
         $workoutPlans = $trainerModel->getWorkoutPlansWithVisibility($trainer_id);
         $players      = $trainerModel->getAllPlayers();
+        $assignedPlayersByPlan = [];
+        if (!empty($workoutPlans)) {
+            foreach ($workoutPlans as $plan) {
+                $assignedPlayers = $trainerModel->getAssignedPlayersForPlan((int)($plan->PlanID ?? 0));
+                $assignedPlayersByPlan[(int)($plan->PlanID ?? 0)] = array_map(function ($player) use ($trainer_id) {
+                    $row = (array)$player;
+                    $row['can_manage'] = ((int)($player->AssignedBy ?? 0) === (int)$trainer_id);
+                    return $row;
+                }, $assignedPlayers ?: []);
+            }
+        }
 
         $data = [
             'title'        => 'Workout Plans',
             'workout_plans' => $workoutPlans,
-            'players'      => $players
+            'players'      => $players,
+            'assigned_players_by_plan' => $assignedPlayersByPlan
         ];
 
         $this->view('trainer/workout', $data);
     }
 
-    // Assign an existing workout plan to a player (POST, JSON response)
+    // Assign an existing workout plan to a player
     public function assignPlanToPlayer() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            redirect('trainer/workout');
             return;
         }
 
@@ -202,14 +212,16 @@ class Trainer extends Controller {
                         : null;
 
         if (!$plan_id || !$player_id) {
-            echo json_encode(['success' => false, 'message' => 'Plan and player are required']);
+            flash('workout_message', 'Plan and player are required', 'alert alert-danger');
+            redirect('trainer/workout');
             return;
         }
 
         // Verify plan exists and is active/draft (not archived)
         $plan = $trainerModel->getWorkoutPlanById($plan_id);
         if (!$plan || $plan->Status === 'archived') {
-            echo json_encode(['success' => false, 'message' => 'Plan not found or is archived']);
+            flash('workout_message', 'Plan not found or is archived', 'alert alert-danger');
+            redirect('trainer/workout');
             return;
         }
 
@@ -221,20 +233,20 @@ class Trainer extends Controller {
         ]);
 
         if ($result === 'duplicate') {
-            echo json_encode(['success' => false, 'message' => 'This player already has an active assignment for this plan']);
+            flash('workout_message', 'This player already has an active assignment for this plan', 'alert alert-danger');
         } elseif ($result === true) {
-            echo json_encode(['success' => true, 'message' => 'Plan assigned successfully']);
+            flash('workout_message', 'Plan assigned successfully', 'alert alert-success');
         } else {
-            echo json_encode(['success' => false, 'message' => 'Database error while assigning plan']);
+            flash('workout_message', 'Database error while assigning plan', 'alert alert-danger');
         }
+
+        redirect('trainer/workout');
     }
 
-    // Unassign a workout plan from a player (POST, JSON response)
+    // Unassign a workout plan from a player
     public function unassignPlanFromPlayer() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            redirect('trainer/workout');
             return;
         }
 
@@ -244,23 +256,24 @@ class Trainer extends Controller {
         $player_id    = isset($_POST['player_id']) ? (int)$_POST['player_id'] : 0;
 
         if (!$plan_id || !$player_id) {
-            echo json_encode(['success' => false, 'message' => 'Plan and player are required']);
+            flash('workout_message', 'Plan and player are required', 'alert alert-danger');
+            redirect('trainer/workout');
             return;
         }
 
         if ($trainerModel->unassignPlanFromPlayer($plan_id, $player_id, $trainer_id)) {
-            echo json_encode(['success' => true, 'message' => 'Assignment removed']);
+            flash('workout_message', 'Assignment removed', 'alert alert-success');
         } else {
-            echo json_encode(['success' => false, 'message' => 'Could not remove assignment. You may not have permission (only the assigning trainer can unassign).']);
+            flash('workout_message', 'Could not remove assignment. You may not have permission (only the assigning trainer can unassign).', 'alert alert-danger');
         }
+
+        redirect('trainer/workout');
     }
 
     // Update the status of an assignment (active / completed / paused) — POST, JSON
     public function updateAssignmentStatus() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            redirect('trainer/workout');
             return;
         }
 
@@ -271,15 +284,18 @@ class Trainer extends Controller {
         $status       = isset($_POST['status'])    ? trim($_POST['status'])    : '';
 
         if (!$plan_id || !$player_id || !$status) {
-            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            flash('workout_message', 'Missing required fields', 'alert alert-danger');
+            redirect('trainer/workout');
             return;
         }
 
         if ($trainerModel->updateAssignmentStatus($plan_id, $player_id, $trainer_id, $status)) {
-            echo json_encode(['success' => true, 'message' => 'Assignment status updated']);
+            flash('workout_message', 'Assignment status updated', 'alert alert-success');
         } else {
-            echo json_encode(['success' => false, 'message' => 'Could not update status. You may not have permission.']);
+            flash('workout_message', 'Could not update status. You may not have permission.', 'alert alert-danger');
         }
+
+        redirect('trainer/workout');
     }
 
     // Add workout plan
@@ -465,21 +481,15 @@ class Trainer extends Controller {
 
     // Update verification status for medical records
     public function updateVerifyStatus() {
-        header('Content-Type: application/json');
-        error_log("=== updateVerifyStatus called ===");
-        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            error_log("Error: Invalid request method");
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            redirect('trainer/injury_reports');
             return;
         }
 
-        error_log("POST data: " . print_r($_POST, true));
-
         // Validate input
         if (!isset($_POST['record_id']) || !isset($_POST['verify_status'])) {
-            error_log("Error: Missing required fields");
-            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            flash('injury_message', 'Missing required fields', 'alert alert-danger');
+            redirect('trainer/injury_reports');
             return;
         }
 
@@ -493,36 +503,25 @@ class Trainer extends Controller {
         $verifyStatus = strtolower(trim($verifyStatus));
         $allowedStatuses = ['pending', 'verified', 'rejected'];
         if (!in_array($verifyStatus, $allowedStatuses, true)) {
-            error_log("Error: Invalid verification status: $verifyStatus");
-            echo json_encode(['success' => false, 'message' => 'Invalid verification status']);
+            flash('injury_message', 'Invalid verification status', 'alert alert-danger');
+            redirect('trainer/injury_reports');
             return;
         }
 
         try {
-            // Initialize medical model
             $medicalModel = $this->model('M_Medical');
-            error_log("Medical model initialized");
-
-            // Update verify status
             $result = $medicalModel->updateVerifyStatus($recordId, $verifyStatus, $verifyComments);
-            error_log("Update result: " . ($result ? 'true' : 'false'));
-            
+
             if ($result) {
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Verification status updated successfully',
-                    'record_id' => $recordId,
-                    'new_status' => $verifyStatus
-                ]);
+                flash('injury_message', 'Verification status updated successfully', 'alert alert-success');
             } else {
-                error_log("Error: Database execute returned false");
-                echo json_encode(['success' => false, 'message' => 'Failed to update verification status. Database update returned false.']);
+                flash('injury_message', 'Failed to update verification status.', 'alert alert-danger');
             }
         } catch (Exception $e) {
-            error_log("Exception: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            flash('injury_message', 'Database error: ' . $e->getMessage(), 'alert alert-danger');
         }
+
+        redirect('trainer/injury_reports');
     }
 
     // API methods for AJAX requests

@@ -37,7 +37,7 @@ if ($trainerDisplayName === '') {
         </div>
 
         <?php require APPROOT . '/views/inc/components/trainer_sidebar_menu.php'; ?>
-        
+
         <!-- Trainer Profile Section -->
         <div class="trainer-profile">
             <div class="profile-avatar">
@@ -56,7 +56,7 @@ if ($trainerDisplayName === '') {
                 </a>
             </div>
         </div>
-        
+
         <div class="sidebar-footer">
             <a href="<?php echo URLROOT; ?>/login/logout" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">
                 <i class="fas fa-sign-out-alt"></i>
@@ -76,6 +76,8 @@ if ($trainerDisplayName === '') {
                 </div>
             </div>
         </div>
+
+        <?php flash('injury_message'); ?>
 
         <!-- Medical Reports Table -->
         <div class="schedule-card">
@@ -101,7 +103,28 @@ if ($trainerDisplayName === '') {
                     <tbody>
                         <?php if (!empty($data['medical_records'])): ?>
                             <?php foreach ($data['medical_records'] as $record): ?>
-                                <tr data-record-id="<?php echo $record->RecordID; ?>">
+                                <?php
+                                    $verifyStatusRaw = $record->verifyStatus ?? ($record->VerifiedStatus ?? 'pending');
+                                    $verifyStatus = strtolower(trim((string)$verifyStatusRaw));
+                                    if (in_array($verifyStatus, ['1', 'yes', 'true'], true) || $verifyStatus === 'approved') {
+                                        $verifyStatus = 'verified';
+                                    } elseif (in_array($verifyStatus, ['0', 'no', 'false', ''], true)) {
+                                        $verifyStatus = 'pending';
+                                    }
+                                    if (!in_array($verifyStatus, ['pending', 'verified', 'rejected'], true)) {
+                                        $verifyStatus = 'pending';
+                                    }
+                                    $verifyStatusLabel = ucfirst($verifyStatus);
+                                    $receiptPath = !empty($record->DiagnosisReceiptURL)
+                                        ? str_replace('public/', '', $record->DiagnosisReceiptURL)
+                                        : '';
+                                    $injuryDetails = trim((string)($record->bodyarea ?? ''));
+                                    $diagnosis = trim((string)($record->Diagnosis ?? ''));
+                                    if ($diagnosis !== '') {
+                                        $injuryDetails .= ($injuryDetails !== '' ? ' - ' : '') . $diagnosis;
+                                    }
+                                ?>
+                                <tr data-record-id="<?php echo (int)$record->RecordID; ?>">
                                     <td style="text-align: center;">
                                         <div class="table-cell-primary">
                                             <?php echo date('M d, Y', strtotime($record->InjuryDate)); ?>
@@ -110,25 +133,21 @@ if ($trainerDisplayName === '') {
                                     </td>
                                     <td>
                                         <div class="table-cell-title">
-                                            <?php echo htmlspecialchars($record->player_name ?? 'Unknown'); ?>
+                                            <?php echo htmlspecialchars((string)($record->player_name ?? 'Unknown'), ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="table-cell-details">
-                                            <strong><?php echo htmlspecialchars($record->bodyarea ?? 'N/A'); ?></strong>
+                                            <strong><?php echo htmlspecialchars((string)($record->bodyarea ?? 'N/A'), ENT_QUOTES, 'UTF-8'); ?></strong>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="table-cell-details">
-                                            <?php echo htmlspecialchars($record->Diagnosis); ?>
+                                            <?php echo htmlspecialchars((string)($record->Diagnosis ?? ''), ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                     </td>
                                     <td style="text-align: center;">
-                                        <?php if (!empty($record->DiagnosisReceiptURL)): ?>
-                                            <?php 
-                                                // Remove 'public/' prefix if exists for correct URL
-                                                $receiptPath = str_replace('public/', '', $record->DiagnosisReceiptURL);
-                                            ?>
+                                        <?php if ($receiptPath !== ''): ?>
                                             <a href="<?php echo URLROOT . '/' . $receiptPath; ?>" target="_blank" class="btn-sm" style="background: #17a2b8;">
                                                 <i class="fas fa-file-alt"></i> View
                                             </a>
@@ -137,32 +156,25 @@ if ($trainerDisplayName === '') {
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align: center;">
-                                        <span class="table-badge status-<?php echo strtolower($record->RecoveryStatus); ?>">
-                                            <?php echo htmlspecialchars($record->RecoveryStatus); ?>
+                                        <span class="table-badge status-<?php echo strtolower((string)$record->RecoveryStatus); ?>">
+                                            <?php echo htmlspecialchars((string)$record->RecoveryStatus, ENT_QUOTES, 'UTF-8'); ?>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <?php
-                                            $verifyStatusRaw = $record->verifyStatus ?? ($record->VerifiedStatus ?? 'pending');
-                                            $verifyStatus = strtolower(trim((string)$verifyStatusRaw));
-                                            if (in_array($verifyStatus, ['1', 'yes', 'true'], true)) {
-                                                $verifyStatus = 'verified';
-                                            } elseif ($verifyStatus === 'approved') {
-                                                $verifyStatus = 'verified';
-                                            } elseif (in_array($verifyStatus, ['0', 'no', 'false', ''], true)) {
-                                                $verifyStatus = 'pending';
-                                            }
-                                            if (!in_array($verifyStatus, ['pending', 'verified', 'rejected'], true)) {
-                                                $verifyStatus = 'pending';
-                                            }
-                                            $verifyStatusLabel = ucfirst($verifyStatus);
-                                        ?>
                                         <span class="table-badge verify-status-badge verify-status-<?php echo $verifyStatus; ?>">
-                                            <?php echo htmlspecialchars($verifyStatusLabel); ?>
+                                            <?php echo htmlspecialchars($verifyStatusLabel, ENT_QUOTES, 'UTF-8'); ?>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
-                                        <button class="action-btn verify-btn" onclick='openVerifyModal(<?php echo (int)$record->RecordID; ?>, <?php echo htmlspecialchars(json_encode($record->player_name ?? 'Unknown'), ENT_QUOTES, "UTF-8"); ?>, <?php echo htmlspecialchars(json_encode(($record->bodyarea ?? '') . ' — ' . ($record->Diagnosis ?? '')), ENT_QUOTES, "UTF-8"); ?>)'>
+                                        <button
+                                            class="action-btn verify-btn"
+                                            type="button"
+                                            data-record-id="<?php echo (int)$record->RecordID; ?>"
+                                            data-player-name="<?php echo htmlspecialchars((string)($record->player_name ?? 'Unknown'), ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-injury-details="<?php echo htmlspecialchars($injuryDetails, ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-verify-status="<?php echo htmlspecialchars($verifyStatus, ENT_QUOTES, 'UTF-8'); ?>"
+                                            onclick="openVerifyModal(this)"
+                                        >
                                             <i class="fas fa-check-circle"></i> Verify
                                         </button>
                                     </td>
@@ -187,43 +199,42 @@ if ($trainerDisplayName === '') {
             <h3><i class="fas fa-check-circle"></i> Verify Medical Report</h3>
             <span class="close" onclick="closeVerifyModal()">&times;</span>
         </div>
-        <div class="modal-body">
-            <input type="hidden" id="verify_record_id">
-            <div class="form-group">
-                <label><strong>Player:</strong></label>
-                <p id="verify_player_name"></p>
+        <form method="POST" action="<?php echo URLROOT; ?>/trainer/updateVerifyStatus">
+            <div class="modal-body">
+                <input type="hidden" id="verify_record_id" name="record_id">
+                <div class="form-group">
+                    <label><strong>Player:</strong></label>
+                    <p id="verify_player_name"></p>
+                </div>
+                <div class="form-group">
+                    <label><strong>Body Area &amp; Diagnosis:</strong></label>
+                    <p id="verify_injury_details"></p>
+                </div>
+                <div class="form-group">
+                    <label for="verify_status">Verification Status:</label>
+                    <select id="verify_status" name="verify_status" class="form-control" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="verify_comments">Comments (Optional):</label>
+                    <textarea id="verify_comments" name="verify_comments" class="form-control" rows="3" placeholder="Add any verification notes..."></textarea>
+                </div>
             </div>
-            <div class="form-group">
-                <label><strong>Body Area &amp; Diagnosis:</strong></label>
-                <p id="verify_injury_details"></p>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeVerifyModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
             </div>
-            <div class="form-group">
-                <label for="verify_status">Verification Status:</label>
-                <select id="verify_status" class="form-control" required>
-                    <option value="">-- Select Status --</option>
-                    <option value="verified">Verified</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="pending">Pending</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="verify_comments">Comments (Optional):</label>
-                <textarea id="verify_comments" class="form-control" rows="3" placeholder="Add any verification notes..."></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeVerifyModal()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="submitVerification()">
-                <i class="fas fa-save"></i> Update Status
-            </button>
-        </div>
+        </form>
     </div>
 </div>
 
 <script src="<?php echo URLROOT; ?>/js/common/sidebar.js"></script>
-<script>
-window.TRAINER_VERIFY_STATUS_URL = '<?php echo URLROOT; ?>/trainer/updateVerifyStatus';
-</script>
 <script src="<?php echo URLROOT; ?>/js/trainer/injury-reports.js?v=<?php echo time(); ?>"></script>
 
 </body>

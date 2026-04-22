@@ -162,7 +162,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <button class="table-badge assigned-players-btn" onclick="viewAssignedPlayers(<?php echo $plan->PlanID; ?>, '<?php echo addslashes($plan->workoutname); ?>')"
+                                            <button class="table-badge assigned-players-btn" type="button" onclick="openAssignedModal('assignedPlayersModal_<?php echo (int)$plan->PlanID; ?>')"
                                                 style="background:rgba(74,144,226,0.1);color:#4A90E2;border:1px solid rgba(74,144,226,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;">
                                                 <i class="fas fa-users"></i>
                                                 <?php echo $assignedCount; ?> player<?php echo $assignedCount !== 1 ? 's' : ''; ?>
@@ -187,7 +187,7 @@
                                                             'duration'      => $plan->Duration,
                                                             'videolink'     => $plan->VideoLink ?? '',
                                                             'intensity'     => $plan->Intensity ?? 'Moderate',
-                                                           
+                                                            'notsuitablefor'=> $plan->NotSuitableFor ?? 'None (General)',
                                                             'benefits'      => $plan->Benefits ?? '',
                                                             'status'        => $planStatus
                                                         ]), ENT_QUOTES, 'UTF-8'); ?>"
@@ -424,8 +424,7 @@
         <div style="background:#fff; border-radius:12px; padding:30px; max-width:480px; width:90%; position:relative;">
             <h3 style="margin:0 0 5px; color:#1a1a2e;"><i class="fas fa-user-plus" style="color:#4A90E2;"></i> Assign Plan to Player</h3>
             <p id="assignModalSubtitle" style="color:#666; margin:0 0 20px; font-size:13px;"></p>
-            <div id="assignFeedback" style="display:none; padding:10px 15px; border-radius:8px; margin-bottom:15px; font-size:13px;"></div>
-            <form id="assignForm">
+            <form id="assignForm" method="POST" action="<?php echo URLROOT; ?>/trainer/assignPlanToPlayer">
                 <input type="hidden" id="assignPlanId" name="plan_id">
                 <div style="margin-bottom:15px;">
                     <label style="display:block; font-weight:600; color:#333; margin-bottom:6px;"><i class="fas fa-user"></i> Select Player *</label>
@@ -449,18 +448,73 @@
         </div>
     </div>
 
-    <!-- ============= VIEW ASSIGNED PLAYERS MODAL ============= -->
-    <div id="assignedPlayersModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-        <div style="background:#fff; border-radius:12px; padding:30px; max-width:640px; width:92%; max-height:80vh; overflow-y:auto; position:relative;">
-            <h3 id="assignedModalTitle" style="margin:0 0 20px; color:#1a1a2e;"><i class="fas fa-users" style="color:#4A90E2;"></i> Assigned Players</h3>
-            <div id="assignedPlayersList">
-                <p style="color:#666; text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</p>
-            </div>
-            <div style="text-align:right; margin-top:20px;">
-                <button onclick="closeAssignedModal()" style="padding:10px 20px; border:none; border-radius:8px; background:#4A90E2; color:#fff; cursor:pointer; font-weight:500;">Close</button>
+    <?php foreach (($data['workout_plans'] ?? []) as $plan): ?>
+        <?php
+            $planId = (int)($plan->PlanID ?? 0);
+            $assignedPlayers = $data['assigned_players_by_plan'][$planId] ?? [];
+        ?>
+        <div id="assignedPlayersModal_<?php echo $planId; ?>" class="assigned-players-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; padding:30px; max-width:640px; width:92%; max-height:80vh; overflow-y:auto; position:relative;">
+                <h3 style="margin:0 0 20px; color:#1a1a2e;"><i class="fas fa-users" style="color:#4A90E2;"></i> Players - <?php echo htmlspecialchars((string)($plan->workoutname ?? 'Plan')); ?></h3>
+                <?php if (empty($assignedPlayers)): ?>
+                    <p style="color:#999;text-align:center;padding:30px;"><i class="fas fa-users-slash" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No players assigned yet.</p>
+                <?php else: ?>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Player</th>
+                                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Assigned</th>
+                                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">End Date</th>
+                                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Status</th>
+                                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;">Assigned By</th>
+                                <th style="padding:8px 12px;text-align:center;font-weight:600;color:#374151;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($assignedPlayers as $player): ?>
+                                <?php $assignmentStatus = (string)($player['assignment_status'] ?? 'active'); ?>
+                                <tr style="border-bottom:1px solid #f0f0f0;">
+                                    <td style="padding:10px 12px;">
+                                        <strong><?php echo htmlspecialchars((string)($player['player_name'] ?? 'Player')); ?></strong><br>
+                                        <span style="color:#999;font-size:11px;"><?php echo htmlspecialchars((string)($player['player_email'] ?? '')); ?></span>
+                                    </td>
+                                    <td style="padding:10px 12px;"><?php echo htmlspecialchars((string)($player['AssignedDate'] ?? '-')); ?></td>
+                                    <td style="padding:10px 12px;"><?php echo !empty($player['EndDate']) ? htmlspecialchars((string)$player['EndDate']) : '<span style="color:#999;">open</span>'; ?></td>
+                                    <td style="padding:10px 12px;"><span style="font-weight:600;text-transform:capitalize;"><?php echo htmlspecialchars($assignmentStatus); ?></span></td>
+                                    <td style="padding:10px 12px;"><?php echo htmlspecialchars((string)($player['assigned_by_name'] ?? '-')); ?></td>
+                                    <td style="padding:10px 12px;text-align:center;">
+                                        <?php if (!empty($player['can_manage'])): ?>
+                                            <form method="POST" action="<?php echo URLROOT; ?>/trainer/updateAssignmentStatus" style="display:inline-flex;align-items:center;gap:6px;margin-right:6px;">
+                                                <input type="hidden" name="plan_id" value="<?php echo $planId; ?>">
+                                                <input type="hidden" name="player_id" value="<?php echo (int)($player['PlayerID'] ?? 0); ?>">
+                                                <select name="status" onchange="this.form.submit()" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                                                    <option value="active" <?php echo $assignmentStatus === 'active' ? 'selected' : ''; ?>>Active</option>
+                                                    <option value="paused" <?php echo $assignmentStatus === 'paused' ? 'selected' : ''; ?>>Paused</option>
+                                                    <option value="completed" <?php echo $assignmentStatus === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                                </select>
+                                            </form>
+                                            <form method="POST" action="<?php echo URLROOT; ?>/trainer/unassignPlanFromPlayer" style="display:inline;">
+                                                <input type="hidden" name="plan_id" value="<?php echo $planId; ?>">
+                                                <input type="hidden" name="player_id" value="<?php echo (int)($player['PlayerID'] ?? 0); ?>">
+                                                <button type="submit" style="padding:4px 10px;border:none;border-radius:6px;background:rgba(255,59,48,0.1);color:#ff3b30;cursor:pointer;font-size:12px;" title="Remove assignment">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span style="color:#999;">Read only</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+                <div style="text-align:right; margin-top:20px;">
+                    <button type="button" onclick="closeAssignedModal('assignedPlayersModal_<?php echo $planId; ?>')" style="padding:10px 20px; border:none; border-radius:8px; background:#4A90E2; color:#fff; cursor:pointer; font-weight:500;">Close</button>
+                </div>
             </div>
         </div>
-    </div>
+    <?php endforeach; ?>
 
 
 <?php require_once APPROOT . '/views/inc/components/footer.php'; ?>
