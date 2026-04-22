@@ -20,6 +20,8 @@
                 </div>
             </div>
 
+            <?php flash('performance_message'); ?>
+
             <?php
                 $performanceSummary = $data['performanceSummary'] ?? [
                     'batting_avg' => 0,
@@ -541,18 +543,55 @@
                                         </td>
                                         <td class="table-cell-center achievement-actions-cell">
                                             <?php if ($achievement->VerifiedStatus === 'pending'): ?>
-                                                <button class="action-btn action-btn-xs" type="button" data-performance-action="edit-achievement" data-achievement-id="<?php echo $achievement->AchievementID; ?>">
+                                                <button
+                                                    class="action-btn action-btn-xs"
+                                                    type="button"
+                                                    data-performance-action="edit-achievement"
+                                                    data-achievement-id="<?php echo (int) $achievement->AchievementID; ?>"
+                                                    data-date="<?php echo htmlspecialchars((string) ($achievement->Date ?? ''), ENT_QUOTES); ?>"
+                                                    data-tournament="<?php echo htmlspecialchars((string) ($achievement->Tournament ?? ''), ENT_QUOTES); ?>"
+                                                    data-match-name="<?php echo htmlspecialchars((string) ($achievement->MatchName ?? ''), ENT_QUOTES); ?>"
+                                                    data-achievement="<?php echo htmlspecialchars((string) ($achievement->Achievement ?? ''), ENT_QUOTES); ?>"
+                                                    data-verified-status="<?php echo htmlspecialchars((string) ($achievement->VerifiedStatus ?? 'pending'), ENT_QUOTES); ?>"
+                                                    data-created-at="<?php echo htmlspecialchars((string) ($achievement->CreatedAt ?? ''), ENT_QUOTES); ?>">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             <?php elseif ($achievement->VerifiedStatus === 'rejected'): ?>
-                                                <button class="action-btn action-btn-xs action-btn-spaced" type="button" data-performance-action="view-achievement" data-achievement-id="<?php echo $achievement->AchievementID; ?>">
+                                                <button
+                                                    class="action-btn action-btn-xs action-btn-spaced"
+                                                    type="button"
+                                                    data-performance-action="view-achievement"
+                                                    data-achievement-id="<?php echo (int) $achievement->AchievementID; ?>"
+                                                    data-date="<?php echo htmlspecialchars((string) ($achievement->Date ?? ''), ENT_QUOTES); ?>"
+                                                    data-tournament="<?php echo htmlspecialchars((string) ($achievement->Tournament ?? ''), ENT_QUOTES); ?>"
+                                                    data-match-name="<?php echo htmlspecialchars((string) ($achievement->MatchName ?? ''), ENT_QUOTES); ?>"
+                                                    data-achievement="<?php echo htmlspecialchars((string) ($achievement->Achievement ?? ''), ENT_QUOTES); ?>"
+                                                    data-verified-status="<?php echo htmlspecialchars((string) ($achievement->VerifiedStatus ?? 'pending'), ENT_QUOTES); ?>"
+                                                    data-created-at="<?php echo htmlspecialchars((string) ($achievement->CreatedAt ?? ''), ENT_QUOTES); ?>">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="action-btn action-btn-xs action-btn-danger" type="button" data-performance-action="delete-achievement" data-achievement-id="<?php echo $achievement->AchievementID; ?>" title="Delete">
+                                                <button
+                                                    class="action-btn action-btn-xs action-btn-danger"
+                                                    type="button"
+                                                    data-performance-action="delete-achievement"
+                                                    data-achievement-id="<?php echo (int) $achievement->AchievementID; ?>"
+                                                    data-tournament="<?php echo htmlspecialchars((string) ($achievement->Tournament ?? ''), ENT_QUOTES); ?>"
+                                                    data-achievement-label="<?php echo htmlspecialchars((string) ($achievement->Achievement ?? ''), ENT_QUOTES); ?>"
+                                                    title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             <?php else: ?>
-                                                <button class="action-btn action-btn-xs" type="button" data-performance-action="view-achievement" data-achievement-id="<?php echo $achievement->AchievementID; ?>">
+                                                <button
+                                                    class="action-btn action-btn-xs"
+                                                    type="button"
+                                                    data-performance-action="view-achievement"
+                                                    data-achievement-id="<?php echo (int) $achievement->AchievementID; ?>"
+                                                    data-date="<?php echo htmlspecialchars((string) ($achievement->Date ?? ''), ENT_QUOTES); ?>"
+                                                    data-tournament="<?php echo htmlspecialchars((string) ($achievement->Tournament ?? ''), ENT_QUOTES); ?>"
+                                                    data-match-name="<?php echo htmlspecialchars((string) ($achievement->MatchName ?? ''), ENT_QUOTES); ?>"
+                                                    data-achievement="<?php echo htmlspecialchars((string) ($achievement->Achievement ?? ''), ENT_QUOTES); ?>"
+                                                    data-verified-status="<?php echo htmlspecialchars((string) ($achievement->VerifiedStatus ?? 'pending'), ENT_QUOTES); ?>"
+                                                    data-created-at="<?php echo htmlspecialchars((string) ($achievement->CreatedAt ?? ''), ENT_QUOTES); ?>">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             <?php endif; ?>
@@ -652,14 +691,56 @@
                                             </span>
                                         </td>
                                         <td class="table-cell-center achievement-actions-cell">
-                                            <button class="action-btn action-btn-xs action-btn-spaced" type="button" data-performance-action="view-match-performance" data-performance-id="<?php echo $match->PerformanceID; ?>" title="View Details">
+                                            <button
+                                                class="action-btn action-btn-xs action-btn-spaced"
+                                                type="button"
+                                                data-performance-action="view-match-performance"
+                                                data-performance-id="<?php echo (int) $match->PerformanceID; ?>"
+                                                data-date="<?php echo htmlspecialchars((string) ($match->Date ?? ''), ENT_QUOTES); ?>"
+                                                data-tournament-name="<?php echo htmlspecialchars((string) ($match->TournamentName ?? ''), ENT_QUOTES); ?>"
+                                                data-opponent-team="<?php echo htmlspecialchars((string) ($match->OpponentTeam ?? ''), ENT_QUOTES); ?>"
+                                                data-venue="<?php echo htmlspecialchars((string) ($match->Venue ?? ''), ENT_QUOTES); ?>"
+                                                data-result="<?php echo htmlspecialchars((string) ($match->Result ?? ''), ENT_QUOTES); ?>"
+                                                data-runs-scored="<?php echo (int) ($match->RunsScored ?? 0); ?>"
+                                                data-balls-faced="<?php echo (int) ($match->BallsFaced ?? 0); ?>"
+                                                data-wickets-taken="<?php echo (int) ($match->WicketsTaken ?? 0); ?>"
+                                                data-overs-bowled="<?php echo htmlspecialchars((string) ($match->OversBowled ?? 0), ENT_QUOTES); ?>"
+                                                data-runs-conceded="<?php echo (int) ($match->RunsConceded ?? 0); ?>"
+                                                data-catches="<?php echo (int) ($match->Catches ?? 0); ?>"
+                                                data-stumpings="<?php echo (int) ($match->Stumpings ?? 0); ?>"
+                                                data-rating="<?php echo htmlspecialchars((string) ($match->Rating ?? 0), ENT_QUOTES); ?>"
+                                                data-verified-status="<?php echo htmlspecialchars((string) ($match->VerifiedStatus ?? 'pending'), ENT_QUOTES); ?>"
+                                                data-added-by-name="<?php echo htmlspecialchars((string) ($match->AddedByName ?? ''), ENT_QUOTES); ?>"
+                                                data-verified-by-name="<?php echo htmlspecialchars((string) ($match->VerifiedByName ?? ''), ENT_QUOTES); ?>"
+                                                title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <?php if (!isset($match->VerifiedStatus) || $match->VerifiedStatus === 'pending'): ?>
-                                                <button class="action-btn action-btn-xs action-btn-spaced" type="button" data-performance-action="edit-match-performance" data-performance-id="<?php echo $match->PerformanceID; ?>" title="Edit">
+                                                <button
+                                                    class="action-btn action-btn-xs action-btn-spaced"
+                                                    type="button"
+                                                    data-performance-action="edit-match-performance"
+                                                    data-performance-id="<?php echo (int) $match->PerformanceID; ?>"
+                                                    data-match-id="<?php echo (int) ($match->MatchID ?? 0); ?>"
+                                                    data-runs-scored="<?php echo (int) ($match->RunsScored ?? 0); ?>"
+                                                    data-balls-faced="<?php echo (int) ($match->BallsFaced ?? 0); ?>"
+                                                    data-wickets-taken="<?php echo (int) ($match->WicketsTaken ?? 0); ?>"
+                                                    data-overs-bowled="<?php echo htmlspecialchars((string) ($match->OversBowled ?? 0), ENT_QUOTES); ?>"
+                                                    data-runs-conceded="<?php echo (int) ($match->RunsConceded ?? 0); ?>"
+                                                    data-catches="<?php echo (int) ($match->Catches ?? 0); ?>"
+                                                    data-stumpings="<?php echo (int) ($match->Stumpings ?? 0); ?>"
+                                                    data-rating="<?php echo htmlspecialchars((string) ($match->Rating ?? 0), ENT_QUOTES); ?>"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="action-btn action-btn-xs action-btn-danger" type="button" data-performance-action="delete-match-performance" data-performance-id="<?php echo $match->PerformanceID; ?>" title="Delete">
+                                                <button
+                                                    class="action-btn action-btn-xs action-btn-danger"
+                                                    type="button"
+                                                    data-performance-action="delete-match-performance"
+                                                    data-performance-id="<?php echo (int) $match->PerformanceID; ?>"
+                                                    data-opponent-team="<?php echo htmlspecialchars((string) ($match->OpponentTeam ?? 'Match'), ENT_QUOTES); ?>"
+                                                    data-date="<?php echo htmlspecialchars((string) ($match->Date ?? ''), ENT_QUOTES); ?>"
+                                                    title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             <?php endif; ?>
@@ -719,7 +800,8 @@
             
             <!-- Modal Body -->
             <div class="modal-body app-modal__body">
-                <form id="performanceStatsForm" class="app-form">
+                <form id="performanceStatsForm" method="POST" action="<?php echo URLROOT; ?>/performance/addPerformanceStats" class="app-form">
+                    <input type="hidden" id="performanceId" name="performance_id">
                     <!-- Match Selection -->
                     <div class="form-group form-group-spaced app-form-group app-form-group--full">
                         <label for="matchSelect" class="app-form-label app-form-label--strong">
@@ -727,6 +809,20 @@
                         </label>
                         <select id="matchSelect" name="match_id" required class="app-form-control app-form-control--lg app-form-select">
                             <option value="">-- Select a match --</option>
+                            <?php foreach (($data['availableMatches'] ?? []) as $availableMatch): ?>
+                                <option value="<?php echo (int) $availableMatch->MatchID; ?>">
+                                    <?php
+                                        $matchDateLabel = !empty($availableMatch->Date) ? date('M d, Y', strtotime($availableMatch->Date)) : 'Unknown date';
+                                        $matchLabelParts = [
+                                            $matchDateLabel,
+                                            trim((string) ($availableMatch->OpponentTeam ?? 'Opponent')),
+                                            trim((string) ($availableMatch->Venue ?? 'Venue')),
+                                            trim((string) ($availableMatch->TournamentName ?? 'Tournament')),
+                                        ];
+                                        echo htmlspecialchars(implode(' - ', $matchLabelParts));
+                                    ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -793,7 +889,7 @@
                     <!-- Submit Button -->
                     <div class="performance-submit-section app-form-submit-section">
                         <button type="submit" class="action-btn performance-submit-button">
-                            <i class="fas fa-save"></i> Submit Performance Statistics
+                            <i class="fas fa-save"></i> <span id="performanceSubmitText">Submit Performance Statistics</span>
                         </button>
                         <p class="performance-submit-note app-form-note">
                             <i class="fas fa-shield-alt"></i> Your performance will be reviewed and verified by coaching staff
@@ -817,7 +913,7 @@
             
             <!-- Modal Body -->
             <div class="modal-body app-modal__body">
-                <form id="achievementForm" class="app-form">
+                <form id="achievementForm" method="POST" action="<?php echo URLROOT; ?>/performance/addAchievement" class="app-form">
                     <input type="hidden" id="achievementId" name="achievement_id">
                     
                     <!-- Loading Indicator -->
@@ -863,8 +959,8 @@
                             </small>
                         </div>
                         
-                        <div id="verificationStatus" class="form-group verification-status-group app-form-group app-form-group--full">
-                            <label for="verifiedStatus" class="app-form-label app-form-label--strong">
+                        <div id="verificationStatus" class="form-group verification-status-group app-form-group app-form-group--full" style="display:none;">
+                            <label class="app-form-label app-form-label--strong">
                                 <i class="fas fa-check-circle label-icon-green app-form-icon app-form-icon--success"></i> Verification Status
                             </label>
                             <select id="verifiedStatus" name="verified_status" class="app-form-control app-form-control--lg app-form-select">
@@ -883,6 +979,32 @@
                         <button type="submit" id="submitBtn"
                                 class="achievement-button achievement-button-primary">
                             <i class="fas fa-save"></i> <span id="submitText">Save Achievement</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="deletePerformanceModal" class="modal app-modal" aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--compact">
+            <div class="modal-header app-modal__header app-modal__header--danger">
+                <div class="app-modal__title-wrap">
+                    <span class="app-modal__icon"><i class="fas fa-trash"></i></span>
+                    <h2 class="app-modal__title">Delete Performance Record</h2>
+                </div>
+                <button class="close app-modal__close" type="button" data-performance-action="close-delete-performance-modal">&times;</button>
+            </div>
+            <div class="modal-body app-modal__body">
+                <form method="POST" action="<?php echo URLROOT; ?>/performance/deletePerformanceStats" class="app-form">
+                    <input type="hidden" id="deletePerformanceId" name="performance_id">
+                    <p id="deletePerformanceText">Are you sure you want to delete this performance record?</p>
+                    <div class="form-actions app-form-actions">
+                        <button type="button" class="achievement-button achievement-button-secondary" data-performance-action="close-delete-performance-modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="achievement-button achievement-button-primary">
+                            <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 </form>
@@ -945,6 +1067,32 @@
                     <p id="detailsAddedByRow" style="display:none;"><strong>Added by:</strong> <span id="detailsAddedBy">-</span></p>
                     <p id="detailsVerifiedByRow" style="display:none;"><strong>Verified by:</strong> <span id="detailsVerifiedBy">-</span></p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAchievementModal" class="modal app-modal" aria-hidden="true">
+        <div class="modal-content app-modal__dialog app-modal__dialog--compact">
+            <div class="modal-header app-modal__header app-modal__header--danger">
+                <div class="app-modal__title-wrap">
+                    <span class="app-modal__icon"><i class="fas fa-trash"></i></span>
+                    <h2 class="app-modal__title">Delete Achievement</h2>
+                </div>
+                <button class="close app-modal__close" type="button" data-performance-action="close-delete-achievement-modal">&times;</button>
+            </div>
+            <div class="modal-body app-modal__body">
+                <form method="POST" action="<?php echo URLROOT; ?>/performance/deleteAchievement" class="app-form">
+                    <input type="hidden" id="deleteAchievementId" name="achievement_id">
+                    <p id="deleteAchievementText">Are you sure you want to delete this achievement?</p>
+                    <div class="form-actions app-form-actions">
+                        <button type="button" class="achievement-button achievement-button-secondary" data-performance-action="close-delete-achievement-modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="achievement-button achievement-button-primary">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

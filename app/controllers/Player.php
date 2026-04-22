@@ -1560,68 +1560,52 @@ class Player extends Controller {
     }
 
     public function addToCart() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
-            exit;
+            redirect('player/shopping');
+            return;
         }
 
         $playerId = (int)($_SESSION['user_id'] ?? 0);
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 1);
         $result = $playerId > 0 ? $this->shopModel->addToCart($playerId, $productId, $quantity) : ['success' => false, 'message' => 'Player not found.'];
-
-        echo json_encode($result);
-        exit;
+        $this->respondToShopCartAction($result, (string)($_POST['return_to'] ?? 'shopping'));
     }
 
     public function updateCartItem() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
-            exit;
+            redirect('player/cart');
+            return;
         }
 
         $playerId = (int)($_SESSION['user_id'] ?? 0);
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 0);
         $result = $playerId > 0 ? $this->shopModel->updateCartQuantity($playerId, $productId, $quantity) : ['success' => false, 'message' => 'Player not found.'];
-
-        echo json_encode($result);
-        exit;
+        $this->respondToShopCartAction($result, (string)($_POST['return_to'] ?? 'cart'));
     }
 
     public function removeCartItem() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
-            exit;
+            redirect('player/cart');
+            return;
         }
 
         $playerId = (int)($_SESSION['user_id'] ?? 0);
         $productId = (int)($_POST['product_id'] ?? 0);
         $result = $playerId > 0 ? $this->shopModel->removeFromCart($playerId, $productId) : ['success' => false, 'message' => 'Player not found.'];
-
-        echo json_encode($result);
-        exit;
+        $this->respondToShopCartAction($result, (string)($_POST['return_to'] ?? 'cart'));
     }
 
     public function clearCart() {
-        header('Content-Type: application/json');
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
-            exit;
+            redirect('player/cart');
+            return;
         }
 
         $playerId = (int)($_SESSION['user_id'] ?? 0);
         $result = $playerId > 0 ? $this->shopModel->clearCart($playerId) : ['success' => false, 'message' => 'Player not found.', 'cart_count' => 0];
-
-        echo json_encode($result);
-        exit;
+        $this->respondToShopCartAction($result, (string)($_POST['return_to'] ?? 'cart'));
     }
 
     public function finalizeShopOrder() {
@@ -1669,7 +1653,9 @@ class Player extends Controller {
         $playerId = (int)($playerData['id'] ?? 0);
         $selectedProductIds = [];
         $selectedProductsRaw = $_POST['selected_product_ids'] ?? '';
-        if (is_string($selectedProductsRaw) && trim($selectedProductsRaw) !== '') {
+        if (is_array($selectedProductsRaw)) {
+            $selectedProductIds = array_values(array_filter(array_map('intval', $selectedProductsRaw)));
+        } elseif (is_string($selectedProductsRaw) && trim($selectedProductsRaw) !== '') {
             $decoded = json_decode($selectedProductsRaw, true);
             if (is_array($decoded)) {
                 $selectedProductIds = array_values(array_filter(array_map('intval', $decoded)));
@@ -1750,6 +1736,28 @@ class Player extends Controller {
             ],
         ];
         $this->view('player/payhere_gateway', $data);
+    }
+
+    private function respondToShopCartAction(array $result, string $returnTo = 'cart'): void
+    {
+        $accept = (string)($_SERVER['HTTP_ACCEPT'] ?? '');
+        $xrw = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+        $wantsJson = $xrw === 'xmlhttprequest' || stripos($accept, 'application/json') !== false;
+
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
+        flash(
+            'shopping_message',
+            (string)($result['message'] ?? 'Cart updated.'),
+            !empty($result['success']) ? 'alert alert-success' : 'alert alert-danger'
+        );
+
+        $target = strtolower(trim($returnTo)) === 'shopping' ? 'player/shopping' : 'player/cart';
+        redirect($target);
     }
 
     /** POST /player/facility_payhere_checkout — generate hash and auto-submit to PayHere */
