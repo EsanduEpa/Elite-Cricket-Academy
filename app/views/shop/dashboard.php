@@ -90,16 +90,18 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <div class="header-content">
-                <h1><i class="fas fa-store"></i> Shop Management Dashboard</h1>
-                <p>Manage products, orders, rentals, and facility bookings efficiently</p>
-            </div>
-            <div class="header-actions">
-                <button class="refresh-btn" onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-                <div class="current-time">
-                    <i class="fas fa-clock"></i>
-                    <span id="currentDateTime"></span>
+                <div class="header-text">
+                    <h1><i class="fas fa-store"></i> Shop Management Dashboard</h1>
+                    <p>Manage products, orders, rentals, and facility bookings efficiently</p>
+                </div>
+                <div class="header-actions">
+                    <button class="refresh-btn" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <div class="current-time">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentDateTime"></span>
+                    </div>
                 </div>
             </div>
         </div>

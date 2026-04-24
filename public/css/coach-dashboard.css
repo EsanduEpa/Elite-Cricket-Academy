@@ -1496,6 +1496,17 @@ body {
     color: white;
 }
 
+.action-btn.danger {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: white;
+}
+
+.action-btn.small {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 10px;
+}
+
 .action-btn.warning {
     background: linear-gradient(135deg, var(--warning-color), #fbbf24);
     color: white;
