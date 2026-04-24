@@ -302,6 +302,36 @@ class Shop extends Controller {
         redirect('shop/facilities');
     }
 
+    public function facilityBookings($facilityId = null) {
+        requireAuth(['ShopEmployee', 'Shop']);
+
+        $facilityId = (int)($facilityId ?? 0);
+        if ($facilityId <= 0) {
+            redirect('shop/facilities');
+            return;
+        }
+
+        $facility = $this->shopModel->getFacilityById($facilityId);
+        if (!$facility) {
+            redirect('shop/facilities');
+            return;
+        }
+
+        $slotModel = $this->model('M_SlotPlayer');
+        $grouped = $slotModel->getFacilityBookingsGrouped($facilityId);
+
+        $data = [
+            'title' => htmlspecialchars($facility->Name ?? 'Facility') . ' — Bookings',
+            'user_name' => $_SESSION['user_name'] ?? 'Shop Manager',
+            'facility' => $facility,
+            'todayBookings' => $grouped['today'],
+            'upcomingBookings' => $grouped['upcoming'],
+            'pastBookings' => $grouped['past'],
+        ];
+
+        $this->view('shop/facility_bookings', $data);
+    }
+
     public function products() {
         // Check authentication for shop employees
         requireAuth(['ShopEmployee', 'Shop']);

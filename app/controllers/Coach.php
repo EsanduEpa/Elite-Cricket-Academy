@@ -278,12 +278,14 @@ class Coach extends Controller {
         $overall = $performanceModel->getOverallStats($playerId);
         // Include pending/rejected records so coaches can review & verify.
         $matchHistory = $performanceModel->getCoachPerformanceDetails($playerId, 50);
+        $availableMatches = $performanceModel->getAvailableMatches(50);
 
         $data = [
             'title' => 'Performance Details - Coach Dashboard',
             'player' => $selectedPlayer,
             'overall' => $overall,
             'matchHistory' => $matchHistory,
+            'availableMatches' => $availableMatches,
         ];
 
         $this->view('coach/performance_details', $data);
@@ -356,7 +358,84 @@ class Coach extends Controller {
 
         redirect('coach/performance_details/' . $playerId);
     }
-    
+
+    // Coach adds a performance record on behalf of an assigned player (auto-verified).
+    public function addPlayerPerformance() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect('coach/performance');
+            return;
+        }
+
+        $coachId = (int)($_SESSION['user_id'] ?? 0);
+        $playerId = filter_input(INPUT_POST, 'player_id', FILTER_VALIDATE_INT);
+
+        if (!$playerId || $playerId <= 0) {
+            flash('coach_performance_message', 'Invalid player.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $userModel = $this->model('M_Users');
+        $assignedPlayers = $userModel->getCoachAssignedPlayers($coachId);
+        $isAssigned = false;
+        foreach ($assignedPlayers as $p) {
+            if ((int)($p->PlayerID ?? 0) === $playerId) {
+                $isAssigned = true;
+                break;
+            }
+        }
+
+        if (!$isAssigned) {
+            flash('coach_performance_message', 'Access denied. You are not assigned to this player.', 'alert alert-danger');
+            redirect('coach/performance');
+            return;
+        }
+
+        $data = [
+            'player_id'    => $playerId,
+            'match_id'     => filter_input(INPUT_POST, 'match_id', FILTER_VALIDATE_INT),
+            'runs_scored'  => max(0, (int)(filter_input(INPUT_POST, 'runs_scored', FILTER_VALIDATE_INT) ?? 0)),
+            'balls_faced'  => max(0, (int)(filter_input(INPUT_POST, 'balls_faced', FILTER_VALIDATE_INT) ?? 0)),
+            'wickets_taken'=> max(0, (int)(filter_input(INPUT_POST, 'wickets_taken', FILTER_VALIDATE_INT) ?? 0)),
+            'overs_bowled' => max(0.0, (float)($_POST['overs_bowled'] ?? 0)),
+            'runs_conceded'=> max(0, (int)(filter_input(INPUT_POST, 'runs_conceded', FILTER_VALIDATE_INT) ?? 0)),
+            'catches'      => max(0, (int)(filter_input(INPUT_POST, 'catches', FILTER_VALIDATE_INT) ?? 0)),
+            'stumpings'    => max(0, (int)(filter_input(INPUT_POST, 'stumpings', FILTER_VALIDATE_INT) ?? 0)),
+            'rating'       => min(10.0, max(0.0, (float)($_POST['rating'] ?? 0))),
+            'added_by'     => $coachId,
+        ];
+
+        $errors = [];
+        if (!$data['match_id']) {
+            $errors[] = 'Match selection is required.';
+        }
+        if ($data['rating'] < 0 || $data['rating'] > 10) {
+            $errors[] = 'Rating must be between 0 and 10.';
+        }
+
+        if (!empty($errors)) {
+            flash('coach_performance_message', implode('<br>', $errors), 'alert alert-danger');
+            redirect('coach/performance_details/' . $playerId);
+            return;
+        }
+
+        try {
+            $perfModel = $this->model('M_Performance');
+            $performanceId = $perfModel->addCoachPerformanceStatistics($data);
+
+            if ($performanceId) {
+                flash('coach_performance_message', 'Performance statistics added and verified successfully.');
+            } else {
+                flash('coach_performance_message', 'Failed to add performance statistics.', 'alert alert-danger');
+            }
+        } catch (Exception $e) {
+            error_log('Coach addPlayerPerformance error: ' . $e->getMessage());
+            flash('coach_performance_message', 'Database error occurred. Please try again.', 'alert alert-danger');
+        }
+
+        redirect('coach/performance_details/' . $playerId);
+    }
+
     public function recommendations() {
         redirect('coach/players');
     }

@@ -2000,6 +2000,50 @@ class M_SlotPlayer {
         return $this->db->resultSet();
     }
 
+    // Get all bookings for a specific facility, grouped into today / upcoming / past
+    public function getFacilityBookingsGrouped(int $facilityId): array {
+        $this->db->query(
+            'SELECT sb.BookingID, sb.Status, sb.AmountCharged, sb.PaymentStatus, sb.BookingSource, sb.CreatedAt,
+                    so.OccurrenceDate,
+                    tb.SlotLabel, tb.StartTime, tb.EndTime,
+                    f.FacilityID, f.Name AS FacilityName, f.Location,
+                    CONCAT(u.FirstName, \' \', u.LastName) AS PlayerName, u.Email AS PlayerEmail
+             FROM slot_booking sb
+             JOIN slot_occurrence so ON so.OccurrenceID = sb.OccurrenceID
+             JOIN slot_template st ON st.TemplateID = so.TemplateID
+             JOIN slot_time_band tb ON tb.SlotID = so.SlotID
+             LEFT JOIN facility f ON f.FacilityID = so.FacilityID
+             JOIN user u ON u.UserID = sb.PlayerID
+             WHERE st.SlotType = \'facility_only\'
+               AND so.FacilityID = :facility_id
+               AND sb.Status != \'cancelled\'
+             ORDER BY so.OccurrenceDate DESC, tb.StartTime DESC'
+        );
+        $this->db->bind(':facility_id', $facilityId, PDO::PARAM_INT);
+        $rows = $this->db->resultSet();
+
+        $today = date('Y-m-d');
+        $result = ['today' => [], 'upcoming' => [], 'past' => []];
+
+        foreach ($rows as $row) {
+            $date = $row->OccurrenceDate ?? '';
+            if ($date === $today) {
+                $result['today'][] = $row;
+            } elseif ($date > $today) {
+                $result['upcoming'][] = $row;
+            } else {
+                $result['past'][] = $row;
+            }
+        }
+
+        usort($result['upcoming'], fn($a, $b) => strcmp(
+            ($a->OccurrenceDate ?? '') . ($a->StartTime ?? ''),
+            ($b->OccurrenceDate ?? '') . ($b->StartTime ?? '')
+        ));
+
+        return $result;
+    }
+
     public function updateFacilityBookingStatus(int $bookingId, string $status, int $shopEmployeeId): bool|string {
         $status = strtolower(trim($status));
         $statusMap = [

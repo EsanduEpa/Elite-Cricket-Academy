@@ -488,6 +488,76 @@ class M_Performance {
         }
         return false;
     }
+
+    // Add performance statistics by a coach on behalf of a player (auto-verified)
+    public function addCoachPerformanceStatistics($data) {
+        $hasVerificationColumns = $this->checkVerificationColumns();
+
+        if ($hasVerificationColumns) {
+            $this->db->query('INSERT INTO playermatchperformance
+                (MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled,
+                 RunsConceded, Catches, Stumpings, Rating, VerifiedStatus, AddedBy, VerifiedBy, VerifiedAt)
+                VALUES (:match_id, :player_id, :runs, :balls, :wickets, :overs,
+                        :runs_conceded, :catches, :stumpings, :rating, "verified", :added_by, :verified_by, NOW())');
+
+            $this->db->bind(':match_id', $data['match_id']);
+            $this->db->bind(':player_id', $data['player_id']);
+            $this->db->bind(':runs', $data['runs_scored']);
+            $this->db->bind(':balls', $data['balls_faced']);
+            $this->db->bind(':wickets', $data['wickets_taken']);
+            $this->db->bind(':overs', $data['overs_bowled']);
+            $this->db->bind(':runs_conceded', $data['runs_conceded']);
+            $this->db->bind(':catches', $data['catches']);
+            $this->db->bind(':stumpings', $data['stumpings']);
+            $this->db->bind(':rating', $data['rating'] ?? 0);
+            $this->db->bind(':added_by', $data['added_by']);
+            $this->db->bind(':verified_by', $data['added_by']);
+        } else {
+            $this->db->query('INSERT INTO playermatchperformance
+                (MatchID, PlayerID, RunsScored, BallsFaced, WicketsTaken, OversBowled,
+                 RunsConceded, Catches, Stumpings, Rating)
+                VALUES (:match_id, :player_id, :runs, :balls, :wickets, :overs,
+                        :runs_conceded, :catches, :stumpings, :rating)');
+
+            $this->db->bind(':match_id', $data['match_id']);
+            $this->db->bind(':player_id', $data['player_id']);
+            $this->db->bind(':runs', $data['runs_scored']);
+            $this->db->bind(':balls', $data['balls_faced']);
+            $this->db->bind(':wickets', $data['wickets_taken']);
+            $this->db->bind(':overs', $data['overs_bowled']);
+            $this->db->bind(':runs_conceded', $data['runs_conceded']);
+            $this->db->bind(':catches', $data['catches']);
+            $this->db->bind(':stumpings', $data['stumpings']);
+            $this->db->bind(':rating', $data['rating'] ?? 0);
+        }
+
+        if (!$this->db->execute()) {
+            return false;
+        }
+
+        $performanceId = $this->db->lastInsertId();
+
+        if ($performanceId) {
+            $this->calculateOverallStats((int)$data['player_id']);
+
+            $this->db->query('SELECT cm.TournamentID FROM crimatch cm WHERE cm.MatchID = :match_id');
+            $this->db->bind(':match_id', $data['match_id']);
+            $matchRecord = $this->db->single();
+            $tournamentId = (int)($matchRecord->TournamentID ?? 0);
+            if ($tournamentId > 0) {
+                try {
+                    require_once APPROOT . '/models/M_TournamentResult.php';
+                    $resultModel = new M_TournamentResult();
+                    $resultModel->recalculatePlayerTournamentStatsFromPerformance($tournamentId, true);
+                    $resultModel->updateResultAwardsFromPerformance($tournamentId, true);
+                } catch (Throwable $e) {
+                    error_log('Tournament stats recalculation failed after coach add performance: ' . $e->getMessage());
+                }
+            }
+        }
+
+        return $performanceId;
+    }
     
     // Check if verification columns exist in the database
     private function checkVerificationColumns() {

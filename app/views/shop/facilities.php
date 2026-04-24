@@ -242,19 +242,9 @@
                         <?php endif; ?>
                     </div>
                     <div class="facility-actions">
-                        <?php if ($status === 'available'): ?>
-                            <button class="btn-small btn-primary" onclick="quickBook(<?php echo $id; ?>, event)">
-                                <i class="fas fa-calendar-plus"></i> Book Now
-                            </button>
-                        <?php elseif ($status === 'occupied'): ?>
-                            <button class="btn-small btn-secondary" onclick="viewBooking(<?php echo $id; ?>, event)">
-                                <i class="fas fa-eye"></i> View Booking
-                            </button>
-                        <?php else: ?>
-                            <button class="btn-small btn-warning" onclick="scheduleMaintenanceEnd(<?php echo $id; ?>, event)">
-                                <i class="fas fa-calendar-check"></i> Schedule End
-                            </button>
-                        <?php endif; ?>
+                        <a href="<?php echo URLROOT; ?>/shop/facilityBookings/<?php echo $id; ?>" class="btn-small btn-primary" onclick="event.stopPropagation();" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-calendar-alt"></i> View Bookings
+                        </a>
                     </div>
                 </div>
                 <?php
