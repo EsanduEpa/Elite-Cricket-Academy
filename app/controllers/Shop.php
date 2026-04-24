@@ -160,6 +160,8 @@ class Shop extends Controller {
             'rentals' => $this->shopModel->getAllRentals(),
             'returns' => $this->shopModel->getAllEquipmentReturns(),
             'rental_stats' => $this->shopModel->getRentalManagementStats(),
+            'equipment' => $this->shopModel->getAllEquipment(),
+            'full_width_footer' => true,
         ];
         
         $this->view('shop/rentals', $data);
