@@ -863,6 +863,23 @@ class M_Shop {
         $this->db->bind(':threshold', $threshold, PDO::PARAM_INT);
         return $this->db->resultSet();
     }
+
+    public function getAllEquipment(): array {
+        $this->db->query('SELECT
+            EquipmentID,
+            Name,
+            Category,
+            RentalPrice,
+            Stock,
+            AvailabilityStatus,
+            EqCondition,
+            Description,
+            equipmentImage
+            FROM equipment
+            ORDER BY Name ASC');
+
+        return (array)$this->db->resultSet();
+    }
     
     public function getPendingReviewsCount() {
         $this->db->query('SELECT COUNT(*) as total FROM productreview WHERE Status = "pending"');

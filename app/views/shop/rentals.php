@@ -406,8 +406,74 @@
                 </table>
             </div>
         </div>
-    </main>
-</div>
+
+        <!-- Equipment Catalog (from equipment table) -->
+        <div class="data-table" style="margin-top: 2rem;">
+            <div class="table-header">
+                <h3><i class="fas fa-warehouse"></i> Equipment Catalog</h3>
+                <div class="table-actions">
+                    <input type="text" class="search-box" placeholder="Search equipment..." id="equipmentSearch">
+                    <select class="filter-dropdown" id="equipmentCategoryFilter">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-content slot-style-table-wrap" style="overflow-x:auto;">
+                <table id="equipmentTable" class="dashboard-table slot-style-table" style="min-width: 980px; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Equipment</th>
+                            <th>Category</th>
+                            <th>Rental Price</th>
+                            <th>Stock</th>
+                            <th>Condition</th>
+                            <th>Availability</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($data['equipment'])) : ?>
+                            <?php foreach ($data['equipment'] as $equip) : ?>
+                                <tr data-search="<?php echo $escape(strtolower(($equip->Name ?? '') . ' ' . ($equip->Description ?? '') . ' ' . ($equip->Category ?? ''))); ?>" data-category="<?php echo $escape(strtolower((string)($equip->Category ?? ''))); ?>">
+                                    <td>
+                                        <div class="product-image">
+                                            <?php if (!empty($equip->equipmentImage)) : ?>
+                                                <img src="<?php echo URLROOT; ?>/<?php echo $escape($equip->equipmentImage); ?>" alt="<?php echo $escape($equip->Name ?? ''); ?>" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
+                                            <?php else : ?>
+                                                <div style="width:50px;height:50px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;">
+                                                    <?php echo strtoupper(substr((string)($equip->Name ?? ''), 0, 2)); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="table-cell-title"><?php echo $escape($equip->Name ?? 'Equipment'); ?></div>
+                                        <div class="table-cell-details"><?php echo $escape(substr((string)($equip->Description ?? ''), 0, 60)); ?><?php echo strlen((string)($equip->Description ?? '')) > 60 ? '...' : ''; ?></div>
+                                    </td>
+                                    <td style="text-align:center;"><span class="category-badge"><?php echo $escape($equip->Category ?? ''); ?></span></td>
+                                    <td>₨ <?php echo $fmtMoney($equip->RentalPrice ?? 0); ?></td>
+                                    <td><span class="stock-level <?php echo ((int)($equip->Stock ?? 0) <= 1) ? 'stock-low' : 'stock-high'; ?>"><?php echo (int)($equip->Stock ?? 0); ?> units</span></td>
+                                    <td><?php echo $escape($equip->EqCondition ?? '-'); ?></td>
+                                    <td><span class="table-badge status-<?php echo $escape(strtolower((string)($equip->AvailabilityStatus ?? 'unknown'))); ?>"><?php echo $escape(ucfirst((string)($equip->AvailabilityStatus ?? 'Unknown'))); ?></span></td>
+                                    <td>
+                                        <div class="catalog-action-buttons">
+                                            <button class="catalog-action-btn btn-view" onclick="viewEquipment(<?php echo (int)($equip->EquipmentID ?? 0); ?>)"><i class="fas fa-eye"></i> View</button>
+                                            <button class="catalog-action-btn btn-edit" onclick="editEquipment(<?php echo (int)($equip->EquipmentID ?? 0); ?>)"><i class="fas fa-edit"></i> Edit</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="8" style="text-align:center; padding: 1.25rem; color:#7f8c8d;">No equipment found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
 <!-- Return Equipment Modal (hidden until opened) -->
 <div id="returnModal" class="modal" style="display: none;">
