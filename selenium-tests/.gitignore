@@ -1,0 +1,4 @@
+.selenium/
+.pytest_cache/
+__pycache__/
+test-results.html
