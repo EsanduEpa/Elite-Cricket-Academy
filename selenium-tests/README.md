@@ -60,4 +60,14 @@ Tests keep scenarios and assertions separate from page behavior. `LoginPage` and
 
 ## Latest execution
 
-The latest local execution result is recorded after each verification run. See the final project delivery note for the current pass/fail count.
+Verified locally against `http://localhost/Elite/public` on 2026-09-21:
+
+```text
+8 passed, 0 failed
+```
+
+Command used:
+
+```powershell
+py -m pytest -v --html=test-results.html --self-contained-html -p no:cacheprovider
+```

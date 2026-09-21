@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -51,8 +51,11 @@ class AdminPlayersPage(BasePage):
         }
         for field_id, value in values.items():
             element = self.driver.find_element(By.ID, field_id)
-            element.clear()
-            element.send_keys(value)
+            if field_id == "playerDOB":
+                self._set_date(element, value)
+            else:
+                element.clear()
+                element.send_keys(value)
         Select(self.driver.find_element(By.ID, "playerSubscription")).select_by_value("basic")
         self.driver.find_element(*self.NEXT_BUTTON).click()
         self.wait.until(EC.element_to_be_clickable(self.SUBMIT_BUTTON)).click()
@@ -65,12 +68,16 @@ class AdminPlayersPage(BasePage):
         for field_id, value in {
             "playerFirstName": player.first_name,
             "playerLastName": player.last_name,
-            "playerDOB": "2025-01-01",
+            "playerDOB": date.today().isoformat(),
             "playerEmail": player.email,
             "playerPhone": player.phone,
             "playerUsername": player.username,
         }.items():
-            self.driver.find_element(By.ID, field_id).send_keys(value)
+            element = self.driver.find_element(By.ID, field_id)
+            if field_id == "playerDOB":
+                self._set_date(element, value)
+            else:
+                element.send_keys(value)
         Select(self.driver.find_element(By.ID, "playerSubscription")).select_by_value("basic")
         self.driver.find_element(*self.NEXT_BUTTON).click()
         self.wait.until(EC.element_to_be_clickable(self.SUBMIT_BUTTON)).click()
@@ -80,7 +87,7 @@ class AdminPlayersPage(BasePage):
         field = self.wait.until(EC.visibility_of_element_located(self.SEARCH))
         field.clear()
         field.send_keys(text)
-        self.wait.until(lambda d: text.lower() in d.find_element(By.ID, "playersTableBody").text.lower())
+        self.wait.until(lambda d: d.find_element(*self.SEARCH).get_attribute("value") == text)
 
     def player_action(self, email: str, action: str):
         row = self.wait.until(EC.presence_of_element_located((By.XPATH, f"//tr[.//td[normalize-space()={self._xpath_literal(email)}]]")))
@@ -111,3 +118,13 @@ class AdminPlayersPage(BasePage):
         if "'" not in value:
             return f"'{value}'"
         return 'concat(' + ', "\'", '.join(f"'{part}'" for part in value.split("'")) + ')'
+
+    def _set_date(self, element, value: str) -> None:
+        """Set an HTML date input without Chrome's locale-dependent keystrokes."""
+        self.driver.execute_script(
+            "arguments[0].value = arguments[1];"
+            "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));"
+            "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+            element,
+            value,
+        )

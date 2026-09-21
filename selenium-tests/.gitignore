@@ -1,4 +1,5 @@
 .selenium/
 .pytest_cache/
+pytest-cache-files-*/
 __pycache__/
 test-results.html

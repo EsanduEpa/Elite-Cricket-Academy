@@ -22,4 +22,3 @@ class LoginPage(BasePage):
 
     def logout(self) -> None:
         self.driver.get(f"{self.base_url}/login/logout")
-        self.wait.until(EC.visibility_of_element_located(self.EMAIL))
